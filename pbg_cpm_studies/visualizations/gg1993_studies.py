@@ -7,7 +7,7 @@ and the published read-only dashboard.
 """
 from __future__ import annotations
 import json
-from pbg_superpowers.visualization import as_visualization
+from viva_superpowers.visualization import as_visualization
 
 _INK = "#1f2937"; _MUTED = "#6b7280"; _GRID = "#eef0f3"; _CARD = "#ffffff"
 

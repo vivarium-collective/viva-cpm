@@ -1343,8 +1343,8 @@ xarray = [
 
 [[package]]
 name = "pbg-superpowers"
-version = "0.15.0"
-source = { git = "https://github.com/vivarium-collective/pbg-superpowers.git?branch=main#272457f6d892f2fa9608259906ba7c84dbe8dcdb" }
+version = "0.16.0"
+source = { git = "https://github.com/vivarium-collective/pbg-superpowers.git?branch=main#457c3bb3fb3b793ebfc3b18a360ae969539c0e12" }
 dependencies = [
     { name = "bigraph-schema" },
     { name = "click" },
@@ -2221,8 +2221,8 @@ name = "rrplugins"
 version = "2.9.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "matplotlib" },
-    { name = "numpy" },
+    { name = "matplotlib", marker = "sys_platform == 'win32'" },
+    { name = "numpy", marker = "sys_platform == 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/d4/945a59734eb6e873d4915890dd4ea04adefd91f479b4df51f5e9c6e054d2/rrplugins-2.9.2-cp312-cp312-win_amd64.whl", hash = "sha256:99ec0e919ca69d92b2df335b89aa3f02339ce1f91a5bc1e89b1a7092b39189d9", size = 15274251, upload-time = "2026-03-26T14:57:19.366Z" },
