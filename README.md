@@ -1,8 +1,8 @@
 # pbg-cpm
 
 <!-- BEGIN dashboard -->
-> ## 📊 [**Live dashboard →**](https://vivarium-collective.github.io/pbg-cpm/dashboard/)
-> Browse every investigation & study interactively, or read the [published investigation reports](https://vivarium-collective.github.io/pbg-cpm/). Auto-published from `main` on every merge.
+> ## 📊 [**Live dashboard →**](https://vivarium-collective.github.io/viva-cpm/dashboard/)
+> Browse every investigation & study interactively, or read the [published investigation reports](https://vivarium-collective.github.io/viva-cpm/). Auto-published from `main` on every merge.
 <!-- END dashboard -->
 
 A [process-bigraph](https://github.com/vivarium-collective/process-bigraph) **Cellular Potts Model** framework — a fast Rust CPM engine (2D/3D, thousands of cells) with a Python layer for pluggable subcellular models, structural constraints, schema-driven world construction, and analysis metrics. A modern, composable remake of CompuCell3D built to do better in 3D.
