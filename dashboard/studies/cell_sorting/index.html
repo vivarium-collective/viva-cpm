@@ -5,10 +5,14 @@
 <title>Study: cell_sorting</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
+<!-- Inherit the workbench light/dark theme (this page loads in an iframe;
+     same-origin, so it shares the parent's localStorage 'viv.theme'). -->
+<script>(function(){try{var t=localStorage.getItem('viv.theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
 <body>
 <main class="study-page">
 <header class="study-header">
+  <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
     <span class="study-name" id="study-name" data-slug="cell_sorting" title="cell_sorting">Cell sorting</span>
     
@@ -22,6 +26,10 @@
     
     
   </h1>
+  <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0;">
+    <button type="button" id="study-rerun" class="btn-mini" title="Re-run this study's baseline (POST /api/study-run-baseline) as a brand-new run">↻ Rerun study</button>
+  </span>
+  </div>
 </header>
 
 
@@ -107,23 +115,25 @@
 <nav class="study-tabs" aria-label="Study sections">
   <div class="study-pillars">
     <button class="study-pillar active" data-pillar="understand" onclick="_setStudyPillar('understand')">Overview</button>
-    <button class="study-pillar"        data-pillar="inquire"    onclick="_setStudyPillar('inquire')">Hypotheses</button>
     <button class="study-pillar"        data-pillar="compose"    onclick="_setStudyPillar('compose')">Model</button>
     <button class="study-pillar"        data-pillar="simulate"   onclick="_setStudyPillar('simulate')">Simulations</button>
     <button class="study-pillar"        data-pillar="readouts"   onclick="_setStudyPillar('readouts')">Readouts</button>
     <button class="study-pillar"        data-pillar="visualize"  onclick="_setStudyPillar('visualize')">Visualizations</button>
-    <button class="study-pillar"        data-pillar="report-cards" onclick="_setStudyPillar('report-cards')">Report Cards</button>
+    <button class="study-pillar"        data-pillar="tests"      onclick="_setStudyPillar('tests')">Tests</button>
+    <button class="study-pillar"        data-pillar="decide"     onclick="_setStudyPillar('decide')">Decide</button>
     <button class="study-pillar"        data-pillar="data"       onclick="_setStudyPillar('data')">Exports</button>
   </div>
   <div class="study-subnav" id="study-subnav">
     <button class="study-tab active" data-kind="overview" data-pillar="understand" onclick="_setStudyTab('overview')">Overview</button>
-    <button class="study-tab"        data-kind="tests"        data-pillar="inquire"  onclick="_setStudyTab('tests')">Tests</button>
-    <button class="study-tab"        data-kind="conclusions"  data-pillar="inquire"  onclick="_setStudyTab('conclusions')">Decide</button>
     <button class="study-tab" data-kind="compose" data-pillar="compose" onclick="_setStudyTab('compose')">Model</button>
     <button class="study-tab" data-kind="simulate" data-pillar="simulate" onclick="_setStudyTab('simulate')">Simulations</button>
     <button class="study-tab" data-kind="readouts" data-pillar="readouts" onclick="_setStudyTab('readouts')">Readouts</button>
     <button class="study-tab" data-kind="visualize" data-pillar="visualize" onclick="_setStudyTab('visualize')">Visualizations</button>
-    <button class="study-tab" data-kind="report-cards" data-pillar="report-cards" onclick="_setStudyTab('report-cards')">Report Cards</button>
+    
+    <button class="study-tab" data-kind="report-cards" data-pillar="tests" onclick="_setStudyTab('report-cards')">Report Cards</button>
+    <button class="study-tab" data-kind="tests" data-pillar="tests" onclick="_setStudyTab('tests')">Behavioral Tests</button>
+    
+    <button class="study-tab" data-kind="conclusions" data-pillar="decide" onclick="_setStudyTab('conclusions')">Decide</button>
     <button class="study-tab" data-kind="data" data-pillar="data" onclick="_setStudyTab('data')">Exports</button>
   </div>
 </nav>
@@ -508,7 +518,7 @@
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:0.8em">
         
         
-        <span class="cond-pill"><span class="cond-pill-k">emitter</span>=gg1993_data/results series-json</span>
+        
         <span class="cond-pill"><span class="cond-pill-k">status</span>=completed</span>
       </div>
       
@@ -1047,6 +1057,10 @@ window._seedFollowupProposal = _seedFollowupProposal;
   if (window.__DASH_CONFIG__ && window.__DASH_CONFIG__.mode === "snapshot") {
     var rp = document.getElementById("remote-run-panel");
     if (rp) rp.style.display = "none";
+    // "Rerun study" POSTs to a live-only endpoint — hide it alongside the
+    // remote-run launcher in a published read-only snapshot.
+    var rerunBtn = document.getElementById("study-rerun");
+    if (rerunBtn) rerunBtn.style.display = "none";
   } else if (window._initRemoteRunPinned) {
     // Live backend: relabel the remote-run card if pinned mode is enabled.
     window._initRemoteRunPinned();
