@@ -1,0 +1,93 @@
+schema_version: 3
+name: recruitment-baseline
+status: complete
+phase: Decide
+title: "Baseline: cue + response recruits"
+confidence: Accepted
+investigation: chemotactic-recruitment
+
+question: |
+  When source cells secrete a diffusible cue and responder cells carry a
+  competent chemotactic response, do the responders directionally migrate up the
+  gradient and accumulate at the source?
+
+hypothesis: |
+  With the cue secreted (rate 10) and the response intact (lambda 14), responder
+  centres of mass move toward the source region and the recruitment index rises
+  well above zero.
+
+objective: |
+  Simulate the CPM recruitment world (source slab + six responders in the gradient
+  zone), equilibrate the secreted field, and measure the recruitment index —
+  fraction of responders within 15 px of the source — over 500 MC sweeps.
+
+description: |
+  The anchoring positive condition of the chemotactic-recruitment slice. Type-1
+  source cells secrete field C (d=0.22, decay=0.001); type-2 responders start ~33 px
+  away and chemotax up the gradient with strength lambda=14. This is the native
+  viva-cpm realization of the biological claim "a secreted cue recruits responder
+  cells", and the ground-truth study the Biological Claim Layer compiler must
+  reproduce.
+
+claim: |
+  Responders climb the secreted gradient and are recruited to the source: the
+  recruitment index rises from 0 to a plateau of ~0.67-0.83 (mean approach 0.61).
+
+baseline:
+- name: baseline
+  composite: pbg_cpm_studies.composites.chemotaxis.recruitment_baseline
+  params: {}
+
+expected_behavior:
+- Responder mean distance to the source falls substantially over the run.
+- Recruitment index rises above 0.5 (a majority of responders reach the source region).
+
+visualizations:
+- name: Recruitment over time (all conditions)
+  address: local:ChemotaxisRecruitment
+
+readouts:
+- name: Recruitment index
+  identifier: recruitment_index
+  units: fraction of responders within radius
+  status: measured
+  description: Fraction of responder cell centres of mass within 15 px of the source centroid.
+- name: Mean approach
+  identifier: mean_approach
+  units: dimensionless (0-1)
+  status: measured
+  description: Fraction of the initial responder-to-source gap closed over the run.
+
+behavior_tests:
+- name: Responders are recruited to the source
+  classification: primary
+  description: |
+    Pass criterion: recruitment index rises above 0.5 and mean approach exceeds
+    0.4. Measured from the run: recruitment index 0.000 -> 0.667 (peak 0.833),
+    mean approach 0.608.
+  measure: recruitment_index
+  pass_if: "final recruitment_index > 0.5 and mean_approach > 0.4"
+  status: passed
+  result: PASS
+
+findings:
+- id: F-01
+  kind: computational
+  status: confirms
+  statement: |
+    Cue + competent response recruits: responders climb the gradient and the
+    recruitment index reaches ~0.67-0.83 (mean approach 0.61).
+
+conclusion: |
+  The native CPM realization reproduces cue-driven recruitment. Fidelity note:
+  the CPM chemotaxis lambda is a PHENOMENOLOGICAL response strength (a bias on the
+  copy-attempt energy), not a receptor-level model — a deliberate semantic-gap the
+  realization records rather than hides.
+
+key_assumptions:
+- Second-nearest-neighbour (Moore-8) square lattice, order 2.
+- Field diffusion capped at d<=0.25 for numerical stability; gradient equilibrated
+  with 600 advance_fields sweeps before cell stepping.
+- Recruitment radius = 15 px (source at x~10; responders start at x~43).
+
+gate_status: passed

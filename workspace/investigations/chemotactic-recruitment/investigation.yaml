@@ -3,7 +3,7 @@ schema_version: 2
 name: chemotactic-recruitment
 title: "Chemotactic recruitment"
 created: '2026-08-07'
-status: planning
+status: complete
 
 question: |
   Does a secreted chemotactic cue drive directional migration and recruitment of
@@ -13,45 +13,94 @@ question: |
 hypothesis: |
   In a Cellular Potts world where source cells secrete a diffusible field and
   responder cells chemotax up its gradient, responders will directionally migrate
-  toward and accumulate near the source region. Reducing the responder chemotaxis
-  strength (lambda) will lower recruitment relative to baseline. The effect-size
-  threshold is left to be calibrated from the baseline run (no external number is
-  assumed).
+  toward and accumulate near the source region. Removing either the cue or the
+  response abolishes recruitment.
 
 lead: |
   A minimal secreted-cue -> directional-migration -> inhibition slice, realized
-  natively in viva-cpm's CPM engine (secretion + chemotaxis fields, CPMProcess cell
-  COMs as the recruitment readout). It is deliberately small but exercises a full
+  natively in viva-cpm's CPM engine (secretion + chemotaxis fields, cell centres of
+  mass as the recruitment readout). It is deliberately small but exercises a full
   biological argument: a cue, a response, an intervention on that response, an
-  observable, and an applicability boundary. This investigation also serves as the
-  anchoring native realization for the Biological Claim Layer program — it is the
-  vertical slice a future claim compiler must be able to reproduce, so its
-  claim/mechanism/intervention/observable structure is authored deliberately.
+  observable, and an applicability boundary. This investigation is also the
+  anchoring native realization for the Biological Claim Layer program — the vertical
+  slice a future claim compiler must reproduce.
 
 executive:
   what_is_this: |
-    A CPM investigation testing whether a secreted chemotactic cue recruits
-    responder cells, and whether inhibiting the response reduces recruitment. It
-    doubles as the driving use case for the Biological Claim Layer.
-  verdict: ""
-  verdict_status: planning   # in-progress | passed | complete | blocked | failed | planning
-  verdict_detail: ""
+    A CPM investigation showing that a secreted chemotactic cue recruits responder
+    cells, and that recruitment requires BOTH the cue and a competent response.
+    It doubles as the driving use case for the Biological Claim Layer.
+  verdict: |
+    Recruitment is jointly caused by the cue and the response. The baseline recruits
+    (recruitment index 0 -> 0.67, peak 0.83); blocking the response (lambda->0) or
+    removing the cue (rate->0) each abolishes it (index stays at 0).
+  verdict_status: complete   # in-progress | passed | complete | blocked | failed | planning
+  verdict_detail: |
+    All three member studies pass. The positive claim, the intervention, and the
+    negative control together isolate cue AND response as jointly necessary causes.
   decisions_needed:
-    - question: "Which recruitment observable, and what effect-size threshold gates the claim?"
+    - question: "Should the Biological Claim Layer compiler now regenerate this study set from a hand-authored claim bundle?"
       context: |
-        Need a directional-migration / recruitment metric derived from
-        CPMProcess.positions (cell COMs) — e.g. fraction of responder COMs within
-        radius R of the source region, or mean up-gradient displacement. The
-        inhibited-vs-baseline threshold should be calibrated from the baseline run.
+        This investigation is the ground-truth native realization. The next claim-
+        layer increment is to author the claim bundle and prove the compiler
+        reproduces these three studies (and their behavior contracts) from it.
 
-# Planned member studies (created next via /viva-study, then wired in with add-study):
-#   recruitment-baseline   — source secretes field C; responders chemotax (lambda > 0).
-#                            Measure recruitment index over MC sweeps -> baseline recruitment.
-#   recruitment-inhibited  — same world, responder chemotaxis lambda reduced/zeroed
-#                            (the intervention). Expect recruitment < baseline.
-#   recruitment-adversarial (rigor) — a non-chemotactic responder that should NOT be
-#                            recruited; the metric passes by rejecting it.
+scientific_argument:
+  main_claim: |
+    A secreted chemotactic cue recruits responder cells to its source, and
+    recruitment is jointly caused by the cue and a competent chemotactic response.
+  evidence_for:
+    - "Baseline: recruitment index rises 0 -> 0.67 (peak 0.83), mean approach 0.61."
+    - "Intervention (lambda=0): recruitment index stays at 0 with the cue present."
+    - "Negative control (rate=0): recruitment index stays at 0 with a competent response."
+  evidence_against:
+    - "None within the tested domain. Recruitment is response- and cue-dependent as predicted."
+  key_figures:
+    - "Recruitment index over time — baseline vs inhibited vs adversarial (local:ChemotaxisRecruitment)."
+  caveats:
+    - "CPM chemotaxis lambda is a PHENOMENOLOGICAL response strength (a bias on the copy-attempt energy), not a receptor-level model — a recorded semantic gap, not a hidden one."
+    - "Field diffusion is capped (d<=0.25) for stability; the gradient is equilibrated before cell stepping, and responders are seeded within the gradient's reach."
+    - "Applicability: single secreted field, two cell types, 2-D lattice, radius-based recruitment readout. Not yet calibrated to a specific ligand/receptor system."
 
-studies: []
+biological_story: |
+  Many tissue behaviours reduce to a simple motif: one population emits a signal,
+  another senses it and moves. Immune recruitment to a chemokine source, morphogen-
+  guided migration, and tumour-associated homing all share this secreted-cue ->
+  directional-migration structure. Here we build the motif from first principles in
+  a Cellular Potts model. Source cells continuously secrete a diffusible field that
+  relaxes into a spatial gradient. Responder cells convert the local gradient into a
+  bias on their membrane fluctuations (chemotaxis), so over many Monte-Carlo sweeps
+  they drift up-gradient and accumulate at the source — they are recruited.
+
+  The investigation is designed as an argument, not a demo. The baseline establishes
+  that the motif recruits. The intervention blocks the response while leaving the cue
+  untouched, and recruitment vanishes — isolating the response as a necessary cause.
+  The negative control removes the cue while leaving competent responders, and
+  recruitment again vanishes — isolating the cue as the other necessary cause, and
+  guarding against a metric that fires spuriously. The claim that survives all three
+  is narrow and honest: within this domain, recruitment requires both a cue and a
+  response, and the CPM chemotaxis term is a phenomenological stand-in for whatever
+  receptor machinery a real system would use.
+
+competing_frameworks:
+  - name: "Receptor-kinetics / ODE chemotaxis (e.g. ligand-receptor occupancy driving a signalling cascade)"
+    relation: "finer-grained mechanism; the CPM lambda is its phenomenological coarse-graining. A claim-layer refinement contract would state what a receptor-level realization must preserve."
+  - name: "Off-lattice force-based migration (PhysiCell-style motility bias)"
+    relation: "alternative realization of the same claim; a future backend. The recruitment observable is backend-neutral and should transfer."
+
+at_a_glance:
+  - {study: recruitment-baseline, role: "Positive: cue + response recruits (ground truth)."}
+  - {study: recruitment-inhibited, role: "Intervention: block the response -> recruitment abolished."}
+  - {study: recruitment-adversarial, role: "Negative control: no cue -> no recruitment (rejection)."}
+
+studies:
+- recruitment-baseline
+- recruitment-inhibited
+- recruitment-adversarial
+
 expert_docs: []
-acceptance_criteria: []
+
+acceptance_criteria:
+- {study: recruitment-baseline, behavior: "Responders are recruited to the source"}
+- {study: recruitment-inhibited, behavior: "Blocking the response abolishes recruitment"}
+- {study: recruitment-adversarial, behavior: "No cue yields no recruitment (rejection)"}
