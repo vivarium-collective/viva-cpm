@@ -1,0 +1,57 @@
+# chemotactic-recruitment/investigation.yaml — schema v2
+schema_version: 2
+name: chemotactic-recruitment
+title: "Chemotactic recruitment"
+created: '2026-08-07'
+status: planning
+
+question: |
+  Does a secreted chemotactic cue drive directional migration and recruitment of
+  responder cells into the source region, and does inhibiting the chemotactic
+  response reduce that recruitment?
+
+hypothesis: |
+  In a Cellular Potts world where source cells secrete a diffusible field and
+  responder cells chemotax up its gradient, responders will directionally migrate
+  toward and accumulate near the source region. Reducing the responder chemotaxis
+  strength (lambda) will lower recruitment relative to baseline. The effect-size
+  threshold is left to be calibrated from the baseline run (no external number is
+  assumed).
+
+lead: |
+  A minimal secreted-cue -> directional-migration -> inhibition slice, realized
+  natively in viva-cpm's CPM engine (secretion + chemotaxis fields, CPMProcess cell
+  COMs as the recruitment readout). It is deliberately small but exercises a full
+  biological argument: a cue, a response, an intervention on that response, an
+  observable, and an applicability boundary. This investigation also serves as the
+  anchoring native realization for the Biological Claim Layer program — it is the
+  vertical slice a future claim compiler must be able to reproduce, so its
+  claim/mechanism/intervention/observable structure is authored deliberately.
+
+executive:
+  what_is_this: |
+    A CPM investigation testing whether a secreted chemotactic cue recruits
+    responder cells, and whether inhibiting the response reduces recruitment. It
+    doubles as the driving use case for the Biological Claim Layer.
+  verdict: ""
+  verdict_status: planning   # in-progress | passed | complete | blocked | failed | planning
+  verdict_detail: ""
+  decisions_needed:
+    - question: "Which recruitment observable, and what effect-size threshold gates the claim?"
+      context: |
+        Need a directional-migration / recruitment metric derived from
+        CPMProcess.positions (cell COMs) — e.g. fraction of responder COMs within
+        radius R of the source region, or mean up-gradient displacement. The
+        inhibited-vs-baseline threshold should be calibrated from the baseline run.
+
+# Planned member studies (created next via /viva-study, then wired in with add-study):
+#   recruitment-baseline   — source secretes field C; responders chemotax (lambda > 0).
+#                            Measure recruitment index over MC sweeps -> baseline recruitment.
+#   recruitment-inhibited  — same world, responder chemotaxis lambda reduced/zeroed
+#                            (the intervention). Expect recruitment < baseline.
+#   recruitment-adversarial (rigor) — a non-chemotactic responder that should NOT be
+#                            recruited; the metric passes by rejecting it.
+
+studies: []
+expert_docs: []
+acceptance_criteria: []
