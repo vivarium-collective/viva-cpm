@@ -1,0 +1,58 @@
+# Realization Graph — HOW the conceptual template is made executable in one
+# backend. Records fidelity labels, inherited defaults, explicit exclusions, and
+# the SEMANTIC GAP (what the backend cannot express) rather than hiding it.
+schema: https://vivarium-collective.org/biological-model/realization/0.1
+claim: claim:chemotactic-recruitment
+mechanism: mechanism:chemotactic-response
+backend: viva-cpm
+fidelity: real-backend        # bridges the actual Rust CPM engine (not a mock/reproduction)
+
+bindings:
+  cue:
+    implementation: "fields[].secretion — source cells emit a diffusible field C"
+    fidelity: phenomenological
+  responder-response:
+    implementation: "fields[].chemotaxis lambda — a bias on the Metropolis copy-attempt energy"
+    fidelity: phenomenological
+  recruitment-observable:
+    implementation: "recruitment_index from cell centres of mass (world.cell_coms)"
+    fidelity: equivalent
+
+intervention-binding:
+  block-chemotactic-response: "set the responder chemotaxis lambda to 0"
+
+inherited-defaults:
+  - "field diffusion capped at d <= 0.25 for numerical stability"
+  - "gradient equilibrated (600 advance_fields sweeps) before cell stepping"
+
+explicit-exclusions:
+  - receptor-occupancy dynamics
+  - three-dimensional geometry
+
+unresolved:
+  - id: hole:lambda-calibration
+    kind: unresolved-mechanism
+    statement: "quantitative mapping between the CPM chemotaxis lambda and a real chemotactic sensitivity"
+    consequence-if-unresolved: "prediction is qualitative/relative, not an absolute rate"
+
+semantic-gap:
+  - "CPM chemotaxis lambda is a PHENOMENOLOGICAL response strength (a copy-attempt energy bias), NOT a receptor-level model. A receptor-kinetics realization would refine this and must preserve the recruitment-index response to the cue+intervention."
+
+equivalence:
+  level: phenomenological-equivalent
+  note: "reproduces the recruitment phenotype and its joint cue + response dependence; NOT mechanistically equivalent to a receptor model."
+
+# The studies this realization corresponds to (a compiler would GENERATE these):
+generated-studies:
+  - study:recruitment-baseline       # composite recruitment_baseline
+  - study:recruitment-inhibited      # composite recruitment_inhibited
+  - study:recruitment-adversarial    # composite recruitment_adversarial
+
+# Alternative realizations that would satisfy the SAME claim (future backends):
+alternative-realizations:
+  - backend: physicell
+    status: not-implemented
+    note: "off-lattice force-based motility bias; the recruitment observable is backend-neutral and should transfer."
+  - backend: receptor-kinetics-ode
+    status: not-implemented
+    note: "finer-grained mechanism; the CPM lambda is its coarse-graining."
