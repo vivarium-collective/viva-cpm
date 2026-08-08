@@ -2,9 +2,13 @@
 # Describes ROLES and CAPABILITIES, not hard-coded object classes or a specific
 # backend. It says nothing about pixels, lattices, meshes, or forces.
 schema: https://vivarium-collective.org/biological-model/process-schema/0.1
+schema_version: 0.2
 id: mechanism:chemotactic-response
 kind: ProcessSchema
 label: Chemotactic response
+provenance:
+  actor: human
+  status: asserted
 
 roles:
   responder:

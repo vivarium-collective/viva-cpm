@@ -131,7 +131,8 @@ studies:
 - recruitment-inhibited
 - recruitment-adversarial
 
-expert_docs: []
+expert_docs:
+- vivarium-semantic-modeling-layer
 
 acceptance_criteria:
 - {study: recruitment-baseline, behavior: "Responders are recruited to the source"}

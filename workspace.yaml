@@ -60,6 +60,19 @@ expert_docs:
     regimes (sorting / engulfment / mixing), and the canonical observable
     (normalised heterotypic contact length run to within 5% of equilibrium).
   contributor: eran agmon
+- name: vivarium-semantic-modeling-layer
+  path: workspace/references/expert/vivarium-semantic-modeling-layer.pdf
+  sha256: dae55c7b435c2b5d37865750d0408272054a9aacaf6b8f7bad7a13574050a62e
+  description: >-
+    "The Vivarium Semantic Modeling Layer" (Draft RFC 0.2) — the design
+    specification for which this investigation's claim bundle is the reference
+    slice: the Biological Claim / Conceptual Mechanism / Realization trio,
+    scientific-closure predicates, the epistemic envelope and range tiers, and a
+    mapping of each pillar to shipping Vivarium code. Chemotactic recruitment is
+    its worked example throughout.
+  contributor: eran agmon
+  claims_supported:
+  - claim:chemotactic-recruitment
 
 server:
   enabled: false
