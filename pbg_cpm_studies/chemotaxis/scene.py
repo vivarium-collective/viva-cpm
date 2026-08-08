@@ -86,7 +86,7 @@ def _heat(z, ax, ay):
             "showscale": False, "hoverinfo": "skip", "zsmooth": False}
 
 
-def build_html(base, inh):
+def build_html(base, inh, right_label="inhibited · cue ✓ response ✗"):
     data = [_heat(base[0]["z"], "x", "y"), _heat(inh[0]["z"], "x2", "y2")]
     frames = [{"name": str(b["mcs"]),
                "data": [{"z": b["z"]}, {"z": i["z"]}], "traces": [0, 1]}
@@ -103,7 +103,7 @@ def build_html(base, inh):
         "margin": {"l": 8, "r": 8, "t": 92, "b": 74},
         "xaxis": axis([0.0, 0.485], "baseline · cue ✓ response ✓"),
         "yaxis": {**yax, "anchor": "x"},
-        "xaxis2": axis([0.515, 1.0], "inhibited · cue ✓ response ✗"),
+        "xaxis2": axis([0.515, 1.0], right_label),
         "yaxis2": {**yax, "anchor": "x2"},
         "height": 430,
         "annotations": [
@@ -151,14 +151,21 @@ def main():
     ws = os.path.abspath(os.path.join(here, "..", "..", "workspace"))
     base = _capture(CUE_RATE, CHEMO_LAMBDA)
     inh = _capture(CUE_RATE, 0.0)
-    html = build_html(base, inh)
-    out = os.path.join(ws, "studies", "recruitment-baseline", "viz")
-    os.makedirs(out, exist_ok=True)
-    path = os.path.join(out, "scene.html")
-    with open(path, "w") as fh:
-        fh.write(html)
-    print(f"wrote CPM-lattice scene ({len(html)} bytes, {len(base)} frames) -> {path}")
-    return path
+    adv = _capture(0.0, CHEMO_LAMBDA)
+    # one animated scene per study, each contrasting the baseline with the study's
+    # own condition (so inhibited/adversarial are not just the shared chart).
+    scenes = {
+        "recruitment-baseline":    (inh, "inhibited · cue ✓ response ✗"),
+        "recruitment-inhibited":   (inh, "inhibited · cue ✓ response ✗ (this study)"),
+        "recruitment-adversarial": (adv, "adversarial · cue ✗ response ✓ (this study)"),
+    }
+    for study, (right, label) in scenes.items():
+        html = build_html(base, right, right_label=label)
+        out = os.path.join(ws, "studies", study, "viz")
+        os.makedirs(out, exist_ok=True)
+        with open(os.path.join(out, "scene.html"), "w") as fh:
+            fh.write(html)
+        print(f"wrote {study} scene ({len(html)} bytes)")
 
 
 if __name__ == "__main__":

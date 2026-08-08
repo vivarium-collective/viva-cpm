@@ -41,6 +41,11 @@ visualizations:
 - name: Recruitment over time (all conditions)
   address: local:ChemotaxisRecruitment
 
+embed_visualizations:
+- name: Animated spatial scene
+  title: "Chemotactic recruitment — animated scene (baseline vs this condition)"
+  url: /workspace/studies/recruitment-inhibited/viz/scene.html
+
 readouts:
 - name: Recruitment index
   identifier: recruitment_index
@@ -68,6 +73,7 @@ findings:
   evidence:
     from_test: Blocking the response abolishes recruitment
     divergence_factor: 6.38
+    observed: "recruitment index 0.000 ± 0.000 across 5 seeds despite the cue present (baseline 0.767; d=6.38)"
   statement: |
     The intervention works: across 5 seeds the recruitment index stays at
     0.000 +/- 0.000 with lambda=0, despite the cue being present (baseline 0.767;
@@ -111,3 +117,30 @@ parent_studies:
 - study: recruitment-baseline
   condition: tests-passed
   relation: leads-to
+
+runs:
+- run_id: recruitment-inhibited-5seed
+  name: recruitment-inhibited (5 seeds)
+  status: completed
+  canonical: true
+  timestamp: '2026-08-07'
+  seeds: [17, 29, 43, 61, 89]
+  emitter: chemotaxis_data/results series-json
+  outcomes:
+    'Blocking the response abolishes recruitment':
+      result: PASS
+      measured_value: 0.0
+      notes: 0.000 across 5 seeds with the cue present (baseline 0.767)
+      evaluated_by: pbg_cpm_studies.evaluators
+
+discovery_implications:
+  followup_study_proposals:
+  - id: recruitment-dose-response
+    title: "Dose-response: recruitment vs cue rate and chemotaxis lambda"
+    motivation: "Map the transition between recruited and not-recruited, not just the on/off endpoints."
+  - id: recruitment-3d
+    title: "3D-lattice recruitment"
+    motivation: "Check the phenotype generalizes beyond the 2D lattice (an applicability boundary)."
+  - id: receptor-kinetics-realization
+    title: "Receptor-kinetics realization of the same claim"
+    motivation: "Refine the phenomenological chemotaxis lambda into a receptor model; it must preserve the recruitment response."
