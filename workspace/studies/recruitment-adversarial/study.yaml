@@ -57,8 +57,8 @@ behavior_tests:
     Pass criterion (by rejection): recruitment index stays below 0.1 even though
     responders are competent. Measured from the run: recruitment index remains
     0.000 across all sweeps — the metric correctly rejects.
-  measure: recruitment_index
-  pass_if: "max recruitment_index < 0.1"
+  measure: {kind: recruitment_index, condition: recruitment-adversarial, stat: max}
+  pass_if: {op: lt, value: 0.1}
   status: passed
   result: PASS
 

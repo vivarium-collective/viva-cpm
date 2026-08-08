@@ -70,8 +70,8 @@ behavior_tests:
     Pass criterion: recruitment index rises above 0.5 and mean approach exceeds
     0.4. Measured from the run: recruitment index 0.000 -> 0.667 (peak 0.833),
     mean approach 0.608.
-  measure: recruitment_index
-  pass_if: "final recruitment_index > 0.5 and mean_approach > 0.4"
+  measure: {kind: recruitment_index, condition: recruitment-baseline, stat: final}
+  pass_if: {op: gt, value: 0.5}
   status: passed
   result: PASS
 

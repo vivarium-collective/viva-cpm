@@ -55,8 +55,8 @@ behavior_tests:
     Pass criterion: recruitment index stays below 0.1 throughout. Measured from the
     run: recruitment index remains 0.000 across all 500 sweeps (mean approach -0.08,
     i.e. no net approach).
-  measure: recruitment_index
-  pass_if: "max recruitment_index < 0.1"
+  measure: {kind: recruitment_index, condition: recruitment-inhibited, stat: max}
+  pass_if: {op: lt, value: 0.1}
   status: passed
   result: PASS
 
