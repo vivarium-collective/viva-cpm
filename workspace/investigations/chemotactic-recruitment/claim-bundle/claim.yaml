@@ -3,8 +3,12 @@
 # viva-cpm realization (see realization.yaml). A future claim compiler would
 # lower this bundle INTO those studies.
 schema: https://vivarium-collective.org/biological-claim/0.1
+schema_version: 0.2
 id: claim:chemotactic-recruitment
 kind: causal-contribution
+provenance:
+  actor: human            # ACTOR_KIND: human | agentic | computational | shared
+  status: asserted
 
 assertion:
   subject: secreted-chemotactic-cue
@@ -19,7 +23,7 @@ context:
 
 intervention:
   protocol: block-chemotactic-response
-  realization: unresolved            # reduce response strength; see realization.yaml
+  realization: resolved              # bound in realization.yaml (responder chemotaxis lambda -> 0)
 
 observable:
   quantity: recruitment-index

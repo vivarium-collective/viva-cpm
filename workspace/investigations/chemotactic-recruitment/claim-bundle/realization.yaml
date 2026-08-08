@@ -2,10 +2,14 @@
 # backend. Records fidelity labels, inherited defaults, explicit exclusions, and
 # the SEMANTIC GAP (what the backend cannot express) rather than hiding it.
 schema: https://vivarium-collective.org/biological-model/realization/0.1
+schema_version: 0.2
 claim: claim:chemotactic-recruitment
 mechanism: mechanism:chemotactic-response
 backend: viva-cpm
 fidelity: real-backend        # bridges the actual Rust CPM engine (not a mock/reproduction)
+provenance:
+  actor: human
+  status: asserted
 
 bindings:
   cue:
@@ -25,6 +29,30 @@ inherited-defaults:
   - "field diffusion capped at d <= 0.25 for numerical stability"
   - "gradient equilibrated (600 advance_fields sweeps) before cell stepping"
 
+# Epistemic envelope for the realization's tunable parameters. Range tiers are
+# authored facts about where each parameter is software-accepted / numerically
+# tested / biologically plausible / validated. `validated: null` is honest —
+# see hole:lambda-calibration below.
+parameters:
+  chemo_lambda:
+    value: 14.0
+    units: dimensionless           # coefficient on the Metropolis copy-attempt energy bias
+    status: inherited
+    ranges:
+      software_accepted: [0, 100]
+      numerically_tested: [0, 30]
+      biologically_plausible: [5, 20]
+      validated: null
+  cue_rate:
+    value: 10.0
+    units: field-quanta-per-mcs     # source secretion per Monte-Carlo sweep
+    status: inherited
+    ranges:
+      software_accepted: [0, 100]
+      numerically_tested: [0, 20]
+      biologically_plausible: null
+      validated: null
+
 explicit-exclusions:
   - receptor-occupancy dynamics
   - three-dimensional geometry
@@ -33,6 +61,8 @@ unresolved:
   - id: hole:lambda-calibration
     kind: unresolved-mechanism
     statement: "quantitative mapping between the CPM chemotaxis lambda and a real chemotactic sensitivity"
+    required_for: [quantitative-treatment-prediction]
+    not_required_for: [recruitment-necessity, intervention-abolition]
     consequence-if-unresolved: "prediction is qualitative/relative, not an absolute rate"
 
 semantic-gap:

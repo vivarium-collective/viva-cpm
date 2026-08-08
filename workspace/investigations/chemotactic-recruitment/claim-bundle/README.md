@@ -31,3 +31,37 @@ energy), not a receptor-level model. The realization is labelled
 joint cue+response dependence, but is not mechanistically equivalent to a receptor
 model. Alternative realizations (PhysiCell, receptor-kinetics ODE) that would
 satisfy the *same* claim are listed as future backends.
+
+## Formalization toward the semantic-layer target (0.2)
+
+This bundle is being moved toward the *Vivarium Semantic Modeling Layer* spec
+(attached as the `vivarium-semantic-modeling-layer` expert doc). Changes in this
+pass:
+
+- **Versioned + provenanced.** Each file carries `schema_version: 0.2` and a
+  `provenance` block (`actor` per the investigation-contracts `ACTOR_KIND`).
+- **Drift fixed (single source).** `claim.yaml` said
+  `intervention.realization: unresolved` while `realization.yaml` binds it; the
+  claim now reads `resolved`. The claim bundle is the single source.
+- **Structured unresolved hole.** `hole:lambda-calibration` now records
+  `required_for` / `not_required_for` / `consequence`, so its epistemic cost is
+  explicit: required for a *quantitative* prediction, not for recruitment
+  necessity.
+- **Epistemic envelope.** `realization.yaml: parameters` gives `chemo_lambda`
+  and `cue_rate` tiered ranges (`software_accepted` / `numerically_tested` /
+  `biologically_plausible` / `validated`); `validated: null` is honest.
+
+### Derived closure verdict
+
+`closure.generated.yaml` is **computed, never hand-set** (mirroring the study
+gate verdict's `evaluated_by: code`). Regenerate with:
+
+```
+python pbg_cpm_studies/claim_bundle_closure.py
+```
+
+It reports the four closure predicates for this slice: `well_formed: true`,
+`backend_realizable: true`, `execution_ground: true`, and — deliberately —
+`claim_complete: false`, because the lambda-calibration hole keeps the claim
+demonstrated only *qualitatively*. Guarded by
+`tests/test_claim_bundle_closure.py`.
