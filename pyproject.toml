@@ -38,6 +38,9 @@ sbml = ["libroadrunner>=2.9", "tellurium>=2.2", "pbg-tellurium"]
 ftu = ["numpy", "matplotlib"]
 # Everything, for running the full demo suite.
 all = ["pbg-cpm[sbml,ftu]"]
+# Test tooling — pytest plus the optional stacks the test suite exercises
+# (SBML subcell, FTU). CI installs `.[dev]`, so pytest must live here.
+dev = ["pytest>=7", "pbg-cpm[sbml,ftu]"]
 
 [project.urls]
 Homepage = "https://github.com/vivarium-collective/pbg-cpm"
