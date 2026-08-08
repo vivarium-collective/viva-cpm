@@ -62,6 +62,7 @@ scientific_argument:
     - "None within the tested domain. Recruitment is response- and cue-dependent as predicted."
   key_figures:
     - "Claim layer — claim → mechanism → realization, with the recorded semantic gap (local:ClaimLayerAtlas)."
+    - "Claim bundle — the source claim / mechanism / realization graphs, browsable (local:ClaimBundle)."
     - "Recruitment index over time — baseline vs inhibited vs adversarial (local:ChemotaxisRecruitment)."
   caveats:
     - "CPM chemotaxis lambda is a PHENOMENOLOGICAL response strength (a bias on the copy-attempt energy), not a receptor-level model — a recorded semantic gap, not a hidden one."

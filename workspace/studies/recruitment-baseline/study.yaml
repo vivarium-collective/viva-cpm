@@ -45,6 +45,8 @@ expected_behavior:
 visualizations:
 - name: "Claim layer — claim → mechanism → realization"
   address: local:ClaimLayerAtlas
+- name: "Claim bundle — source (claim / mechanism / realization)"
+  address: local:ClaimBundle
 - name: Recruitment over time (all conditions)
   address: local:ChemotaxisRecruitment
 

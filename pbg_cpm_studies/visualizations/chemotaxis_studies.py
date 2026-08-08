@@ -131,3 +131,58 @@ def _claim_layer_atlas():
 def update_claim_layer_atlas(state):
     """Claim layer — claim -> mechanism -> realization (with the recorded semantic gap)"""
     return {"html": _claim_layer_atlas()}
+
+
+import html as _html
+import os as _os
+
+_BUNDLE_DIR = _os.path.join(
+    _os.path.dirname(__file__), "..", "..", "workspace", "investigations",
+    "chemotactic-recruitment", "claim-bundle")
+_BUNDLE_FILES = [
+    ("claim.yaml", "Claim graph", "What is asserted — backend-neutral.", "#38bdf8", True),
+    ("mechanism.yaml", "Conceptual mechanism template", "Roles + capabilities; no backend.", "#a78bfa", False),
+    ("realization.yaml", "Realization graph", "viva-cpm bindings, fidelity, and the recorded semantic gap.", "#fbbf24", False),
+]
+
+
+def _claim_bundle_panel():
+    sections = []
+    for fname, title, blurb, color, is_open in _BUNDLE_FILES:
+        path = _os.path.join(_BUNDLE_DIR, fname)
+        try:
+            with open(path) as fh:
+                text = fh.read()
+        except OSError:
+            text = f"# ({fname} not found in this build)"
+        pre = _html.escape(text)
+        sections.append(
+            f'<details {"open" if is_open else ""} style="margin:0 0 8px;'
+            f'background:#0f172a;border:1px solid #1e293b;border-left:3px solid {color};'
+            f'border-radius:10px;overflow:hidden">'
+            f'<summary style="cursor:pointer;padding:10px 14px;list-style:none;'
+            f'display:flex;align-items:baseline;gap:10px">'
+            f'<span style="color:{color};font-weight:700;font-size:13.5px">{title}</span>'
+            f'<span style="color:#64748b;font-size:11.5px">{fname}</span>'
+            f'<span style="color:#94a3b8;font-size:12px;margin-left:auto">{blurb}</span>'
+            f'</summary>'
+            f'<pre style="margin:0;padding:12px 14px;background:#0a1020;color:#cbd5e1;'
+            f'font-size:12px;line-height:1.5;overflow-x:auto;'
+            f'font-family:ui-monospace,SFMono-Regular,Menlo,monospace;'
+            f'border-top:1px solid #1e293b">{pre}</pre></details>')
+    return (
+        f'<div style="background:#0b1220;border:1px solid #1e293b;border-radius:14px;'
+        f'padding:14px 16px;max-width:820px;margin:0 auto;'
+        f'font-family:-apple-system,Segoe UI,Roboto,sans-serif">'
+        f'<div style="color:#e5e7eb;font-size:16px;font-weight:700;margin-bottom:4px">'
+        f'Claim bundle &mdash; the backend-neutral source</div>'
+        f'<div style="color:#94a3b8;font-size:12.5px;margin-bottom:12px">The claim-layer '
+        f'source artifact this investigation realizes. A future claim compiler would lower '
+        f'these three graphs into the member studies. Click a section to expand.</div>'
+        + "".join(sections) + '</div>')
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="ClaimBundle", demo={"mcs": []})
+def update_claim_bundle(state):
+    """Claim bundle — the source claim / mechanism / realization graphs"""
+    return {"html": _claim_bundle_panel()}
