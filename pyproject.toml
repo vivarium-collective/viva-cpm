@@ -19,8 +19,8 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 dependencies = [
-    "process-bigraph",
-    "bigraph-schema",
+    "process-bigraph>=1.8.3",  # @composite_generator (composite discovery)
+    "bigraph-schema>=1.4.4",  # fill_sites / sites substrate
     "bigraph-viz>=2.0.3",
     "pyyaml>=6.0",
     "jsonschema[format-nongpl]>=4.21",
