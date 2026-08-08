@@ -66,9 +66,37 @@ findings:
 - id: F-01
   kind: computational
   status: confirms
+  mechanism_origin: emergent
+  evidence:
+    from_test: No cue yields no recruitment (rejection)
+    divergence_factor: 6.38
   statement: |
-    Negative control holds: competent responders are not recruited without a cue,
-    and the metric reports no spurious recruitment.
+    Negative control holds: across 5 seeds competent responders are not recruited
+    without a cue (recruitment index 0.000 +/- 0.000; baseline 0.767, Cohen's d =
+    6.38), and the metric reports no spurious recruitment.
+
+robustness:
+  n_replicates: 5
+  seeds: [17, 29, 43, 61, 89]
+  parameter_sweep: false
+  per_measure:
+  - name: recruitment_index
+    cv: 0.0
+
+controls:
+- kind: negative
+  name: Response blocked (recruitment-inhibited)
+  test: No cue yields no recruitment (rejection)
+  result: PASS
+  observed:
+    recruitment_index: 0.0
+  description: The other necessary-cause arm — blocking the response also gives no recruitment.
+
+alternative_hypotheses:
+- claim: The recruitment metric fires on responder proximity regardless of a cue.
+  status: excluded
+  discriminated_by: No cue yields no recruitment (rejection)
+  note: Excluded here — competent responders with no cue leave the index at 0.
 
 conclusion: |
   The recruitment claim does not over-generalize. Recruitment is jointly caused by

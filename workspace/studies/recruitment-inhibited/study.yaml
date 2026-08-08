@@ -64,9 +64,37 @@ findings:
 - id: F-01
   kind: computational
   status: confirms
+  mechanism_origin: emergent
+  evidence:
+    from_test: Blocking the response abolishes recruitment
+    divergence_factor: 6.38
   statement: |
-    The intervention works: with lambda=0 the recruitment index stays at 0 despite
-    the cue being present — recruitment is response-dependent.
+    The intervention works: across 5 seeds the recruitment index stays at
+    0.000 +/- 0.000 with lambda=0, despite the cue being present (baseline 0.767;
+    Cohen's d = 6.38) — recruitment is response-dependent.
+
+robustness:
+  n_replicates: 5
+  seeds: [17, 29, 43, 61, 89]
+  parameter_sweep: false
+  per_measure:
+  - name: recruitment_index
+    cv: 0.0
+
+controls:
+- kind: adversarial
+  name: No cue yields no recruitment (recruitment-adversarial)
+  test: Blocking the response abolishes recruitment
+  result: PASS
+  observed:
+    recruitment_index: 0.0
+  description: The other necessary-cause arm — no cue also gives no recruitment.
+
+alternative_hypotheses:
+- claim: Recruitment persists on the cue alone, independent of the response strength.
+  status: excluded
+  discriminated_by: Blocking the response abolishes recruitment
+  note: Excluded here — with the cue present but lambda=0, recruitment is 0.
 
 conclusion: |
   Recruitment is causally dependent on the chemotactic response, not merely on the
