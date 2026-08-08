@@ -1,0 +1,70 @@
+{
+  "n_seeds": 5,
+  "seeds": [
+    17,
+    29,
+    43,
+    61,
+    89
+  ],
+  "per_condition": {
+    "recruitment-baseline": {
+      "seeds": [
+        17,
+        29,
+        43,
+        61,
+        89
+      ],
+      "final_recruitment_index": [
+        0.6667,
+        0.8333,
+        0.5,
+        0.8333,
+        1.0
+      ],
+      "mean": 0.7667,
+      "sd": 0.17
+    },
+    "recruitment-inhibited": {
+      "seeds": [
+        17,
+        29,
+        43,
+        61,
+        89
+      ],
+      "final_recruitment_index": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean": 0.0,
+      "sd": 0.0
+    },
+    "recruitment-adversarial": {
+      "seeds": [
+        17,
+        29,
+        43,
+        61,
+        89
+      ],
+      "final_recruitment_index": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean": 0.0,
+      "sd": 0.0
+    }
+  },
+  "effect_size_cohens_d": {
+    "baseline_vs_inhibited": 6.38,
+    "baseline_vs_adversarial": 6.38
+  }
+}

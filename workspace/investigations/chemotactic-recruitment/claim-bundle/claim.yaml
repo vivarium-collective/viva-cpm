@@ -1,0 +1,58 @@
+# Biological Claim Graph — WHAT is asserted (backend-neutral).
+# This is the claim-layer SOURCE artifact; the three member studies are its
+# viva-cpm realization (see realization.yaml). A future claim compiler would
+# lower this bundle INTO those studies.
+schema: https://vivarium-collective.org/biological-claim/0.1
+id: claim:chemotactic-recruitment
+kind: causal-contribution
+
+assertion:
+  subject: secreted-chemotactic-cue
+  relation: recruits
+  object: responder-cells
+
+context:
+  system: cellular-potts-lattice
+  populations: [source-cells, responder-cells]
+  medium: extracellular-diffusible-field
+  time-horizon: 500 monte-carlo-sweeps
+
+intervention:
+  protocol: block-chemotactic-response
+  realization: unresolved            # reduce response strength; see realization.yaml
+
+observable:
+  quantity: recruitment-index
+  measurement-model: fraction-of-responder-COMs-within-radius-of-source
+
+prediction:
+  relation: decreases
+  output: recruitment-index -> 0 under the intervention
+
+alternatives:
+  - id: random-diffusion-accumulation
+    status: excluded                 # excluded by the inhibited arm
+  - id: metric-proximity-artifact
+    status: excluded                 # excluded by the adversarial arm
+
+applicability:
+  requires:
+    - a resolvable gradient at the responder locations
+    - a competent chemotactic response
+  excludes:
+    - receptor-level kinetics
+    - three-dimensional tissue (not yet calibrated)
+
+evidence:
+  supporting:
+    - study:recruitment-baseline      # cue + response -> recruited (0.767 +/- 0.170)
+    - study:recruitment-inhibited     # response blocked -> 0
+    - study:recruitment-adversarial   # no cue -> 0
+
+potential-falsifiers:
+  - recruitment persists after the response is blocked
+  - recruitment occurs with no cue present
+
+epistemic:
+  status: empirically-demonstrated    # within the tested domain
+  effect-size: {cohens_d: 6.38, n_seeds: 5}

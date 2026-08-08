@@ -19,8 +19,8 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 dependencies = [
-    "process-bigraph",
-    "bigraph-schema",
+    "process-bigraph>=1.8.3",  # @composite_generator (composite discovery)
+    "bigraph-schema>=1.4.4",  # fill_sites / sites substrate
     "bigraph-viz>=2.0.3",
     "pyyaml>=6.0",
     "jsonschema[format-nongpl]>=4.21",
@@ -38,6 +38,9 @@ sbml = ["libroadrunner>=2.9", "tellurium>=2.2", "pbg-tellurium"]
 ftu = ["numpy", "matplotlib"]
 # Everything, for running the full demo suite.
 all = ["pbg-cpm[sbml,ftu]"]
+# Test tooling — pytest plus the optional stacks the test suite exercises
+# (SBML subcell, FTU). CI installs `.[dev]`, so pytest must live here.
+dev = ["pytest>=7", "pbg-cpm[sbml,ftu]"]
 
 [project.urls]
 Homepage = "https://github.com/vivarium-collective/pbg-cpm"

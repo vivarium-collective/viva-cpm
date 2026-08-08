@@ -1,0 +1,115 @@
+schema_version: 3
+name: recruitment-adversarial
+status: complete
+phase: Decide
+kind: adversarial
+title: "Control: no cue, no recruitment"
+confidence: Accepted
+investigation: chemotactic-recruitment
+
+question: |
+  If competent responders are placed with NO cue secreted, does the metric
+  correctly report no recruitment (rather than a spurious signal)?
+
+hypothesis: |
+  With the response intact (lambda 14) but the cue removed (rate 0), there is no
+  gradient to climb; the recruitment index stays at zero.
+
+objective: |
+  Run the world with competent responders but the source secretion turned off, and
+  confirm the recruitment index and metric correctly report no recruitment.
+
+description: |
+  The adversarial / negative-control arm. Responders are fully competent (lambda=14)
+  but there is no cue (secretion rate 0), so no gradient forms. A trustworthy
+  recruitment claim must FAIL to fire here — the metric passes by rejecting a system
+  that should not qualify. This closes the causal logic: recruitment requires BOTH a
+  cue AND a response, and neither alone suffices.
+
+claim: |
+  Without a cue, competent responders are not recruited: the recruitment index
+  stays at 0. The metric does not produce a false-positive recruitment signal.
+
+baseline:
+- name: adversarial
+  composite: pbg_cpm_studies.composites.chemotaxis.recruitment
+  params: {cue_rate: 0.0, chemo_lambda: 14.0}   # cue REMOVED (control), response ON
+
+expected_behavior:
+- Recruitment index stays at zero despite responders being chemotaxis-competent.
+- The metric issues no spurious recruitment signal in the absence of a cue.
+
+visualizations:
+- name: Recruitment over time (all conditions)
+  address: local:ChemotaxisRecruitment
+
+readouts:
+- name: Recruitment index
+  identifier: recruitment_index
+  units: fraction of responders within radius
+  status: measured
+  description: Fraction of responder cell centres of mass within 15 px of the source centroid.
+
+behavior_tests:
+- name: No cue yields no recruitment (rejection)
+  classification: adversarial
+  description: |
+    Pass criterion (by rejection): recruitment index stays below 0.1 even though
+    responders are competent. Measured from the run: recruitment index remains
+    0.000 across all sweeps — the metric correctly rejects.
+  measure: {kind: recruitment_index, condition: recruitment-adversarial, stat: max}
+  pass_if: {op: lt, value: 0.1}
+  status: passed
+  result: PASS
+
+findings:
+- id: F-01
+  kind: computational
+  status: confirms
+  mechanism_origin: emergent
+  evidence:
+    from_test: No cue yields no recruitment (rejection)
+    divergence_factor: 6.38
+  statement: |
+    Negative control holds: across 5 seeds competent responders are not recruited
+    without a cue (recruitment index 0.000 +/- 0.000; baseline 0.767, Cohen's d =
+    6.38), and the metric reports no spurious recruitment.
+
+robustness:
+  n_replicates: 5
+  seeds: [17, 29, 43, 61, 89]
+  parameter_sweep: false
+  per_measure:
+  - name: recruitment_index
+    cv: 0.0
+
+controls:
+- kind: negative
+  name: Response blocked (recruitment-inhibited)
+  test: No cue yields no recruitment (rejection)
+  result: PASS
+  observed:
+    recruitment_index: 0.0
+  description: The other necessary-cause arm — blocking the response also gives no recruitment.
+
+alternative_hypotheses:
+- claim: The recruitment metric fires on responder proximity regardless of a cue.
+  status: excluded
+  discriminated_by: No cue yields no recruitment (rejection)
+  note: Excluded here — competent responders with no cue leave the index at 0.
+
+conclusion: |
+  The recruitment claim does not over-generalize. Recruitment is jointly caused by
+  cue and response; removing either abolishes it. This adversarial arm gives the
+  investigation its falsification exposure and adversarial coverage.
+
+key_assumptions:
+- Identical world to recruitment-baseline except source secretion rate = 0.
+- Recruitment radius = 15 px.
+
+gate_status: passed
+
+parent_studies:
+- study: recruitment-baseline
+  condition: tests-passed
+  relation: regulatory

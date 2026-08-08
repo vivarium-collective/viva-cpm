@@ -1,0 +1,52 @@
+# Conceptual Mechanism Template — the intensional potential model.
+# Describes ROLES and CAPABILITIES, not hard-coded object classes or a specific
+# backend. It says nothing about pixels, lattices, meshes, or forces.
+schema: https://vivarium-collective.org/biological-model/process-schema/0.1
+id: mechanism:chemotactic-response
+kind: ProcessSchema
+label: Chemotactic response
+
+roles:
+  responder:
+    requires:
+      - spatially-located
+      - motile
+      - expresses-chemotactic-response
+  cue:
+    requires:
+      - diffusible-scalar-field
+  environment:
+    requires:
+      - gradient-query
+      - spatial-frame
+
+enabled_when:
+  - responder expresses a compatible response capability
+  - a resolvable cue gradient is present
+  - the response is not inhibited
+
+contributes:
+  channel: directional-motility-bias
+  operation: up-gradient-bias
+  combination: additive          # combines with persistence + random motility
+
+controls: [inhibit, scale, reverse, replace-law]
+
+assumptions:
+  - id: assumption:fast-sensing
+    statement: sensing is fast relative to migration
+  - id: assumption:resolved-gradient
+    statement: field resolution is adequate at the modeling scale
+
+applicability:
+  - id: applicability:gradient-band
+    statement: cue concentration and gradient remain within a resolvable band
+
+linked_claims: [claim:chemotactic-recruitment]
+
+# A companion source process (the cue) — kept minimal here.
+supporting_processes:
+  - id: mechanism:cue-secretion
+    label: Cue secretion + diffusion
+    roles: {source: {requires: [secretory]}, field: {requires: [diffusible-scalar-field]}}
+    contributes: {channel: field-source, operation: local-secretion}

@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from process_bigraph.composite_generator import composite_generator
+
 from ..gg1993.params import STUDIES
 from ..gg1993 import engine, run as runmod
 from ..gg1993.types import MEDIUM, DARK, LIGHT
@@ -95,10 +97,12 @@ def composite_document(slug):
 
 
 def _make(slug):
-    def factory():
+    # spec_id = f"{module}.{name}" -> pbg_cpm_studies.composites.gg1993.<slug>,
+    # matching each study's baseline[].composite ref exactly.
+    @composite_generator(name=slug, default_n_steps=16,
+                         description=f"GG1993 composite: {STUDIES[slug]['title']}")
+    def factory(core=None, **kwargs):
         return composite_document(slug)
-    factory.__name__ = slug
-    factory.__doc__ = f"GG1993 composite: {STUDIES[slug]['title']}"
     return factory
 
 
