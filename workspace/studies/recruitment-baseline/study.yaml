@@ -87,6 +87,7 @@ findings:
   evidence:
     from_test: Responders are recruited to the source
     divergence_factor: 6.38
+    observed: "recruitment index 0.767 ± 0.170 across 5 seeds vs 0.000 for both negative conditions (Cohen's d = 6.38)"
   statement: |
     Cue + competent response recruits: across 5 independent seeds the final
     recruitment index is 0.767 +/- 0.170, versus 0.000 +/- 0.000 for both negative
@@ -141,3 +142,30 @@ key_assumptions:
 - Recruitment radius = 15 px (source at x~10; responders start at x~43).
 
 gate_status: passed
+
+runs:
+- run_id: recruitment-baseline-5seed
+  name: recruitment-baseline (5 seeds)
+  status: completed
+  canonical: true
+  timestamp: '2026-08-07'
+  seeds: [17, 29, 43, 61, 89]
+  emitter: chemotaxis_data/results series-json
+  outcomes:
+    'Responders are recruited to the source':
+      result: PASS
+      measured_value: 0.767
+      notes: 0.767 ± 0.170 across 5 seeds vs 0.000 for both negatives (d=6.38)
+      evaluated_by: pbg_cpm_studies.evaluators
+
+discovery_implications:
+  followup_study_proposals:
+  - id: recruitment-dose-response
+    title: "Dose-response: recruitment vs cue rate and chemotaxis lambda"
+    motivation: "Map the transition between recruited and not-recruited, not just the on/off endpoints."
+  - id: recruitment-3d
+    title: "3D-lattice recruitment"
+    motivation: "Check the phenotype generalizes beyond the 2D lattice (an applicability boundary)."
+  - id: receptor-kinetics-realization
+    title: "Receptor-kinetics realization of the same claim"
+    motivation: "Refine the phenomenological chemotaxis lambda into a receptor model; it must preserve the recruitment response."
