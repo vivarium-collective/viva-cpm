@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Repo root: `/Users/eranagmon/code/pbg-cpm` (git already initialized; spec committed).
+- Repo root: `pbg-cpm` (git already initialized; spec committed).
 - `CellId = u32`; `MEDIUM: CellId = 0` is the ECM/medium sentinel and is exempt from Volume and Surface energy.
 - Dimension-generic: 2D is 3D with `dims[2] == 1`. Never write a separate 2D code path.
 - Lattice index order: `idx = x + y*nx + z*nx*ny`.
@@ -96,7 +96,7 @@ Create empty module files so it compiles: `crates/cpm-core/src/lattice.rs`, `wor
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/eranagmon/code/pbg-cpm && cargo test -p cpm-core`
+Run: `cd pbg-cpm && cargo test -p cpm-core`
 Expected: FAIL — no workspace/manifest yet ("could not find `Cargo.toml`").
 
 - [ ] **Step 3: Write minimal implementation**
@@ -1177,7 +1177,7 @@ python-source = "."
 Build the environment:
 
 ```bash
-cd /Users/eranagmon/code/pbg-cpm
+cd pbg-cpm
 uv venv --python 3.12
 source .venv/bin/activate
 uv pip install maturin pytest process-bigraph

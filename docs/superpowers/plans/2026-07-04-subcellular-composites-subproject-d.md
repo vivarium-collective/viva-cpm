@@ -506,7 +506,7 @@ git commit -m "feat(subcell): BooleanSubcell fate switch with lateral inhibition
 
 In `pyproject.toml` `[project] dependencies`, add `"libroadrunner>=2.9"`, `"tellurium>=2.2"`, `"pbg-tellurium"` (if not resolvable from PyPI, install the local checkout editable). Then:
 
-Run: `source .venv/bin/activate && pip install libroadrunner tellurium && pip install -e /Users/eranagmon/code/pbg-tellurium`
+Run: `source .venv/bin/activate && pip install libroadrunner tellurium && pip install -e ../pbg-tellurium`
 Expected: `python -c "import roadrunner, pbg_tellurium"` succeeds.
 
 - [ ] **Step 2: Write the failing test**
