@@ -176,6 +176,11 @@ def _save_viz(study, slug, html):
 # Claim layer — claim → mechanism → realization
 _save_viz('recruitment-baseline', 'Claim_layer_claim_mechanism_realization', _render_one('local:ClaimLayerAtlas', {}, RUNS_DB, STUDY_YAML))
 
+# **Claim bundle — source (claim / mechanism / realization)**
+
+# Claim bundle — source (claim / mechanism / realization)
+_save_viz('recruitment-baseline', 'Claim_bundle_source_claim_mechanism_realization', _render_one('local:ClaimBundle', {}, RUNS_DB, STUDY_YAML))
+
 # **Recruitment over time (all conditions)**
 
 # Recruitment over time (all conditions)
