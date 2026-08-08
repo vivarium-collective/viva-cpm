@@ -46,6 +46,11 @@ visualizations:
 - name: Recruitment over time (all conditions)
   address: local:ChemotaxisRecruitment
 
+embed_visualizations:
+- name: Animated spatial scene
+  title: "Chemotactic recruitment — animated scene (baseline vs inhibited)"
+  url: /workspace/studies/recruitment-baseline/viz/scene.html
+
 readouts:
 - name: Recruitment index
   identifier: recruitment_index
