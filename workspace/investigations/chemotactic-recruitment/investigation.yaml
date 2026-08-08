@@ -27,9 +27,14 @@ lead: |
 
 executive:
   what_is_this: |
-    A CPM investigation showing that a secreted chemotactic cue recruits responder
-    cells, and that recruitment requires BOTH the cue and a competent response.
-    It doubles as the driving use case for the Biological Claim Layer.
+    The reference vertical slice for the **Biological Claim Layer** — the proposal
+    that a biological CLAIM (not an execution model) is the canonical source, with
+    simulators as compile targets. Here a secreted chemotactic cue recruits responder
+    cells, and recruitment requires BOTH the cue and a competent response. The claim,
+    its mechanism, and its viva-cpm realization are authored as a backend-neutral
+    bundle (investigations/chemotactic-recruitment/claim-bundle/); the three CPM
+    studies are ONE realization of that claim, with the semantic gap recorded, not
+    hidden. See the "Claim layer" figure and How-to-read below.
   verdict: |
     Recruitment is jointly caused by the cue and the response. The baseline recruits
     (recruitment index 0 -> 0.67, peak 0.83); blocking the response (lambda->0) or
@@ -56,6 +61,7 @@ scientific_argument:
   evidence_against:
     - "None within the tested domain. Recruitment is response- and cue-dependent as predicted."
   key_figures:
+    - "Claim layer — claim → mechanism → realization, with the recorded semantic gap (local:ClaimLayerAtlas)."
     - "Recruitment index over time — baseline vs inhibited vs adversarial (local:ChemotaxisRecruitment)."
   caveats:
     - "CPM chemotaxis lambda is a PHENOMENOLOGICAL response strength (a bias on the copy-attempt energy), not a receptor-level model — a recorded semantic gap, not a hidden one."
@@ -87,6 +93,32 @@ competing_frameworks:
     relation: "finer-grained mechanism; the CPM lambda is its phenomenological coarse-graining. A claim-layer refinement contract would state what a receptor-level realization must preserve."
   - name: "Off-lattice force-based migration (PhysiCell-style motility bias)"
     relation: "alternative realization of the same claim; a future backend. The recruitment observable is backend-neutral and should transfer."
+
+how_to_read: |
+  Read this as a Biological Claim Layer example, top-down:
+
+  1. THE CLAIM (what is asserted) — "a secreted cue recruits responder cells; blocking
+     the response reduces recruitment." Backend-neutral; see claim-bundle/claim.yaml.
+  2. THE MECHANISM (roles + capabilities, not classes) — a chemotactic response needs a
+     motile responder, a diffusible cue, and a gradient-query environment. See
+     claim-bundle/mechanism.yaml.
+  3. THE REALIZATION (how it's made executable) — bindings to viva-cpm with FIDELITY
+     labels and the recorded SEMANTIC GAP (CPM lambda is phenomenological, not
+     receptor-level). See claim-bundle/realization.yaml.
+  4. THE STUDIES — the three member studies ARE that realization run: baseline (positive),
+     inhibited (intervention on the response), adversarial (remove the cue; negative
+     control). A future claim compiler would GENERATE these three from the bundle.
+
+  What makes the claim trustworthy: replication (5 seeds), a large effect (Cohen's d 6.38),
+  a discriminating negative control, and excluded alternatives — all surfaced per study.
+
+glossary:
+  - {term: "Biological Claim Layer", definition: "A layer above the execution engine where a biological CLAIM is the canonical source; simulators (CPM, PhysiCell, ...) are compile targets."}
+  - {term: "Claim graph", definition: "What is asserted — subject/relation/object + context, intervention, observable, alternatives, applicability, falsifiers (claim-bundle/claim.yaml)."}
+  - {term: "Conceptual mechanism template", definition: "The intensional model: roles and required capabilities, with no backend-specific classes (claim-bundle/mechanism.yaml)."}
+  - {term: "Realization", definition: "One way the claim is made executable in a specific backend, with fidelity labels and semantic-gap notes (claim-bundle/realization.yaml)."}
+  - {term: "Fidelity / semantic gap", definition: "How faithfully a backend expresses a concept. Here CPM chemotaxis lambda is phenomenological, not receptor-level — recorded, not hidden."}
+  - {term: "Backend-neutral behavior contract", definition: "A given/measure/expect check (recruitment_index) evaluated by a per-backend observable extractor — portable across realizations."}
 
 at_a_glance:
   - {study: recruitment-baseline, role: "Positive: cue + response recruits (ground truth)."}

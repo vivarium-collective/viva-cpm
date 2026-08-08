@@ -43,6 +43,8 @@ expected_behavior:
 - Recruitment index rises above 0.5 (a majority of responders reach the source region).
 
 visualizations:
+- name: "Claim layer — claim → mechanism → realization"
+  address: local:ClaimLayerAtlas
 - name: Recruitment over time (all conditions)
   address: local:ChemotaxisRecruitment
 
