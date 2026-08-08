@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import itertools
 
+from process_bigraph.composite_generator import composite_generator
+
 CPM_ADDR = "local:!cpm.processes.cpm_process.CPMProcess"
 
 SOURCE_TYPE = 1
@@ -105,20 +107,25 @@ def meta():
     }
 
 
-def _factory(name, *, cue_rate, chemo_lambda, doc):
-    def f():
-        return composite_document(cue_rate=cue_rate, chemo_lambda=chemo_lambda)
-    f.__name__ = name
-    f.__doc__ = doc
-    return f
+_VIZ = [{"name": "Recruitment over time", "address": "local:ChemotaxisRecruitment"}]
 
 
-recruitment_baseline = _factory(
-    "recruitment_baseline", cue_rate=CUE_RATE, chemo_lambda=CHEMO_LAMBDA,
-    doc="Cue ON + response ON: responders climb the gradient and are recruited.")
-recruitment_inhibited = _factory(
-    "recruitment_inhibited", cue_rate=CUE_RATE, chemo_lambda=0.0,
-    doc="Cue ON + response OFF (intervention): recruitment abolished.")
-recruitment_adversarial = _factory(
-    "recruitment_adversarial", cue_rate=0.0, chemo_lambda=CHEMO_LAMBDA,
-    doc="Cue OFF + response ON (negative control): no cue, no recruitment.")
+@composite_generator(
+    name="recruitment_baseline", default_n_steps=32, visualizations=_VIZ,
+    description="Cue ON + response ON: responders climb the gradient and are recruited.")
+def recruitment_baseline(core=None, **kwargs):
+    return composite_document(cue_rate=CUE_RATE, chemo_lambda=CHEMO_LAMBDA)
+
+
+@composite_generator(
+    name="recruitment_inhibited", default_n_steps=32, visualizations=_VIZ,
+    description="Cue ON + response OFF (intervention): recruitment abolished.")
+def recruitment_inhibited(core=None, **kwargs):
+    return composite_document(cue_rate=CUE_RATE, chemo_lambda=0.0)
+
+
+@composite_generator(
+    name="recruitment_adversarial", default_n_steps=32, visualizations=_VIZ,
+    description="Cue OFF + response ON (negative control): no cue, no recruitment.")
+def recruitment_adversarial(core=None, **kwargs):
+    return composite_document(cue_rate=0.0, chemo_lambda=CHEMO_LAMBDA)
