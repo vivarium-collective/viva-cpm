@@ -2,6 +2,6 @@
   "mode": "snapshot",
   "smsApiBase": "",
   "repo": "https://github.com/vivarium-collective/viva-cpm.git",
-  "commit": "5ec7f697c396dfd8bcdc2b6256e1951412477f31",
+  "commit": "72eb136f426ec23afa69d6be02c9e8db417d9923",
   "generated_from_ref": "chemotactic-recruitment"
 }
