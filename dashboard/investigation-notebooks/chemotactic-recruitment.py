@@ -25,9 +25,14 @@ if _os.environ.get("PYTHONUTF8") != "1":
 # responder cells into the source region, and does inhibiting the chemotactic
 # response reduce that recruitment?
 #
-# A CPM investigation showing that a secreted chemotactic cue recruits responder
-# cells, and that recruitment requires BOTH the cue and a competent response.
-# It doubles as the driving use case for the Biological Claim Layer.
+# The reference vertical slice for the **Biological Claim Layer** — the proposal
+# that a biological CLAIM (not an execution model) is the canonical source, with
+# simulators as compile targets. Here a secreted chemotactic cue recruits responder
+# cells, and recruitment requires BOTH the cue and a competent response. The claim,
+# its mechanism, and its viva-cpm realization are authored as a backend-neutral
+# bundle (investigations/chemotactic-recruitment/claim-bundle/); the three CPM
+# studies are ONE realization of that claim, with the semantic gap recorded, not
+# hidden. See the "Claim layer" figure and How-to-read below.
 #
 # ---
 #
@@ -158,7 +163,7 @@ print("No recorded runs for this study; nothing to reproduce.")
 #
 # _Results are shown by the figures below, produced by the run above._
 
-# **Recruitment over time (all conditions)**
+# **Claim layer — claim → mechanism → realization**
 
 def _save_viz(study, slug, html):
     d = REPO / 'reports/notebooks/figures' / study
@@ -167,6 +172,11 @@ def _save_viz(study, slug, html):
     out.write_text(html, encoding='utf-8')
     print('  wrote', out)
 
+
+# Claim layer — claim → mechanism → realization
+_save_viz('recruitment-baseline', 'Claim_layer_claim_mechanism_realization', _render_one('local:ClaimLayerAtlas', {}, RUNS_DB, STUDY_YAML))
+
+# **Recruitment over time (all conditions)**
 
 # Recruitment over time (all conditions)
 _save_viz('recruitment-baseline', 'Recruitment_over_time_all_conditions', _render_one('local:ChemotaxisRecruitment', {}, RUNS_DB, STUDY_YAML))
