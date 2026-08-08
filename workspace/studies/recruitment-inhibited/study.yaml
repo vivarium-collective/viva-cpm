@@ -30,8 +30,8 @@ claim: |
 
 baseline:
 - name: inhibited
-  composite: pbg_cpm_studies.composites.chemotaxis.recruitment_inhibited
-  params: {}
+  composite: pbg_cpm_studies.composites.chemotaxis.recruitment
+  params: {cue_rate: 10.0, chemo_lambda: 0.0}   # cue ON, response BLOCKED (intervention)
 
 expected_behavior:
 - Recruitment index stays at (or near) zero for the whole run.

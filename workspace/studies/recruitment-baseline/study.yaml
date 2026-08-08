@@ -35,8 +35,8 @@ claim: |
 
 baseline:
 - name: baseline
-  composite: pbg_cpm_studies.composites.chemotaxis.recruitment_baseline
-  params: {}
+  composite: pbg_cpm_studies.composites.chemotaxis.recruitment
+  params: {cue_rate: 10.0, chemo_lambda: 14.0}   # cue ON, response ON
 
 expected_behavior:
 - Responder mean distance to the source falls substantially over the run.

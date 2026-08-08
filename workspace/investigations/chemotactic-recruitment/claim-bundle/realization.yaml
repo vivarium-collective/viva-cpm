@@ -42,11 +42,12 @@ equivalence:
   level: phenomenological-equivalent
   note: "reproduces the recruitment phenotype and its joint cue + response dependence; NOT mechanistically equivalent to a receptor model."
 
-# The studies this realization corresponds to (a compiler would GENERATE these):
+# The studies this realization corresponds to (a compiler would GENERATE these).
+# All three run the SAME single-process composite `recruitment`, varying params:
 generated-studies:
-  - study:recruitment-baseline       # composite recruitment_baseline
-  - study:recruitment-inhibited      # composite recruitment_inhibited
-  - study:recruitment-adversarial    # composite recruitment_adversarial
+  - study:recruitment-baseline       # recruitment(cue_rate=10, chemo_lambda=14)
+  - study:recruitment-inhibited      # recruitment(cue_rate=10, chemo_lambda=0)
+  - study:recruitment-adversarial    # recruitment(cue_rate=0,  chemo_lambda=14)
 
 # Alternative realizations that would satisfy the SAME claim (future backends):
 alternative-realizations:

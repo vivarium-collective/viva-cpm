@@ -110,22 +110,20 @@ def meta():
 _VIZ = [{"name": "Recruitment over time", "address": "local:ChemotaxisRecruitment"}]
 
 
+# ONE parameterized composite for the whole slice, not one-per-condition. It wraps
+# a single CPMProcess; the conditions (baseline / inhibited / adversarial) are just
+# different (cue_rate, chemo_lambda) PARAMS the studies pass — not separate
+# composites. This is the idiomatic pattern for a family of configs of one process.
 @composite_generator(
-    name="recruitment_baseline", default_n_steps=32, visualizations=_VIZ,
-    description="Cue ON + response ON: responders climb the gradient and are recruited.")
-def recruitment_baseline(core=None, **kwargs):
-    return composite_document(cue_rate=CUE_RATE, chemo_lambda=CHEMO_LAMBDA)
-
-
-@composite_generator(
-    name="recruitment_inhibited", default_n_steps=32, visualizations=_VIZ,
-    description="Cue ON + response OFF (intervention): recruitment abolished.")
-def recruitment_inhibited(core=None, **kwargs):
-    return composite_document(cue_rate=CUE_RATE, chemo_lambda=0.0)
-
-
-@composite_generator(
-    name="recruitment_adversarial", default_n_steps=32, visualizations=_VIZ,
-    description="Cue OFF + response ON (negative control): no cue, no recruitment.")
-def recruitment_adversarial(core=None, **kwargs):
-    return composite_document(cue_rate=0.0, chemo_lambda=CHEMO_LAMBDA)
+    name="recruitment", default_n_steps=32, visualizations=_VIZ,
+    description=("Chemotactic recruitment (single CPMProcess). Source cells secrete a "
+                 "cue; responders chemotax up it. cue_rate=0 removes the cue; "
+                 "chemo_lambda=0 blocks the response."),
+    parameters={
+        "cue_rate": {"type": "float", "default": CUE_RATE,
+                     "description": "source secretion rate (0 = no cue)"},
+        "chemo_lambda": {"type": "float", "default": CHEMO_LAMBDA,
+                         "description": "responder chemotaxis strength (0 = response blocked)"},
+    })
+def recruitment(core=None, cue_rate=CUE_RATE, chemo_lambda=CHEMO_LAMBDA):
+    return composite_document(cue_rate=cue_rate, chemo_lambda=chemo_lambda)
