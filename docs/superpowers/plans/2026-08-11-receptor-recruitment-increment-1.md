@@ -392,18 +392,34 @@ import yaml
 BASE = Path("workspace/studies/recruitment-receptor-baseline/study.yaml")
 
 
-def test_baseline_study_wired_and_anchored():
+def _all_cites(node):
+    found = set()
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k == "cites" and isinstance(v, list):
+                found |= {str(x) for x in v}
+            found |= _all_cites(v)
+    elif isinstance(node, list):
+        for x in node:
+            found |= _all_cites(x)
+    return found
+
+
+def test_baseline_wired_and_cites_kd_source():
     doc = yaml.safe_load(BASE.read_text())
     assert doc["baseline"][0]["composite"].endswith("chemotaxis_receptor.recruitment_receptor")
-    test = doc["behavior_tests"][0]
-    anchor = test.get("calibration_anchor") or {}
-    assert anchor.get("cites"), "acceptance band must cite a source"
-    assert anchor.get("literature_target") is not None
+    assert float(doc["baseline"][0]["params"]["kd"]) == 2.9   # cited receptor Kd
+    # the cited Kd source must be linked somewhere in the study (model_settings and/or the test)
+    assert "nasser2009" in _all_cites(doc), "study must cite the receptor-Kd source (nasser2009)"
 ```
 
 - [ ] **Step 2: Run test to verify it fails** — `pytest tests/test_receptor_studies.py -q`. Expected: FAIL (file missing).
 
-- [ ] **Step 3: Author the two study.yaml files** mirroring `recruitment-baseline/study.yaml` (schema_version 3, `investigation: chemotactic-recruitment`). Baseline: `baseline[0].composite = pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`, `params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: <KD>}`; behavior_test `measure: {kind: recruitment_index, condition: recruitment-receptor-baseline, stat: final}`, `pass_if: {op: gt, value: 0.5}`, plus `calibration_anchor: {literature_target: <Kd>, cites: [<bibkey>], resolution: model}`. Blocked: `params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: <KD>, blocked: true}`, `pass_if: {op: lt, value: 0.1}`. Fill observed values + CIs from the Task 4 summaries. Add both to `investigation.yaml` `studies:` and `acceptance_criteria:`, and add the receptor realization's `at_a_glance` rows.
+- [ ] **Step 3: Author the two study.yaml files** mirroring `recruitment-baseline/study.yaml` (schema_version 3, `investigation: chemotactic-recruitment`).
+  - **Baseline** `recruitment-receptor-baseline`: `baseline[0].composite = pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`, `params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: 2.9}`. behavior_test `measure: {kind: recruitment_index, condition: recruitment-receptor-baseline, stat: final}`, `pass_if: {op: gt, value: 0.5}` (observed final_mean ≈ 0.567 from the Task-4 summary `receptor_baseline.json`), with per-test `cites: [nasser2009]` linking the receptor-affinity source that sets the concentration threshold.
+  - **Blocked** `recruitment-receptor-blocked`: `params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: 2.9, blocked: true}`, `pass_if: {op: lt, value: 0.1}` (observed ≈ 0.067).
+  - **The cited Kd is a *parameter* calibration, not a band target.** Record the receptor parameters in the study's `model_settings` (mirror how the workspace documents `conditions.model_settings[]`; if there is no local example, add a minimal block): `{name: kd, current: 2.9, units: nM, cites: [nasser2009], notes: "CXCL8 monomer–CXCR1 Kd (Nasser 2009)"}` and `{name: conc_scale, current: 0.02, provenance: theory, notes: "CPM field-unit → nM mapping; modeling choice, not fit"}`. **Do NOT put `literature_target: 2.9` on the recruitment behavior_test** — recruitment index is a fraction (0–1), so a Kd-valued target would corrupt `divergence_factor`. The Kd's evidence role is `calibrates`, recorded in `model_settings`.
+  - Fill observed values + CIs from the Task-4 summaries. Add both studies to `investigation.yaml` `studies:` and `acceptance_criteria:`, and add the receptor realization's `at_a_glance` rows.
 
 - [ ] **Step 4: Run test to verify it passes** — `pytest tests/test_receptor_studies.py -q`. Expected: PASS.
 
