@@ -32,17 +32,34 @@ executive:
     simulators as compile targets. Here a secreted chemotactic cue recruits responder
     cells, and recruitment requires BOTH the cue and a competent response. The claim,
     its mechanism, and its viva-cpm realization are authored as a backend-neutral
-    bundle (investigations/chemotactic-recruitment/claim-bundle/); the three CPM
-    studies are ONE realization of that claim, with the semantic gap recorded, not
-    hidden. See the "Claim layer" figure and How-to-read below.
+    bundle (investigations/chemotactic-recruitment/claim-bundle/). The claim is now
+    carried by TWO realizations: the original PHENOMENOLOGICAL CPM realization (three
+    studies, chemotaxis lambda a stand-in for the response) and a finer-grained
+    RECEPTOR-LEVEL realization (two studies) in which the response is EMERGENT from a
+    per-cell Hill receptor-occupancy model calibrated to a cited chemokine-receptor
+    affinity. The semantic gap the first realization recorded is now closed by the
+    second, not hidden. See the "Claim layer" figure and How-to-read below.
   verdict: |
-    Recruitment is jointly caused by the cue and the response. The baseline recruits
-    (recruitment index 0 -> 0.67, peak 0.83); blocking the response (lambda->0) or
-    removing the cue (rate->0) each abolishes it (index stays at 0).
+    Recruitment is jointly caused by the cue and the response, shown at TWO fidelity
+    levels. Phenomenological realization: the baseline recruits (recruitment index
+    0 -> 0.67, peak 0.83); blocking the response (lambda->0) or removing the cue
+    (rate->0) each abolishes it (index stays at 0). Receptor-level realization: with
+    the response made emergent from receptor occupancy (Kd 2.9 nM, CXCL8-CXCR1,
+    Nasser 2009), the baseline still recruits (index 0.567, untuned) and blocking the
+    response downstream of receptor binding abolishes it (0.067) -- grounding the
+    response in a cited affinity and closing the recorded lambda-calibration gap.
   verdict_status: complete   # in-progress | passed | complete | blocked | failed | planning
   verdict_detail: |
-    All three member studies pass. The positive claim, the intervention, and the
-    negative control together isolate cue AND response as jointly necessary causes.
+    All five member studies pass. In the phenomenological realization the positive
+    claim, the intervention, and the negative control isolate cue AND response as
+    jointly necessary causes. The receptor-level realization reproduces that same
+    joint dependence with the response emergent from a cited receptor Kd rather than
+    a hand-tuned lambda: it recruits at baseline (0.567) and is abolished when the
+    response is blocked downstream of receptor activation (0.067), sharing the
+    no-cue adversarial control. This resolves the recorded semantic gap /
+    hole:lambda-calibration -- the response term is now calibrated to a real
+    ligand-receptor system for the receptor realization (a minimal Hill occupancy,
+    not a full signaling cascade).
   decisions_needed:
     - question: "Should the Biological Claim Layer compiler now regenerate this study set from a hand-authored claim bundle?"
       context: |
@@ -54,20 +71,28 @@ scientific_argument:
   main_claim: |
     A secreted chemotactic cue recruits responder cells to its source, and
     recruitment is jointly caused by the cue and a competent chemotactic response.
+    The claim holds at two fidelity levels: a phenomenological realization (the
+    response is a chemotaxis-strength knob) and a receptor-level realization (the
+    response is emergent from a cited chemokine-receptor occupancy).
   evidence_for:
-    - "Baseline: recruitment index rises 0 -> 0.67 (peak 0.83), mean approach 0.61."
-    - "Intervention (lambda=0): recruitment index stays at 0 with the cue present."
-    - "Negative control (rate=0): recruitment index stays at 0 with a competent response."
+    - "Phenomenological baseline: recruitment index rises 0 -> 0.67 (peak 0.83), mean approach 0.61."
+    - "Phenomenological intervention (lambda=0): recruitment index stays at 0 with the cue present."
+    - "Negative control (rate=0): recruitment index stays at 0 with a competent response (shared by both realizations)."
+    - "Receptor baseline: with the response emergent from receptor occupancy (Kd 2.9 nM, CXCL8-CXCR1, Nasser 2009), recruitment index reaches 0.567 (95% CI 0.345-0.788, 5 seeds), untuned."
+    - "Receptor intervention (response blocked downstream of receptor binding): recruitment index falls to 0.067 (95% CI 0.0-0.147), despite receptors still able to bind the cue."
   evidence_against:
-    - "None within the tested domain. Recruitment is response- and cue-dependent as predicted."
+    - "None within the tested domain. Recruitment is response- and cue-dependent as predicted, in both realizations."
   key_figures:
     - "Claim layer — claim → mechanism → realization, with the recorded semantic gap (local:ClaimLayerAtlas)."
     - "Claim bundle — the source claim / mechanism / realization graphs, browsable (local:ClaimBundle)."
-    - "Recruitment index over time — baseline vs inhibited vs adversarial (local:ChemotaxisRecruitment)."
+    - "Recruitment index over time — phenomenological baseline vs inhibited vs adversarial (local:ChemotaxisRecruitment)."
+    - "Receptor-gated recruitment — receptor baseline vs blocked, CI-ribbon overlay annotated with the cited Kd (local:ReceptorRecruitment)."
+    - "Receptor activation front — per-responder occupancy/activation heatmap over time, a readout the scalar-lambda model cannot produce (local:ReceptorActivationMap)."
   caveats:
-    - "CPM chemotaxis lambda is a PHENOMENOLOGICAL response strength (a bias on the copy-attempt energy), not a receptor-level model — a recorded semantic gap, not a hidden one."
+    - "In the PHENOMENOLOGICAL realization the CPM chemotaxis lambda is a response-strength stand-in (a bias on the copy-attempt energy), not a receptor-level model — a recorded semantic gap. The RECEPTOR realization closes it by making the response emergent from a per-cell Hill occupancy calibrated to a cited Kd; that Hill occupancy is still a minimal two-parameter model, not a full signaling cascade."
+    - "Receptor realization: the Kd (2.9 nM) is a cited real affinity, but conc_scale (CPM field-unit -> nM mapping), the Hill coefficient, and the activation-occupancy threshold remain recorded modeling choices (provenance: theory), not independently fit."
     - "Field diffusion is capped (d<=0.25) for stability; the gradient is equilibrated before cell stepping, and responders are seeded within the gradient's reach."
-    - "Applicability: single secreted field, two cell types, 2-D lattice, radius-based recruitment readout. Not yet calibrated to a specific ligand/receptor system."
+    - "Applicability: single secreted field, 2-D lattice, radius-based recruitment readout, a 6-cell slice. The phenomenological arm uses two cell types; the receptor arm adds a naive/activated responder sub-type. The response is now calibrated to a specific ligand/receptor system (CXCL8-CXCR1) only for the receptor realization."
 
 biological_story: |
   Many tissue behaviours reduce to a simple motif: one population emits a signal,
@@ -89,9 +114,32 @@ biological_story: |
   response, and the CPM chemotaxis term is a phenomenological stand-in for whatever
   receptor machinery a real system would use.
 
+  The receptor-level realization takes the next step: it replaces the "whatever
+  receptor machinery" hand-wave with an actual, if minimal, one. Each responder now
+  carries a per-cell receptor that reads its local cue concentration and computes
+  fractional occupancy via a Hill relation whose half-maximum is a cited affinity
+  (CXCL8 monomer-CXCR1, Kd = 2.9 nM, Nasser et al. 2009). A responder is naive and
+  immotile until its occupancy crosses threshold; only then does it flip to an
+  activated, chemotaxing type. The chemotactic response is therefore no longer a
+  global knob set by hand -- it EMERGES cell-by-cell from receptor signaling. Making
+  the response emergent surfaces two things the scalar lambda structurally cannot
+  express. First, a CONCENTRATION THRESHOLD: recruitment is gated by whether the
+  local cue clears the receptor's occupancy set-point, turning an arbitrary lambda
+  into a falsifiable, dose-linked prediction anchored to a real Kd. Second, a
+  SPATIAL ACTIVATION FRONT: responders nearer the source cross threshold first, so
+  activation sweeps outward as a front rather than switching on uniformly -- a
+  genuinely new readout (the activation-map figure) that a single lambda averages
+  away. The receptor realization recruits at baseline (index 0.567, untuned) and,
+  when the response is blocked downstream of receptor binding, recruitment collapses
+  to 0.067 even though the receptors still bind the cue -- isolating the chemotactic
+  RESPONSE, not mere receptor engagement, as the necessary cause, and reproducing
+  the phenomenological realization's joint cue-and-response dependence at a higher
+  fidelity. It remains a minimal model: two responder classes, a two-parameter
+  occupancy relation, and a unit-mapping choice (conc_scale) that is recorded, not fit.
+
 competing_frameworks:
   - name: "Receptor-kinetics / ODE chemotaxis (e.g. ligand-receptor occupancy driving a signalling cascade)"
-    relation: "finer-grained mechanism; the CPM lambda is its phenomenological coarse-graining. A claim-layer refinement contract would state what a receptor-level realization must preserve."
+    relation: "NOW REALIZED, not just future work: the receptor-level realization (recruitment-receptor-baseline / -blocked) makes the response emergent from a per-cell Hill receptor-occupancy model calibrated to a cited CXCL8-CXCR1 Kd, of which the CPM lambda is the phenomenological coarse-graining. It preserves what the refinement contract requires -- baseline recruits, response-block abolishes, no-cue abolishes. Honest scope: this is a minimal two-parameter Hill occupancy, not yet a full signalling cascade (adaptation, desensitization, and a graded dose-response remain future work)."
   - name: "Off-lattice force-based migration (PhysiCell-style motility bias)"
     relation: "alternative realization of the same claim; a future backend. The recruitment observable is backend-neutral and should transfer."
 
@@ -103,23 +151,37 @@ how_to_read: |
   2. THE MECHANISM (roles + capabilities, not classes) — a chemotactic response needs a
      motile responder, a diffusible cue, and a gradient-query environment. See
      claim-bundle/mechanism.yaml.
-  3. THE REALIZATION (how it's made executable) — bindings to viva-cpm with FIDELITY
-     labels and the recorded SEMANTIC GAP (CPM lambda is phenomenological, not
-     receptor-level). See claim-bundle/realization.yaml.
-  4. THE STUDIES — the three member studies ARE that realization run: baseline (positive),
-     inhibited (intervention on the response), adversarial (remove the cue; negative
-     control). A future claim compiler would GENERATE these three from the bundle.
+  3. THE REALIZATIONS (how it's made executable) — the claim is carried by TWO
+     realizations of viva-cpm, each with FIDELITY labels. (a) PHENOMENOLOGICAL: the
+     response is the CPM chemotaxis lambda, with the recorded SEMANTIC GAP (lambda is
+     a stand-in, not receptor-level). (b) RECEPTOR-LEVEL: the response is emergent
+     from a per-cell Hill receptor-occupancy model calibrated to a cited Kd, which
+     CLOSES that gap (hole:lambda-calibration). See claim-bundle/realization.yaml.
+  4. THE STUDIES — five member studies across the two realizations. Phenomenological:
+     recruitment-baseline (positive), recruitment-inhibited (intervention on the
+     response), recruitment-adversarial (remove the cue; negative control). Receptor:
+     recruitment-receptor-baseline (positive, cited Kd) and recruitment-receptor-
+     blocked (intervention downstream of receptor binding), sharing the adversarial
+     no-cue control. A future claim compiler would GENERATE these from the bundle.
 
-  What makes the claim trustworthy: replication (5 seeds), a large effect (Cohen's d 6.38),
-  a discriminating negative control, and excluded alternatives — all surfaced per study.
+  What makes the claim trustworthy: replication (5 seeds each), a large effect
+  (phenomenological Cohen's d 6.38; receptor baseline 0.567 vs blocked 0.067), a
+  discriminating negative control, excluded alternatives, and -- for the receptor
+  realization -- a response grounded in a cited chemokine-receptor affinity rather
+  than a hand-tuned knob. All surfaced per study.
 
 glossary:
   - {term: "Biological Claim Layer", definition: "A layer above the execution engine where a biological CLAIM is the canonical source; simulators (CPM, PhysiCell, ...) are compile targets."}
   - {term: "Claim graph", definition: "What is asserted — subject/relation/object + context, intervention, observable, alternatives, applicability, falsifiers (claim-bundle/claim.yaml)."}
   - {term: "Conceptual mechanism template", definition: "The intensional model: roles and required capabilities, with no backend-specific classes (claim-bundle/mechanism.yaml)."}
   - {term: "Realization", definition: "One way the claim is made executable in a specific backend, with fidelity labels and semantic-gap notes (claim-bundle/realization.yaml)."}
-  - {term: "Fidelity / semantic gap", definition: "How faithfully a backend expresses a concept. Here CPM chemotaxis lambda is phenomenological, not receptor-level — recorded, not hidden."}
+  - {term: "Fidelity / semantic gap", definition: "How faithfully a backend expresses a concept. The phenomenological realization's CPM chemotaxis lambda is a stand-in, not receptor-level (recorded, not hidden); the receptor realization closes that gap for the response term."}
   - {term: "Backend-neutral behavior contract", definition: "A given/measure/expect check (recruitment_index) evaluated by a per-backend observable extractor — portable across realizations."}
+  - {term: "Phenomenological realization", definition: "The coarse realization: the chemotactic response is the CPM chemotaxis lambda, a global response-strength knob set by hand (recruitment-baseline / -inhibited / -adversarial)."}
+  - {term: "Receptor-level realization", definition: "The refined realization: the response is emergent from a per-cell Hill receptor-occupancy model calibrated to a cited chemokine-receptor Kd; responders activate (naive->activated, chemotaxing) only once local occupancy crosses threshold (recruitment-receptor-baseline / -blocked)."}
+  - {term: "Receptor occupancy (Hill)", definition: "theta = c^h / (Kd^h + c^h), the fraction of a cell's receptors bound at local concentration c. Here Kd = 2.9 nM (CXCL8-CXCR1, Nasser 2009); crossing the occupancy threshold flips a responder from naive to activated."}
+  - {term: "Refinement / satisfaction condition", definition: "What a finer-grained realization of the same claim must preserve — here that the receptor realization still recruits at baseline, is abolished by response-block, and by no-cue. The receptor realization satisfies it."}
+  - {term: "Recorded modeling choice (not a fit)", definition: "A parameter fixed by theory/convention, not fit to data, with provenance: theory — e.g. conc_scale (CPM field-unit -> nM mapping), the Hill coefficient, and the activation-occupancy threshold. Distinct from the cited, data-anchored Kd."}
 
 at_a_glance:
   - {study: recruitment-baseline, role: "Positive: cue + response recruits (ground truth)."}

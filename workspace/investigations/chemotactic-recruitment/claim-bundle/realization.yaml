@@ -84,6 +84,73 @@ alternative-realizations:
   - backend: physicell
     status: not-implemented
     note: "off-lattice force-based motility bias; the recruitment observable is backend-neutral and should transfer."
-  - backend: receptor-kinetics-ode
-    status: not-implemented
-    note: "finer-grained mechanism; the CPM lambda is its coarse-graining."
+  - backend: receptor-kinetics (per-cell Hill occupancy)
+    status: REALIZED
+    note: "finer-grained mechanism of which the CPM lambda is the coarse-graining; now implemented as the receptor-realization block below (studies recruitment-receptor-baseline / -blocked). Resolves hole:lambda-calibration for the response term."
+
+# ---------------------------------------------------------------------------
+# SECOND REALIZATION (receptor-level) of the SAME claim. Mirrors the shape of
+# the phenomenological realization above, but the response term is EMERGENT
+# from a per-cell ligand-receptor occupancy model calibrated to a cited Kd,
+# rather than the phenomenological chemotaxis lambda. This realization CLOSES
+# hole:lambda-calibration (for the response) and satisfies the refinement
+# contract the phenomenological realization named. The phenomenological
+# realization above is left intact as the coarse realization.
+receptor-realization:
+  backend: viva-cpm + per-cell ReceptorSubcell
+  fidelity: real-backend        # same Rust CPM engine; response gated by an emergent subcell
+  provenance:
+    actor: human
+    status: asserted
+  refines: viva-cpm             # the phenomenological realization above
+
+  bindings:
+    cue:
+      implementation: "fields[].secretion — source cells emit a diffusible field C (unchanged)"
+      fidelity: phenomenological
+    responder-response:
+      implementation: "per-cell ReceptorSubcell computes Hill occupancy theta = c^h/(Kd^h+c^h) from the local cue; occupancy >= threshold flips the responder naive(2)->activated(3); only activated cells carry chemotaxis lambda. Wired to the CPM `fates` port via cpm.coupling.receptor_coupling through a process_bigraph.Composite."
+      fidelity: receptor-occupancy-driven   # refined from phenomenological
+    recruitment-observable:
+      implementation: "recruitment_index from cell centres of mass (world.cell_coms) — SAME extractor as the phenomenological realization (backend-neutral)"
+      fidelity: equivalent
+
+  intervention-binding:
+    block-chemotactic-response: "force the activated-type chemotaxis lambda to 0 (blocked=True) — pharmacological block DOWNSTREAM of receptor binding; receptors still bind the cue."
+
+  # The cited calibration that fills the phenomenological realization's hole.
+  calibration:
+    - parameter: kd
+      value: 2.9
+      units: nM
+      cites: [nasser2009]
+      note: "CXCL8 monomer–CXCR1 dissociation constant (Nasser et al. 2009, J Immunol 183(5):3425-3432, doi 10.4049/jimmunol.0900305)."
+      resolves: hole:lambda-calibration   # for the response term, in this realization
+  # Parameters that remain recorded modeling CHOICES (provenance: theory), not fits:
+  recorded-modeling-choices:
+    - {parameter: conc_scale, value: 0.02, provenance: theory, note: "CPM field-unit -> nM mapping; a modeling choice, not fit."}
+    - {parameter: hill, value: 2.0, provenance: theory, note: "assumed cooperative binding, not independently fit."}
+    - {parameter: activate_occupancy, value: 0.5, provenance: theory, note: "naive->activated switch at half-maximal occupancy; a modeling choice."}
+
+  # What this refinement MUST preserve relative to the phenomenological realization.
+  refinement:
+    must-preserve:
+      - "baseline recruits (recruitment index well above 0)"
+      - "blocking the response abolishes recruitment"
+      - "no cue yields no recruitment (shared adversarial control)"
+    satisfaction: PASSED
+    evidence:
+      - "receptor baseline recruitment index 0.567 (95% CI 0.345-0.788, 5 seeds) vs phenomenological 0.767"
+      - "receptor response-block index 0.067 (95% CI 0.0-0.147) vs phenomenological ~0"
+      - "shares study:recruitment-adversarial (no cue -> 0) as the negative control"
+
+  semantic-gap-status:
+    - "The phenomenological semantic gap (lambda not receptor-level) is CLOSED for the response term: the response is now emergent from a cited chemokine-receptor occupancy. Residual honesty: the occupancy model is a minimal two-parameter Hill relation, not a full signalling cascade (adaptation/desensitization/graded dose-response deferred), and conc_scale/hill/activate_occupancy remain recorded modeling choices."
+
+  generated-studies:
+    - study:recruitment-receptor-baseline    # recruitment_receptor(cue on, receptor-gated response)
+    - study:recruitment-receptor-blocked     # recruitment_receptor(blocked=True; response off downstream of receptor)
+    # shared negative control: study:recruitment-adversarial (no cue)
+
+  new-readouts:
+    - "receptor activation front — per-cell occupancy/activation over space+time; a readout the scalar-lambda realization cannot produce."
