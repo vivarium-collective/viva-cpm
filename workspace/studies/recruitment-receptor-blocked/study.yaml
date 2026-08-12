@@ -70,6 +70,10 @@ model_settings:
 visualizations:
 - name: Recruitment over time (all conditions)
   address: local:ChemotaxisRecruitment
+- name: Receptor-gated recruitment (baseline vs blocked, CI ribbons)
+  address: local:ReceptorRecruitment
+- name: Receptor activation front (per-responder, over time)
+  address: local:ReceptorActivationMap
 
 readouts:
 - name: Recruitment index
