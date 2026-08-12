@@ -64,8 +64,13 @@ def _plot(div, traces, layout, *, height, caption, frames=None, max_width=820):
     CDN plotly + Plotly.newPlot in an inline <script>)."""
     cfg = "{responsive:true,displayModeBar:false}"
     if frames:
-        script = (f'Plotly.newPlot("{div}",{json.dumps(traces)},{json.dumps(layout)},{cfg})'
-                  f'.then(function(){{Plotly.addFrames("{div}",{json.dumps(frames)});}});')
+        # Single figure-object form so the output carries a real top-level
+        # Plotly ``frames`` array (initial ``data`` = frame 0 only, NOT every
+        # timepoint overlaid); the Play/Pause buttons and slider steps animate
+        # over the named frames.
+        fig = {"data": traces, "layout": layout, "frames": frames,
+               "config": {"responsive": True, "displayModeBar": False}}
+        script = f'Plotly.newPlot("{div}",{json.dumps(fig)});'
     else:
         script = f'Plotly.newPlot("{div}",{json.dumps(traces)},{json.dumps(layout)},{cfg});'
     return (

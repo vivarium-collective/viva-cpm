@@ -8,6 +8,7 @@ def test_visualizations_render_html():
 
 
 def test_scene_is_animated():
-    # the headline scene must ship animation frames (Play button + slider)
+    # the headline scene must ship a real top-level Plotly frames array (not
+    # every timepoint overlaid as static traces) driving the Play button + slider
     html = V.ReceptorRecruitmentScene()
-    assert "frames" in html.lower() and "addframes" in html.lower()
+    assert html.count('"frames"') > 0
