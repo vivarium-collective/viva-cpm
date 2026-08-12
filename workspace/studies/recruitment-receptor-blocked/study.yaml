@@ -35,7 +35,7 @@ description: |
 
 claim: |
   Blocking the response downstream of receptor activation abolishes
-  recruitment: the final recruitment index is 0.0667 (95% CI -0.0133-0.1467),
+  recruitment: the final recruitment index is 0.0667 (95% CI 0.0-0.1467),
   below the 0.1 pass threshold, despite the cue being present and receptors
   still able to bind ligand.
 
@@ -92,7 +92,7 @@ behavior_tests:
     Pass criterion: recruitment index below 0.1 at the end of the run.
     Measured from workspace/chemotaxis_data/results/receptor_blocked.json
     (5 seeds, [17, 29, 43, 61, 89]): recruitment index stays at 0.0 through
-    mcs 325, then drifts to 0.0667 (95% CI -0.0133-0.1467) by the end of the
+    mcs 325, then drifts to 0.0667 (95% CI 0.0-0.1467) by the end of the
     run -- versus 0.5667 for the receptor baseline.
   measure: {kind: recruitment_index, condition: recruitment-receptor-blocked, stat: final}
   pass_if: {op: lt, value: 0.1}
@@ -107,10 +107,10 @@ findings:
   mechanism_origin: emergent
   evidence:
     from_test: Blocking the response abolishes recruitment (receptor realization)
-    observed: "recruitment index 0.0667 (95% CI -0.0133-0.1467) across 5 seeds despite the cue present and receptors still able to bind (baseline 0.5667)"
+    observed: "recruitment index 0.0667 (95% CI 0.0-0.1467) across 5 seeds despite the cue present and receptors still able to bind (baseline 0.5667)"
   statement: |
     The intervention works in the receptor-level realization too: across 5
-    seeds the final recruitment index is 0.0667 (95% CI -0.0133-0.1467) with
+    seeds the final recruitment index is 0.0667 (95% CI 0.0-0.1467) with
     the activated-type chemotaxis lambda forced to 0, versus 0.5667 for the
     receptor baseline -- recruitment remains response-dependent even when
     receptor binding itself is unaffected.
@@ -122,7 +122,7 @@ robustness:
   per_measure:
   - name: recruitment_index
     final_mean: 0.0667
-    final_ci: [-0.0133, 0.1467]
+    final_ci: [0.0, 0.1467]
 
 parent_studies:
 - study: recruitment-receptor-baseline
@@ -159,7 +159,7 @@ runs:
     'Blocking the response abolishes recruitment (receptor realization)':
       result: PASS
       measured_value: 0.0667
-      notes: "0.0667 (95% CI -0.0133-0.1467) across 5 seeds with the cue present; kd=2.9 nM (Nasser 2009)"
+      notes: "0.0667 (95% CI 0.0-0.1467) across 5 seeds with the cue present; kd=2.9 nM (Nasser 2009)"
       evaluated_by: pbg_cpm_studies.evaluators
 
 discovery_implications:

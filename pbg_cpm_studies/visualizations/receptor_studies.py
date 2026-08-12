@@ -78,7 +78,7 @@ def _recruitment_card(div):
     traces = []
     for key, label, color in _DEFS:
         y = _MEAN[key]
-        lo = [c[0] for c in _CI[key]]
+        lo = [max(0.0, c[0]) for c in _CI[key]]
         hi = [c[1] for c in _CI[key]]
         rgba = _hex_to_rgba(color, 0.16)
         # invisible upper bound
