@@ -70,10 +70,12 @@ model_settings:
 visualizations:
 - name: Recruitment over time (all conditions)
   address: local:ChemotaxisRecruitment
+- name: Recruitment scene — responders climb the chemokine gradient (animated, baseline)
+  address: local:ReceptorRecruitmentScene
+- name: Receptor occupancy law with the cited Kd (evidence → mechanism)
+  address: local:ReceptorOccupancyLaw
 - name: Receptor-gated recruitment (baseline vs blocked, CI ribbons)
-  address: local:ReceptorRecruitment
-- name: Receptor activation front (per-responder, over time)
-  address: local:ReceptorActivationMap
+  address: local:ReceptorRecruitmentCurve
 
 readouts:
 - name: Recruitment index
