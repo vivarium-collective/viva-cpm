@@ -1,0 +1,174 @@
+schema_version: 3
+name: recruitment-receptor-baseline
+status: complete
+phase: Decide
+title: "Receptor realization: cue + receptor-gated response recruits"
+confidence: Accepted
+investigation: chemotactic-recruitment
+
+question: |
+  Does a receptor-level realization of chemotactic recruitment -- where each
+  responder activates from naive to chemotaxing only once its per-cell
+  receptor-occupancy Hill relation crosses threshold -- reproduce the
+  baseline recruitment claim, using a cited receptor Kd instead of a
+  hand-tuned chemotaxis strength?
+
+hypothesis: |
+  With the cue secreted (rate 10) and the receptor-gated response intact
+  (chemo_lambda 14, kd 2.9 nM), responders whose Hill-occupancy crosses the
+  activation threshold chemotax up the gradient, and the recruitment index
+  rises well above zero, consistent with the phenomenological baseline.
+
+objective: |
+  Simulate the receptor-recruitment world (the recruitment_receptor
+  composite): naive(2)/activated(3) responder sub-types, each carrying a
+  ReceptorSubcell that computes Hill occupancy from the local cue field, and
+  measure the recruitment index over 500 MC sweeps across 5 seeds.
+
+description: |
+  The receptor-level realization of the chemotactic-recruitment claim. Where
+  recruitment-baseline gives every responder a hardcoded, always-on
+  chemotactic bias, this study makes the response emergent: each responder
+  carries a per-cell ReceptorSubcell that reads the local cue concentration
+  and computes fractional receptor occupancy via a Hill relation (kd, hill,
+  conc_scale, activate_occupancy). Only once occupancy crosses threshold does
+  a responder flip from naive (type 2, non-chemotaxing) to activated (type 3,
+  chemotaxing) -- see
+  pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor. The
+  receptor's Kd is not a free-fit parameter: it is the CXCL8 monomer-CXCR1
+  affinity reported in Nasser et al. 2009 (2.9 nM), so activation is
+  calibrated to a real receptor-ligand pair rather than an arbitrary lambda.
+  The Kd calibration is recorded as a parameter (model_settings below), not
+  as a literature_target on the recruitment-index test -- recruitment index
+  is a 0-1 fraction, and a Kd-valued target on that test would corrupt any
+  divergence_factor computed from it.
+
+claim: |
+  Cue + receptor-gated response recruits: across 5 seeds the final
+  recruitment index is 0.5667 (95% CI 0.3451-0.7882), above the 0.5 pass
+  threshold, with responder activation gated by a receptor Kd cited to
+  Nasser 2009 rather than a hand-tuned chemotaxis strength.
+
+baseline:
+- name: baseline
+  composite: pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
+  params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: 2.9}   # cue ON, receptor-gated response ON
+
+expected_behavior:
+- Responders whose receptor occupancy crosses the Hill activation threshold switch from naive to activated and chemotax up the gradient.
+- Recruitment index rises above 0.5 by the end of the run.
+
+model_settings:
+- name: kd
+  current: 2.9
+  units: nM
+  cites: [nasser2009]
+  notes: "CXCL8 monomer–CXCR1 Kd (Nasser 2009)"
+- name: conc_scale
+  current: 0.02
+  provenance: theory
+  notes: "CPM field-unit → nM mapping; modeling choice, not fit"
+- name: hill
+  current: 2.0
+  provenance: theory
+  notes: "Hill coefficient for receptor occupancy; assumed cooperative binding, not independently fit"
+- name: activate_occupancy
+  current: 0.5
+  provenance: theory
+  notes: "Naive -> activated switch fires at half-maximal receptor occupancy; a modeling choice, not a literature value"
+
+visualizations:
+- name: Recruitment over time (all conditions)
+  address: local:ChemotaxisRecruitment
+
+readouts:
+- name: Recruitment index
+  identifier: recruitment_index
+  units: fraction of responders within radius
+  status: measured
+  description: |
+    Fraction of responder cell centres of mass within 15 px of the source
+    centroid, with each responder's chemotaxis gated by its own receptor
+    activation state.
+
+behavior_tests:
+- name: Responders are recruited to the source (receptor realization)
+  classification: primary
+  description: |
+    Pass criterion: recruitment index above 0.5 at the end of the run.
+    Measured from workspace/chemotaxis_data/results/receptor_baseline.json
+    (5 seeds, [17, 29, 43, 61, 89]): recruitment index rises
+    0.0 -> 0.5667 (95% CI 0.3451-0.7882; peak 0.7667 at mcs 225 and 375).
+  measure: {kind: recruitment_index, condition: recruitment-receptor-baseline, stat: final}
+  pass_if: {op: gt, value: 0.5}
+  cites: [nasser2009]
+  status: passed
+  result: PASS
+
+findings:
+- id: F-01
+  kind: computational
+  status: confirms
+  mechanism_origin: emergent
+  evidence:
+    from_test: Responders are recruited to the source (receptor realization)
+    observed: "recruitment index 0.5667 (95% CI 0.3451-0.7882) across 5 seeds, receptor-gated activation via a cited CXCR1 Kd (2.9 nM, Nasser 2009)"
+  statement: |
+    The receptor-level realization reproduces the baseline recruitment claim:
+    across 5 seeds the final recruitment index is 0.5667 (95% CI
+    0.3451-0.7882), above the 0.5 pass threshold, with responder activation
+    gated by a per-cell Hill-occupancy receptor model calibrated to a cited
+    CXCL8-CXCR1 Kd rather than an arbitrary chemotaxis strength.
+
+robustness:
+  n_replicates: 5
+  seeds: [17, 29, 43, 61, 89]
+  parameter_sweep: false
+  per_measure:
+  - name: recruitment_index
+    final_mean: 0.5667
+    final_ci: [0.3451, 0.7882]
+
+parent_studies:
+- study: recruitment-baseline
+  condition: tests-passed
+  relation: refines
+
+conclusion: |
+  The receptor-level realization -- naive/activated responder sub-types
+  gated by a per-cell Hill-occupancy receptor model with a cited CXCL8-CXCR1
+  Kd -- reproduces the phenomenological baseline's recruitment claim
+  (recruitment index 0.5667 here vs 0.767 for the phenomenological
+  realization). Fidelity note: the Kd (2.9 nM, Nasser 2009) is a real
+  receptor-affinity value; conc_scale (the CPM field-unit -> nM mapping) and
+  hill/activate_occupancy remain modeling choices, not independently fit
+  (see model_settings).
+
+key_assumptions:
+- Same world geometry as recruitment-baseline (source slab + six responders, Moore-8 lattice, order 2).
+- Receptor occupancy is computed per responder each step from the local field via a Hill relation; activation is a one-way naive -> activated switch.
+- conc_scale maps the CPM field's raw amplitude into the Hill relation's nM-scale sensitive window; this mapping, not the Kd itself, is the simulation-unit calibration choice.
+- Recruitment radius = 15 px, identical to recruitment-baseline.
+
+gate_status: passed
+
+runs:
+- run_id: recruitment-receptor-baseline-5seed
+  name: recruitment-receptor-baseline (5 seeds)
+  status: completed
+  canonical: true
+  timestamp: '2026-08-11'
+  seeds: [17, 29, 43, 61, 89]
+  emitter: chemotaxis_data/results series-json
+  outcomes:
+    'Responders are recruited to the source (receptor realization)':
+      result: PASS
+      measured_value: 0.5667
+      notes: "0.5667 (95% CI 0.3451-0.7882) across 5 seeds; kd=2.9 nM (Nasser 2009)"
+      evaluated_by: pbg_cpm_studies.evaluators
+
+discovery_implications:
+  followup_study_proposals:
+  - id: receptor-dose-response
+    title: "Dose-response: recruitment vs receptor Kd and conc_scale"
+    motivation: "Map how sensitive the receptor realization is to conc_scale (the one uncalibrated modeling choice) and to Kd itself."

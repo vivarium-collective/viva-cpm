@@ -125,11 +125,15 @@ at_a_glance:
   - {study: recruitment-baseline, role: "Positive: cue + response recruits (ground truth)."}
   - {study: recruitment-inhibited, role: "Intervention: block the response -> recruitment abolished."}
   - {study: recruitment-adversarial, role: "Negative control: no cue -> no recruitment (rejection)."}
+  - {study: recruitment-receptor-baseline, role: "Receptor realization: cue + receptor-gated response recruits, kd cited to Nasser 2009."}
+  - {study: recruitment-receptor-blocked, role: "Receptor realization intervention: block the response downstream of receptor activation -> recruitment abolished."}
 
 studies:
 - recruitment-baseline
 - recruitment-inhibited
 - recruitment-adversarial
+- recruitment-receptor-baseline
+- recruitment-receptor-blocked
 
 expert_docs:
 - vivarium-semantic-modeling-layer
@@ -138,3 +142,5 @@ acceptance_criteria:
 - {study: recruitment-baseline, behavior: "Responders are recruited to the source"}
 - {study: recruitment-inhibited, behavior: "Blocking the response abolishes recruitment"}
 - {study: recruitment-adversarial, behavior: "No cue yields no recruitment (rejection)"}
+- {study: recruitment-receptor-baseline, behavior: "Responders are recruited to the source (receptor realization)"}
+- {study: recruitment-receptor-blocked, behavior: "Blocking the response abolishes recruitment (receptor realization)"}
