@@ -117,7 +117,7 @@ source = { git = "https://github.com/vivarium-collective/bigraph-loom.git?rev=ma
 
 [[package]]
 name = "bigraph-schema"
-version = "1.4.2"
+version = "1.4.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fire" },
@@ -128,9 +128,9 @@ dependencies = [
     { name = "plum-dispatch" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/78/f5/aaed66b73e183a830ddb63a8abe5a1ebde0d98ec1d498f857eda74162605/bigraph_schema-1.4.2.tar.gz", hash = "sha256:b911bc7e90c0c66d11a91272b31ec323cbfde33f058c70e90c6345220c5c62a8", size = 126007, upload-time = "2026-06-14T16:42:34.681Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/3c/063a46cb058b675e1b2fec57a2a8b6e5e4f131b7846c45bb415cfe485d46/bigraph_schema-1.4.5.tar.gz", hash = "sha256:f36a3b97ba158d44e59355331bfc3a52bb11876566adb7ad0db58ad5f43ea69e", size = 145035, upload-time = "2026-07-31T02:10:05.852Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/aa/8f2bbc94c8536498cf72ca4a3cce22b6c1a8b21551aa397470347bf9cb58/bigraph_schema-1.4.2-py3-none-any.whl", hash = "sha256:8dace01c36f76f8657f8c07a07ac363c753a3b36f4cd8f1bd57ee88067206667", size = 141837, upload-time = "2026-06-14T16:42:33.278Z" },
+    { url = "https://files.pythonhosted.org/packages/7a/34/232e3559e9fe17d120a72cdc27ba94dcf968f3f4c71c5972c875005e4daf/bigraph_schema-1.4.5-py3-none-any.whl", hash = "sha256:542abb9fd4d07ce433381ae297682f49f1a54be174b43c3c1962ea1b8a45e6ee", size = 159813, upload-time = "2026-07-31T02:10:04.511Z" },
 ]
 
 [[package]]
@@ -1291,6 +1291,14 @@ all = [
     { name = "pbg-tellurium" },
     { name = "tellurium" },
 ]
+dev = [
+    { name = "libroadrunner" },
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "pbg-tellurium" },
+    { name = "pytest" },
+    { name = "tellurium" },
+]
 ftu = [
     { name = "matplotlib" },
     { name = "numpy" },
@@ -1303,7 +1311,7 @@ sbml = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bigraph-schema" },
+    { name = "bigraph-schema", specifier = ">=1.4.4" },
     { name = "bigraph-viz", specifier = ">=2.0.3" },
     { name = "jinja2", specifier = ">=3.1" },
     { name = "jsonschema", extras = ["format-nongpl"], specifier = ">=4.21" },
@@ -1312,15 +1320,17 @@ requires-dist = [
     { name = "matplotlib", marker = "extra == 'ftu'" },
     { name = "numpy", marker = "extra == 'ftu'" },
     { name = "pbg-cpm", extras = ["sbml", "ftu"], marker = "extra == 'all'" },
+    { name = "pbg-cpm", extras = ["sbml", "ftu"], marker = "extra == 'dev'" },
     { name = "pbg-tellurium", marker = "extra == 'sbml'", git = "https://github.com/vivarium-collective/pbg-tellurium.git?branch=main" },
     { name = "plotly" },
-    { name = "process-bigraph" },
+    { name = "process-bigraph", specifier = ">=1.8.3" },
     { name = "pypdf", specifier = ">=4.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "tellurium", marker = "extra == 'sbml'", specifier = ">=2.2" },
     { name = "vivarium-workbench", git = "https://github.com/vivarium-collective/vivarium-workbench.git?branch=main" },
 ]
-provides-extras = ["sbml", "ftu", "all"]
+provides-extras = ["sbml", "ftu", "all", "dev"]
 
 [[package]]
 name = "pbg-emitters"
@@ -1533,7 +1543,7 @@ wheels = [
 
 [[package]]
 name = "process-bigraph"
-version = "1.5.0"
+version = "1.8.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bigraph-schema" },
@@ -1543,9 +1553,9 @@ dependencies = [
     { name = "scipy" },
     { name = "sympy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/82/b1/7454c11c1d6eb5d75b28ae1b7e440f156e548fb03346d86ce23bb542050d/process_bigraph-1.5.0.tar.gz", hash = "sha256:b408a69f2719e7520dd2b7f31a446d97a92eb946d7c69fc4d87e7baf4a4195b3", size = 118024, upload-time = "2026-06-29T12:01:58.311Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/19/3620d92949603d4f57da7ce4d4eb9167c91ecf230d6d9705875719b8373b/process_bigraph-1.8.3.tar.gz", hash = "sha256:38faf15c0c285ace0b5ba82fe8b9b06f04250818e9ad7e05e5958dc6858f895a", size = 175700, upload-time = "2026-08-05T15:24:43.697Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/55/20/51940f2a086ad2c1c6a99716714c1ba47dfc937dd1c029c8bdcebd1aca82/process_bigraph-1.5.0-py3-none-any.whl", hash = "sha256:29da1015a51fc9ccd07e4838ed86ce8a37cf9872ea457b9f3e638261d8efa23e", size = 127263, upload-time = "2026-06-29T12:01:57.066Z" },
+    { url = "https://files.pythonhosted.org/packages/09/de/608d235fd4c20e3a15e1cfe961ad592cbc69831491fb2553d32dc997866c/process_bigraph-1.8.3-py3-none-any.whl", hash = "sha256:0bfbe1715e44db34cca9c173bb1af295470bb7a7c48b5ac24de7b80e309ce559", size = 195772, upload-time = "2026-08-05T15:24:42.257Z" },
 ]
 
 [[package]]
