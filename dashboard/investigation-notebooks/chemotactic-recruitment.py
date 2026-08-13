@@ -30,9 +30,13 @@ if _os.environ.get("PYTHONUTF8") != "1":
 # simulators as compile targets. Here a secreted chemotactic cue recruits responder
 # cells, and recruitment requires BOTH the cue and a competent response. The claim,
 # its mechanism, and its viva-cpm realization are authored as a backend-neutral
-# bundle (investigations/chemotactic-recruitment/claim-bundle/); the three CPM
-# studies are ONE realization of that claim, with the semantic gap recorded, not
-# hidden. See the "Claim layer" figure and How-to-read below.
+# bundle (investigations/chemotactic-recruitment/claim-bundle/). The claim is now
+# carried by TWO realizations: the original PHENOMENOLOGICAL CPM realization (three
+# studies, chemotaxis lambda a stand-in for the response) and a finer-grained
+# RECEPTOR-LEVEL realization (two studies) in which the response is EMERGENT from a
+# per-cell Hill receptor-occupancy model calibrated to a cited chemokine-receptor
+# affinity. The semantic gap the first realization recorded is now closed by the
+# second, not hidden. See the "Claim layer" figure and How-to-read below.
 #
 # ---
 #
@@ -277,6 +281,130 @@ _save_viz('recruitment-adversarial', 'Recruitment_over_time_all_conditions', _re
 # | test | measures | passes if |
 # | --- | --- | --- |
 # | No cue yields no recruitment (rejection) | kind=recruitment_index condition=recruitment-adversarial stat=max | op lt value 0.1 |
+
+# ## Study: `recruitment-receptor-baseline`
+#
+# **Question.** Does a receptor-level realization of chemotactic recruitment -- where each
+# responder activates from naive to chemotaxing only once its per-cell
+# receptor-occupancy Hill relation crosses threshold -- reproduce the
+# baseline recruitment claim, using a cited receptor Kd instead of a
+# hand-tuned chemotaxis strength?
+#
+# **Objective.** Simulate the receptor-recruitment world (the recruitment_receptor
+# composite): naive(2)/activated(3) responder sub-types, each carrying a
+# ReceptorSubcell that computes Hill occupancy from the local cue field, and
+# measure the recruitment index over 500 MC sweeps across 5 seeds.
+#
+# **Hypothesis.** With the cue secreted (rate 10) and the receptor-gated response intact
+# (chemo_lambda 14, kd 2.9 nM), responders whose Hill-occupancy crosses the
+# activation threshold chemotax up the gradient, and the recruitment index
+# rises well above zero, consistent with the phenomenological baseline.
+
+# ### Parameters
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: recruitment-receptor-baseline ===
+STUDY = 'recruitment-receptor-baseline'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Recruitment over time (all conditions)**
+
+# Recruitment over time (all conditions)
+_save_viz('recruitment-receptor-baseline', 'Recruitment_over_time_all_conditions', _render_one('local:ChemotaxisRecruitment', {}, RUNS_DB, STUDY_YAML))
+
+# **Recruitment scene — responders climb the chemokine gradient (animated, baseline)**
+
+# Recruitment scene — responders climb the chemokine gradient (animated, baseline)
+_save_viz('recruitment-receptor-baseline', 'Recruitment_scene_responders_climb_the_chemokine_gradient_animated_baseline', _render_one('local:ReceptorRecruitmentScene', {}, RUNS_DB, STUDY_YAML))
+
+# **Receptor occupancy law with the cited Kd (evidence → mechanism)**
+
+# Receptor occupancy law with the cited Kd (evidence → mechanism)
+_save_viz('recruitment-receptor-baseline', 'Receptor_occupancy_law_with_the_cited_Kd_evidence_mechanism', _render_one('local:ReceptorOccupancyLaw', {}, RUNS_DB, STUDY_YAML))
+
+# **Receptor-gated recruitment (baseline vs blocked, CI ribbons)**
+
+# Receptor-gated recruitment (baseline vs blocked, CI ribbons)
+_save_viz('recruitment-receptor-baseline', 'Receptor-gated_recruitment_baseline_vs_blocked_CI_ribbons', _render_one('local:ReceptorRecruitmentCurve', {}, RUNS_DB, STUDY_YAML))
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | Responders are recruited to the source (receptor realization) | kind=recruitment_index condition=recruitment-receptor-baseline stat=final | op gt value 0.5 |
+
+# ## Study: `recruitment-receptor-blocked`
+#
+# **Question.** In the receptor-level realization, if the activated response is forced off
+# (blocked=True, zeroing the activated-type chemotaxis lambda even for cells
+# that cross the receptor-occupancy activation threshold) while the cue is
+# still secreted, is recruitment abolished?
+#
+# **Objective.** Repeat the receptor-recruitment world with blocked=True (the intervention)
+# and measure the recruitment index over 500 MC sweeps across 5 seeds.
+#
+# **Hypothesis.** With the cue present (rate 10) but the receptor-gated response disabled
+# (blocked=True), responders may still activate (naive -> activated) but no
+# longer chemotax, so the recruitment index stays near zero.
+
+# ### Parameters
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: recruitment-receptor-blocked ===
+STUDY = 'recruitment-receptor-blocked'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Recruitment over time (all conditions)**
+
+# Recruitment over time (all conditions)
+_save_viz('recruitment-receptor-blocked', 'Recruitment_over_time_all_conditions', _render_one('local:ChemotaxisRecruitment', {}, RUNS_DB, STUDY_YAML))
+
+# **Recruitment scene — responders climb the chemokine gradient (animated, baseline)**
+
+# Recruitment scene — responders climb the chemokine gradient (animated, baseline)
+_save_viz('recruitment-receptor-blocked', 'Recruitment_scene_responders_climb_the_chemokine_gradient_animated_baseline', _render_one('local:ReceptorRecruitmentScene', {}, RUNS_DB, STUDY_YAML))
+
+# **Receptor occupancy law with the cited Kd (evidence → mechanism)**
+
+# Receptor occupancy law with the cited Kd (evidence → mechanism)
+_save_viz('recruitment-receptor-blocked', 'Receptor_occupancy_law_with_the_cited_Kd_evidence_mechanism', _render_one('local:ReceptorOccupancyLaw', {}, RUNS_DB, STUDY_YAML))
+
+# **Receptor-gated recruitment (baseline vs blocked, CI ribbons)**
+
+# Receptor-gated recruitment (baseline vs blocked, CI ribbons)
+_save_viz('recruitment-receptor-blocked', 'Receptor-gated_recruitment_baseline_vs_blocked_CI_ribbons', _render_one('local:ReceptorRecruitmentCurve', {}, RUNS_DB, STUDY_YAML))
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | Blocking the response abolishes recruitment (receptor realization) | kind=recruitment_index condition=recruitment-receptor-blocked stat=final | op lt value 0.1 |
 
 # ## Open decisions
 # - Should the Biological Claim Layer compiler now regenerate this study set from a hand-authored claim bundle?

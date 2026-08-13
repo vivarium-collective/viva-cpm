@@ -135,6 +135,7 @@
   function toolsCell(row) {
     var tools = (row && row.matched_tools) || [];
     if (!tools.length) return "";
+    var BP = window.__BASE_PATH__ || "";
     return tools.map(function (t) {
       var label = esc(t.label || t.id || "Tool");
       var url = t.launch_url || "";
@@ -142,8 +143,12 @@
         return '<button type="button" class="action-btn js-authoring tool-launch-btn" ' +
           'data-launch-url="' + esc(url) + '" title="Launch ' + label + '">' + label + " &#8599;</button>";
       }
+      // Direct deep-link (embed-explorer, embed-3d, static viewer page). It's
+      // plain markup the base-path shim never sees, so prefix the workspace-root
+      // absolute URL with __BASE_PATH__ so it resolves under a hosting prefix.
+      var href = /^https?:|^\/\//.test(url) ? url : (BP + url);
       return '<a class="action-btn js-authoring" title="Open ' + label + '" target="_blank" ' +
-        'rel="noopener" href="' + esc(url) + '" style="text-decoration:none;">' + label + " &#8599;</a>";
+        'rel="noopener" href="' + esc(href) + '" style="text-decoration:none;">' + label + " &#8599;</a>";
     }).join(" ");
   }
 
@@ -461,7 +466,7 @@
     { label: "Origin", key: "origin", id: "origin" },
     { label: "Emitter", key: "emitter", id: "emitter", html: function (row) { return emitterPill(row.emitter_type); } },
     { label: "Time", key: "time", id: "time" }, { label: "Status", key: "status", id: "status" },
-    { label: "Tools", key: null, id: "tools" }, { label: "", key: null, id: "actions" },
+    { label: "Tools", key: "tools", id: "tools" }, { label: "", key: null, id: "actions" },
   ];
 
   // Generic pre-render pass (Fable A #2 / study-design-fable-pass spec R3):
@@ -492,6 +497,17 @@
     if (key === "status") return String(row.status || "").toLowerCase();
     if (key === "location") return String(row.store_path || row.db_path || "").toLowerCase();
     if (key === "run") return String(row.sim_name || row.label || row.run_id || "").toLowerCase();
+    if (key === "config") {
+      var c = row.config || {};
+      return Object.keys(c).length ? JSON.stringify(c).toLowerCase() : "";
+    }
+    // Tools: matched-tool label, tool-less rows to the end (see walkthrough.js's
+    // _simSortValue for the same convention) so clicking Tools groups the
+    // tool-linked runs and floats them up on the first (ascending) click.
+    if (key === "tools") {
+      var mt = row.matched_tools || [];
+      return mt.length ? String(mt[0].label || mt[0].id || "").toLowerCase() : "\uffff";
+    }
     return "";
   }
 
