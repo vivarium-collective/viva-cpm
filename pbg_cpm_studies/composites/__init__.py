@@ -16,3 +16,4 @@ the lint currently warns; they could be collapsed into one parameterized composi
 """
 from . import gg1993  # noqa: F401  (fires @composite_generator decorators)
 from . import chemotaxis  # noqa: F401
+from . import chemotaxis_receptor  # noqa: F401

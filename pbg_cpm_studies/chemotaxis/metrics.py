@@ -45,7 +45,18 @@ def _dist(a: Sequence[float], b: Sequence[float]) -> float:
     )
 
 
-def _split(coms, types, source_type, responder_type):
+def _responder_type_set(responder_type, responder_types) -> set:
+    """Resolve the effective set of responder type ids. ``responder_types``
+    (an iterable of type ids), when given, takes precedence over the single
+    ``responder_type`` -- letting a receptor-level composite count naive(2)
+    AND activated(3) cells as responders without disturbing the single-type
+    default every existing chemotaxis study call relies on."""
+    if responder_types is not None:
+        return {int(t) for t in responder_types}
+    return {int(responder_type)}
+
+
+def _split(coms, types, source_type, responder_type_set):
     """Return (source_coms, responder_coms) skipping Medium (type 0).
 
     ``coms``/``types`` may be indexed by cell id (index 0 == Medium, as
@@ -54,19 +65,30 @@ def _split(coms, types, source_type, responder_type):
     """
     src, resp = [], []
     for com, t in zip(coms, types):
-        if int(t) == source_type:
+        ti = int(t)
+        if ti == source_type:
             src.append(com)
-        elif int(t) == responder_type:
+        elif ti in responder_type_set:
             resp.append(com)
     return src, resp
 
 
 def recruitment_index_from_coms(
     coms, types, *, source_type=SOURCE_TYPE, responder_type=RESPONDER_TYPE,
-    radius=DEFAULT_RADIUS,
+    responder_types=None, radius=DEFAULT_RADIUS,
 ) -> float:
-    """Fraction of responder cells within ``radius`` of the source centroid."""
-    src, resp = _split(coms, types, source_type, responder_type)
+    """Fraction of responder cells within ``radius`` of the source centroid.
+
+    Counts only ``responder_type`` by default (backward compatible with every
+    existing chemotaxis study). Pass ``responder_types`` — an iterable of type
+    ids, e.g. ``{NAIVE_TYPE, ACTIVATED_TYPE}`` — to count several responder
+    types at once, which a receptor-level composite needs: gating recruitment
+    on "reached activated (type 3)" alone is circular (activation and
+    recruitment would share the same underlying occupancy signal), so
+    receptor-level recruitment counts ALL responders regardless of fate.
+    """
+    types_set = _responder_type_set(responder_type, responder_types)
+    src, resp = _split(coms, types, source_type, types_set)
     if not resp or not src:
         return 0.0
     c = _centroid(src)
@@ -74,11 +96,25 @@ def recruitment_index_from_coms(
     return within / len(resp)
 
 
+def recruitment_index_all_responders(
+    coms, types, *, source_type=SOURCE_TYPE,
+    responder_types=(RESPONDER_TYPE, RESPONDER_TYPE + 1), radius=DEFAULT_RADIUS,
+) -> float:
+    """Thin wrapper: recruitment index counting ALL responder cell types
+    (naive + activated), not activated-only. Defaults to ``{2, 3}`` — the
+    naive/activated pair used by ``recruitment_receptor``."""
+    return recruitment_index_from_coms(
+        coms, types, source_type=source_type, responder_types=responder_types,
+        radius=radius)
+
+
 def mean_distance_to_source_from_coms(
     coms, types, *, source_type=SOURCE_TYPE, responder_type=RESPONDER_TYPE,
+    responder_types=None,
 ) -> float:
     """Mean responder centre-of-mass distance to the source centroid."""
-    src, resp = _split(coms, types, source_type, responder_type)
+    types_set = _responder_type_set(responder_type, responder_types)
+    src, resp = _split(coms, types, source_type, types_set)
     if not resp or not src:
         return math.nan
     c = _centroid(src)
@@ -99,10 +135,12 @@ def mean_approach(first_distance: float, last_distance: float) -> float:
 # --- live-world convenience wrappers -------------------------------------------
 
 def recruitment_index(world, *, source_type=SOURCE_TYPE,
-                      responder_type=RESPONDER_TYPE, radius=DEFAULT_RADIUS) -> float:
+                      responder_type=RESPONDER_TYPE, responder_types=None,
+                      radius=DEFAULT_RADIUS) -> float:
     return recruitment_index_from_coms(
         list(world.cell_coms()), list(world.cell_types()),
-        source_type=source_type, responder_type=responder_type, radius=radius)
+        source_type=source_type, responder_type=responder_type,
+        responder_types=responder_types, radius=radius)
 
 
 def mean_distance_to_source(world, *, source_type=SOURCE_TYPE,
