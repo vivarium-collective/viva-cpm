@@ -18,83 +18,86 @@ description: 'Reproduction of the Fig 26+ example from Glazier & Graner (Phys. R
   '
 claim: Light and dark clusters separate completely; a few isolated dark cells occur (Fig 26).
 investigation: glazier-graner-1993
-baseline:
-- name: baseline
-  composite: pbg_cpm_studies.composites.gg1993.dispersal_separate
-  params: {}
 expected_behavior:
-- Light and dark form disjoint clusters by 2000 MCS
+  - Light and dark form disjoint clusters by 2000 MCS
 visualizations:
-- name: Dispersal — clusters separate — interactive
-  address: local:GG1993DispersalSeparate
+  - name: Dispersal — clusters separate — interactive
+    address: local:GG1993DispersalSeparate
 embed_visualizations:
-- name: Interactive figure
-  title: Dispersal — clusters separate — interactive
-  url: /workspace/studies/dispersal_separate/viz/interactive.html
-- name: All paper figures
-  title: Dispersal — clusters separate — full figure set
-  url: /workspace/studies/dispersal_separate/viz/figures.html
+  - name: Interactive figure
+    title: Dispersal — clusters separate — interactive
+    url: /workspace/studies/dispersal_separate/viz/interactive.html
+  - name: All paper figures
+    title: Dispersal — clusters separate — full figure set
+    url: /workspace/studies/dispersal_separate/viz/figures.html
 findings:
-- id: F-01
-  kind: computational
-  status: confirms
-  statement: Light and dark clusters separate completely; a few isolated dark cells occur (Fig 26).
+  - id: F-01
+    kind: computational
+    status: confirms
+    statement: Light and dark clusters separate completely; a few isolated dark cells occur (Fig 26).
 conclusion: 'Reproduced the paper''s Dispersal - clusters separate example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 26.'
 key_assumptions:
-- Second-nearest-neighbour (Moore-8) square lattice, order 2.
-- 1 paper-MCS = 16 lattice-site sweeps (paper convention).
-- Statistics/displays after 2 MCS of T=0 annealing (unless noted).
+  - Second-nearest-neighbour (Moore-8) square lattice, order 2.
+  - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
+  - Statistics/displays after 2 MCS of T=0 annealing (unless noted).
 parent_studies:
-- study: global_equilibration
-  condition: tests-passed
+  - study: global_equilibration
+    condition: tests-passed
 readouts:
-- name: Total boundary length
-  identifier: bl_total
-  units: mismatched Moore-8 bonds
-  status: measured
-  description: Total owner-mismatched lattice bonds — the aggregate interfacial length (paper Sec. II D 1).
-- name: Fractional boundary lengths
-  identifier: frac_ll, frac_dd, frac_ld, frac_lM, frac_dM
-  units: fraction of total
-  status: measured
-  description: 'Per type-pair share of the boundary: light-light, dark-dark, light-dark, light-medium, dark-medium.'
-- name: Mean number of sides
-  identifier: n_bulk
-  units: sides per cell
-  status: measured
-  description: Mean cell degree in the bulk cell-adjacency graph (the paper's number-of-sides langle n rangle).
-- name: Topological moments
-  identifier: mu2, mu3, mu4
-  units: dimensionless
-  status: measured
-  description: Second/third/fourth central moments of the number-of-sides distribution (Eq. 6).
-- name: Type correlations
-  identifier: corr_ll, corr_dd, corr_ld, corr_lM, corr_dM
-  units: fraction
-  status: measured
-  description: Type-type adjacency-edge and medium-contact correlations.
+  - name: Total boundary length
+    identifier: bl_total
+    units: mismatched Moore-8 bonds
+    status: measured
+    description: Total owner-mismatched lattice bonds — the aggregate interfacial length (paper Sec. II D 1).
+  - name: Fractional boundary lengths
+    identifier: frac_ll, frac_dd, frac_ld, frac_lM, frac_dM
+    units: fraction of total
+    status: measured
+    description: 'Per type-pair share of the boundary: light-light, dark-dark, light-dark, light-medium, dark-medium.'
+  - name: Mean number of sides
+    identifier: n_bulk
+    units: sides per cell
+    status: measured
+    description: Mean cell degree in the bulk cell-adjacency graph (the paper's number-of-sides langle n rangle).
+  - name: Topological moments
+    identifier: mu2, mu3, mu4
+    units: dimensionless
+    status: measured
+    description: Second/third/fourth central moments of the number-of-sides distribution (Eq. 6).
+  - name: Type correlations
+    identifier: corr_ll, corr_dd, corr_ld, corr_lM, corr_dM
+    units: fraction
+    status: measured
+    description: Type-type adjacency-edge and medium-contact correlations.
 behavior_tests:
-- name: Clusters separate (both types expose new medium surface)
-  classification: primary
-  description: 'Paper: Fig 26 — clusters break apart and separate. Pass criterion: total boundary length increases and both medium-contact fractions rise. Measured from the reproduced run: boundary 37643→37929, frac_lM 0.043→0.101, frac_dM 0.044→0.077.'
-  measure: bl_total
-  pass_if: total boundary length increases and both medium-contact fractions rise
-  status: passed
-  result: PASS
-  paper_reference: Fig 26 — clusters break apart and separate
+  - name: Clusters separate (both types expose new medium surface)
+    classification: primary
+    description: 'Paper: Fig 26 — clusters break apart and separate. Pass criterion: total boundary length increases and both medium-contact fractions rise. Measured from the reproduced run: boundary 37643→37929, frac_lM 0.043→0.101, frac_dM 0.044→0.077.'
+    measure: bl_total
+    pass_if: total boundary length increases and both medium-contact fractions rise
+    status: passed
+    result: PASS
+    paper_reference: Fig 26 — clusters break apart and separate
 gate_status: passed
 runs:
-- run_id: dispersal_separate-reproduction
-  name: dispersal_separate reproduction (seed 17)
-  status: completed
-  canonical: true
-  timestamp: '2026-07-14'
-  seeds:
-  - 17
-  emitter: gg1993_data/results series-json
-  outcomes:
-    Clusters separate (both types expose new medium surface):
-      result: PASS
-      measured_value: 1.0076
-      notes: boundary 37643→37929, frac_lM 0.043→0.101, frac_dM 0.044→0.077
-      evaluated_by: pbg_cpm_studies.gg1993.validate
+  - run_id: dispersal_separate-reproduction
+    name: dispersal_separate reproduction (seed 17)
+    status: completed
+    canonical: true
+    timestamp: '2026-07-14'
+    seeds:
+      - 17
+    emitter: gg1993_data/results series-json
+    outcomes:
+      Clusters separate (both types expose new medium surface):
+        result: PASS
+        measured_value: 1.0076
+        notes: boundary 37643→37929, frac_lM 0.043→0.101, frac_dM 0.044→0.077
+        evaluated_by: pbg_cpm_studies.gg1993.validate
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.gg1993.dispersal_separate
+    params: {}
+  model_settings: []
+inputs: []

@@ -190,7 +190,7 @@ at_a_glance:
   - {study: recruitment-receptor-baseline, role: "Receptor realization: cue + receptor-gated response recruits, kd cited to Nasser 2009."}
   - {study: recruitment-receptor-blocked, role: "Receptor realization intervention: block the response downstream of receptor activation -> recruitment abolished."}
 
-studies:
+members:
 - recruitment-baseline
 - recruitment-inhibited
 - recruitment-adversarial

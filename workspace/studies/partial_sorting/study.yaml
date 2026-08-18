@@ -18,84 +18,87 @@ description: 'Reproduction of the Fig 22+ example from Glazier & Graner (Phys. R
   '
 claim: 'Sorting stalls partial: no light monolayer forms and clusters trap inclusions, markedly slower than normal sorting (Figs 22-24).'
 investigation: glazier-graner-1993
-baseline:
-- name: baseline
-  composite: pbg_cpm_studies.composites.gg1993.partial_sorting
-  params: {}
 expected_behavior:
-- No complete light monolayer forms by 2000 MCS
-- Light-dark interface plateaus above the normal-sorting curve (Fig 24)
+  - No complete light monolayer forms by 2000 MCS
+  - Light-dark interface plateaus above the normal-sorting curve (Fig 24)
 visualizations:
-- name: Partial cell sorting — interactive
-  address: local:GG1993PartialSorting
+  - name: Partial cell sorting — interactive
+    address: local:GG1993PartialSorting
 embed_visualizations:
-- name: Interactive figure
-  title: Partial cell sorting — interactive
-  url: /workspace/studies/partial_sorting/viz/interactive.html
-- name: All paper figures
-  title: Partial cell sorting — full figure set
-  url: /workspace/studies/partial_sorting/viz/figures.html
+  - name: Interactive figure
+    title: Partial cell sorting — interactive
+    url: /workspace/studies/partial_sorting/viz/interactive.html
+  - name: All paper figures
+    title: Partial cell sorting — full figure set
+    url: /workspace/studies/partial_sorting/viz/figures.html
 findings:
-- id: F-01
-  kind: computational
-  status: confirms
-  statement: 'Sorting stalls partial: no light monolayer forms and clusters trap inclusions, markedly slower than normal sorting (Figs 22-24).'
+  - id: F-01
+    kind: computational
+    status: confirms
+    statement: 'Sorting stalls partial: no light monolayer forms and clusters trap inclusions, markedly slower than normal sorting (Figs 22-24).'
 conclusion: 'Reproduced the paper''s Partial cell sorting example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 22, Fig 23, Fig 24.'
 key_assumptions:
-- Second-nearest-neighbour (Moore-8) square lattice, order 2.
-- 1 paper-MCS = 16 lattice-site sweeps (paper convention).
-- Statistics/displays after 2 MCS of T=0 annealing (unless noted).
+  - Second-nearest-neighbour (Moore-8) square lattice, order 2.
+  - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
+  - Statistics/displays after 2 MCS of T=0 annealing (unless noted).
 parent_studies:
-- study: global_equilibration
-  condition: tests-passed
+  - study: global_equilibration
+    condition: tests-passed
 readouts:
-- name: Total boundary length
-  identifier: bl_total
-  units: mismatched Moore-8 bonds
-  status: measured
-  description: Total owner-mismatched lattice bonds — the aggregate interfacial length (paper Sec. II D 1).
-- name: Fractional boundary lengths
-  identifier: frac_ll, frac_dd, frac_ld, frac_lM, frac_dM
-  units: fraction of total
-  status: measured
-  description: 'Per type-pair share of the boundary: light-light, dark-dark, light-dark, light-medium, dark-medium.'
-- name: Mean number of sides
-  identifier: n_bulk
-  units: sides per cell
-  status: measured
-  description: Mean cell degree in the bulk cell-adjacency graph (the paper's number-of-sides langle n rangle).
-- name: Topological moments
-  identifier: mu2, mu3, mu4
-  units: dimensionless
-  status: measured
-  description: Second/third/fourth central moments of the number-of-sides distribution (Eq. 6).
-- name: Type correlations
-  identifier: corr_ll, corr_dd, corr_ld, corr_lM, corr_dM
-  units: fraction
-  status: measured
-  description: Type-type adjacency-edge and medium-contact correlations.
+  - name: Total boundary length
+    identifier: bl_total
+    units: mismatched Moore-8 bonds
+    status: measured
+    description: Total owner-mismatched lattice bonds — the aggregate interfacial length (paper Sec. II D 1).
+  - name: Fractional boundary lengths
+    identifier: frac_ll, frac_dd, frac_ld, frac_lM, frac_dM
+    units: fraction of total
+    status: measured
+    description: 'Per type-pair share of the boundary: light-light, dark-dark, light-dark, light-medium, dark-medium.'
+  - name: Mean number of sides
+    identifier: n_bulk
+    units: sides per cell
+    status: measured
+    description: Mean cell degree in the bulk cell-adjacency graph (the paper's number-of-sides langle n rangle).
+  - name: Topological moments
+    identifier: mu2, mu3, mu4
+    units: dimensionless
+    status: measured
+    description: Second/third/fourth central moments of the number-of-sides distribution (Eq. 6).
+  - name: Type correlations
+    identifier: corr_ll, corr_dd, corr_ld, corr_lM, corr_dM
+    units: fraction
+    status: measured
+    description: Type-type adjacency-edge and medium-contact correlations.
 behavior_tests:
-- name: 'Partial sorting stalls: coarsening but no monolayer'
-  classification: primary
-  description: 'Paper: Fig 22-24 — Young condition fails; clusters trap inclusions, no monolayer. Pass criterion: light-dark contact drops (coarsening) BUT light never owns the surface — no monolayer (corr_lM<0.75, vs >0.85 for complete sorting). Measured from the reproduced run: frac_ld 0.400→0.126, corr_lM_final=0.618 (no monolayer).'
-  measure: frac_ld
-  pass_if: light-dark contact drops (coarsening) BUT light never owns the surface — no monolayer (corr_lM<0.75, vs >0.85 for complete sorting)
-  status: passed
-  result: PASS
-  paper_reference: Fig 22-24 — Young condition fails; clusters trap inclusions, no monolayer
+  - name: 'Partial sorting stalls: coarsening but no monolayer'
+    classification: primary
+    description: 'Paper: Fig 22-24 — Young condition fails; clusters trap inclusions, no monolayer. Pass criterion: light-dark contact drops (coarsening) BUT light never owns the surface — no monolayer (corr_lM<0.75, vs >0.85 for complete sorting). Measured from the reproduced run: frac_ld 0.400→0.126, corr_lM_final=0.618 (no monolayer).'
+    measure: frac_ld
+    pass_if: light-dark contact drops (coarsening) BUT light never owns the surface — no monolayer (corr_lM<0.75, vs >0.85 for complete sorting)
+    status: passed
+    result: PASS
+    paper_reference: Fig 22-24 — Young condition fails; clusters trap inclusions, no monolayer
 gate_status: passed
 runs:
-- run_id: partial_sorting-reproduction
-  name: partial_sorting reproduction (seed 17)
-  status: completed
-  canonical: true
-  timestamp: '2026-07-14'
-  seeds:
-  - 17
-  emitter: gg1993_data/results series-json
-  outcomes:
-    'Partial sorting stalls: coarsening but no monolayer':
-      result: PASS
-      measured_value: 0.618
-      notes: frac_ld 0.400→0.126, corr_lM_final=0.618 (no monolayer)
-      evaluated_by: pbg_cpm_studies.gg1993.validate
+  - run_id: partial_sorting-reproduction
+    name: partial_sorting reproduction (seed 17)
+    status: completed
+    canonical: true
+    timestamp: '2026-07-14'
+    seeds:
+      - 17
+    emitter: gg1993_data/results series-json
+    outcomes:
+      'Partial sorting stalls: coarsening but no monolayer':
+        result: PASS
+        measured_value: 0.618
+        notes: frac_ld 0.400→0.126, corr_lM_final=0.618 (no monolayer)
+        evaluated_by: pbg_cpm_studies.gg1993.validate
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.gg1993.partial_sorting
+    params: {}
+  model_settings: []
+inputs: []

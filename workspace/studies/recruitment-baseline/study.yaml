@@ -33,66 +33,61 @@ claim: |
   Responders climb the secreted gradient and are recruited to the source: the
   recruitment index rises from 0 to a plateau of ~0.67-0.83 (mean approach 0.61).
 
-baseline:
-- name: baseline
-  composite: pbg_cpm_studies.composites.chemotaxis.recruitment
-  params: {cue_rate: 10.0, chemo_lambda: 14.0}   # cue ON, response ON
-
 expected_behavior:
-- Responder mean distance to the source falls substantially over the run.
-- Recruitment index rises above 0.5 (a majority of responders reach the source region).
+  - Responder mean distance to the source falls substantially over the run.
+  - Recruitment index rises above 0.5 (a majority of responders reach the source region).
 
 visualizations:
-- name: "Claim layer — claim → mechanism → realization"
-  address: local:ClaimLayerAtlas
-- name: "Claim bundle — source (claim / mechanism / realization)"
-  address: local:ClaimBundle
-- name: Recruitment over time (all conditions)
-  address: local:ChemotaxisRecruitment
+  - name: "Claim layer — claim → mechanism → realization"
+    address: local:ClaimLayerAtlas
+  - name: "Claim bundle — source (claim / mechanism / realization)"
+    address: local:ClaimBundle
+  - name: Recruitment over time (all conditions)
+    address: local:ChemotaxisRecruitment
 
 embed_visualizations:
-- name: Animated spatial scene
-  title: "Chemotactic recruitment — animated scene (baseline vs inhibited)"
-  url: /workspace/studies/recruitment-baseline/viz/scene.html
+  - name: Animated spatial scene
+    title: "Chemotactic recruitment — animated scene (baseline vs inhibited)"
+    url: /workspace/studies/recruitment-baseline/viz/scene.html
 
 readouts:
-- name: Recruitment index
-  identifier: recruitment_index
-  units: fraction of responders within radius
-  status: measured
-  description: Fraction of responder cell centres of mass within 15 px of the source centroid.
-- name: Mean approach
-  identifier: mean_approach
-  units: dimensionless (0-1)
-  status: measured
-  description: Fraction of the initial responder-to-source gap closed over the run.
+  - name: Recruitment index
+    identifier: recruitment_index
+    units: fraction of responders within radius
+    status: measured
+    description: Fraction of responder cell centres of mass within 15 px of the source centroid.
+  - name: Mean approach
+    identifier: mean_approach
+    units: dimensionless (0-1)
+    status: measured
+    description: Fraction of the initial responder-to-source gap closed over the run.
 
 behavior_tests:
-- name: Responders are recruited to the source
-  classification: primary
-  description: |
-    Pass criterion: recruitment index rises above 0.5 and mean approach exceeds
-    0.4. Measured from the run: recruitment index 0.000 -> 0.667 (peak 0.833),
-    mean approach 0.608.
-  measure: {kind: recruitment_index, condition: recruitment-baseline, stat: final}
-  pass_if: {op: gt, value: 0.5}
-  status: passed
-  result: PASS
+  - name: Responders are recruited to the source
+    classification: primary
+    description: |
+      Pass criterion: recruitment index rises above 0.5 and mean approach exceeds
+      0.4. Measured from the run: recruitment index 0.000 -> 0.667 (peak 0.833),
+      mean approach 0.608.
+    measure: {kind: recruitment_index, condition: recruitment-baseline, stat: final}
+    pass_if: {op: gt, value: 0.5}
+    status: passed
+    result: PASS
 
 findings:
-- id: F-01
-  kind: computational
-  status: confirms
-  mechanism_origin: emergent
-  evidence:
-    from_test: Responders are recruited to the source
-    divergence_factor: 6.38
-    observed: "recruitment index 0.767 ± 0.170 across 5 seeds vs 0.000 for both negative conditions (Cohen's d = 6.38)"
-  statement: |
-    Cue + competent response recruits: across 5 independent seeds the final
-    recruitment index is 0.767 +/- 0.170, versus 0.000 +/- 0.000 for both negative
-    conditions (Cohen's d = 6.38). Recruitment is an emergent collective outcome of
-    local chemotactic copy-attempt biases, not an engineered per-cell rule.
+  - id: F-01
+    kind: computational
+    status: confirms
+    mechanism_origin: emergent
+    evidence:
+      from_test: Responders are recruited to the source
+      divergence_factor: 6.38
+      observed: "recruitment index 0.767 ± 0.170 across 5 seeds vs 0.000 for both negative conditions (Cohen's d = 6.38)"
+    statement: |
+      Cue + competent response recruits: across 5 independent seeds the final
+      recruitment index is 0.767 +/- 0.170, versus 0.000 +/- 0.000 for both negative
+      conditions (Cohen's d = 6.38). Recruitment is an emergent collective outcome of
+      local chemotactic copy-attempt biases, not an engineered per-cell rule.
 
 robustness:
   n_replicates: 5
@@ -100,34 +95,34 @@ robustness:
   parameter_sweep: false
   seeds_with_advantage: 5
   per_measure:
-  - name: recruitment_index
-    cv: 0.22
+    - name: recruitment_index
+      cv: 0.22
 
 controls:
-- kind: adversarial
-  name: No cue yields no recruitment (recruitment-adversarial)
-  test: Responders are recruited to the source
-  result: PASS
-  observed:
-    recruitment_index: 0.0
-  description: Competent responders with no cue are not recruited (negative control).
-- kind: negative
-  name: Response blocked (recruitment-inhibited)
-  test: Responders are recruited to the source
-  result: PASS
-  observed:
-    recruitment_index: 0.0
-  description: With the cue present but lambda=0, recruitment is abolished.
+  - kind: adversarial
+    name: No cue yields no recruitment (recruitment-adversarial)
+    test: Responders are recruited to the source
+    result: PASS
+    observed:
+      recruitment_index: 0.0
+    description: Competent responders with no cue are not recruited (negative control).
+  - kind: negative
+    name: Response blocked (recruitment-inhibited)
+    test: Responders are recruited to the source
+    result: PASS
+    observed:
+      recruitment_index: 0.0
+    description: With the cue present but lambda=0, recruitment is abolished.
 
 alternative_hypotheses:
-- claim: Responders accumulate by random diffusion, not by climbing the cue gradient.
-  status: excluded
-  discriminated_by: Responders are recruited to the source
-  note: Excluded by the inhibited arm — lambda=0 abolishes recruitment despite the cue present.
-- claim: The recruitment signal is a metric artifact (spurious proximity counting).
-  status: excluded
-  discriminated_by: Responders are recruited to the source
-  note: Excluded by the adversarial arm — no cue leaves the recruitment index at 0.
+  - claim: Responders accumulate by random diffusion, not by climbing the cue gradient.
+    status: excluded
+    discriminated_by: Responders are recruited to the source
+    note: Excluded by the inhibited arm — lambda=0 abolishes recruitment despite the cue present.
+  - claim: The recruitment signal is a metric artifact (spurious proximity counting).
+    status: excluded
+    discriminated_by: Responders are recruited to the source
+    note: Excluded by the adversarial arm — no cue leaves the recruitment index at 0.
 
 conclusion: |
   The native CPM realization reproduces cue-driven recruitment. Fidelity note:
@@ -136,36 +131,42 @@ conclusion: |
   realization records rather than hides.
 
 key_assumptions:
-- Second-nearest-neighbour (Moore-8) square lattice, order 2.
-- Field diffusion capped at d<=0.25 for numerical stability; gradient equilibrated
-  with 600 advance_fields sweeps before cell stepping.
-- Recruitment radius = 15 px (source at x~10; responders start at x~43).
+  - Second-nearest-neighbour (Moore-8) square lattice, order 2.
+  - Field diffusion capped at d<=0.25 for numerical stability; gradient equilibrated with 600 advance_fields sweeps before cell stepping.
+  - Recruitment radius = 15 px (source at x~10; responders start at x~43).
 
 gate_status: passed
 
 runs:
-- run_id: recruitment-baseline-5seed
-  name: recruitment-baseline (5 seeds)
-  status: completed
-  canonical: true
-  timestamp: '2026-08-07'
-  seeds: [17, 29, 43, 61, 89]
-  emitter: chemotaxis_data/results series-json
-  outcomes:
-    'Responders are recruited to the source':
-      result: PASS
-      measured_value: 0.767
-      notes: 0.767 ± 0.170 across 5 seeds vs 0.000 for both negatives (d=6.38)
-      evaluated_by: pbg_cpm_studies.evaluators
+  - run_id: recruitment-baseline-5seed
+    name: recruitment-baseline (5 seeds)
+    status: completed
+    canonical: true
+    timestamp: '2026-08-07'
+    seeds: [17, 29, 43, 61, 89]
+    emitter: chemotaxis_data/results series-json
+    outcomes:
+      'Responders are recruited to the source':
+        result: PASS
+        measured_value: 0.767
+        notes: 0.767 ± 0.170 across 5 seeds vs 0.000 for both negatives (d=6.38)
+        evaluated_by: pbg_cpm_studies.evaluators
 
 discovery_implications:
   followup_study_proposals:
-  - id: recruitment-dose-response
-    title: "Dose-response: recruitment vs cue rate and chemotaxis lambda"
-    motivation: "Map the transition between recruited and not-recruited, not just the on/off endpoints."
-  - id: recruitment-3d
-    title: "3D-lattice recruitment"
-    motivation: "Check the phenotype generalizes beyond the 2D lattice (an applicability boundary)."
-  - id: receptor-kinetics-realization
-    title: "Receptor-kinetics realization of the same claim"
-    motivation: "Refine the phenomenological chemotaxis lambda into a receptor model; it must preserve the recruitment response."
+    - id: recruitment-dose-response
+      title: "Dose-response: recruitment vs cue rate and chemotaxis lambda"
+      motivation: "Map the transition between recruited and not-recruited, not just the on/off endpoints."
+    - id: recruitment-3d
+      title: "3D-lattice recruitment"
+      motivation: "Check the phenotype generalizes beyond the 2D lattice (an applicability boundary)."
+    - id: receptor-kinetics-realization
+      title: "Receptor-kinetics realization of the same claim"
+      motivation: "Refine the phenomenological chemotaxis lambda into a receptor model; it must preserve the recruitment response."
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.chemotaxis.recruitment
+    params: {cue_rate: 10.0, chemo_lambda: 14.0} # cue ON, response ON
+
+  model_settings: []
