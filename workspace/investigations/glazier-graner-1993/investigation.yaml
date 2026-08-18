@@ -92,7 +92,7 @@ at_a_glance:
   role: Dispersal - clusters do not separate
 - study: vacancy_cavity
   role: Vacancy nucleation (cavity)
-studies:
+members:
 - annealing
 - global_equilibration
 - checkerboard

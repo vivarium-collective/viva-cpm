@@ -18,84 +18,87 @@ description: 'Reproduction of the Fig 18+ example from Glazier & Graner (Phys. R
   '
 claim: Light cells engulf the dark mass and the final state matches the random-IC sort, confirming initial-condition independence (Figs 18-19).
 investigation: glazier-graner-1993
-baseline:
-- name: baseline
-  composite: pbg_cpm_studies.composites.gg1993.engulfment
-  params: {}
 expected_behavior:
-- Light forms an outer layer over dark by 10000 MCS
-- Light-medium fraction rises while dark-medium falls to ~0
+  - Light forms an outer layer over dark by 10000 MCS
+  - Light-medium fraction rises while dark-medium falls to ~0
 visualizations:
-- name: Engulfment — interactive
-  address: local:GG1993Engulfment
+  - name: Engulfment — interactive
+    address: local:GG1993Engulfment
 embed_visualizations:
-- name: Interactive figure
-  title: Engulfment — interactive
-  url: /workspace/studies/engulfment/viz/interactive.html
-- name: All paper figures
-  title: Engulfment — full figure set
-  url: /workspace/studies/engulfment/viz/figures.html
+  - name: Interactive figure
+    title: Engulfment — interactive
+    url: /workspace/studies/engulfment/viz/interactive.html
+  - name: All paper figures
+    title: Engulfment — full figure set
+    url: /workspace/studies/engulfment/viz/figures.html
 findings:
-- id: F-01
-  kind: computational
-  status: confirms
-  statement: Light cells engulf the dark mass and the final state matches the random-IC sort, confirming initial-condition independence (Figs 18-19).
+  - id: F-01
+    kind: computational
+    status: confirms
+    statement: Light cells engulf the dark mass and the final state matches the random-IC sort, confirming initial-condition independence (Figs 18-19).
 conclusion: 'Reproduced the paper''s Engulfment example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 18, Fig 19.'
 key_assumptions:
-- Second-nearest-neighbour (Moore-8) square lattice, order 2.
-- 1 paper-MCS = 16 lattice-site sweeps (paper convention).
-- Statistics/displays after 2 MCS of T=0 annealing (unless noted).
+  - Second-nearest-neighbour (Moore-8) square lattice, order 2.
+  - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
+  - Statistics/displays after 2 MCS of T=0 annealing (unless noted).
 parent_studies:
-- study: global_equilibration
-  condition: tests-passed
+  - study: global_equilibration
+    condition: tests-passed
 readouts:
-- name: Total boundary length
-  identifier: bl_total
-  units: mismatched Moore-8 bonds
-  status: measured
-  description: Total owner-mismatched lattice bonds — the aggregate interfacial length (paper Sec. II D 1).
-- name: Fractional boundary lengths
-  identifier: frac_ll, frac_dd, frac_ld, frac_lM, frac_dM
-  units: fraction of total
-  status: measured
-  description: 'Per type-pair share of the boundary: light-light, dark-dark, light-dark, light-medium, dark-medium.'
-- name: Mean number of sides
-  identifier: n_bulk
-  units: sides per cell
-  status: measured
-  description: Mean cell degree in the bulk cell-adjacency graph (the paper's number-of-sides langle n rangle).
-- name: Topological moments
-  identifier: mu2, mu3, mu4
-  units: dimensionless
-  status: measured
-  description: Second/third/fourth central moments of the number-of-sides distribution (Eq. 6).
-- name: Type correlations
-  identifier: corr_ll, corr_dd, corr_ld, corr_lM, corr_dM
-  units: fraction
-  status: measured
-  description: Type-type adjacency-edge and medium-contact correlations.
+  - name: Total boundary length
+    identifier: bl_total
+    units: mismatched Moore-8 bonds
+    status: measured
+    description: Total owner-mismatched lattice bonds — the aggregate interfacial length (paper Sec. II D 1).
+  - name: Fractional boundary lengths
+    identifier: frac_ll, frac_dd, frac_ld, frac_lM, frac_dM
+    units: fraction of total
+    status: measured
+    description: 'Per type-pair share of the boundary: light-light, dark-dark, light-dark, light-medium, dark-medium.'
+  - name: Mean number of sides
+    identifier: n_bulk
+    units: sides per cell
+    status: measured
+    description: Mean cell degree in the bulk cell-adjacency graph (the paper's number-of-sides langle n rangle).
+  - name: Topological moments
+    identifier: mu2, mu3, mu4
+    units: dimensionless
+    status: measured
+    description: Second/third/fourth central moments of the number-of-sides distribution (Eq. 6).
+  - name: Type correlations
+    identifier: corr_ll, corr_dd, corr_ld, corr_lM, corr_dM
+    units: fraction
+    status: measured
+    description: Type-type adjacency-edge and medium-contact correlations.
 behavior_tests:
-- name: Light engulfs the coherent dark mass (no mixing)
-  classification: primary
-  description: 'Paper: Fig 18-19 — clean split; dark-Medium→~0, light monolayer closes; ld stays low. Pass criterion: light-dark stays low (<0.20, no mixing) AND dark-medium falls ≥80% AND light owns >85% of the surface. Measured from the reproduced run: frac_dM 0.0282→0.0000 (100% drop), corr_lM_final=1.000, max frac_ld=0.047.'
-  measure: frac_dM
-  pass_if: light-dark stays low (<0.20, no mixing) AND dark-medium falls ≥80% AND light owns >85% of the surface
-  status: passed
-  result: PASS
-  paper_reference: Fig 18-19 — clean split; dark-Medium→~0, light monolayer closes; ld stays low
+  - name: Light engulfs the coherent dark mass (no mixing)
+    classification: primary
+    description: 'Paper: Fig 18-19 — clean split; dark-Medium→~0, light monolayer closes; ld stays low. Pass criterion: light-dark stays low (<0.20, no mixing) AND dark-medium falls ≥80% AND light owns >85% of the surface. Measured from the reproduced run: frac_dM 0.0282→0.0000 (100% drop), corr_lM_final=1.000, max frac_ld=0.047.'
+    measure: frac_dM
+    pass_if: light-dark stays low (<0.20, no mixing) AND dark-medium falls ≥80% AND light owns >85% of the surface
+    status: passed
+    result: PASS
+    paper_reference: Fig 18-19 — clean split; dark-Medium→~0, light monolayer closes; ld stays low
 gate_status: passed
 runs:
-- run_id: engulfment-reproduction
-  name: engulfment reproduction (seed 17)
-  status: completed
-  canonical: true
-  timestamp: '2026-07-14'
-  seeds:
-  - 17
-  emitter: gg1993_data/results series-json
-  outcomes:
-    Light engulfs the coherent dark mass (no mixing):
-      result: PASS
-      measured_value: 1.0
-      notes: frac_dM 0.0282→0.0000 (100% drop), corr_lM_final=1.000, max frac_ld=0.047
-      evaluated_by: pbg_cpm_studies.gg1993.validate
+  - run_id: engulfment-reproduction
+    name: engulfment reproduction (seed 17)
+    status: completed
+    canonical: true
+    timestamp: '2026-07-14'
+    seeds:
+      - 17
+    emitter: gg1993_data/results series-json
+    outcomes:
+      Light engulfs the coherent dark mass (no mixing):
+        result: PASS
+        measured_value: 1.0
+        notes: frac_dM 0.0282→0.0000 (100% drop), corr_lM_final=1.000, max frac_ld=0.047
+        evaluated_by: pbg_cpm_studies.gg1993.validate
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.gg1993.engulfment
+    params: {}
+  model_settings: []
+inputs: []
