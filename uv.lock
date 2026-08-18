@@ -2523,7 +2523,7 @@ dependencies = [
 [[package]]
 name = "vivarium-workbench"
 version = "0.3.47"
-source = { git = "https://github.com/vivarium-collective/vivarium-workbench.git?branch=main#edfc88e2d9d6bdbd823099ee5152c24d551934ec" }
+source = { git = "https://github.com/vivarium-collective/vivarium-workbench.git?branch=main#9aa62df80f21b10e558cfff6e04e0ccfac8a57b6" }
 dependencies = [
     { name = "bigraph-schema" },
     { name = "fastapi" },
