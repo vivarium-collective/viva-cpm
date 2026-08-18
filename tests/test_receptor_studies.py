@@ -19,7 +19,9 @@ def _all_cites(node):
 
 def test_baseline_wired_and_cites_kd_source():
     doc = yaml.safe_load(BASE.read_text())
-    assert doc["baseline"][0]["composite"].endswith("chemotaxis_receptor.recruitment_receptor")
-    assert float(doc["baseline"][0]["params"]["kd"]) == 2.9   # cited receptor Kd
+    # canonical L0 schema: the model lives at conditions.baseline (a mapping)
+    baseline = doc["conditions"]["baseline"]
+    assert baseline["composite"].endswith("chemotaxis_receptor.recruitment_receptor")
+    assert float(baseline["params"]["kd"]) == 2.9   # cited receptor Kd
     # the cited Kd source must be linked somewhere in the study (model_settings and/or the test)
     assert "nasser2009" in _all_cites(doc), "study must cite the receptor-Kd source (nasser2009)"

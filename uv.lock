@@ -1283,16 +1283,16 @@ all = [
     { name = "libroadrunner" },
     { name = "matplotlib" },
     { name = "numpy" },
-    { name = "pbg-tellurium" },
     { name = "tellurium" },
+    { name = "viva-tellurium" },
 ]
 dev = [
     { name = "libroadrunner" },
     { name = "matplotlib" },
     { name = "numpy" },
-    { name = "pbg-tellurium" },
     { name = "pytest" },
     { name = "tellurium" },
+    { name = "viva-tellurium" },
 ]
 ftu = [
     { name = "matplotlib" },
@@ -1300,8 +1300,8 @@ ftu = [
 ]
 sbml = [
     { name = "libroadrunner" },
-    { name = "pbg-tellurium" },
     { name = "tellurium" },
+    { name = "viva-tellurium" },
 ]
 
 [package.metadata]
@@ -1316,55 +1316,16 @@ requires-dist = [
     { name = "numpy", marker = "extra == 'ftu'" },
     { name = "pbg-cpm", extras = ["sbml", "ftu"], marker = "extra == 'all'" },
     { name = "pbg-cpm", extras = ["sbml", "ftu"], marker = "extra == 'dev'" },
-    { name = "pbg-tellurium", marker = "extra == 'sbml'", git = "https://github.com/vivarium-collective/pbg-tellurium.git?branch=main" },
     { name = "plotly" },
     { name = "process-bigraph", specifier = ">=1.8.3" },
     { name = "pypdf", specifier = ">=4.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "tellurium", marker = "extra == 'sbml'", specifier = ">=2.2" },
+    { name = "viva-tellurium", marker = "extra == 'sbml'", git = "https://github.com/vivarium-collective/viva-tellurium.git?branch=main" },
     { name = "vivarium-workbench", git = "https://github.com/vivarium-collective/vivarium-workbench.git?branch=main" },
 ]
 provides-extras = ["sbml", "ftu", "all", "dev"]
-
-[[package]]
-name = "pbg-emitters"
-version = "0.2.1"
-source = { git = "https://github.com/vivarium-collective/pbg-emitters.git?branch=main#a79ed86c42f6585b8a8dbab65a397a0d284889dd" }
-dependencies = [
-    { name = "bigraph-schema" },
-    { name = "numpy" },
-    { name = "process-bigraph" },
-]
-
-[[package]]
-name = "pbg-superpowers"
-version = "0.16.0"
-source = { git = "https://github.com/vivarium-collective/pbg-superpowers.git?branch=main#457c3bb3fb3b793ebfc3b18a360ae969539c0e12" }
-dependencies = [
-    { name = "bigraph-schema" },
-    { name = "click" },
-    { name = "jinja2" },
-    { name = "jsonschema", extra = ["format-nongpl"] },
-    { name = "pbg-emitters" },
-    { name = "process-bigraph" },
-    { name = "pypdf" },
-    { name = "pyyaml" },
-    { name = "ruamel-yaml" },
-]
-
-[[package]]
-name = "pbg-tellurium"
-version = "0.1.0"
-source = { git = "https://github.com/vivarium-collective/pbg-tellurium.git?branch=main#16244cabe2aaaac277e43ef1c6188284b917c0ae" }
-dependencies = [
-    { name = "bigraph-schema" },
-    { name = "numpy" },
-    { name = "pbg-superpowers" },
-    { name = "process-bigraph" },
-    { name = "pyyaml" },
-    { name = "tellurium" },
-]
 
 [[package]]
 name = "pexpect"
@@ -2510,6 +2471,19 @@ dependencies = [
     { name = "ruamel-yaml" },
     { name = "viva-emitters" },
     { name = "viva-workspace" },
+]
+
+[[package]]
+name = "viva-tellurium"
+version = "0.1.0"
+source = { git = "https://github.com/vivarium-collective/viva-tellurium.git?branch=main#ba321ba47692a0c4c932dbb273fdac19ef2b262b" }
+dependencies = [
+    { name = "bigraph-schema" },
+    { name = "numpy" },
+    { name = "process-bigraph" },
+    { name = "pyyaml" },
+    { name = "tellurium" },
+    { name = "viva-superpowers" },
 ]
 
 [[package]]
