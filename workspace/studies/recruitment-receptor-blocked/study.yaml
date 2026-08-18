@@ -72,6 +72,17 @@ visualizations:
   - name: Receptor-gated recruitment (baseline vs blocked, CI ribbons)
     address: local:ReceptorRecruitmentCurve
 
+embed_visualizations:
+  - name: Animated spatial scene
+    title: "Receptor recruitment — responders climb the chemokine gradient (animated)"
+    url: /workspace/studies/recruitment-receptor-blocked/viz/scene.html
+  - name: Receptor occupancy law
+    title: "Receptor occupancy law with the cited Kd (evidence → mechanism)"
+    url: /workspace/studies/recruitment-receptor-blocked/viz/occupancy-law.html
+  - name: Receptor-gated recruitment curve
+    title: "Receptor-gated recruitment (baseline vs blocked, CI ribbons)"
+    url: /workspace/studies/recruitment-receptor-blocked/viz/recruitment-curve.html
+
 readouts:
   - name: Recruitment index
     identifier: recruitment_index
