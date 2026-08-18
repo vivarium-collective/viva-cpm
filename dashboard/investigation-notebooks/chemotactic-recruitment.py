@@ -72,8 +72,8 @@ if _env and Path(_env).is_dir():
     REPO = Path(_env)
 if REPO is None:
     REPO = _find_repo_root(Path.cwd().resolve())
-if REPO is None and Path('/home/runner/work/viva-cpm/viva-cpm').is_dir():
-    REPO = Path('/home/runner/work/viva-cpm/viva-cpm')
+if REPO is None and Path('/Users/eranagmon/code/viva-cpm--audit-cleanup').is_dir():
+    REPO = Path('/Users/eranagmon/code/viva-cpm--audit-cleanup')
 if REPO is None:
     REPO = Path.cwd()
 sys.path.insert(0, str(REPO))
@@ -135,7 +135,32 @@ def describe_spec(spec):
     print("\nfull editable spec dict:")
     print(_json.dumps(spec, indent=2, default=str))
 
-# ## Study: `recruitment-baseline`
+import base64 as _b64, pathlib as _pl
+def _render_one(address, config, runs_db, study_yaml):
+    """Generic figure renderer (no workspace render_study_viz.py):
+    resolve an ``image:<relpath>`` visualization to displayable HTML,
+    relative to the study directory."""
+    addr = str(address or '')
+    for _scheme in ('image:', 'file:', 'gif:', 'png:', 'svg:', 'jpg:', 'jpeg:'):
+        if addr.startswith(_scheme):
+            addr = addr[len(_scheme):]; break
+    _p = _pl.Path(addr)
+    if not _p.is_absolute():
+        _p = _pl.Path(study_yaml).resolve().parent / _p
+    if not _p.is_file():
+        return f'<p style="color:#b91c1c">figure not found: {address}</p>'
+    _suffix = _p.suffix.lower()
+    if _suffix == '.svg':
+        return _p.read_text(encoding='utf-8', errors='replace')
+    if _suffix in ('.png', '.jpg', '.jpeg', '.gif', '.webp'):
+        _mime = 'jpeg' if _suffix in ('.jpg', '.jpeg') else _suffix[1:]
+        _data = _b64.b64encode(_p.read_bytes()).decode('ascii')
+        return f'<img src="data:image/{_mime};base64,{_data}" style="max-width:100%"/>'
+    if _suffix in ('.html', '.htm'):
+        return _p.read_text(encoding='utf-8', errors='replace')
+    return f'<p style="color:#6b7280">unsupported figure type: {address}</p>'
+
+# ## Study: Baseline: cue + response recruits (`recruitment-baseline`)
 #
 # **Question.** When source cells secrete a diffusible cue and responder cells carry a
 # competent chemotactic response, do the responders directionally migrate up the
@@ -148,8 +173,23 @@ def describe_spec(spec):
 # **Hypothesis.** With the cue secreted (rate 10) and the response intact (lambda 14), responder
 # centres of mass move toward the source region and the recruitment index rises
 # well above zero.
+#
+# **Claim.** Responders climb the secreted gradient and are recruited to the source: the
+# recruitment index rises from 0 to a plateau of ~0.67-0.83 (mean approach 0.61).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=14.0 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.chemotaxis.recruitment`** — `spec_pbg_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.chemotaxis.recruitment` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -198,7 +238,7 @@ _save_viz('recruitment-baseline', 'Recruitment_over_time_all_conditions', _rende
 # | --- | --- | --- |
 # | Responders are recruited to the source | kind=recruitment_index condition=recruitment-baseline stat=final | op gt value 0.5 |
 
-# ## Study: `recruitment-inhibited`
+# ## Study: Intervention: block the response (`recruitment-inhibited`)
 #
 # **Question.** If the chemotactic response is blocked (lambda -> 0) while the cue is still
 # secreted, is recruitment abolished?
@@ -208,8 +248,23 @@ _save_viz('recruitment-baseline', 'Recruitment_over_time_all_conditions', _rende
 #
 # **Hypothesis.** With the cue present but the response inhibited, responders no longer climb the
 # gradient; the recruitment index stays near zero.
+#
+# **Claim.** Blocking the chemotactic response abolishes recruitment: the recruitment index
+# stays at 0 (mean approach ~0), despite the cue being present.
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `inhibited` | `pbg_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=0.0 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.chemotaxis.recruitment`** — `spec_pbg_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.chemotaxis.recruitment` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -240,7 +295,7 @@ _save_viz('recruitment-inhibited', 'Recruitment_over_time_all_conditions', _rend
 # | --- | --- | --- |
 # | Blocking the response abolishes recruitment | kind=recruitment_index condition=recruitment-inhibited stat=max | op lt value 0.1 |
 
-# ## Study: `recruitment-adversarial`
+# ## Study: Control: no cue, no recruitment (`recruitment-adversarial`)
 #
 # **Question.** If competent responders are placed with NO cue secreted, does the metric
 # correctly report no recruitment (rather than a spurious signal)?
@@ -250,8 +305,23 @@ _save_viz('recruitment-inhibited', 'Recruitment_over_time_all_conditions', _rend
 #
 # **Hypothesis.** With the response intact (lambda 14) but the cue removed (rate 0), there is no
 # gradient to climb; the recruitment index stays at zero.
+#
+# **Claim.** Without a cue, competent responders are not recruited: the recruitment index
+# stays at 0. The metric does not produce a false-positive recruitment signal.
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `adversarial` | `pbg_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=0.0, chemo_lambda=14.0 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.chemotaxis.recruitment`** — `spec_pbg_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.chemotaxis.recruitment` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -282,7 +352,7 @@ _save_viz('recruitment-adversarial', 'Recruitment_over_time_all_conditions', _re
 # | --- | --- | --- |
 # | No cue yields no recruitment (rejection) | kind=recruitment_index condition=recruitment-adversarial stat=max | op lt value 0.1 |
 
-# ## Study: `recruitment-receptor-baseline`
+# ## Study: Receptor realization: cue + receptor-gated response recruits (`recruitment-receptor-baseline`)
 #
 # **Question.** Does a receptor-level realization of chemotactic recruitment -- where each
 # responder activates from naive to chemotaxing only once its per-cell
@@ -299,8 +369,25 @@ _save_viz('recruitment-adversarial', 'Recruitment_over_time_all_conditions', _re
 # (chemo_lambda 14, kd 2.9 nM), responders whose Hill-occupancy crosses the
 # activation threshold chemotax up the gradient, and the recruitment index
 # rises well above zero, consistent with the phenomenological baseline.
+#
+# **Claim.** Cue + receptor-gated response recruits: across 5 seeds the final
+# recruitment index is 0.5667 (95% CI 0.3451-0.7882), above the 0.5 pass
+# threshold, with responder activation gated by a receptor Kd cited to
+# Nasser 2009 rather than a hand-tuned chemotaxis strength.
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` | 0 | cue_rate=10.0, chemo_lambda=14.0, kd=2.9 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`** — `spec_pbg_cpm_studies_composites_chemotaxis_receptor_recruitment_receptor` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -346,7 +433,7 @@ _save_viz('recruitment-receptor-baseline', 'Receptor-gated_recruitment_baseline_
 # | --- | --- | --- |
 # | Responders are recruited to the source (receptor realization) | kind=recruitment_index condition=recruitment-receptor-baseline stat=final | op gt value 0.5 |
 
-# ## Study: `recruitment-receptor-blocked`
+# ## Study: Receptor realization: blocking the response abolishes recruitment (`recruitment-receptor-blocked`)
 #
 # **Question.** In the receptor-level realization, if the activated response is forced off
 # (blocked=True, zeroing the activated-type chemotaxis lambda even for cells
@@ -359,8 +446,25 @@ _save_viz('recruitment-receptor-baseline', 'Receptor-gated_recruitment_baseline_
 # **Hypothesis.** With the cue present (rate 10) but the receptor-gated response disabled
 # (blocked=True), responders may still activate (naive -> activated) but no
 # longer chemotax, so the recruitment index stays near zero.
+#
+# **Claim.** Blocking the response downstream of receptor activation abolishes
+# recruitment: the final recruitment index is 0.0667 (95% CI 0.0-0.1467),
+# below the 0.1 pass threshold, despite the cue being present and receptors
+# still able to bind ligand.
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `blocked` | `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` | 0 | cue_rate=10.0, chemo_lambda=14.0, kd=2.9, blocked=True |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`** — `spec_pbg_cpm_studies_composites_chemotaxis_receptor_recruitment_receptor` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #

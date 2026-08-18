@@ -59,8 +59,8 @@ if _env and Path(_env).is_dir():
     REPO = Path(_env)
 if REPO is None:
     REPO = _find_repo_root(Path.cwd().resolve())
-if REPO is None and Path('/home/runner/work/viva-cpm/viva-cpm').is_dir():
-    REPO = Path('/home/runner/work/viva-cpm/viva-cpm')
+if REPO is None and Path('/Users/eranagmon/code/viva-cpm--audit-cleanup').is_dir():
+    REPO = Path('/Users/eranagmon/code/viva-cpm--audit-cleanup')
 if REPO is None:
     REPO = Path.cwd()
 sys.path.insert(0, str(REPO))
@@ -122,15 +122,54 @@ def describe_spec(spec):
     print("\nfull editable spec dict:")
     print(_json.dumps(spec, indent=2, default=str))
 
-# ## Study: `annealing`
+import base64 as _b64, pathlib as _pl
+def _render_one(address, config, runs_db, study_yaml):
+    """Generic figure renderer (no workspace render_study_viz.py):
+    resolve an ``image:<relpath>`` visualization to displayable HTML,
+    relative to the study directory."""
+    addr = str(address or '')
+    for _scheme in ('image:', 'file:', 'gif:', 'png:', 'svg:', 'jpg:', 'jpeg:'):
+        if addr.startswith(_scheme):
+            addr = addr[len(_scheme):]; break
+    _p = _pl.Path(addr)
+    if not _p.is_absolute():
+        _p = _pl.Path(study_yaml).resolve().parent / _p
+    if not _p.is_file():
+        return f'<p style="color:#b91c1c">figure not found: {address}</p>'
+    _suffix = _p.suffix.lower()
+    if _suffix == '.svg':
+        return _p.read_text(encoding='utf-8', errors='replace')
+    if _suffix in ('.png', '.jpg', '.jpeg', '.gif', '.webp'):
+        _mime = 'jpeg' if _suffix in ('.jpg', '.jpeg') else _suffix[1:]
+        _data = _b64.b64encode(_p.read_bytes()).decode('ascii')
+        return f'<img src="data:image/{_mime};base64,{_data}" style="max-width:100%"/>'
+    if _suffix in ('.html', '.htm'):
+        return _p.read_text(encoding='utf-8', errors='replace')
+    return f'<p style="color:#6b7280">unsupported figure type: {address}</p>'
+
+# ## Study: Annealing convergence (`annealing`)
 #
 # **Question.** Does the pattern's topology (<n>, moments) converge within a few MCS of T=0 annealing, as in Glazier-Graner Fig 2-3?
 #
 # **Objective.** Anneal the equilibrated all-light pattern at T=0 and measure bulk/total <n> and moments mu2-4 vs MCS to determine convergence speed.
 #
 # **Hypothesis.** Two MCS of T=0 annealing removes crumpling and disconnected spins, bringing bulk <n> within ~0.2% of its ~6.0 limit.
+#
+# **Claim.** Bulk <n> converges to ~5.97 within ~2 MCS with total<bulk, reproducing Fig 2; cell walls compact by 2-20 MCS (Fig 3).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.annealing` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.annealing`** — `spec_pbg_cpm_studies_composites_gg1993_annealing` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.annealing` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -169,15 +208,29 @@ _save_viz('annealing', 'Annealing_interactive', _render_one('local:GG1993Anneali
 # | --- | --- | --- |
 # | Topological equilibrium under T=0 annealing | n_bulk | final ⟨n⟩_bulk ≈ 6 (within 0.3) and μ₂ decreases while annealing |
 
-# ## Study: `global_equilibration`
+# ## Study: Global pattern equilibration (`global_equilibration`)
 #
 # **Question.** Does a rectangular brick tiling relax into a rounded, topologically-equilibrated aggregate at T=5?
 #
 # **Objective.** Equilibrate a ~1000-cell brick tiling at T=5 and measure total boundary length, moments and light-Medium fraction to confirm a stable equilibrated IC.
 #
 # **Hypothesis.** After 400 MCS the tiling rounds into a disk with <n>~6.04, mu2~0.69, a stable shared initial condition.
+#
+# **Claim.** The tiling rounds into a 1012-cell disk with <n>~6.0, mu2~0.69, matching Fig 4b; statistics stable after ~400 MCS (Fig 5).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.global_equilibration` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.global_equilibration`** — `spec_pbg_cpm_studies_composites_gg1993_global_equilibration` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.global_equilibration` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -208,15 +261,29 @@ _save_viz('global_equilibration', 'Global_pattern_equilibration_interactive', _r
 # | --- | --- | --- |
 # | Brick tiling rounds to a disk at topological equilibrium | bl_total | total boundary length decreases (rounding) and ⟨n⟩_bulk ≈ 6 |
 
-# ## Study: `checkerboard`
+# ## Study: Checkerboard (negative surface tension) (`checkerboard`)
 #
 # **Question.** Does a negative light-dark surface tension (gamma_ld=-3) drive intermixing into a checkerboard instead of sorting?
 #
 # **Objective.** Simulate gamma_ld<0 from a random IC and measure fractional interface lengths, <n>, moments vs T (0-40) to characterize the checkerboard and its phase transitions.
 #
 # **Hypothesis.** Cells maximize heterotypic contact, so the light-dark fractional interface dominates and remains high; defects persist by thermal activation.
+#
+# **Claim.** gamma_ld<0 yields a defect-ridden checkerboard with dominant light-dark contact and two transitions (~T=0 freeze, ~T=15 mixing), matching Figs 7-9 and Table I.
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.checkerboard` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.checkerboard`** — `spec_pbg_cpm_studies_composites_gg1993_checkerboard` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.checkerboard` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -247,15 +314,29 @@ _save_viz('checkerboard', 'Checkerboard_negative_surface_tension_interactive', _
 # | --- | --- | --- |
 # | Heterotypic contacts dominate (checkerboard mixing) | frac_ld | light-dark fraction > 0.5 and larger than light-light & dark-dark |
 
-# ## Study: `cell_sorting`
+# ## Study: Cell sorting (`cell_sorting`)
 #
 # **Question.** Does differential adhesion (gamma_dM>gamma_lM>gamma_ld>0) sort a random mix into dark-inside / light-monolayer, as observed by Armstrong and Steinberg?
 #
 # **Objective.** Simulate the sorting energies from a random IC to 13500 MCS and measure boundary lengths, type correlations, <n> across temperature (2-80) and lambda (0.1-10).
 #
 # **Hypothesis.** Low-surface-energy dark cells coalesce internally while light cells form an outer monolayer; surface sorting slows logarithmically.
+#
+# **Claim.** Complete cell sorting: dark cells cluster internally beneath a light monolayer; heterotypic contact falls while light-medium contact rises, reproducing Figs 12-16 and Tables II-III.
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.cell_sorting` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.cell_sorting`** — `spec_pbg_cpm_studies_composites_gg1993_cell_sorting` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.cell_sorting` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -286,15 +367,29 @@ _save_viz('cell_sorting', 'Cell_sorting_interactive', _render_one('local:GG1993C
 # | --- | --- | --- |
 # | Cells sort: dark cluster wrapped by a light monolayer | bl_total | light-dark fraction falls ≥45% AND light holds >80% of the medium surface (monolayer) |
 
-# ## Study: `engulfment`
+# ## Study: Engulfment (`engulfment`)
 #
 # **Question.** Does an initially half-light/half-dark aggregate engulf to the same sorted configuration as the random-IC sort?
 #
 # **Objective.** Simulate the sorting energies from a top-light/bottom-dark IC to 10000 MCS and measure homotypic and heterotypic fractional lengths to observe engulfment.
 #
 # **Hypothesis.** Global energy minimization drives light to engulf dark independent of initial condition; engulfment is slow (~10^4 MCS).
+#
+# **Claim.** Light cells engulf the dark mass and the final state matches the random-IC sort, confirming initial-condition independence (Figs 18-19).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.engulfment` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.engulfment`** — `spec_pbg_cpm_studies_composites_gg1993_engulfment` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.engulfment` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -325,15 +420,29 @@ _save_viz('engulfment', 'Engulfment_interactive', _render_one('local:GG1993Engul
 # | --- | --- | --- |
 # | Light engulfs the coherent dark mass (no mixing) | frac_dM | light-dark stays low (<0.20, no mixing) AND dark-medium falls ≥80% AND light owns >85% of the surface |
 
-# ## Study: `position_reversal`
+# ## Study: Position reversal (`position_reversal`)
 #
 # **Question.** Does raising the light-Medium tension (gamma_lM=23) reverse the sorting so dark cells end up outside?
 #
 # **Objective.** Simulate with gamma_lM=23 from a random IC and measure medium type-correlations to detect position reversal.
 #
 # **Hypothesis.** With gamma_lM >> gamma_dM the dark cells present the lower medium tension and form the outer layer, giving a reversed pattern.
+#
+# **Claim.** Dark cells sort OUTWARD, surrounding the light cells, the reversed pattern predicted for gamma_lM>gamma_dM (Figs 20-21).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.position_reversal` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.position_reversal`** — `spec_pbg_cpm_studies_composites_gg1993_position_reversal` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.position_reversal` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -364,15 +473,29 @@ _save_viz('position_reversal', 'Position_reversal_interactive', _render_one('loc
 # | --- | --- | --- |
 # | Position reversal: dark forms the outer monolayer | corr_dM | dark holds >80% of the medium surface (light-Medium→0) AND light-dark contact falls (sorting) |
 
-# ## Study: `partial_sorting`
+# ## Study: Partial cell sorting (`partial_sorting`)
 #
 # **Question.** Does violating the Young condition (large gamma_ld=7.5) stall sorting at a partially-sorted, trapped state?
 #
 # **Objective.** Swap J_ll/J_ld so gamma_ld=7.5, simulate from a random IC to 2000 MCS, and compare against normal sorting to demonstrate incomplete sorting.
 #
 # **Hypothesis.** Light cells cannot fully surround dark; clusters trap heterotypic inclusions and never form a monolayer, sorting logarithmically slow.
+#
+# **Claim.** Sorting stalls partial: no light monolayer forms and clusters trap inclusions, markedly slower than normal sorting (Figs 22-24).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.partial_sorting` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.partial_sorting`** — `spec_pbg_cpm_studies_composites_gg1993_partial_sorting` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.partial_sorting` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -403,15 +526,29 @@ _save_viz('partial_sorting', 'Partial_cell_sorting_interactive', _render_one('lo
 # | --- | --- | --- |
 # | Partial sorting stalls: coarsening but no monolayer | frac_ld | light-dark contact drops (coarsening) BUT light never owns the surface — no monolayer (corr_lM<0.75, vs >0.85 for complete sorting) |
 
-# ## Study: `dispersal_sloughing`
+# ## Study: Dispersal - light-cell sloughing (`dispersal_sloughing`)
 #
 # **Question.** Does a negative light-Medium tension (gamma_lM=-5) make light cells slough off and disperse into the medium?
 #
 # **Objective.** Simulate gamma_lM<0 and observe light-cell dispersal into the medium at 480 MCS (unannealed).
 #
 # **Hypothesis.** Light cells prefer medium contact and detach as isolated cells while dark cells stay compact and round.
+#
+# **Claim.** Light cells disperse as isolated cells into the medium while dark cells remain compact and round (Fig 25).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.dispersal_sloughing` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.dispersal_sloughing`** — `spec_pbg_cpm_studies_composites_gg1993_dispersal_sloughing` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.dispersal_sloughing` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -442,15 +579,29 @@ _save_viz('dispersal_sloughing', 'Dispersal_light-cell_sloughing_interactive', _
 # | --- | --- | --- |
 # | Light cells slough off and disperse into the medium | frac_lM | light-medium fraction rises ≥3× and total boundary length increases (fragmentation) |
 
-# ## Study: `dispersal_separate`
+# ## Study: Dispersal - clusters separate (`dispersal_separate`)
 #
 # **Question.** Does a very high heterotypic tension (gamma_ld=27) make light and dark clusters fully separate?
 #
 # **Objective.** Simulate gamma_ld=27 from a random IC and observe full light/dark cluster separation at 2000 MCS.
 #
 # **Hypothesis.** Extreme heterotypic tension drives complete separation of light and dark clusters, with a few isolated dark cells.
+#
+# **Claim.** Light and dark clusters separate completely; a few isolated dark cells occur (Fig 26).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.dispersal_separate` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.dispersal_separate`** — `spec_pbg_cpm_studies_composites_gg1993_dispersal_separate` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.dispersal_separate` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -481,15 +632,29 @@ _save_viz('dispersal_separate', 'Dispersal_clusters_separate_interactive', _rend
 # | --- | --- | --- |
 # | Clusters separate (both types expose new medium surface) | bl_total | total boundary length increases and both medium-contact fractions rise |
 
-# ## Study: `dispersal_no_separate`
+# ## Study: Dispersal - clusters do not separate (`dispersal_no_separate`)
 #
 # **Question.** At gamma_ld=21, do light/dark clusters stay attached (extreme partial sorting) rather than fully separate?
 #
 # **Objective.** Simulate gamma_ld=21 from a random IC and show clusters do not separate, contrasting with the gamma_ld=27 case.
 #
 # **Hypothesis.** Just below the separation threshold, clusters remain joined despite strong heterotypic tension.
+#
+# **Claim.** Clusters remain attached, an extreme partial-sorting case just below the separation threshold (Fig 27).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.dispersal_no_separate` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.dispersal_no_separate`** — `spec_pbg_cpm_studies_composites_gg1993_dispersal_no_separate` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.dispersal_no_separate` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -520,15 +685,29 @@ _save_viz('dispersal_no_separate', 'Dispersal_clusters_do_not_separate_interacti
 # | --- | --- | --- |
 # | Clusters stay aggregated (no separation) | bl_total | total boundary length does not increase (aggregate stays compact) |
 
-# ## Study: `vacancy_cavity`
+# ## Study: Vacancy nucleation (cavity) (`vacancy_cavity`)
 #
 # **Question.** With unequal target areas (A_l=20, A_d=40) and vacancy nucleation allowed, does a light-cell-lined central cavity form?
 #
 # **Objective.** Simulate the sorting energies with A_l=20/A_d=40 and allowed vacancy nucleation to observe cavity formation at 200 MCS.
 #
 # **Hypothesis.** Relaxing vacancy suppression lets medium nucleate internally, lined by light cells, forming a fluid-filled cavity.
+#
+# **Claim.** A light-cell-lined medium cavity nucleates within the aggregate (Fig 28); reproduced approximately (the paper notes this case is delicate).
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.vacancy_cavity` | 0 | — |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.gg1993.vacancy_cavity`** — `spec_pbg_cpm_studies_composites_gg1993_vacancy_cavity` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.vacancy_cavity` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
