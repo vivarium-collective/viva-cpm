@@ -138,6 +138,10 @@ readouts:
       Mean centre-of-mass distance from responders to the source centroid,
       the distance-based complement to recruitment_index.
 
+visualizations:
+  - name: "Model-building loop — mechanism ladder (recruitment index per rung × condition)"
+    address: local:RecruitmentLadder
+
 behavior_tests:
   - name: recruits_low
     classification: primary
