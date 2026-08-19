@@ -186,3 +186,75 @@ def _claim_bundle_panel():
 def update_claim_bundle(state):
     """Claim bundle — the source claim / mechanism / realization graphs"""
     return {"html": _claim_bundle_panel()}
+
+
+# --- recruitment-adaptive: the model-building loop's mechanism ladder ---------
+# Baked from the deterministic loop trajectory
+# (workspace/investigations/chemotactic-recruitment/trajectory.json,
+# per_mechanism_numbers). recruitment_index for each rung of the faithful
+# mechanism ladder across the three locked-contract conditions. The story the
+# chart tells: only adaptive_receptor clears recruits_high at high background
+# (fold-change detection) where fixed-kd hill_occupancy collapses to 0, and the
+# non-receptor static_lambda rung fails the receptor-gating control.
+_LADDER_CONDITIONS = [
+    ("recruits_low", "low background<br>(recruits_low)", [0.4, 1.0]),
+    ("recruits_high", "high background<br>(recruits_high — DISCRIMINATOR)", [0.35, 1.0]),
+    ("receptor_gating", "response blocked<br>(receptor_gating ≤ 0.15)", [0.0, 0.15]),
+]
+_LADDER_MECHANISMS = [
+    ("static_lambda", "static_lambda (not receptor-mediated)", "#a78bfa",
+     {"recruits_low": 0.7222, "recruits_high": 0.6944, "receptor_gating": 0.6944}),
+    ("hill_occupancy", "hill_occupancy (fixed kd — collapses at high bg)", "#f43f5e",
+     {"recruits_low": 0.5833, "recruits_high": 0.0, "receptor_gating": 0.0}),
+    ("adaptive_receptor", "adaptive_receptor (fold-change detection) ✓", "#38bdf8",
+     {"recruits_low": 0.9167, "recruits_high": 0.7222, "receptor_gating": 0.0}),
+]
+
+
+def _ladder_card(div):
+    conditions = [c[1] for c in _LADDER_CONDITIONS]
+    keys = [c[0] for c in _LADDER_CONDITIONS]
+    traces = []
+    for _mid, label, color, nums in _LADDER_MECHANISMS:
+        traces.append({
+            "x": conditions, "y": [nums[k] for k in keys], "name": label, "type": "bar",
+            "marker": {"color": color, "line": {"color": _CARD, "width": 1.2}},
+            "hovertemplate": f"<b>{label}</b><br>%{{x}}<br>recruitment index %{{y:.3f}}<extra></extra>",
+        })
+    layout = {
+        "title": {"text": "<b>Model-building loop: the mechanism ladder</b><br>"
+                          f"<span style='font-size:12px;color:{_MUTED}'>recruitment index per rung × locked-contract condition — only adaptive_receptor clears all three</span>",
+                  "x": 0.02, "xanchor": "left", "font": {"size": 16, "color": _INK}},
+        "barmode": "group",
+        "paper_bgcolor": _CARD, "plot_bgcolor": _CARD,
+        "font": {"family": "-apple-system, Segoe UI, Roboto, sans-serif", "color": _INK, "size": 12},
+        "margin": {"l": 62, "r": 22, "t": 74, "b": 96},
+        "xaxis": {"gridcolor": _GRID, "zeroline": False, "ticks": "outside",
+                  "tickcolor": _GRID, "linecolor": _GRID},
+        "yaxis": {"title": {"text": "Recruitment index"}, "gridcolor": _GRID, "zeroline": False,
+                  "range": [0, 1.0], "ticks": "outside", "tickcolor": _GRID, "linecolor": _GRID},
+        "legend": {"orientation": "h", "y": -0.32, "x": 0, "font": {"size": 11}},
+    }
+    caption = ("<b>static_lambda → hill_occupancy → adaptive_receptor</b> &nbsp;·&nbsp; The loop "
+               "climbs the ladder emergently from the graded tests: static_lambda fails "
+               "receptor_gating (0.69, ignores the block — not receptor-mediated); hill_occupancy "
+               "fails recruits_high (0.00 — fixed-kd occupancy saturates on both sides of the "
+               "gradient at high background); adaptive_receptor re-centers its kd on the local mean "
+               "(fold-change detection) and clears all three. Bands: recruits_low [0.4,1.0], "
+               "recruits_high [0.35,1.0], receptor_gating ≤0.15.")
+    return (
+        f'<div style="background:{_BG};border:1px solid {_GRID};border-radius:14px;'
+        f'padding:10px 12px 14px;max-width:820px;margin:0 auto;'
+        f'font-family:-apple-system,Segoe UI,Roboto,sans-serif">'
+        f'<div id="{div}" style="height:420px"></div>'
+        f'<div style="color:{_MUTED};font-size:12.5px;line-height:1.55;padding:2px 8px 4px">{caption}</div>'
+        f'<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>'
+        f'<script>Plotly.newPlot("{div}",{json.dumps(traces)},{json.dumps(layout)},'
+        f'{{responsive:true,displayModeBar:false}});</script></div>'
+    )
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="RecruitmentLadder", demo={"mcs": []})
+def update_recruitment_ladder(state):
+    """Model-building loop mechanism ladder — recruitment index per rung × condition"""
+    return {"html": _ladder_card("recruitment-ladder")}
