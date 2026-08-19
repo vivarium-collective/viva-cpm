@@ -99,6 +99,11 @@ readouts:
     units: dimensionless (0-1)
     status: measured
     description: Fraction of the initial responder-to-source gap closed over the run.
+  - name: Responder mean distance
+    identifier: mean_distance
+    units: px
+    status: measured
+    description: Mean centre-of-mass distance from responders to the source centroid (emitted key `mean_distance`).
 
 behavior_tests:
   - name: Responders are recruited to the source

@@ -93,7 +93,7 @@ readouts:
     status: measured
     description: Fraction of the initial responder-to-source gap closed over the run.
   - name: Responder mean distance
-    identifier: responder_mean_distance
+    identifier: mean_distance
     units: px
     status: measured
     description: Mean centre-of-mass distance from responders to the source centroid.

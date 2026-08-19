@@ -151,20 +151,20 @@ readouts:
   - name: Mean approach
     identifier: mean_approach
     units: dimensionless (0-1)
-    status: measured
+    status: derived
     description: Fraction of the initial responder-to-source gap closed over the run.
   - name: Responder mean distance
     identifier: responder_mean_distance
     units: px
-    status: measured
+    status: derived
     description: Mean centre-of-mass distance from responders to the source centroid.
   - name: Receptor occupancy
     identifier: receptor_occupancy
     units: fraction (0-1)
-    status: measured
-    description: Hill occupancy θ = c^h/(Kd^h + c^h) of the per-cell receptor at the local cue concentration.
+    status: derived
+    description: Hill occupancy θ = c^h/(Kd^h + c^h) of the per-cell receptor at the local cue concentration. Derived from the Hill law (ReceptorOccupancyLaw), not emitted per run.
   - name: Activation fraction
-    identifier: activation_fraction
+    identifier: activation_by_cell
     units: fraction of responders
     status: measured
     description: Fraction of responder cells whose occupancy crossed the activation threshold (naive→activated).
