@@ -3,7 +3,7 @@ name: recruitment-adaptive
 status: in-progress
 phase: Build
 title: "Adaptive receptor recruitment: fold-change detection across background cue levels"
-investigation: recruitment-model-building
+investigation: chemotactic-recruitment
 
 question: |
   Across a RANGE of background cue levels -- not just one -- can responders
