@@ -563,6 +563,17 @@ secreted, is recruitment abolished?
 stays at 0 (mean approach ~0), despite the cue being present.
 </p>
       
+      <div class="ctr-context">This is the response-blocked negative-control arm of the chemotactic-recruitment
+slice. The world is identical to the baseline — source cells still secrete the
+diffusible cue and form the same spatial gradient — except the responder
+chemotaxis strength (lambda) is set to zero, the CPM analogue of pharmacologically
+blocking the response. With no bias on their Cellular Potts copy attempts,
+responder centres of mass do not drift toward the source and the recruitment
+index stays at 0.000 across all 500 Monte-Carlo sweeps and all 5 seeds, versus
+0.767 for the baseline. This shows the chemotactic response — not merely the
+presence of the cue — is a necessary ingredient for recruitment.
+</div>
+      
     </div>
 
     <div class="ctr-block">
@@ -583,10 +594,7 @@ i.e. no net approach).
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">The intervention works: across 5 seeds the recruitment index stays at
-0.000 +/- 0.000 with lambda=0, despite the cue being present (baseline 0.767;
-Cohen&#39;s d = 6.38) — recruitment is response-dependent.
-</p>
+      <p class="ctr-text">Recruitment is causally dependent on the chemotactic response, not merely on the presence of the cue — the response is a necessary ingredient.</p>
       
       
     <div class="overview-section findings-section">
@@ -652,8 +660,8 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
         
         <div class="ctr-meta-row"><span class="ctr-meta-k">Confidence</span>
           <span class="ctr-badge ctr-badge-accepted">Accepted</span>
-          
-          
+          <span class="ctr-vch">biology&nbsp;PASS</span>
+          <span class="ctr-vch">insight&nbsp;POSITIVE</span>
         </div>
         
         
@@ -746,6 +754,25 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
   
   
 
+  
+  <div class="overview-section">
+    <h3>Model change</h3>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.chemotaxis.recruitment</code></p>
+    
+    
+    
+    <p><strong>New parameters:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code></code></li><li><code></code></li>
+    </ul>
+    
+    
+    
+    <p class="muted" style="font-size:0.88em">Same parameterized CPMProcess as the baseline, with chemo_lambda forced to 0
+(response blocked) while cue_rate is unchanged (cue present). No new
+processes, state variables, or listeners were added.
+</p>
+  </div>
   
 
   
@@ -907,6 +934,30 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
 
   
   
+  
+  <div class="overview-section expectations-band" id="expectations-band">
+    <h3 class="section-title">Expectations
+      <span class="muted" style="font-size:0.85em;font-weight:normal">— from literature, mapped to the model observable that measures each</span>
+    </h3>
+    <ul class="literature-anchor-list" style="list-style:none;padding-left:0">
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Blocking the chemotactic response abolishes gradient-directed recruitment even when the cue is present.</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>recruitment_index</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> Chemotaxis up a secreted gradient (canonical)</div>
+        
+      </li>
+    
+    </ul>
+  </div>
+  
 
   
   
@@ -1059,40 +1110,40 @@ pass_if: {"op": "lt", "value": 0.1}</pre>
           <span class="narrative-label">Regression compatibility</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="regression_compatibility"
                 title="Computed from run status (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
           <span class="muted small" style="margin-left:6px">computed from run status</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged."></textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces the expected abolished-recruitment behaviour with the declared energies and ICs (lambda=0).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="biological_validation"
                 title="Computed from the gate evaluator (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
           <span class="muted small" style="margin-left:6px">computed from gate evaluator</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5]."></textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">recruitment index ≈ 0.0, abolished vs baseline 0.767</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="explanatory_gain"
                 title="Computed from interpretation-tier findings (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">POSITIVE</span>
           <span class="muted small" style="margin-left:6px">computed from interpretation-tier findings</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed."></textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">Isolates the chemotactic response as a necessary ingredient for recruitment.</textarea>
         </label>
       </div>
     </div>
@@ -1171,6 +1222,45 @@ necessary cause.</p>
   <div class="overview-section"><h2 class="overview-label">Follow-ups &amp; decisions</h2>
 
     
+    
+    <div class="overview-section" id="open-debts-section" style="margin-top:6px">
+      <h3 class="overview-label">Open debts <span class="narrative-card-hint">(pre-run expert review)</span></h3>
+      <div class="overview-section pre-run-expert-review">
+        <p class="muted" style="margin:0 0 8px 0;font-size:0.88em">
+          Open biological questions the planning is contingent on. A "wrong" answer here
+          means a primary test threshold needs to change <em>before</em> the simulation
+          is run, not after. Each question lists alternatives + the impact of the wrong
+          choice + what downstream work it blocks.
+        </p>
+        <div class="expert-question-list">
+          
+          <div class="expert-question-card status-resolved">
+            <div class="expert-question-header">
+              <span class="expert-question-id">negative-control-arm</span>
+              <span class="expert-question-status">resolved</span>
+              
+              <span class="expert-question-asked-to actor-kind-unattributed" title="actor kind: unattributed">asked to: <span class="actor-glyph">○</span> unattributed</span>
+            </div>
+            <div class="expert-question-text"><strong>Q.</strong> Should the response-blocked condition be built as a dedicated study arm, or treated only as an implicit zero-baseline comparison?</div>
+            
+            <div class="expert-question-alternatives">
+              <em>Alternatives:</em>
+              <ul><li>Treat lambda=0 as an informal baseline comparison only</li><li>Build a dedicated inhibited study as a first-class necessary-ingredient control (this study)</li></ul>
+            </div>
+            
+            
+            
+            
+            <div class="expert-question-response">
+              <strong>Requested response format</strong>
+              <p>none — resolved</p>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+    </div>
     
 
     
@@ -1266,7 +1356,7 @@ necessary cause.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "39ef43a6a3e37001d6ce0afaa86dfadc54a567b7", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/39ef43a6a3e37001d6ce0afaa86dfadc54a567b7", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-18 22:55 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "61dd06acbae98fc2811347a30a1e9711055bb723", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/61dd06acbae98fc2811347a30a1e9711055bb723", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-19 12:12 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "recruitment-inhibited";

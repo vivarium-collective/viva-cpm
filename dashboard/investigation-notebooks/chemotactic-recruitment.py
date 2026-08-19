@@ -174,6 +174,8 @@ def _render_one(address, config, runs_db, study_yaml):
 # centres of mass move toward the source region and the recruitment index rises
 # well above zero.
 #
+# **Purpose.** chemotactic_recruitment
+#
 # **Claim.** Responders climb the secreted gradient and are recruited to the source: the
 # recruitment index rises from 0 to a plateau of ~0.67-0.83 (mean approach 0.61).
 
@@ -249,6 +251,8 @@ _save_viz('recruitment-baseline', 'Recruitment_over_time_all_conditions', _rende
 # **Hypothesis.** With the cue present but the response inhibited, responders no longer climb the
 # gradient; the recruitment index stays near zero.
 #
+# **Purpose.** chemotactic_recruitment
+#
 # **Claim.** Blocking the chemotactic response abolishes recruitment: the recruitment index
 # stays at 0 (mean approach ~0), despite the cue being present.
 
@@ -305,6 +309,8 @@ _save_viz('recruitment-inhibited', 'Recruitment_over_time_all_conditions', _rend
 #
 # **Hypothesis.** With the response intact (lambda 14) but the cue removed (rate 0), there is no
 # gradient to climb; the recruitment index stays at zero.
+#
+# **Purpose.** chemotactic_recruitment
 #
 # **Claim.** Without a cue, competent responders are not recruited: the recruitment index
 # stays at 0. The metric does not produce a false-positive recruitment signal.
@@ -369,6 +375,8 @@ _save_viz('recruitment-adversarial', 'Recruitment_over_time_all_conditions', _re
 # (chemo_lambda 14, kd 2.9 nM), responders whose Hill-occupancy crosses the
 # activation threshold chemotax up the gradient, and the recruitment index
 # rises well above zero, consistent with the phenomenological baseline.
+#
+# **Purpose.** receptor_occupancy
 #
 # **Claim.** Cue + receptor-gated response recruits: across 5 seeds the final
 # recruitment index is 0.5667 (95% CI 0.3451-0.7882), above the 0.5 pass
@@ -446,6 +454,8 @@ _save_viz('recruitment-receptor-baseline', 'Receptor-gated_recruitment_baseline_
 # **Hypothesis.** With the cue present (rate 10) but the receptor-gated response disabled
 # (blocked=True), responders may still activate (naive -> activated) but no
 # longer chemotax, so the recruitment index stays near zero.
+#
+# **Purpose.** receptor_occupancy
 #
 # **Claim.** Blocking the response downstream of receptor activation abolishes
 # recruitment: the final recruitment index is 0.0667 (95% CI 0.0-0.1467),

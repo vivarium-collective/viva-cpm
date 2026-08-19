@@ -656,8 +656,7 @@ function testsTable(tests, traj){
     const cls=t.classification;
     const fin=finals[name]; const v=fin?(fin.v==='within_tol'?'pass':'fail'):null;
     const exp=(fin&&fin.exp)||(prov[name]&&prov[name].exp)||(t.pass_if&&(t.pass_if.op+' '+t.pass_if.value))||'';
-    const _pt=p=>!p?'':(typeof p==='string'?p:(p.note||p.rationale||p.kind||''));
-    const pv=_pt((prov[name]&&prov[name].provenance))||_pt(t.pass_if&&t.pass_if.provenance)||(t.measure&&t.measure.kind==='audit-axis'?('audit axis '+meas):'');
+    const pv=provText((prov[name]&&prov[name].provenance))||provText(t.pass_if&&t.pass_if.provenance)||(t.measure&&t.measure.kind==='audit-axis'?('audit axis '+meas):'');
     const obs=(fin&&fin.obs!=null)?`observed ${fmt(fin.obs)}`:'';
     const mg=(fin&&fin.m!=null)?` · margin ${fmt(fin.m)}`:'';
     return `<tr id="test-${esc(name)}"><td class="tname">${esc(desc||name)}
@@ -669,6 +668,10 @@ function testsTable(tests, traj){
   return `<table class="ttable">${rows}</table>`;
 }
 function fmt(n){ if(typeof n!=='number') return esc(n); return Number.isInteger(n)?n:(Math.abs(n)<0.01?n.toExponential(1):n.toFixed(2)); }
+// provenance may be a plain string OR an object ({kind, note, ...}); render a
+// readable line, never a stringified object ("[object Object]").
+function provText(p){ if(!p) return ''; if(typeof p==='string') return p;
+  if(typeof p==='object') return String(p.note||p.rationale||p.kind||Object.values(p).filter(v=>typeof v==='string').join(' · ')||''); return String(p); }
 
 function fbBubble(key,label){ return `<button class="fbbubble ${FB[key]?'has':''}" data-fb="${esc(key)}" data-fblabel="${esc(label)}" title="Add feedback to this section" aria-label="Add feedback to ${esc(label)}">💬</button>`; }
 function part(label, body, key, klabel){ if(!body) return '';
@@ -729,10 +732,17 @@ function renderStudy(s, inv, idx){
   const bioText = s.biological_summary || pm;
   const overview = (bioText && headline)?`<div class="biology">${esc(bioText)}</div>`:'';
 
-  // MODEL — embed the REAL bigraph-loom for the composite (not a re-draw); the
-  // static topology SVG is kept as an on-demand fallback for standalone viewing.
+  // MODEL — prefer a pre-rendered bigraph-loom image (offline-safe, config
+  // loaded, from `vivarium-workbench render-loom`); else the live loom iframe;
+  // else the re-drawn static topology / viz.
   const bl=(s.baseline||[])[0];
-  let modelBody = loomEmbed(s) || (s.model_topology ? loomTopoSVG(s.model_topology) : '') || vizModelSVG(s,inv);
+  const _mcid=(s.model_topology&&s.model_topology.composite)||(bl&&bl.composite)||'';
+  const loomRendered = s.model_loom
+    ? `<figure class="loom-embed"><div class="loom-frame" style="height:auto;max-height:640px;overflow:auto">
+         <img src="${s.model_loom}" alt="bigraph-loom view of ${esc(_mcid)}" style="width:100%;display:block"/></div>
+       <figcaption><b>bigraph-loom</b> view of <span class="mono">${esc(_mcid)}</span> — the composite's bigraph with its config loaded.</figcaption></figure>`
+    : '';
+  let modelBody = loomRendered || loomEmbed(s) || (s.model_topology ? loomTopoSVG(s.model_topology) : '') || vizModelSVG(s,inv);
   if(s.sourcing){
     modelBody += `<div class="decision-line" style="margin-top:6px"><span class="chip decision">${esc(s.sourcing.decision)}</span>
       ${(s.sourcing.modules||[]).map(m=>`<span class="chip mod">${esc(m)}</span>`).join(' ')||'<span class="chip mod">new module</span>'}</div>
@@ -747,7 +757,7 @@ function renderStudy(s, inv, idx){
     return `<div class="kv" style="margin:6px 0"><span class="chip ${r.status==='completed'?'pass':''}">${esc(r.status)}</span>
       <span class="mono" style="margin-left:8px;color:var(--ink-2)">${esc(r.name||r.module||'')}</span>
       ${outcomeRows(r.outcomes)}
-      ${r.provenance?`<div class="texp mono" style="margin-top:2px">${esc(r.provenance)}</div>`:''}</div>`;
+      ${r.provenance?`<div class="texp mono" style="margin-top:2px">${esc(provText(r.provenance))}</div>`:''}</div>`;
   }).join(''):'';
   // run-command chips: how to reproduce this study + per-variant commands
   if(s.run_commands){

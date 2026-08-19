@@ -567,6 +567,21 @@ below the 0.1 pass threshold, despite the cue being present and receptors
 still able to bind ligand.
 </p>
       
+      <div class="ctr-context">This is the response-blocked negative-control arm of the receptor-level
+realization. The world and receptor wiring are identical to
+recruitment-receptor-baseline — the same cue, the same per-cell
+ReceptorSubcell computing Hill occupancy against the cited CXCL8-CXCR1
+affinity (Kd = 2.9 nM, Nasser et al. 2009) — except the activated type&#39;s
+chemotaxis lambda is forced to 0, the receptor-realization analogue of
+pharmacologically blocking the response downstream of receptor binding.
+Responders can still cross the receptor-occupancy activation threshold
+(naive -&gt; activated), but no longer chemotax. Across 5 seeds the final
+recruitment index is 0.0667 (95% CI 0.0-0.1467), below the 0.1 pass
+threshold and far below the receptor-gated baseline&#39;s 0.5667 — showing the
+chemotactic response itself, not merely receptor binding, is the necessary
+ingredient for recruitment.
+</div>
+      
     </div>
 
     <div class="ctr-block">
@@ -589,12 +604,7 @@ run -- versus 0.5667 for the receptor baseline.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">The intervention works in the receptor-level realization too: across 5
-seeds the final recruitment index is 0.0667 (95% CI 0.0-0.1467) with
-the activated-type chemotaxis lambda forced to 0, versus 0.5667 for the
-receptor baseline -- recruitment remains response-dependent even when
-receptor binding itself is unaffected.
-</p>
+      <p class="ctr-text">Blocking downstream of receptor occupancy — rather than blocking receptor binding itself — still abolishes recruitment, isolating the chemotactic response (not mere receptor activation) as the necessary cause even in the receptor-gated realization.</p>
       
       
     <div class="overview-section findings-section">
@@ -656,8 +666,8 @@ receptor binding itself is unaffected.
         
         <div class="ctr-meta-row"><span class="ctr-meta-k">Confidence</span>
           <span class="ctr-badge ctr-badge-accepted">Accepted</span>
-          
-          
+          <span class="ctr-vch">biology&nbsp;PASS</span>
+          <span class="ctr-vch">insight&nbsp;POSITIVE</span>
         </div>
         
         
@@ -754,6 +764,28 @@ receptor binding itself is unaffected.
   
   
 
+  
+  <div class="overview-section">
+    <h3>Model change</h3>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor</code></p>
+    
+    
+    
+    <p><strong>New parameters:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li>
+    </ul>
+    
+    
+    
+    <p class="muted" style="font-size:0.88em">Same receptor-gated CPMProcess as recruitment-receptor-baseline, with the
+activated-type chemotaxis lambda forced to 0 (blocked=True) in
+chemotaxis_receptor.build_receptor_spec while cue_rate and kd are
+unchanged. Receptor occupancy computation and the naive-&gt;activated switch
+are unaffected — only the downstream chemotactic response is blocked. No
+new state variables or listeners were added.
+</p>
+  </div>
   
 
   
@@ -945,6 +977,44 @@ receptor binding itself is unaffected.
 
   
   
+  
+  <div class="overview-section expectations-band" id="expectations-band">
+    <h3 class="section-title">Expectations
+      <span class="muted" style="font-size:0.85em;font-weight:normal">— from literature, mapped to the model observable that measures each</span>
+    </h3>
+    <ul class="literature-anchor-list" style="list-style:none;padding-left:0">
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Receptor occupancy follows a Hill law with Kd≈2.9 nM.</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>receptor_occupancy</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> CXCL8–CXCR1</div>
+        
+      </li>
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Blocking the chemotactic response downstream of receptor binding abolishes gradient-directed recruitment even when the cue is present and receptors can still bind.</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>recruitment_index</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> Chemotaxis up a secreted gradient (canonical)</div>
+        
+      </li>
+    
+    </ul>
+  </div>
+  
 
   
   
@@ -1100,40 +1170,40 @@ cites:   ["nasser2009"]</pre>
           <span class="narrative-label">Regression compatibility</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="regression_compatibility"
                 title="Computed from run status (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
           <span class="muted small" style="margin-left:6px">computed from run status</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged."></textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces the expected abolished-recruitment behaviour with the declared energies, ICs, and Hill-occupancy wiring (activated-type lambda forced to 0).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="biological_validation"
                 title="Computed from the gate evaluator (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
           <span class="muted small" style="margin-left:6px">computed from gate evaluator</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5]."></textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">Recruitment index 0.0667 (95% CI 0.0-0.1467) across 5 seeds, below the 0.1 pass threshold, versus 0.5667 for the receptor-gated baseline (kd 2.9 nM, Nasser 2009).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="explanatory_gain"
                 title="Computed from interpretation-tier findings (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">POSITIVE</span>
           <span class="muted small" style="margin-left:6px">computed from interpretation-tier findings</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed."></textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">Isolates the chemotactic response — not merely receptor activation — as the necessary cause, even in the receptor-gated realization.</textarea>
         </label>
       </div>
     </div>
@@ -1216,6 +1286,45 @@ investigation's finding for the phenomenological realization.</p>
 
     
     
+    <div class="overview-section" id="open-debts-section" style="margin-top:6px">
+      <h3 class="overview-label">Open debts <span class="narrative-card-hint">(pre-run expert review)</span></h3>
+      <div class="overview-section pre-run-expert-review">
+        <p class="muted" style="margin:0 0 8px 0;font-size:0.88em">
+          Open biological questions the planning is contingent on. A "wrong" answer here
+          means a primary test threshold needs to change <em>before</em> the simulation
+          is run, not after. Each question lists alternatives + the impact of the wrong
+          choice + what downstream work it blocks.
+        </p>
+        <div class="expert-question-list">
+          
+          <div class="expert-question-card status-resolved">
+            <div class="expert-question-header">
+              <span class="expert-question-id">negative-control-arm</span>
+              <span class="expert-question-status">resolved</span>
+              
+              <span class="expert-question-asked-to actor-kind-unattributed" title="actor kind: unattributed">asked to: <span class="actor-glyph">○</span> unattributed</span>
+            </div>
+            <div class="expert-question-text"><strong>Q.</strong> Should the receptor-realization&#39;s response-blocked condition be built as a dedicated study arm, or treated only as an implicit lambda=0 comparison?</div>
+            
+            <div class="expert-question-alternatives">
+              <em>Alternatives:</em>
+              <ul><li>Treat blocked=True as an informal comparison only, folded into recruitment-receptor-baseline</li><li>Build a dedicated receptor-blocked study as a first-class necessary-ingredient control (this study)</li></ul>
+            </div>
+            
+            
+            
+            
+            <div class="expert-question-response">
+              <strong>Requested response format</strong>
+              <p>none — resolved</p>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
 
     
     
@@ -1276,7 +1385,7 @@ investigation's finding for the phenomenological realization.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "39ef43a6a3e37001d6ce0afaa86dfadc54a567b7", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/39ef43a6a3e37001d6ce0afaa86dfadc54a567b7", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-18 22:55 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "61dd06acbae98fc2811347a30a1e9711055bb723", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/61dd06acbae98fc2811347a30a1e9711055bb723", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-19 12:12 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "recruitment-receptor-blocked";

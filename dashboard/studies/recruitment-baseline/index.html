@@ -147,8 +147,8 @@
 
 
 <p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> When source cells secrete a diffusible cue and responder cells carry a
-competent chemotactic response, do the responders directionally migrate up the
-gradient and accumulate at the source?
+competent chemotactic response, do responders migrate up the gradient and
+accumulate at the source?
 </p>
 
 <nav class="study-tabs" aria-label="Study sections">
@@ -564,6 +564,16 @@ gradient and accumulate at the source?
 recruitment index rises from 0 to a plateau of ~0.67-0.83 (mean approach 0.61).
 </p>
       
+      <div class="ctr-context">Source cells secrete a diffusible chemokine that forms a spatial gradient from
+the source slab into the responder zone. Responder cells bias their Cellular
+Potts copy attempts up the local gradient (chemotaxis strength lambda), so over
+~500 Monte-Carlo sweeps their centres of mass drift toward the source and a
+majority end up within the recruitment radius. Removing either ingredient — the
+cue (adversarial arm) or the response (inhibited arm) — abolishes recruitment,
+establishing that both are necessary. This is the phenomenological realization
+of the biological claim &#34;a secreted cue recruits responder cells&#34;.
+</div>
+      
     </div>
 
     <div class="ctr-block">
@@ -585,11 +595,7 @@ mean approach 0.608.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">Cue + competent response recruits: across 5 independent seeds the final
-recruitment index is 0.767 +/- 0.170, versus 0.000 +/- 0.000 for both negative
-conditions (Cohen&#39;s d = 6.38). Recruitment is an emergent collective outcome of
-local chemotactic copy-attempt biases, not an engineered per-cell rule.
-</p>
+      <p class="ctr-text">Recruitment is an emergent collective outcome of local chemotactic copy-attempt biases, not an engineered per-cell rule.</p>
       
       
     <div class="overview-section findings-section">
@@ -656,8 +662,8 @@ local chemotactic copy-attempt biases, not an engineered per-cell rule.
         
         <div class="ctr-meta-row"><span class="ctr-meta-k">Confidence</span>
           <span class="ctr-badge ctr-badge-accepted">Accepted</span>
-          
-          
+          <span class="ctr-vch">biology&nbsp;PASS</span>
+          <span class="ctr-vch">insight&nbsp;POSITIVE</span>
         </div>
         
         
@@ -750,6 +756,27 @@ local chemotactic copy-attempt biases, not an engineered per-cell rule.
   
   
 
+  
+  <div class="overview-section">
+    <h3>Model change</h3>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.chemotaxis.recruitment</code></p>
+    
+    
+    
+    <p><strong>New parameters:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code></code></li><li><code></code></li>
+    </ul>
+    
+    
+    
+    <p class="muted" style="font-size:0.88em">Realizes the recruitment claim with one parameterized CPMProcess. Type-1
+source cells secrete field C (d=0.22, decay=0.001) at cue_rate; type-2
+responders chemotax up the local gradient with strength chemo_lambda — a
+phenomenological copy-attempt bias on the existing CPM engine. No new
+processes, state variables, or listeners were added.
+</p>
+  </div>
   
 
   
@@ -911,6 +938,30 @@ local chemotactic copy-attempt biases, not an engineered per-cell rule.
 
   
   
+  
+  <div class="overview-section expectations-band" id="expectations-band">
+    <h3 class="section-title">Expectations
+      <span class="muted" style="font-size:0.85em;font-weight:normal">— from literature, mapped to the model observable that measures each</span>
+    </h3>
+    <ul class="literature-anchor-list" style="list-style:none;padding-left:0">
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Responder cells climb a secreted chemokine gradient toward the source.</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>recruitment_index</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> Chemotaxis up a secreted gradient (canonical)</div>
+        
+      </li>
+    
+    </ul>
+  </div>
+  
 
   
   
@@ -1063,40 +1114,40 @@ pass_if: {"op": "gt", "value": 0.5}</pre>
           <span class="narrative-label">Regression compatibility</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="regression_compatibility"
                 title="Computed from run status (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
           <span class="muted small" style="margin-left:6px">computed from run status</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged."></textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces the expected CPM recruitment behaviour with the declared energies and ICs.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="biological_validation"
                 title="Computed from the gate evaluator (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
           <span class="muted small" style="margin-left:6px">computed from gate evaluator</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5]."></textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">Recruitment index 0.767 ± 0.170 vs 0.000 for both negative controls (Cohen&#39;s d = 6.38, 5 seeds).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="explanatory_gain"
                 title="Computed from interpretation-tier findings (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">POSITIVE</span>
           <span class="muted small" style="margin-left:6px">computed from interpretation-tier findings</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed."></textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">Recruitment emerges from local copy-attempt biases rather than an imposed per-cell rule.</textarea>
         </label>
       </div>
     </div>
@@ -1176,6 +1227,45 @@ realization records rather than hides.</p>
   <div class="overview-section"><h2 class="overview-label">Follow-ups &amp; decisions</h2>
 
     
+    
+    <div class="overview-section" id="open-debts-section" style="margin-top:6px">
+      <h3 class="overview-label">Open debts <span class="narrative-card-hint">(pre-run expert review)</span></h3>
+      <div class="overview-section pre-run-expert-review">
+        <p class="muted" style="margin:0 0 8px 0;font-size:0.88em">
+          Open biological questions the planning is contingent on. A "wrong" answer here
+          means a primary test threshold needs to change <em>before</em> the simulation
+          is run, not after. Each question lists alternatives + the impact of the wrong
+          choice + what downstream work it blocks.
+        </p>
+        <div class="expert-question-list">
+          
+          <div class="expert-question-card status-resolved">
+            <div class="expert-question-header">
+              <span class="expert-question-id">response-representation</span>
+              <span class="expert-question-status">resolved</span>
+              
+              <span class="expert-question-asked-to actor-kind-unattributed" title="actor kind: unattributed">asked to: <span class="actor-glyph">○</span> unattributed</span>
+            </div>
+            <div class="expert-question-text"><strong>Q.</strong> Represent the chemotactic response as a phenomenological lambda or a receptor-level model?</div>
+            
+            <div class="expert-question-alternatives">
+              <em>Alternatives:</em>
+              <ul><li>Phenomenological chemotaxis lambda (this study)</li><li>Receptor-gated Hill occupancy (recruitment-receptor-baseline)</li></ul>
+            </div>
+            
+            
+            
+            
+            <div class="expert-question-response">
+              <strong>Requested response format</strong>
+              <p>none — resolved</p>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+    </div>
     
 
     
@@ -1271,7 +1361,7 @@ realization records rather than hides.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "39ef43a6a3e37001d6ce0afaa86dfadc54a567b7", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/39ef43a6a3e37001d6ce0afaa86dfadc54a567b7", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-18 22:55 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "61dd06acbae98fc2811347a30a1e9711055bb723", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/61dd06acbae98fc2811347a30a1e9711055bb723", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-19 12:12 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "recruitment-baseline";
