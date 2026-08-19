@@ -37,10 +37,26 @@ ACTIVATED_TYPE = 3
 # Hill-occupancy defaults for the per-cell AdaptiveReceptorSubcell -- mirrors
 # chemotaxis_receptor's KD/hill/conc_scale/activate_occupancy defaults; kd here
 # matches AdaptiveReceptorSubcell.config_schema's own default (2.9).
+#
+# ACTIVATE_OCCUPANCY_DEFAULT calibrated empirically (Task 4, 2026-08-18; see
+# docs/superpowers/notes/2026-08-18-ladder-calibration.md for the full sweep
+# log). The 0.5 placeholder never crossed: response = max(0, theta - m) is a
+# small transient/fold-change quantity (observed <= ~0.3 over 40 steps), not a
+# raw occupancy like chemotaxis_receptor's theta (which ranges over [0, 1]) --
+# so it needs a much lower threshold. Empirically, response and knockout's raw
+# theta=response (m frozen at 0 when epsilon=0) BOTH start from the exact same
+# value at t=0 (theta(0) - 0 == theta(0)), so knockout's activation window can
+# only be >= adaptive's under a shared threshold in the worst case; in
+# practice the two diverge because activation feeds back into chemotaxis
+# (activated cells move, changing the ligand they see next), and a threshold
+# in [0.038, 0.046] reproducibly lets adaptive reach ceiling recruitment
+# (1.0) while pure-Hill knockout plateaus at ~0.78 (some responders never
+# clear the activation-independent CPM noise floor) -- a robust ~0.22 gap
+# across all 3 calibration seeds. 0.04 sits in the middle of that plateau.
 KD_DEFAULT = 2.9
 HILL_DEFAULT = 2.0
 CONC_SCALE_DEFAULT = 0.02
-ACTIVATE_OCCUPANCY_DEFAULT = 0.5
+ACTIVATE_OCCUPANCY_DEFAULT = 0.04
 EPSILON_DEFAULT = 0.1
 BACKGROUND_DEFAULT = 0.0
 
@@ -131,8 +147,10 @@ _VIZ = [{"name": "Recruitment over time", "address": "local:ChemotaxisRecruitmen
 # high_bg all recruit), while receptor_gating (high_bg_blocked, lambda forced
 # to 0) and the adaptation knockout (high_bg_knockout, epsilon=0 -> no
 # fold-change, pure Hill occupancy re-saturates in high background) do not.
-# NOTE: the background values below are PLACEHOLDER starting points for
-# Task 4's empirical calibration, not tuned final values.
+# Background levels (0 / 80 / 200) are the Task-3 starting points; Task 4
+# (2026-08-18) confirmed empirically they separate the ladder once
+# ACTIVATE_OCCUPANCY_DEFAULT above is calibrated -- see
+# docs/superpowers/notes/2026-08-18-ladder-calibration.md.
 CONDITIONS = {
     "low_bg":           {"background": 0.0,   "epsilon": 0.1, "blocked": False},
     "mid_bg":           {"background": 80.0,  "epsilon": 0.1, "blocked": False},
