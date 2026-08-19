@@ -28,7 +28,9 @@ from viva_superpowers import loop_state as ls, test_audit, test_contract as tc
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, os.pardir))
-OUT = os.path.join(ROOT, "workspace", "investigations", "recruitment-model-building")
+# recruitment-model-building was folded into chemotactic-recruitment (#29);
+# the trajectory lives with the investigation that now owns the adaptive study.
+OUT = os.path.join(ROOT, "workspace", "investigations", "chemotactic-recruitment")
 
 STUDY = "recruitment-adaptive"
 
