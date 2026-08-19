@@ -590,6 +590,15 @@ RUNS_DB = str(STUDY_DIR / "runs.db")
 
 print("No recorded runs for this study; nothing to reproduce.")
 
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Model-building loop — mechanism ladder (recruitment index per rung × condition)**
+
+# Model-building loop — mechanism ladder (recruitment index per rung × condition)
+_save_viz('recruitment-adaptive', 'Model-building_loop_mechanism_ladder_recruitment_index_per_rung_condition', _render_one('local:RecruitmentLadder', {}, RUNS_DB, STUDY_YAML))
+
 # ### Acceptance criteria
 #
 # _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
