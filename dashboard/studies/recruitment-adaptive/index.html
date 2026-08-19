@@ -18,7 +18,7 @@
     
     <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
     
-    <span class="phase-pill phase-build" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Build</span>
+    <span class="phase-pill phase-decide" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Decide</span>
     
   </h1>
   <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0;">
@@ -30,7 +30,7 @@
   <div class="study-status-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
     
     
-    <span class="status-pill status-in-progress" title="Headline status derived from the highest-precedence multi-axis field (or legacy `status` as fallback).">in-progress</span>
+    <span class="status-pill gate-status gate-status-passed" title="Pipeline gate verdict (Pass A multi-axis status). Drives downstream unblocking.">gate: passed</span>
     
 
     
@@ -52,7 +52,7 @@
             <span class="dot"></span>1&nbsp;·&nbsp;Plan
           </span>
           
-          <span class="status-step gate-step axis-simulation_status gate-state-not-assessed set" title="Gate 2 · Execution">
+          <span class="status-step gate-step axis-simulation_status gate-state-passed set" title="Gate 2 · Execution">
             <span class="dot"></span>2&nbsp;·&nbsp;Execution
           </span>
           
@@ -64,8 +64,8 @@
             <span class="dot"></span>4&nbsp;·&nbsp;Quality
           </span>
           
-          <span class="status-step gate-step axis-gate_status gate-state-not-assessed set" title="Gate 5 · Decision">
-            <span class="dot"></span>5&nbsp;·&nbsp;Decision
+          <span class="status-step gate-step axis-gate_status gate-state-passed set" title="Gate 5 · Decision">
+            <span class="dot"></span>5&nbsp;·&nbsp;Decision<span class="step-val">passed</span>
           </span>
           
           <span class="status-step gate-step axis-expert_review_status gate-state-not-assessed" title="Gate 6 · Release">
@@ -84,11 +84,11 @@
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-not-assessed">
+        <div class="status-detail-row gate-row gate-state-passed">
           <span class="status-detail-axis">2 · Execution</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-not-assessed" title="no runs in runs.db">◆ computed: not_run</span>
+          <span class="gate-computed-chip gate-state-passed" title="1 completed run(s)">◆ computed: ran</span>
           
           
           
@@ -98,7 +98,7 @@
           <span class="status-detail-axis">3 · Evidence</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed-with-conditions" title="nothing run to evaluate + visualization readiness gate (V4)">◆ computed: not_evaluated</span>
+          <span class="gate-computed-chip gate-state-passed-with-conditions" title="no verdicts recorded yet + visualization readiness gate (V4)">◆ computed: not_evaluated</span>
           
           
           
@@ -110,17 +110,17 @@
           <span class="status-detail-axis">4 · Quality</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-not-assessed" title="nothing run to evaluate">◆ computed: not_evaluated</span>
+          <span class="gate-computed-chip gate-state-not-assessed" title="no verdicts recorded yet">◆ computed: not_evaluated</span>
           
           
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-not-assessed">
+        <div class="status-detail-row gate-row gate-state-passed">
           <span class="status-detail-axis">5 · Decision</span>
-          <span class="status-chip gate-state-not-assessed">not set</span>
+          <span class="status-chip gate-state-passed">passed</span>
           
-          <span class="gate-computed-chip gate-state-not-assessed" title="spine gate evaluator (study_verdict.roll_up_verdict / pipeline_gate.gate_evaluator)">◆ computed: not_started</span>
+          <span class="gate-computed-chip gate-state-passed" title="spine gate evaluator (study_verdict.roll_up_verdict / pipeline_gate.gate_evaluator)">◆ computed: passed</span>
           
           
           
@@ -202,7 +202,7 @@ source cue where a fixed-kd mechanism saturates and collapses?
   </div>
   <div class="act-cluster" data-act="decision">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="decision" data-gate-state="not-assessed"></span>
+      <span class="act-gate-dot" data-gate="decision" data-gate-state="passed"></span>
       <span class="act-label">Decision</span>
     </div>
     <div class="act-tabs">
@@ -672,6 +672,13 @@ these bands; this study does not itself constitute a completed run.
       
       
       
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:0.8em">
+        
+        
+        
+        <span class="cond-pill"><span class="cond-pill-k">status</span>=completed</span>
+      </div>
+      
     </div>
     
     
@@ -930,17 +937,28 @@ these bands; this study does not itself constitute a completed run.
         
         data-pytest-node="recruits_low"
         data-classification="primary"
-        data-result="pending"
+        data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
         <strong style="font-size: 0.9em;">recruits_low</strong>
         
       </div>
       <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: recruitment index in [0.4, 1.0] at low background (background=0.0). Measured: adaptive 0.82, hill 0.58 (both mechanisms recruit at low background -- this test establishes baseline competence, not discrimination; recruits_high is the discriminator).</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.9167</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: recruitment_index 0.9167 at background=0.0, band [0.4, 1.0]. Baseline competence -- both adaptive and (earlier rung) hill clear it.</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: viva_superpowers.test_contract</code>
+        
+      </div>
       
       
       <details style="margin-top: 6px; font-size: 0.82em;">
@@ -968,17 +986,28 @@ cites:   ["recruitment-baseline"]</pre>
         
         data-pytest-node="receptor_gating"
         data-classification="primary"
-        data-result="pending"
+        data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
         <strong style="font-size: 0.9em;">receptor_gating</strong>
         
       </div>
       <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: recruitment index &lt;= 0.15 at high_bg_blocked (background=400.0, blocked=True -- the activated-type chemotaxis lambda forced to 0 downstream of receptor occupancy). Measured: hill/adaptive 0.00 (response blocked, receptor-mediated recruitment abolished); static 0.72 (ignores the block -- it is not receptor-mediated, so it FAILS this test, isolating receptor-gated response as the necessary cause).</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.0</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: recruitment_index 0.00 at high_bg_blocked (background=400.0, blocked=True), band &lt;= 0.15. Blocking the response downstream of receptor occupancy abolishes recruitment -- the non-receptor static_lambda rung FAILED this (0.69), isolating receptor-gated response as the necessary cause.</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: viva_superpowers.test_contract</code>
+        
+      </div>
       
       
       <details style="margin-top: 6px; font-size: 0.82em;">
@@ -1006,17 +1035,28 @@ cites:   ["nasser2009"]</pre>
         
         data-pytest-node="recruits_high"
         data-classification="primary"
-        data-result="pending"
+        data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
         <strong style="font-size: 0.9em;">recruits_high</strong>
         
       </div>
       <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: recruitment index in [0.35, 1.0] at high background (background=400.0). THE DISCRIMINATING TEST -- fold-change detection: measured adaptive ~0.56 (mean over 12 seeds) PASSES; hill_occupancy 0.00 (deterministic collapse, occupancy saturated on both sides of the gradient) FAILS. Only the adaptive mechanism clears this band.</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.7222</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: recruitment_index 0.7222 at background=400.0, band [0.35, 1.0]. THE DISCRIMINATOR -- fold-change detection: adaptive_receptor clears it where the fixed-kd hill_occupancy rung collapsed to 0.00.</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: viva_superpowers.test_contract</code>
+        
+      </div>
       
       
       <details style="margin-top: 6px; font-size: 0.82em;">
@@ -1144,14 +1184,27 @@ cites:   ["barkai1997", "tu2008"]</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>NOT YET DECIDED. This is a locked contract, not a finding: the model-
-building loop (Task 7) has not yet been driven against these three
-behavior tests. The bands above are set from real measured numbers
-(3-12 seeds) gathered while calibrating the faithful mechanism ladder, so
-they are falsifiable targets, not aspirational ones -- the adaptive
-mechanism as calibrated (kd=1.0, hill=4.0, epsilon=0.5) already clears all
-three in the calibration data; this study exists to make that pass
-reproducible and locked BEFORE the loop claims it.</p>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>DECIDED -- PASS. The model-building loop (scripts/build_recruitment_loop.py)
+was driven against this locked 3-test contract and climbed the faithful
+mechanism ladder emergently, NOT by script: starting from static_lambda it
+read the graded behavior tests each iteration and installed the mechanism
+the most-negative failing margin demanded. iter 0 static_lambda fails
+receptor_gating (0.69 &gt; 0.15 -- not receptor-mediated, ignores the block)
+-&gt; install hill_occupancy; iter 1 hill_occupancy fails recruits_high (0.00 --
+fixed-kd occupancy saturates on both sides of the gradient at high
+background) -&gt; install adaptive_receptor; iter 2 adaptive_receptor clears all
+three (recruits_low 0.9167 in [0.4,1.0]; receptor_gating 0.00 &lt;= 0.15;
+recruits_high 0.7222 in [0.35,1.0]) -&gt; DONE in 3 iterations, violations=[].
+The pass is perturbation-stable: re-grading adaptive_receptor at a fully
+disjoint 6-seed set (7,53,71,89,101,113) clears all three again. A GIVE_UP
+companion run with adaptive_receptor withheld from the library terminates
+HONESTLY at hill_occupancy rather than faking a pass. Fold-change detection
+(Barkai &amp; Leibler 1997; Tu, Shimizu &amp; Berg 2008) is therefore sufficient, on
+the real Rust CPM engine, to keep recruiting responders across a range of
+background cue levels where a fixed-kd receptor mechanism collapses. Full
+emergent trajectory + audit/lock/perturbation/give-up traces:
+../../investigations/chemotactic-recruitment/trajectory.json (schema
+model_build_trajectory/v2); loop state: .pbg/loop/recruitment-adaptive.json.</p>
 </div>
     </div>
     
@@ -1186,6 +1239,27 @@ reproducible and locked BEFORE the loop claims it.</p>
     
     
     
+    <div class="decide-section">
+      <h3 class="overview-label">Latest run outcomes</h3>
+      <div style="font-size:0.88em;color:#64748b;margin-bottom:8px">
+        baseline · seed ? ·
+        ?s simulated ·
+        ? history rows ·
+        started ?
+      </div>
+      
+      
+      
+      <p class="muted" style="margin:0;font-size:0.9em">
+        <strong>3</strong> test outcomes
+        — <span style="color:#065f46;font-weight:600">3 PASS</span> ·
+        <span style="color:#991b1b;font-weight:600">0 FAIL</span>.
+        Per-test outcomes (measured value · evaluator · band) are canonical on the
+        <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline">Tests tab →</a>.
+      </p>
+      
+    </div>
+    
     
 
   </div>
@@ -1212,7 +1286,7 @@ reproducible and locked BEFORE the loop claims it.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "0f1c4bc2d04e479ce7f0123302f5da35f3f1df72", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/0f1c4bc2d04e479ce7f0123302f5da35f3f1df72", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-19 13:20 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "fc60f3ddb4c3ba58139a0c2101ef778f4cf986f2", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/fc60f3ddb4c3ba58139a0c2101ef778f4cf986f2", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-19 14:27 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "recruitment-adaptive";
