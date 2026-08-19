@@ -520,5 +520,85 @@ _save_viz('recruitment-receptor-blocked', 'Receptor-gated_recruitment_baseline_v
 # | --- | --- | --- |
 # | Blocking the response abolishes recruitment (receptor realization) | kind=recruitment_index condition=recruitment-receptor-blocked stat=final | op lt value 0.1 |
 
+# ## Study: Adaptive receptor recruitment: fold-change detection across background cue levels (`recruitment-adaptive`)
+#
+# **Question.** Across a RANGE of background cue levels -- not just one -- can responders
+# keep being recruited to a rising source cue? Fold-change detection
+# (fold_change_detection) predicts that an adaptive receptor mechanism, which
+# re-centers its half-occupancy point on the locally sensed mean rather than
+# fixing it, should recruit at both low and high static backgrounds, while a
+# fixed-kd (hill_occupancy) mechanism saturates and collapses once the
+# background rises far enough to pin occupancy near its ceiling on both sides
+# of the gradient. This study is the LOCKED CONTRACT: it does not itself run
+# the model -- it defines the behavior-test bands the model-building loop
+# (Task 7) must clear for "the adaptive model works" to be true.
+#
+# **Objective.** Author the acceptance contract for the adaptive-receptor rung of the
+# faithful chemotaxis mechanism ladder (pbg_cpm_studies.model_building.
+# mechanisms): three primary behavior tests plus a receptor-gating control,
+# with pass/fail bands set from real measured recruitment_index values
+# (3-12 seeds) already gathered while calibrating the ladder. The loop
+# driver built in the next task runs mechanisms.simulate_condition against
+# these bands; this study does not itself constitute a completed run.
+#
+# **Hypothesis.** An adaptive receptor mechanism (a slowly-tracked local-mean set-point that
+# re-centers the Hill kd every SAMPLE-step increment) recruits responders at
+# low background AND at high background, because it senses the CHANGE in
+# local occupancy rather than its absolute level (Barkai & Leibler 1997;
+# Tu, Shimizu & Berg 2008). A fixed-kd hill mechanism recruits at low
+# background but collapses at high background once both sides of the
+# gradient saturate near occupancy ceiling. Both mechanisms are abolished
+# when the downstream chemotactic response is blocked, since neither is a
+# metric artifact -- only a mechanism that isn't receptor-mediated at all
+# (the static-lambda control) would ignore that block.
+#
+# **Purpose.** adaptation
+#
+# **Claim.** A receptor mechanism that adapts its half-occupancy set-point to the
+# locally sensed background (fold-change detection) recruits responders
+# across a RANGE of background cue levels where a fixed-kd mechanism
+# saturates and fails: measured recruitment_index at low_bg is 0.82
+# (adaptive) vs 0.58 (hill); at high_bg it is ~0.56 (adaptive, mean over 12
+# seeds) vs 0.00 (hill, deterministic collapse). Blocking the receptor-gated
+# response abolishes recruitment for both (0.00), while the non-receptor
+# static mechanism ignores the block (0.72) -- the discriminating control
+# that isolates receptor-mediated gating as the necessary cause.
+
+# ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `adaptive` | `pbg_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=14.0 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.chemotaxis.recruitment`** — `spec_pbg_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.chemotaxis.recruitment` not found under `pbg_cpm_studies/composites/` — skipped._
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: recruitment-adaptive ===
+STUDY = 'recruitment-adaptive'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | recruits_low | kind=recruitment_index condition=low_bg stat=final | op in_range low 0.4 high 1.0 |
+# | receptor_gating | kind=recruitment_index condition=high_bg_blocked stat=final | op <= value 0.15 |
+# | recruits_high | kind=recruitment_index condition=high_bg stat=final | op in_range low 0.35 high 1.0 |
+
 # ## Open decisions
 # - Should the Biological Claim Layer compiler now regenerate this study set from a hand-authored claim bundle?
