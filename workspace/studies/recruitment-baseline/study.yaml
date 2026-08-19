@@ -6,6 +6,44 @@ title: "Baseline: cue + response recruits"
 confidence: Accepted
 investigation: chemotactic-recruitment
 
+purpose:
+  question: |
+    When source cells secrete a diffusible cue and responder cells carry a
+    competent chemotactic response, do responders migrate up the gradient and
+    accumulate at the source?
+  mechanism: chemotactic_recruitment
+
+report:
+  title: "Baseline: a secreted cue recruits competent responders"
+  verdict: passing
+  confidence: high
+  evidence_quality: calibrated
+  objective: >-
+    Simulate the CPM recruitment world (source slab + six responders in the
+    gradient zone), equilibrate the secreted field, and measure the recruitment
+    index over 500 MC sweeps across 5 seeds.
+  conclusion: >-
+    Cue + competent response recruits: the final recruitment index is
+    0.767 ± 0.170 across 5 seeds, versus 0.000 for both negative conditions
+    (Cohen's d = 6.38).
+  main_insight: >-
+    Recruitment is an emergent collective outcome of local chemotactic
+    copy-attempt biases, not an engineered per-cell rule.
+  caveat: >-
+    The chemotaxis lambda is a PHENOMENOLOGICAL response strength, not a
+    receptor-level model — a deliberate semantic gap the receptor arm closes.
+  key_metrics:
+    - {name: recruitment_index, value: "0.767 ± 0.170", n_seeds: 5}
+    - {name: mean_approach, value: "0.608"}
+    - {name: effect_size, value: "Cohen's d = 6.38 vs negatives"}
+
+study_card:
+  goal: Show that a secreted cue plus a competent chemotactic response recruits responders to the source.
+  mechanism: Type-1 source cells secrete field C; type-2 responders chemotax up the gradient (lambda=14).
+  why_before_next: The anchoring positive condition — the ground truth the receptor realization must reproduce.
+  expected_result: Recruitment index rises from 0 to a plateau ~0.67–0.83; mean approach > 0.4.
+  main_expert_question: Is a phenomenological chemotaxis lambda an acceptable stand-in for receptor-gated response at this level?
+
 question: |
   When source cells secrete a diffusible cue and responder cells carry a
   competent chemotactic response, do the responders directionally migrate up the
@@ -130,12 +168,44 @@ conclusion: |
   copy-attempt energy), not a receptor-level model — a deliberate semantic-gap the
   realization records rather than hides.
 
+conclusion_verdicts:
+  regression_compatibility:
+    result: PASS
+    basis: Reproduces the expected CPM recruitment behaviour with the declared energies and ICs.
+  biological_validation:
+    result: PASS
+    basis: Recruitment index 0.767 ± 0.170 vs 0.000 for both negative controls (Cohen's d = 6.38, 5 seeds).
+  explanatory_gain:
+    result: POSITIVE
+    basis: Recruitment emerges from local copy-attempt biases rather than an imposed per-cell rule.
+
+biological_summary: |
+  Source cells secrete a diffusible chemokine that forms a spatial gradient from
+  the source slab into the responder zone. Responder cells bias their Cellular
+  Potts copy attempts up the local gradient (chemotaxis strength lambda), so over
+  ~500 Monte-Carlo sweeps their centres of mass drift toward the source and a
+  majority end up within the recruitment radius. Removing either ingredient — the
+  cue (adversarial arm) or the response (inhibited arm) — abolishes recruitment,
+  establishing that both are necessary. This is the phenomenological realization
+  of the biological claim "a secreted cue recruits responder cells".
+
+literature_anchors:
+  - expectation: Responder cells climb a secreted chemokine gradient toward the source.
+    model_observable: recruitment_index
+    source: "Chemotaxis up a secreted gradient (canonical)"
+    status_in_workspace: "Verified — observed value matches (0.767 vs 0 controls)"
+    cites: [glazier1993]
+
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - Field diffusion capped at d<=0.25 for numerical stability; gradient equilibrated with 600 advance_fields sweeps before cell stepping.
   - Recruitment radius = 15 px (source at x~10; responders start at x~43).
 
 gate_status: passed
+
+enforced_params:
+  cue_rate: 10.0
+  chemo_lambda: 14.0
 
 runs:
   - run_id: recruitment-baseline-5seed
@@ -170,3 +240,9 @@ conditions:
     params: {cue_rate: 10.0, chemo_lambda: 14.0} # cue ON, response ON
 
   model_settings: []
+
+narrative_spine_skip: [runtime, model_change, implementation_requirements, design_pivot_required]
+narrative_spine_skip_reason: >-
+  Study is complete (phase Decide); it documents a finished result, so the
+  in-build sections (model_change / implementation_requirements /
+  design_pivot_required) and per-study runtime overrides do not apply.
