@@ -223,8 +223,8 @@ design_pivot_required:
     notes: Resolved by building both rungs; the semantic gap is recorded, not hidden.
 narrative_spine_skip: [implementation_requirements]
 narrative_spine_skip_reason: >-
-  Study is complete (phase Decide); implementation_requirements is a forward
-  build-TODO with no honest content for an already-built study. (The study-level
+  Study is complete (phase Decide); implementation_requirements is a forward-looking
+  build checklist with no authored content for an already-built study. (The study-level
   linter does not yet honor this skip, so a single info-level nudge remains —
   non-blocking; the audit gate is the authoritative signal.)
 ```
