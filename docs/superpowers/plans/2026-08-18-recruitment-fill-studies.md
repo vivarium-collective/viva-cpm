@@ -17,7 +17,8 @@
 - Studies are `schema_version: 3`, `status: complete`, `phase: Decide`. **Do not** change status/phase/gate — these studies are done; Part A only ADDS documentation sections. Keep `gate_status: passed`.
 - Preserve existing content — only ADD the missing sections and EXPAND thin ones. Never delete authored prose.
 - Keep list indentation consistent with the file's current canonical style (2-space offset, as produced by `study_canonicalize`).
-- The v4 narrative spine has 15 sections; 5 are already satisfied by v3 fallbacks (`question`, `assumptions`←`key_assumptions`, `conditions`←`baseline`, `behavior_tests`, `readouts`). This plan authors 6 high-value sections (`report`, `study_card`, `conclusion_verdicts`, `biological_summary`, `literature_anchors`, `enforced_params`) and marks 4 build-phase sections not-applicable via `narrative_spine_skip` (`runtime`, `model_change`, `implementation_requirements`, `design_pivot_required`) with a reason — these studies are complete, not mid-build.
+- The v4 narrative spine has 15 sections; 5 are already satisfied by v3 fallbacks (`question`, `assumptions`←`key_assumptions`, `conditions`←`baseline`, `behavior_tests`, `readouts`). This plan authors **9** sections with honest retrospective content: the 6 reviewer-facing (`report`, `study_card`, `conclusion_verdicts`, `biological_summary`, `literature_anchors`, `enforced_params`) plus `model_change` (model inventory), `design_pivot_required` (the resolved design decision), and `runtime` (execution settings). Only `implementation_requirements` is skipped — it is a forward build-TODO with no honest content for an already-built study.
+  - **RULING (execution-time):** the study-level linter check `_check_narrative_spine_completeness` does NOT honor `narrative_spine_skip` (only the investigation-level check does). This nudge is **info-level, non-blocking** — the authoritative signal is the audit gate. So "complete" here means **audit gate green + the 9 sections authored**, leaving one residual info nudge for `implementation_requirements` (documented via `narrative_spine_skip: [implementation_requirements]` + reason for a future linter / human reviewer). Do NOT fabricate a TODO list to silence it. Expected linter reading per study: "narrative incomplete: 1 of 15" — acceptable.
 - v4 spine field shapes (authoritative, from `viva-superpowers/docs/concepts/vivarium-workbench-model.md#v4-narrative-spine`):
   - `report: {title, verdict, confidence: high|medium|low, evidence_quality: calibrated|literature-matched|aspirational|regression-only, objective, conclusion, main_insight, caveat, key_metrics: [...]}`
   - `study_card: {goal, mechanism, why_before_next, expected_result, main_expert_question}`
@@ -195,15 +196,39 @@ literature_anchors:
     cites: [glazier1993]
 ```
 
-- [ ] **Step 8: Mark the build-phase sections not-applicable**
+- [ ] **Step 8: Author `runtime`, `model_change`, `design_pivot_required` (honest retrospectives) and skip only `implementation_requirements`**
 
 ```yaml
-narrative_spine_skip: [runtime, model_change, implementation_requirements, design_pivot_required]
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+model_change:
+  base_model: pbg_cpm_studies.composites.chemotaxis.recruitment
+  new_processes: []
+  new_state_variables: []
+  new_parameters: [cue_rate, chemo_lambda]
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    Realizes the recruitment claim with one parameterized CPMProcess (source
+    cells secrete field C; responders chemotax up the gradient with strength
+    chemo_lambda — a phenomenological copy-attempt bias). No new processes.
+design_pivot_required:
+  - id: response-representation
+    status: resolved
+    question: Phenomenological lambda or receptor-level model for the response?
+    alternatives: [Phenomenological chemotaxis lambda (this study), Receptor-gated Hill occupancy (receptor arm)]
+    requested_response: none — resolved
+    notes: Resolved by building both rungs; the semantic gap is recorded, not hidden.
+narrative_spine_skip: [implementation_requirements]
 narrative_spine_skip_reason: >-
-  Study is complete (phase Decide); it documents a finished result, so the
-  in-build sections (model_change / implementation_requirements /
-  design_pivot_required) and per-study runtime overrides do not apply.
+  Study is complete (phase Decide); implementation_requirements is a forward
+  build-TODO with no honest content for an already-built study. (The study-level
+  linter does not yet honor this skip, so a single info-level nudge remains —
+  non-blocking; the audit gate is the authoritative signal.)
 ```
+For the negative arms (Task 3) and receptor arm (Task 4), adapt `model_change.base_model` / `new_parameters` to that study's composite+params, and `design_pivot_required` to that study's resolved decision (e.g. the receptor arm's "phenomenological → Kd-calibrated Hill occupancy" refinement).
 
 - [ ] **Step 9: Verify this study parses and its narrative is complete**
 
@@ -212,7 +237,7 @@ Run:
 .venv/bin/python -c "import yaml; yaml.safe_load(open('workspace/studies/recruitment-baseline/study.yaml')); print('yaml OK')"
 .venv/bin/python -m viva_superpowers.report_linter --ws . 2>/dev/null | grep "recruitment-baseline" | grep -i "narrative" || echo "recruitment-baseline: narrative complete"
 ```
-Expected: `yaml OK`, and NO "narrative incomplete" line for `recruitment-baseline` (the skip + authored sections cover all 15).
+Expected: `yaml OK`; the linter shows `recruitment-baseline` at "narrative incomplete: 1 of 15" (only `implementation_requirements`) — the accepted residual per the Global-Constraints ruling.
 
 - [ ] **Step 10: Verify the audit is still green**
 
@@ -291,7 +316,7 @@ for s in recruitment-inhibited recruitment-adversarial; do
 done
 .venv/bin/python -m viva_superpowers.report_linter --ws . 2>/dev/null | grep -E "recruitment-inhibited|recruitment-adversarial" | grep -i narrative || echo "both narrative complete"
 ```
-Expected: both `yaml OK`; no "narrative incomplete" for either.
+Expected: both `yaml OK`; each at "narrative incomplete: 1 of 15" (only implementation_requirements).
 
 - [ ] **Step 6: Verify audit green + commit**
 
@@ -391,7 +416,7 @@ done
 .venv/bin/python -m viva_superpowers.report_linter --ws . 2>/dev/null | grep -E "receptor" | grep -i narrative || echo "receptor arm narrative complete"
 .venv/bin/python -m viva_superpowers.study_audit --workspace . --gate; echo "gate=$?"
 ```
-Expected: both `yaml OK`; no receptor "narrative incomplete"; gate=0.
+Expected: both `yaml OK`; each receptor study at "1 of 15" (only implementation_requirements); gate=0.
 
 - [ ] **Step 8: Commit**
 
@@ -418,7 +443,7 @@ Run:
 .venv/bin/python -m viva_superpowers.study_audit --workspace . 2>/dev/null | grep -E "^STUDY|summary"
 .venv/bin/python -m viva_superpowers.report_linter --ws . 2>/dev/null | grep -c "narrative incomplete" | sed 's/^/recruitment narrative-incomplete count: /'
 ```
-Expected: all recruitment studies `[pass]`; 0 hard failures; the narrative-incomplete count no longer includes any of the 5 recruitment studies (only unrelated studies, if any, may remain).
+Expected: all recruitment studies `[pass]`; 0 hard failures; each of the 5 recruitment studies now reads "narrative incomplete: 1 of 15" (down from 10 of 15) — the accepted residual (implementation_requirements only).
 
 - [ ] **Step 2: check-observables for the new readouts (best-effort)**
 
