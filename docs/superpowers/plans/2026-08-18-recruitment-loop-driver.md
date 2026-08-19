@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Worktree root: `/Users/eranagmon/code/viva-cpm--model-building`; run Python via `.venv/bin/python`.
+- Worktree root: the repo checkout root; run Python via `.venv/bin/python`.
 - **No new Rust.** The adaptive mechanism is pure Python over the existing `cpm_core` bindings. Background cue = a `background` float added to the ligand inside the subcell, NOT a new field API.
 - Reuse, don't re-duplicate: import `cpm.subcellular.receptor.ReceptorSubcell` and call its `.occupancy()` for the Hill formula rather than copy-pasting `c**h/(kd**h+c**h)` a fourth time.
 - Per-cell **map-write pre-init rule** (from `cpm/coupling.py`): a map-write to an absent key is dropped on apply. Any new per-cell map port (e.g. `adaptation`) MUST be pre-initialized in the coupling fragment, exactly as `receptor_coupling` pre-inits `fates`.
