@@ -1,0 +1,19 @@
+schema_version: 2
+name: recruitment-model-building
+title: "Recruitment model-building: driving the faithful mechanism ladder to a locked contract"
+status: in-progress
+
+question: |
+  Given the faithful chemotaxis mechanism ladder (static_lambda ->
+  hill_occupancy -> adaptive_receptor), can a model-building loop be driven
+  to reproduce, and be graded against, the locked behavior-test contract
+  that defines "the adaptive model works": recruitment across a range of
+  background cue levels via fold-change detection, with a fixed-kd
+  mechanism as the discriminating knockout it must climb past?
+
+members: [recruitment-adaptive]
+
+executive: >-
+  Phase 2 home for the recruitment-adaptive locked contract; the full
+  investigation narrative (loop trajectory, verdict) lands in Phase 3 once
+  the loop driver (Task 7) has been run against it.

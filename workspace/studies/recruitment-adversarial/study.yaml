@@ -7,6 +7,44 @@ title: "Control: no cue, no recruitment"
 confidence: Accepted
 investigation: chemotactic-recruitment
 
+purpose:
+  question: |
+    If competent responders are placed with NO cue secreted, does the metric
+    correctly report no recruitment (rather than a spurious signal)?
+  mechanism: chemotactic_recruitment
+
+report:
+  title: "Control: no cue abolishes recruitment"
+  verdict: passing
+  confidence: high
+  evidence_quality: calibrated
+  objective: >-
+    Run the baseline CPM recruitment world with source secretion turned off
+    (competent responders, no cue) and measure the recruitment index over 500 MC
+    sweeps across 5 seeds.
+  conclusion: >-
+    Without a cue, competent responders are not recruited: the recruitment index
+    stays at 0.000 ± 0.000 across 5 seeds, versus 0.767 ± 0.170 for the baseline
+    (Cohen's d = 6.38). The metric issues no spurious recruitment signal.
+  main_insight: >-
+    Recruitment is causally dependent on the secreted cue, not merely on
+    responder competence — the cue is a necessary ingredient, and the metric
+    does not over-generalize.
+  caveat: >-
+    This is a negative control, not an independent positive result: it isolates
+    the cue as a necessary cause by removing it, and only has meaning alongside
+    the baseline it is compared to.
+  key_metrics:
+    - {name: recruitment_index, value: "0.000 ± 0.000", n_seeds: 5}
+    - {name: effect_size, value: "Cohen's d = 6.38 vs baseline"}
+
+study_card:
+  goal: "negative control: cue removed abolishes recruitment"
+  mechanism: Identical CPM world to the baseline except source secretion rate = 0 (responders remain fully competent, lambda=14).
+  why_before_next: Isolates the cue as a necessary cause and gives the recruitment claim its adversarial/falsification exposure — pairs with the inhibited arm to establish both ingredients are required.
+  expected_result: Recruitment index stays at zero despite responders being chemotaxis-competent; the metric issues no spurious signal.
+  main_expert_question: Does removing the cue (rather than the response) fully account for the loss of recruitment, ruling out a response-only explanation or a metric artifact?
+
 question: |
   If competent responders are placed with NO cue secreted, does the metric
   correctly report no recruitment (rather than a spurious signal)?
@@ -49,6 +87,16 @@ readouts:
     units: fraction of responders within radius
     status: measured
     description: Fraction of responder cell centres of mass within 15 px of the source centroid.
+  - name: Mean approach
+    identifier: mean_approach
+    units: dimensionless (0-1)
+    status: measured
+    description: Fraction of the initial responder-to-source gap closed over the run.
+  - name: Responder mean distance
+    identifier: mean_distance
+    units: px
+    status: measured
+    description: Mean centre-of-mass distance from responders to the source centroid.
 
 behavior_tests:
   - name: No cue yields no recruitment (rejection)
@@ -104,11 +152,75 @@ conclusion: |
   cue and response; removing either abolishes it. This adversarial arm gives the
   investigation its falsification exposure and adversarial coverage.
 
+conclusion_verdicts:
+  regression_compatibility:
+    result: PASS
+    basis: Reproduces the expected abolished-recruitment behaviour with the declared energies and ICs (cue_rate=0).
+  biological_validation:
+    result: PASS
+    basis: recruitment index ≈ 0.0, abolished vs baseline 0.767
+  explanatory_gain:
+    result: POSITIVE
+    basis: Isolates the secreted cue as a necessary ingredient and rules out a metric-artifact explanation for recruitment.
+
+biological_summary: |
+  This is the no-cue adversarial/negative-control arm of the chemotactic-recruitment
+  slice. The world is identical to the baseline — responder cells remain fully
+  chemotaxis-competent (lambda=14) — except the source cells' secretion rate is
+  set to zero, so no gradient ever forms. With nothing to climb, responder centres
+  of mass do not drift toward the source and the recruitment index stays at 0.000
+  across all 500 Monte-Carlo sweeps and all 5 seeds, versus 0.767 for the
+  baseline. This shows the secreted cue — not merely responder competence or a
+  metric artifact — is a necessary ingredient for recruitment, and gives the
+  investigation its falsification exposure.
+
+literature_anchors:
+  - expectation: Without a secreted gradient to climb, chemotaxis-competent cells show no directed recruitment.
+    model_observable: recruitment_index
+    source: "Chemotaxis up a secreted gradient (canonical)"
+    status_in_workspace: "Verified — observed value matches"
+    cites: [glazier1993]
+
 key_assumptions:
   - Identical world to recruitment-baseline except source secretion rate = 0.
   - Recruitment radius = 15 px.
 
 gate_status: passed
+
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+
+model_change:
+  base_model: pbg_cpm_studies.composites.chemotaxis.recruitment
+  new_processes: []
+  new_state_variables: []
+  new_parameters: [cue_rate, chemo_lambda]
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    Same parameterized CPMProcess as the baseline, with cue_rate forced to 0 (no
+    cue secreted) while chemo_lambda is unchanged (responders competent). No new
+    processes, state variables, or listeners were added.
+
+design_pivot_required:
+  - id: negative-control-arm
+    status: resolved
+    question: Should the no-cue condition be built as a dedicated adversarial study arm, or treated only as an implicit zero-baseline comparison?
+    alternatives:
+      - Treat cue_rate=0 as an informal baseline comparison only
+      - Build a dedicated adversarial study as a first-class necessary-ingredient control (this study)
+    requested_response: none — resolved
+    notes: |
+      Resolved by building this as its own study: it isolates the secreted cue
+      as a necessary cause, excludes "responder competence alone suffices" and
+      "the metric fires on proximity regardless of a cue" as alternative
+      explanations, and gives the recruitment claim its falsification exposure.
+
+enforced_params:
+  cue_rate: 0.0
+  chemo_lambda: 14.0
 
 parent_studies:
   - study: recruitment-baseline
@@ -149,3 +261,11 @@ conditions:
 
   model_settings: []
 inputs: []
+
+narrative_spine_skip: [implementation_requirements]
+narrative_spine_skip_reason: >-
+  Study is complete (phase Decide); implementation_requirements is a
+  forward-looking build checklist with no authored content for an already-built
+  study. (The study-level linter does not yet honor this skip, so a single
+  info-level nudge for this one section remains — non-blocking; the audit gate
+  is the authoritative signal.)

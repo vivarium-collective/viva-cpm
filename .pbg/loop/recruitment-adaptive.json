@@ -1,0 +1,56 @@
+{
+ "schema": "model_build_loop/v1",
+ "study": "recruitment-adaptive",
+ "question": "Across a range of background cue levels, can a receptor mechanism that performs receptor_adaptation for fold_change_detection keep recruiting responders to a rising source cue, where a fixed half-occupancy mechanism saturates and collapses?",
+ "state": "DONE",
+ "iteration": 2,
+ "budget": {
+  "max_iterations": 4,
+  "spent": 2
+ },
+ "audit": {
+  "gate": "pass",
+  "reopened_from": "warn"
+ },
+ "locked_tests_hash": "sha256:8cf0e0c748ae9363fad1957a218326fd8e248b7491870230ce3f5d6ddaef143d",
+ "prereg_record": {
+  "locked_at_iteration": 0,
+  "prior_hashes": []
+ },
+ "reopen_count": 0,
+ "last_verdict": {
+  "gate": "pass"
+ },
+ "history": [
+  {
+   "iteration": 1,
+   "edit": "climb static_lambda -> hill_occupancy",
+   "target": "mechanism",
+   "margin_deltas": {
+    "recruits_low": null,
+    "receptor_gating": null,
+    "recruits_high": null
+   },
+   "gate": "fail"
+  },
+  {
+   "iteration": 2,
+   "edit": "climb hill_occupancy -> adaptive_receptor",
+   "target": "mechanism",
+   "margin_deltas": {
+    "recruits_low": -0.0944,
+    "receptor_gating": 0.6944,
+    "recruits_high": -0.6556
+   },
+   "gate": "fail"
+  }
+ ],
+ "sourcing": {
+  "decision": "compose",
+  "modules": [
+   "chemotaxis_receptor"
+  ],
+  "rationale": "receptor occupancy is catalogued; adaptation is composed on top via occupancy-space chemotaxis with an adaptive kd",
+  "gate": "pass"
+ }
+}

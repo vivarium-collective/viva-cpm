@@ -6,6 +6,44 @@ title: "Intervention: block the response"
 confidence: Accepted
 investigation: chemotactic-recruitment
 
+purpose:
+  question: |
+    If the chemotactic response is blocked (lambda -> 0) while the cue is still
+    secreted, is recruitment abolished?
+  mechanism: chemotactic_recruitment
+
+report:
+  title: "Intervention: blocking the response abolishes recruitment"
+  verdict: passing
+  confidence: high
+  evidence_quality: calibrated
+  objective: >-
+    Repeat the baseline CPM recruitment world with responder chemotaxis strength
+    set to zero (the intervention) and measure the recruitment index over 500 MC
+    sweeps across 5 seeds.
+  conclusion: >-
+    Blocking the response abolishes recruitment: the recruitment index stays at
+    0.000 ± 0.000 across 5 seeds despite the cue being present, versus 0.767 ±
+    0.170 for the baseline (Cohen's d = 6.38).
+  main_insight: >-
+    Recruitment is causally dependent on the chemotactic response, not merely on
+    the presence of the cue — the response is a necessary ingredient.
+  caveat: >-
+    This is a negative control, not an independent positive result: it isolates
+    the response as a necessary cause by removing it, and only has meaning
+    alongside the baseline it is compared to.
+  key_metrics:
+    - {name: recruitment_index, value: "0.000 ± 0.000", n_seeds: 5}
+    - {name: mean_approach, value: "-0.08"}
+    - {name: effect_size, value: "Cohen's d = 6.38 vs baseline"}
+
+study_card:
+  goal: "negative control: response blocked abolishes recruitment"
+  mechanism: Identical CPM world to the baseline except responder chemotaxis lambda = 0 (cue still secreted).
+  why_before_next: Isolates the response as a necessary cause — pairs with the adversarial arm to establish both ingredients are required.
+  expected_result: Recruitment index stays at (or near) zero for the whole run; no net approach.
+  main_expert_question: Does blocking the response (rather than the cue) fully account for the loss of recruitment, ruling out a cue-only explanation?
+
 question: |
   If the chemotactic response is blocked (lambda -> 0) while the cue is still
   secreted, is recruitment abolished?
@@ -47,6 +85,16 @@ readouts:
     units: fraction of responders within radius
     status: measured
     description: Fraction of responder cell centres of mass within 15 px of the source centroid.
+  - name: Mean approach
+    identifier: mean_approach
+    units: dimensionless (0-1)
+    status: measured
+    description: Fraction of the initial responder-to-source gap closed over the run.
+  - name: Responder mean distance
+    identifier: mean_distance
+    units: px
+    status: measured
+    description: Mean centre-of-mass distance from responders to the source centroid.
 
 behavior_tests:
   - name: Blocking the response abolishes recruitment
@@ -102,11 +150,75 @@ conclusion: |
   presence of the cue. Together with the baseline, this isolates the response as a
   necessary cause.
 
+conclusion_verdicts:
+  regression_compatibility:
+    result: PASS
+    basis: Reproduces the expected abolished-recruitment behaviour with the declared energies and ICs (lambda=0).
+  biological_validation:
+    result: PASS
+    basis: recruitment index ≈ 0.0, abolished vs baseline 0.767
+  explanatory_gain:
+    result: POSITIVE
+    basis: Isolates the chemotactic response as a necessary ingredient for recruitment.
+
+biological_summary: |
+  This is the response-blocked negative-control arm of the chemotactic-recruitment
+  slice. The world is identical to the baseline — source cells still secrete the
+  diffusible cue and form the same spatial gradient — except the responder
+  chemotaxis strength (lambda) is set to zero, the CPM analogue of pharmacologically
+  blocking the response. With no bias on their Cellular Potts copy attempts,
+  responder centres of mass do not drift toward the source and the recruitment
+  index stays at 0.000 across all 500 Monte-Carlo sweeps and all 5 seeds, versus
+  0.767 for the baseline. This shows the chemotactic response — not merely the
+  presence of the cue — is a necessary ingredient for recruitment.
+
+literature_anchors:
+  - expectation: Blocking the chemotactic response abolishes gradient-directed recruitment even when the cue is present.
+    model_observable: recruitment_index
+    source: "Chemotaxis up a secreted gradient (canonical)"
+    status_in_workspace: "Verified — observed value matches"
+    cites: [glazier1993]
+
 key_assumptions:
   - Identical world to recruitment-baseline except responder chemotaxis lambda = 0.
   - Recruitment radius = 15 px.
 
 gate_status: passed
+
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+
+model_change:
+  base_model: pbg_cpm_studies.composites.chemotaxis.recruitment
+  new_processes: []
+  new_state_variables: []
+  new_parameters: [cue_rate, chemo_lambda]
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    Same parameterized CPMProcess as the baseline, with chemo_lambda forced to 0
+    (response blocked) while cue_rate is unchanged (cue present). No new
+    processes, state variables, or listeners were added.
+
+design_pivot_required:
+  - id: negative-control-arm
+    status: resolved
+    question: Should the response-blocked condition be built as a dedicated study arm, or treated only as an implicit zero-baseline comparison?
+    alternatives:
+      - Treat lambda=0 as an informal baseline comparison only
+      - Build a dedicated inhibited study as a first-class necessary-ingredient control (this study)
+    requested_response: none — resolved
+    notes: |
+      Resolved by building this as its own study: it isolates the chemotactic
+      response as a necessary cause, excluding "the cue alone suffices" as an
+      alternative explanation, and gives the investigation causal (not just
+      correlational) evidence for the recruitment claim.
+
+enforced_params:
+  cue_rate: 10.0
+  chemo_lambda: 0.0
 
 parent_studies:
   - study: recruitment-baseline
@@ -147,3 +259,11 @@ conditions:
 
   model_settings: []
 inputs: []
+
+narrative_spine_skip: [implementation_requirements]
+narrative_spine_skip_reason: >-
+  Study is complete (phase Decide); implementation_requirements is a
+  forward-looking build checklist with no authored content for an already-built
+  study. (The study-level linter does not yet honor this skip, so a single
+  info-level nudge for this one section remains — non-blocking; the audit gate
+  is the authoritative signal.)

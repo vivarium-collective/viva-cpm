@@ -1,0 +1,280 @@
+{
+  "schema": "model_build_trajectory/v2",
+  "study": "recruitment-adaptive",
+  "contract": {
+    "question": "Across a range of background cue levels, can a receptor mechanism that performs receptor_adaptation for fold_change_detection keep recruiting responders to a rising source cue, where a fixed half-occupancy mechanism saturates and collapses?",
+    "observables": [
+      "recruitment_index (fraction of responders within radius)"
+    ],
+    "success": "all 3 hard behavior tests pass for the installed mechanism"
+  },
+  "draft": {
+    "description": "One-sided draft acceptance contract -- recruits_high is a bare >= 0.35 floor with no upper band, an unverifiable, gameable discriminator the audit flags before the loop is driven.",
+    "spec": {
+      "name": "recruitment-adaptive",
+      "question": "Across a range of background cue levels, can a receptor mechanism that performs receptor_adaptation for fold_change_detection keep recruiting responders to a rising source cue, where a fixed half-occupancy mechanism saturates and collapses?",
+      "behavior_tests": [
+        {
+          "name": "recruits_low",
+          "classification": "primary",
+          "description": "Recruits responders at low background",
+          "measure": {
+            "kind": "recruitment_index",
+            "condition": "low_bg"
+          },
+          "pass_if": {
+            "op": "in_range",
+            "low": 0.4,
+            "high": 1.0,
+            "provenance": "recruitment_index in [0.4, 1.0] at background=0.0 -- baseline competence, not the discriminator (measured adaptive 0.82, hill 0.58; measured recruitment_index, faithful mechanism-ladder calibration (3-12 seeds))"
+          },
+          "cites": [
+            "recruitment-baseline"
+          ]
+        },
+        {
+          "name": "receptor_gating",
+          "classification": "diagnostic",
+          "description": "Blocking the response abolishes recruitment (receptor-gated mechanisms only)",
+          "measure": {
+            "kind": "recruitment_index",
+            "condition": "high_bg_blocked"
+          },
+          "pass_if": {
+            "op": "<=",
+            "value": 0.15,
+            "provenance": "recruitment_index <= 0.15 at background=400.0, blocked=True -- receptor-mediated recruitment is abolished; the non-receptor static mechanism ignores the block (measured 0.72) and FAILS this test by design (Nasser & Simoni 2009 -- receptor-gated response abolished when downstream signaling is blocked)"
+          },
+          "cites": [
+            "nasser2009"
+          ],
+          "control": "negative"
+        },
+        {
+          "name": "recruits_high",
+          "classification": "primary",
+          "description": "Recruits responders at high background (the discriminator)",
+          "measure": {
+            "kind": "recruitment_index",
+            "condition": "high_bg",
+            "field": "receptor_adaptation, fold_change_detection"
+          },
+          "pass_if": {
+            "op": ">=",
+            "value": 0.35,
+            "provenance": "recruitment_index in [0.35, 1.0] at background=400.0 -- fold-change detection: an adaptive kd rescues recruitment (measured ~0.56, 12-seed mean) where a fixed-kd hill mechanism collapses to 0.00 (Barkai & Leibler 1997, Nature -- robust adaptation via a re-centering set-point; Tu, Shimizu & Berg 2008, PNAS -- fold-change detection in bacterial chemotaxis)"
+          },
+          "cites": [
+            "barkai1997",
+            "tu2008"
+          ]
+        }
+      ]
+    }
+  },
+  "select": {
+    "decision": "compose",
+    "modules": [
+      "chemotaxis_receptor"
+    ],
+    "rationale": "receptor occupancy is catalogued; adaptation is composed on top via occupancy-space chemotaxis with an adaptive kd",
+    "library": [
+      "static_lambda",
+      "hill_occupancy",
+      "adaptive_receptor"
+    ]
+  },
+  "audit": {
+    "round1_gate": "warn",
+    "round2_gate": "pass",
+    "revision": "recruits_high's one-sided >=0.35 threshold flagged (discrimination drift, unverifiable tightness) -> revised to the two-sided band [0.35, 1.0] mirroring study.yaml -> re-audit clean"
+  },
+  "lock": {
+    "tests_hash": "sha256:8cf0e0c748ae9363fad1957a218326fd8e248b7491870230ce3f5d6ddaef143d",
+    "n_tests": 3
+  },
+  "tests": [
+    {
+      "id": "recruits_low",
+      "label": "Recruits responders at low background",
+      "condition": "low_bg",
+      "expected": {
+        "low": 0.4,
+        "high": 1.0
+      },
+      "severity": "hard",
+      "provenance": "recruitment_index in [0.4, 1.0] at background=0.0 -- baseline competence, not the discriminator (measured adaptive 0.82, hill 0.58; measured recruitment_index, faithful mechanism-ladder calibration (3-12 seeds))"
+    },
+    {
+      "id": "receptor_gating",
+      "label": "Blocking the response abolishes recruitment (receptor-gated mechanisms only)",
+      "condition": "high_bg_blocked",
+      "expected": {
+        "op": "<=",
+        "value": 0.15
+      },
+      "severity": "hard",
+      "provenance": "recruitment_index <= 0.15 at background=400.0, blocked=True -- receptor-mediated recruitment is abolished; the non-receptor static mechanism ignores the block (measured 0.72) and FAILS this test by design (Nasser & Simoni 2009 -- receptor-gated response abolished when downstream signaling is blocked)"
+    },
+    {
+      "id": "recruits_high",
+      "label": "Recruits responders at high background (the discriminator)",
+      "condition": "high_bg",
+      "expected": {
+        "low": 0.35,
+        "high": 1.0
+      },
+      "severity": "hard",
+      "provenance": "recruitment_index in [0.35, 1.0] at background=400.0 -- fold-change detection: an adaptive kd rescues recruitment (measured ~0.56, 12-seed mean) where a fixed-kd hill mechanism collapses to 0.00 (Barkai & Leibler 1997, Nature -- robust adaptation via a re-centering set-point; Tu, Shimizu & Berg 2008, PNAS -- fold-change detection in bacterial chemotaxis)"
+    }
+  ],
+  "iterations": [
+    {
+      "iteration": 0,
+      "active": "static_lambda",
+      "verdicts": [
+        {
+          "id": "recruits_low",
+          "label": "Recruits responders at low background",
+          "verdict": "within_tol",
+          "observed": 0.7222,
+          "margin": 0.2777777777777778
+        },
+        {
+          "id": "receptor_gating",
+          "label": "Blocking the response abolishes recruitment (receptor-gated mechanisms only)",
+          "verdict": "mismatch",
+          "observed": 0.6944,
+          "margin": -0.5444444444444444
+        },
+        {
+          "id": "recruits_high",
+          "label": "Recruits responders at high background (the discriminator)",
+          "verdict": "within_tol",
+          "observed": 0.6944,
+          "margin": 0.3055555555555556
+        }
+      ],
+      "target": "hill_occupancy"
+    },
+    {
+      "iteration": 1,
+      "active": "hill_occupancy",
+      "verdicts": [
+        {
+          "id": "recruits_low",
+          "label": "Recruits responders at low background",
+          "verdict": "within_tol",
+          "observed": 0.5833,
+          "margin": 0.18333333333333335
+        },
+        {
+          "id": "receptor_gating",
+          "label": "Blocking the response abolishes recruitment (receptor-gated mechanisms only)",
+          "verdict": "within_tol",
+          "observed": 0.0,
+          "margin": 0.15
+        },
+        {
+          "id": "recruits_high",
+          "label": "Recruits responders at high background (the discriminator)",
+          "verdict": "mismatch",
+          "observed": 0.0,
+          "margin": -0.35
+        }
+      ],
+      "target": "adaptive_receptor"
+    },
+    {
+      "iteration": 2,
+      "active": "adaptive_receptor",
+      "verdicts": [
+        {
+          "id": "recruits_low",
+          "label": "Recruits responders at low background",
+          "verdict": "within_tol",
+          "observed": 0.9167,
+          "margin": 0.08333333333333337
+        },
+        {
+          "id": "receptor_gating",
+          "label": "Blocking the response abolishes recruitment (receptor-gated mechanisms only)",
+          "verdict": "within_tol",
+          "observed": 0.0,
+          "margin": 0.15
+        },
+        {
+          "id": "recruits_high",
+          "label": "Recruits responders at high background (the discriminator)",
+          "verdict": "within_tol",
+          "observed": 0.7222,
+          "margin": 0.2777777777777778
+        }
+      ],
+      "target": null
+    }
+  ],
+  "result": {
+    "state": "DONE",
+    "final_mechanism": "adaptive_receptor",
+    "n_iterations": 3,
+    "final_numbers": {
+      "recruits_low": 0.9167,
+      "receptor_gating": 0.0,
+      "recruits_high": 0.7222
+    },
+    "violations": []
+  },
+  "giveup_companion": {
+    "outcome": "GIVE_UP",
+    "final_mechanism": "hill_occupancy",
+    "n_iterations": 2,
+    "note": "same loop with adaptive_receptor withheld from the library -- it climbs to hill_occupancy (clears recruits_low and receptor_gating) then stalls on recruits_high (fixed-kd occupancy collapses at high background) with no further mechanism available, and terminates HONESTLY (GIVE_UP) instead of faking a pass."
+  },
+  "perturbation": {
+    "seeds": [
+      7,
+      53,
+      71,
+      89,
+      101,
+      113
+    ],
+    "mechanism": "adaptive_receptor",
+    "pass": true,
+    "axes": [
+      {
+        "id": "recruits_low",
+        "verdict": "within_tol",
+        "observed": 0.8611
+      },
+      {
+        "id": "receptor_gating",
+        "verdict": "within_tol",
+        "observed": 0.0
+      },
+      {
+        "id": "recruits_high",
+        "verdict": "within_tol",
+        "observed": 0.6111
+      }
+    ]
+  },
+  "per_mechanism_numbers": {
+    "static_lambda": {
+      "recruits_low": 0.7222,
+      "receptor_gating": 0.6944,
+      "recruits_high": 0.6944
+    },
+    "hill_occupancy": {
+      "recruits_low": 0.5833,
+      "receptor_gating": 0.0,
+      "recruits_high": 0.0
+    },
+    "adaptive_receptor": {
+      "recruits_low": 0.9167,
+      "receptor_gating": 0.0,
+      "recruits_high": 0.7222
+    }
+  }
+}
