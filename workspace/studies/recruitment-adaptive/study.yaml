@@ -1,7 +1,7 @@
 schema_version: 3
 name: recruitment-adaptive
-status: in-progress
-phase: Build
+status: complete
+phase: Decide
 title: "Adaptive receptor recruitment: fold-change detection across background cue levels"
 investigation: chemotactic-recruitment
 
@@ -89,6 +89,11 @@ purpose:
   mechanism: adaptation
 
 requires: [spatial_chemotaxis, receptor_occupancy, adaptation]
+
+parent_studies:
+  - study: recruitment-receptor-baseline
+    condition: tests-passed
+    relation: refines
 
 sourcing:
   decision: compose
@@ -251,11 +256,66 @@ model_change:
     between SAMPLE-step run increments.
 
 conclusion: |
-  NOT YET DECIDED. This is a locked contract, not a finding: the model-
-  building loop (Task 7) has not yet been driven against these three
-  behavior tests. The bands above are set from real measured numbers
-  (3-12 seeds) gathered while calibrating the faithful mechanism ladder, so
-  they are falsifiable targets, not aspirational ones -- the adaptive
-  mechanism as calibrated (kd=1.0, hill=4.0, epsilon=0.5) already clears all
-  three in the calibration data; this study exists to make that pass
-  reproducible and locked BEFORE the loop claims it.
+  DECIDED -- PASS. The model-building loop (scripts/build_recruitment_loop.py)
+  was driven against this locked 3-test contract and climbed the faithful
+  mechanism ladder emergently, NOT by script: starting from static_lambda it
+  read the graded behavior tests each iteration and installed the mechanism
+  the most-negative failing margin demanded. iter 0 static_lambda fails
+  receptor_gating (0.69 > 0.15 -- not receptor-mediated, ignores the block)
+  -> install hill_occupancy; iter 1 hill_occupancy fails recruits_high (0.00 --
+  fixed-kd occupancy saturates on both sides of the gradient at high
+  background) -> install adaptive_receptor; iter 2 adaptive_receptor clears all
+  three (recruits_low 0.9167 in [0.4,1.0]; receptor_gating 0.00 <= 0.15;
+  recruits_high 0.7222 in [0.35,1.0]) -> DONE in 3 iterations, violations=[].
+  The pass is perturbation-stable: re-grading adaptive_receptor at a fully
+  disjoint 6-seed set (7,53,71,89,101,113) clears all three again. A GIVE_UP
+  companion run with adaptive_receptor withheld from the library terminates
+  HONESTLY at hill_occupancy rather than faking a pass. Fold-change detection
+  (Barkai & Leibler 1997; Tu, Shimizu & Berg 2008) is therefore sufficient, on
+  the real Rust CPM engine, to keep recruiting responders across a range of
+  background cue levels where a fixed-kd receptor mechanism collapses. Full
+  emergent trajectory + audit/lock/perturbation/give-up traces:
+  ../../investigations/chemotactic-recruitment/trajectory.json (schema
+  model_build_trajectory/v2); loop state: .pbg/loop/recruitment-adaptive.json.
+
+gate_status: passed
+
+runs:
+  - run_id: recruitment-adaptive-loop-6seed
+    name: recruitment-adaptive model-building loop (6 seeds, 40 steps)
+    status: completed
+    canonical: true
+    timestamp: '2026-08-19'
+    seeds: [11, 17, 23, 29, 37, 43]
+    emitter: model-build loop (mechanisms.simulate_condition, real Rust CPM engine)
+    provenance:
+      trajectory: workspace/investigations/chemotactic-recruitment/trajectory.json
+      loop_state: .pbg/loop/recruitment-adaptive.json
+      driver: scripts/build_recruitment_loop.py
+      locked_tests_hash: sha256:8cf0e0c748ae9363f
+    outcomes:
+      recruits_low:
+        result: PASS
+        measured_value: 0.9167
+        notes: >-
+          recruitment_index 0.9167 at background=0.0, band [0.4, 1.0]. Baseline
+          competence -- both adaptive and (earlier rung) hill clear it.
+        evaluated_by: viva_superpowers.test_contract
+      receptor_gating:
+        result: PASS
+        measured_value: 0.0
+        notes: >-
+          recruitment_index 0.00 at high_bg_blocked (background=400.0,
+          blocked=True), band <= 0.15. Blocking the response downstream of
+          receptor occupancy abolishes recruitment -- the non-receptor
+          static_lambda rung FAILED this (0.69), isolating receptor-gated
+          response as the necessary cause.
+        evaluated_by: viva_superpowers.test_contract
+      recruits_high:
+        result: PASS
+        measured_value: 0.7222
+        notes: >-
+          recruitment_index 0.7222 at background=400.0, band [0.35, 1.0]. THE
+          DISCRIMINATOR -- fold-change detection: adaptive_receptor clears it
+          where the fixed-kd hill_occupancy rung collapsed to 0.00.
+        evaluated_by: viva_superpowers.test_contract
