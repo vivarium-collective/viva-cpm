@@ -190,18 +190,7 @@ at_a_glance:
   - {study: recruitment-receptor-baseline, role: "Receptor realization: cue + receptor-gated response recruits, kd cited to Nasser 2009."}
   - {study: recruitment-receptor-blocked, role: "Receptor realization intervention: block the response downstream of receptor activation -> recruitment abolished."}
 
-# `members` is the canonical (post-migration) key; `studies` is carried
-# alongside it as the authoritative list the report renderer reads (the
-# transitional both-keys form the shared investigation_member_slugs helper
-# supports). Keep the two lists identical.
 members:
-- recruitment-baseline
-- recruitment-inhibited
-- recruitment-adversarial
-- recruitment-receptor-baseline
-- recruitment-receptor-blocked
-- recruitment-adaptive
-studies:
 - recruitment-baseline
 - recruitment-inhibited
 - recruitment-adversarial
