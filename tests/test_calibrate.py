@@ -71,3 +71,28 @@ def test_calibrate_is_deterministic():
     r1 = C.calibrate(obj, bounds, band=(0.0, 2.0), seed=7)
     r2 = C.calibrate(obj, bounds, band=(0.0, 2.0), seed=7)
     assert r1["mu_star"] == r2["mu_star"] and r1["best"]["value"] == r2["best"]["value"]
+
+
+def test_refine_parallel_matches_serial_and_runs_concurrently():
+    import threading
+    from pbg_cpm_studies.model_building import calibrate as C
+
+    def obj(p):
+        return 1.0 - abs(p["x"] - 0.6)
+
+    bounds = {"x": (0.0, 1.0), "y": (0.0, 1.0)}
+    serial = C.refine(obj, bounds, ["x"], band=(0.5, 1.5), levels=7)
+    parallel = C.refine(obj, bounds, ["x"], band=(0.5, 1.5), levels=7, max_workers=4)
+    assert parallel == serial                                     # same result, same order
+
+    # concurrency proof: a barrier of 4 only releases if 4 evals run at once;
+    # a serial map would time out on it.
+    barrier = threading.Barrier(4, timeout=5)
+
+    def barrier_obj(p):
+        barrier.wait()                                           # deadlocks unless concurrent
+        return p["x"]
+
+    tbl = C.refine(barrier_obj, {"x": (0.0, 1.0)}, ["x"], band=(0.0, 1.0),
+                   levels=4, max_workers=4)
+    assert len(tbl) == 4                                          # all four ran together

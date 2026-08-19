@@ -26,9 +26,25 @@ needs more than ~50 objective calls after screening. Until then this is enough.
 from __future__ import annotations
 
 import itertools
+from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, Iterable, Sequence
 
 import numpy as np
+
+
+def _map(fn, items, *, max_workers: int | None):
+    """Evaluate ``fn`` over ``items`` serially (default) or fanned out across threads.
+
+    The grid points in a refine are independent, so this is the streamlining that
+    turns a serial sweep into a concurrent one. Threads (not processes) so no
+    pickling is required; the speedup is real when the objective releases the GIL —
+    e.g. a Rust simulator stepping independent worlds — and a pure-Python objective
+    is still correctness-safe, just GIL-bound. Order is preserved (oracle == serial)."""
+    items = list(items)
+    if not max_workers or max_workers <= 1 or len(items) <= 1:
+        return [fn(x) for x in items]
+    with ThreadPoolExecutor(max_workers=int(max_workers)) as ex:
+        return list(ex.map(fn, items))
 
 Params = Dict[str, float]
 Bounds = Dict[str, "tuple[float, float]"]
@@ -108,44 +124,50 @@ def _margin(value: float, band: "tuple[float, float]") -> float:
 
 def refine(objective: Objective, bounds: Bounds, params: Iterable[str], *,
            band: "tuple[float, float]", levels: int = 5,
-           fixed: Params | None = None) -> list[dict]:
+           fixed: Params | None = None, max_workers: int | None = None) -> list[dict]:
     """Coarse grid over ONLY ``params`` (the influential ones), holding the rest at
     ``fixed`` (or each bound's midpoint). Returns a margin table sorted best-first:
     ``[{"params", "value", "margin", "within"}]`` — configs that clear ``band`` have
     ``margin >= 0``. Deterministic. This is the small, legible replacement for the
-    hand grid: it only sweeps what the screen said matters."""
+    hand grid: it only sweeps what the screen said matters. ``max_workers`` fans the
+    (independent) grid evaluations out across threads — same result, less wall-clock
+    when the objective releases the GIL (a Rust simulator does)."""
     params = list(params)
     mids = {n: 0.5 * (lo + hi) for n, (lo, hi) in bounds.items()}
     base = {**mids, **(fixed or {})}
     axes = [np.linspace(bounds[n][0], bounds[n][1], levels) for n in params]
-    table = []
-    for combo in itertools.product(*axes) if params else [()]:
-        cfg = {**base, **dict(zip(params, (float(x) for x in combo)))}
-        v = objective(cfg)
-        table.append({"params": cfg, "value": v, "margin": _margin(v, band),
-                      "within": _margin(v, band) >= 0.0})
+    configs = [{**base, **dict(zip(params, (float(x) for x in combo)))}
+               for combo in (itertools.product(*axes) if params else [()])]
+    values = _map(objective, configs, max_workers=max_workers)
+    table = [{"params": cfg, "value": v, "margin": _margin(v, band),
+              "within": _margin(v, band) >= 0.0}
+             for cfg, v in zip(configs, values)]
     table.sort(key=lambda r: r["margin"], reverse=True)
     return table
 
 
 def calibrate(objective: Objective, bounds: Bounds, *, band: "tuple[float, float]",
               top_k: int | None = None, screen_trajectories: int = 8,
-              refine_levels: int = 5, seed: int = 0) -> dict:
+              refine_levels: int = 5, seed: int = 0, max_workers: int | None = None) -> dict:
     """Screen → refine over the influential parameters → report.
 
     Returns ``{"mu_star", "influential", "best", "within", "table", "n_calls"}``.
     ``best`` is the top-margin config; ``within`` is whether it clears ``band``.
     ``n_calls`` counts objective evaluations, so the token/compute win over a full
     grid is auditable. Escalate (SALib/BO/surrogate) only past the review's triggers."""
+    import threading
     calls = {"n": 0}
+    lock = threading.Lock()
 
     def counted(p: Params) -> float:
-        calls["n"] += 1
+        with lock:                       # thread-safe under a parallel refine
+            calls["n"] += 1
         return objective(p)
 
     mu = elementary_effects(counted, bounds, trajectories=screen_trajectories, seed=seed)
     influential = rank_influential(mu, top_k=top_k) or list(bounds)
-    table = refine(counted, bounds, influential, band=band, levels=refine_levels)
+    table = refine(counted, bounds, influential, band=band, levels=refine_levels,
+                   max_workers=max_workers)
     best = table[0] if table else None
     return {
         "mu_star": mu,
