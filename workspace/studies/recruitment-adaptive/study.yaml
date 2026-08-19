@@ -56,14 +56,19 @@ description: |
   collapses to 0), and receptor gating (blocking the response abolishes
   recruitment for both receptor-gated mechanisms, but NOT for the
   non-receptor-mediated static mechanism, which is the discriminating
-  knockout the loop must climb past). The composite reference documents the
-  mechanism (pbg_cpm_studies.model_building.mechanisms, adaptive_receptor
-  configuration); the actual runner the loop drives is
-  mechanisms.simulate_condition(mechanism, condition, seeds, steps), which
-  directly manipulates the Rust CPM engine's chemotaxis-occupancy API rather
-  than being wrapped as a registered @composite_generator -- so the
-  `composite` field below is a descriptive string, not a resolvable
-  generator id (see key_assumptions / model_change).
+  knockout the loop must climb past). `conditions.baseline.composite`
+  points at the real, registered base recruitment world
+  (pbg_cpm_studies.composites.chemotaxis.recruitment -- source secretion +
+  responder chemotaxis, shared by all three ladder mechanisms); the
+  adaptive_receptor mechanism itself (kd/hill/epsilon) is what the loop
+  INSTALLS on top of that base world, documented under
+  `conditions.model_settings` rather than as baseline params, since it
+  directly manipulates the Rust CPM engine's chemotaxis-occupancy API
+  (world.set_chemotaxis_occupancy + a per-increment adaptation update)
+  rather than being its own registered @composite_generator. The actual
+  runner the loop drives is
+  mechanisms.simulate_condition("adaptive_receptor", condition, seeds,
+  steps) (see key_assumptions / model_change).
 
 claim: |
   A receptor mechanism that adapts its half-occupancy set-point to the
@@ -99,10 +104,17 @@ catalog:
 conditions:
   baseline:
     name: adaptive
-    composite: "pbg_cpm_studies.model_building.mechanisms (adaptive_receptor)"
-    params: {kd: 1.0, hill: 4.0, epsilon: 0.5}
+    composite: pbg_cpm_studies.composites.chemotaxis.recruitment
+    params: {cue_rate: 10.0, chemo_lambda: 14.0}
   variants: []
-  model_settings: []
+  model_settings:
+    - name: occupancy_chemotaxis
+      note: >-
+        The adaptive mechanism the loop installs on the base world: occupancy-space
+        chemotaxis (Rust set_chemotaxis_occupancy) with an adaptive kd that tracks the
+        local mean concentration. Params kd=1.0, hill=4.0, epsilon=0.5. Run via
+        pbg_cpm_studies.model_building.mechanisms.simulate_condition("adaptive_receptor", ...).
+      params: {kd: 1.0, hill: 4.0, epsilon: 0.5}
 
 readouts:
   - name: Recruitment index
@@ -195,16 +207,21 @@ key_assumptions:
     THIS study -- status is in-progress / phase Build because the loop
     (Task 7) has not yet been driven against this locked contract.
   - >-
-    The `composite` field documents the mechanism
-    (pbg_cpm_studies.model_building.mechanisms, adaptive_receptor
-    configuration) but is a descriptive string, not a resolvable
-    @composite_generator id: mechanisms.py drives the Rust CPM engine's
-    chemotaxis-occupancy API directly (world.set_chemotaxis_occupancy +
-    a per-increment adaptation update) rather than assembling a
-    process_bigraph Composite document, so it is not discoverable by the
-    workspace's generator registry. The loop driver runs it via
+    `conditions.baseline.composite` is the real, registered base
+    recruitment world (pbg_cpm_studies.composites.chemotaxis.recruitment)
+    shared by all three ladder mechanisms (static_lambda / hill_occupancy /
+    adaptive_receptor); its params are only what that generator accepts
+    (cue_rate, chemo_lambda). The adaptive_receptor mechanism itself
+    (kd/hill/epsilon) is what the loop INSTALLS on top of that base world --
+    it is not a resolvable @composite_generator on its own, since
+    mechanisms.py drives the Rust CPM engine's chemotaxis-occupancy API
+    directly (world.set_chemotaxis_occupancy + a per-increment adaptation
+    update) rather than assembling a separate process_bigraph Composite
+    document -- so those params live under conditions.model_settings as
+    documentation. The loop driver runs it via
     mechanisms.simulate_condition(mechanism="adaptive_receptor", condition,
-    seeds, steps), reading kd/hill/epsilon from conditions.baseline.params.
+    seeds, steps), reading kd/hill/epsilon from
+    conditions.model_settings[0].params.
   - >-
     low_bg / high_bg / high_bg_blocked are entries of mechanisms.CONDITIONS
     (background 0.0 / 400.0 / 400.0+blocked), not separate study
