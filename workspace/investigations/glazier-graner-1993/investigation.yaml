@@ -92,9 +92,7 @@ at_a_glance:
   role: Dispersal - clusters do not separate
 - study: vacancy_cavity
   role: Vacancy nucleation (cavity)
-# `members` is canonical; `studies` is carried alongside as the list the report
-# renderer reads (transitional both-keys, per investigation_member_slugs). Identical lists.
-members: &members
+members:
 - annealing
 - global_equilibration
 - checkerboard
@@ -106,7 +104,6 @@ members: &members
 - dispersal_separate
 - dispersal_no_separate
 - vacancy_cavity
-studies: *members
 expert_docs:
 - openvt-cell-sorting-spec
 acceptance_criteria:
