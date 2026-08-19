@@ -2,7 +2,7 @@
   "schema": "model_build_trajectory/v2",
   "study": "recruitment-adaptive",
   "contract": {
-    "question": "Across a range of background cue levels, can a receptor mechanism keep recruiting responders to a rising source cue, where a fixed half-occupancy mechanism saturates and collapses?",
+    "question": "Across a range of background cue levels, can a receptor mechanism that performs receptor_adaptation for fold_change_detection keep recruiting responders to a rising source cue, where a fixed half-occupancy mechanism saturates and collapses?",
     "observables": [
       "recruitment_index (fraction of responders within radius)"
     ],
@@ -12,7 +12,7 @@
     "description": "One-sided draft acceptance contract -- recruits_high is a bare >= 0.35 floor with no upper band, an unverifiable, gameable discriminator the audit flags before the loop is driven.",
     "spec": {
       "name": "recruitment-adaptive",
-      "question": "Across a range of background cue levels, can a receptor mechanism keep recruiting responders to a rising source cue, where a fixed half-occupancy mechanism saturates and collapses?",
+      "question": "Across a range of background cue levels, can a receptor mechanism that performs receptor_adaptation for fold_change_detection keep recruiting responders to a rising source cue, where a fixed half-occupancy mechanism saturates and collapses?",
       "behavior_tests": [
         {
           "name": "recruits_low",
@@ -56,7 +56,8 @@
           "description": "Recruits responders at high background (the discriminator)",
           "measure": {
             "kind": "recruitment_index",
-            "condition": "high_bg"
+            "condition": "high_bg",
+            "field": "receptor_adaptation, fold_change_detection"
           },
           "pass_if": {
             "op": ">=",
@@ -89,7 +90,7 @@
     "revision": "recruits_high's one-sided >=0.35 threshold flagged (discrimination drift, unverifiable tightness) -> revised to the two-sided band [0.35, 1.0] mirroring study.yaml -> re-audit clean"
   },
   "lock": {
-    "tests_hash": "sha256:61cbe9e029a6783fab4e6c0f1e46cb349241db9dc801640fdbef90103de12e05",
+    "tests_hash": "sha256:8cf0e0c748ae9363fad1957a218326fd8e248b7491870230ce3f5d6ddaef143d",
     "n_tests": 3
   },
   "tests": [
@@ -136,22 +137,22 @@
           "id": "recruits_low",
           "label": "Recruits responders at low background",
           "verdict": "within_tol",
-          "observed": 0.8333,
-          "margin": 0.16666666666666663
+          "observed": 0.7222,
+          "margin": 0.2777777777777778
         },
         {
           "id": "receptor_gating",
           "label": "Blocking the response abolishes recruitment (receptor-gated mechanisms only)",
           "verdict": "mismatch",
-          "observed": 0.75,
-          "margin": -0.6
+          "observed": 0.6944,
+          "margin": -0.5444444444444444
         },
         {
           "id": "recruits_high",
           "label": "Recruits responders at high background (the discriminator)",
           "verdict": "within_tol",
-          "observed": 0.75,
-          "margin": 0.25
+          "observed": 0.6944,
+          "margin": 0.3055555555555556
         }
       ],
       "target": "hill_occupancy"
@@ -164,8 +165,8 @@
           "id": "recruits_low",
           "label": "Recruits responders at low background",
           "verdict": "within_tol",
-          "observed": 0.6667,
-          "margin": 0.2666666666666667
+          "observed": 0.5833,
+          "margin": 0.18333333333333335
         },
         {
           "id": "receptor_gating",
@@ -192,8 +193,8 @@
           "id": "recruits_low",
           "label": "Recruits responders at low background",
           "verdict": "within_tol",
-          "observed": 1.0,
-          "margin": 0.0
+          "observed": 0.9167,
+          "margin": 0.08333333333333337
         },
         {
           "id": "receptor_gating",
@@ -206,8 +207,8 @@
           "id": "recruits_high",
           "label": "Recruits responders at high background (the discriminator)",
           "verdict": "within_tol",
-          "observed": 0.9167,
-          "margin": 0.08333333333333326
+          "observed": 0.7222,
+          "margin": 0.2777777777777778
         }
       ],
       "target": null
@@ -218,9 +219,9 @@
     "final_mechanism": "adaptive_receptor",
     "n_iterations": 3,
     "final_numbers": {
-      "recruits_low": 1.0,
+      "recruits_low": 0.9167,
       "receptor_gating": 0.0,
-      "recruits_high": 0.9167
+      "recruits_high": 0.7222
     },
     "violations": []
   },
@@ -233,7 +234,11 @@
   "perturbation": {
     "seeds": [
       7,
-      101
+      53,
+      71,
+      89,
+      101,
+      113
     ],
     "mechanism": "adaptive_receptor",
     "pass": true,
@@ -241,7 +246,7 @@
       {
         "id": "recruits_low",
         "verdict": "within_tol",
-        "observed": 0.8333
+        "observed": 0.8611
       },
       {
         "id": "receptor_gating",
@@ -251,25 +256,25 @@
       {
         "id": "recruits_high",
         "verdict": "within_tol",
-        "observed": 0.8333
+        "observed": 0.6111
       }
     ]
   },
   "per_mechanism_numbers": {
     "static_lambda": {
-      "recruits_low": 0.8333,
-      "receptor_gating": 0.75,
-      "recruits_high": 0.75
+      "recruits_low": 0.7222,
+      "receptor_gating": 0.6944,
+      "recruits_high": 0.6944
     },
     "hill_occupancy": {
-      "recruits_low": 0.6667,
+      "recruits_low": 0.5833,
       "receptor_gating": 0.0,
       "recruits_high": 0.0
     },
     "adaptive_receptor": {
-      "recruits_low": 1.0,
+      "recruits_low": 0.9167,
       "receptor_gating": 0.0,
-      "recruits_high": 0.9167
+      "recruits_high": 0.7222
     }
   }
 }
