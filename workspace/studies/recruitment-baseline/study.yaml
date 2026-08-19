@@ -203,6 +203,38 @@ key_assumptions:
 
 gate_status: passed
 
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+
+model_change:
+  base_model: pbg_cpm_studies.composites.chemotaxis.recruitment
+  new_processes: []
+  new_state_variables: []
+  new_parameters: [cue_rate, chemo_lambda]
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    Realizes the recruitment claim with one parameterized CPMProcess. Type-1
+    source cells secrete field C (d=0.22, decay=0.001) at cue_rate; type-2
+    responders chemotax up the local gradient with strength chemo_lambda — a
+    phenomenological copy-attempt bias on the existing CPM engine. No new
+    processes, state variables, or listeners were added.
+
+design_pivot_required:
+  - id: response-representation
+    status: resolved
+    question: Represent the chemotactic response as a phenomenological lambda or a receptor-level model?
+    alternatives:
+      - Phenomenological chemotaxis lambda (this study)
+      - Receptor-gated Hill occupancy (recruitment-receptor-baseline)
+    requested_response: none — resolved
+    notes: |
+      Resolved by building BOTH rungs: this study anchors the claim with a
+      phenomenological lambda; the receptor arm refines it to a Kd-calibrated
+      Hill occupancy. The semantic gap is recorded, not hidden.
+
 enforced_params:
   cue_rate: 10.0
   chemo_lambda: 14.0
@@ -241,8 +273,9 @@ conditions:
 
   model_settings: []
 
-narrative_spine_skip: [runtime, model_change, implementation_requirements, design_pivot_required]
+narrative_spine_skip: [implementation_requirements]
 narrative_spine_skip_reason: >-
-  Study is complete (phase Decide); it documents a finished result, so the
-  in-build sections (model_change / implementation_requirements /
-  design_pivot_required) and per-study runtime overrides do not apply.
+  Study is complete (phase Decide). implementation_requirements is a forward
+  build-TODO list with no honest content for an already-built study; the other
+  spine sections are authored. (The study-level linter does not yet honor this
+  skip, so an info-level nudge for this one section remains — non-blocking.)
