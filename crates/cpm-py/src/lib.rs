@@ -157,6 +157,19 @@ impl World {
         self.world_mut().set_chemotaxis(field_idx, cell_type, lambda_val);
     }
 
+    fn set_chemotaxis_occupancy(
+        &mut self,
+        field_idx: usize,
+        cell_type: u16,
+        lambda_val: f64,
+        kd: f64,
+        hill: f64,
+        scale: f64,
+    ) {
+        self.world_mut()
+            .set_chemotaxis_occupancy(field_idx, cell_type, lambda_val, kd, hill, scale);
+    }
+
     fn field_conc(&self, field_idx: usize) -> Vec<f32> {
         self.world_ref().field_conc(field_idx)
     }

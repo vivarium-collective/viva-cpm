@@ -11,6 +11,12 @@ pub struct Field {
     pub substeps: u32,         // diffusion sub-steps per MCS (default 1)
     pub secretion: Vec<f64>,   // per cell_type secretion rate; index = cell_type; len = n_types
     pub chemotaxis: Vec<f64>,  // per cell_type chemotaxis lambda; index = cell_type; len = n_types
+    // Occupancy-space chemotaxis (opt-in per type): when chemo_kd[t] > 0.0, type t
+    // chemotaxes on theta(c) = (scale*c)^hill / (kd^hill + (scale*c)^hill) instead of
+    // raw concentration. chemo_kd[t] == 0.0 (default) means raw behavior, unchanged.
+    pub chemo_kd: Vec<f64>,
+    pub chemo_hill: Vec<f64>,
+    pub chemo_scale: Vec<f64>,
 }
 
 impl Field {
@@ -24,6 +30,9 @@ impl Field {
             substeps: 1,
             secretion: vec![0.0; n_types],
             chemotaxis: vec![0.0; n_types],
+            chemo_kd: vec![0.0; n_types],
+            chemo_hill: vec![0.0; n_types],
+            chemo_scale: vec![0.0; n_types],
         }
     }
 
@@ -41,6 +50,19 @@ impl Field {
             next[i] = updated.max(0.0) as f32; // concentrations stay non-negative
         }
         self.conc = next;
+    }
+}
+
+/// Occupancy-space transform: theta(c) = (scale*c)^hill / (kd^hill + (scale*c)^hill).
+/// Saturates toward 1.0 as c grows large relative to kd/scale, so a uniform high
+/// background compresses gradients toward zero (fold-change detection collapse).
+pub fn chemo_theta(c: f64, kd: f64, hill: f64, scale: f64) -> f64 {
+    let x = (scale * c).max(0.0);
+    if x <= 0.0 {
+        0.0
+    } else {
+        let xh = x.powf(hill);
+        xh / (kd.powf(hill) + xh)
     }
 }
 
@@ -78,6 +100,38 @@ impl World {
             field.chemotaxis.resize(t + 1, 0.0);
         }
         field.chemotaxis[t] = lambda;
+    }
+
+    /// Like `set_chemotaxis`, but chemotaxes on the occupancy transform
+    /// `theta(c) = (scale*c)^hill / (kd^hill + (scale*c)^hill)` instead of raw
+    /// concentration. Setting `kd = 0.0` reverts type `t` to raw chemotaxis.
+    pub fn set_chemotaxis_occupancy(
+        &mut self,
+        field_idx: usize,
+        cell_type: u16,
+        lambda: f64,
+        kd: f64,
+        hill: f64,
+        scale: f64,
+    ) {
+        let t = cell_type as usize;
+        let field = &mut self.fields[field_idx];
+        if t >= field.chemotaxis.len() {
+            field.chemotaxis.resize(t + 1, 0.0);
+        }
+        if t >= field.chemo_kd.len() {
+            field.chemo_kd.resize(t + 1, 0.0);
+        }
+        if t >= field.chemo_hill.len() {
+            field.chemo_hill.resize(t + 1, 0.0);
+        }
+        if t >= field.chemo_scale.len() {
+            field.chemo_scale.resize(t + 1, 0.0);
+        }
+        field.chemotaxis[t] = lambda;
+        field.chemo_kd[t] = kd;
+        field.chemo_hill[t] = hill;
+        field.chemo_scale[t] = scale;
     }
 
     /// Advance every field one MCS: `substeps` diffusion sub-steps, then
@@ -135,7 +189,18 @@ impl World {
         for f in &self.fields {
             let lambda = f.chemotaxis.get(t).copied().unwrap_or(0.0);
             if lambda != 0.0 {
-                d += -lambda * (f.conc[site] as f64 - f.conc[source_pixel] as f64);
+                let kd = f.chemo_kd.get(t).copied().unwrap_or(0.0);
+                let (c_site, c_source) = if kd > 0.0 {
+                    let hill = f.chemo_hill[t];
+                    let scale = f.chemo_scale[t];
+                    (
+                        chemo_theta(f.conc[site] as f64, kd, hill, scale),
+                        chemo_theta(f.conc[source_pixel] as f64, kd, hill, scale),
+                    )
+                } else {
+                    (f.conc[site] as f64, f.conc[source_pixel] as f64)
+                };
+                d += -lambda * (c_site - c_source);
             }
         }
         d
@@ -254,5 +319,31 @@ mod tests {
             com_before[0],
             com_after[0]
         );
+    }
+
+    #[test]
+    fn chemo_theta_saturates_and_compresses_high_background_gradient() {
+        // kd=10, hill=2, scale=1: theta saturates toward 1.0 once c climbs well
+        // past kd. A gradient near the LOW end (c=1 vs c=2, well below kd) still
+        // falls on the steep, unsaturated part of the curve, but the SAME-shaped
+        // gradient sitting on a high, near-saturating background (c=190 vs
+        // c=200, both >> kd) is compressed toward zero -- exactly the
+        // fold-change-detection collapse occupancy-space chemotaxis should give.
+        let kd = 10.0;
+        let hill = 2.0;
+        let scale = 1.0;
+
+        let low_delta = (chemo_theta(2.0, kd, hill, scale) - chemo_theta(1.0, kd, hill, scale)).abs();
+        let high_delta = (chemo_theta(200.0, kd, hill, scale) - chemo_theta(190.0, kd, hill, scale)).abs();
+
+        assert!(
+            high_delta < low_delta / 10.0,
+            "saturating background should compress the gradient: low={low_delta}, high={high_delta}"
+        );
+
+        // Sanity: theta is monotonic and bounded in [0, 1).
+        assert!(chemo_theta(200.0, kd, hill, scale) < 1.0);
+        assert!(chemo_theta(200.0, kd, hill, scale) > chemo_theta(190.0, kd, hill, scale));
+        assert_eq!(chemo_theta(0.0, kd, hill, scale), 0.0);
     }
 }
