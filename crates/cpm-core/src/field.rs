@@ -17,6 +17,9 @@ pub struct Field {
     pub chemo_kd: Vec<f64>,
     pub chemo_hill: Vec<f64>,
     pub chemo_scale: Vec<f64>,
+    // Per-cell secretion multiplier for this field; unset == 1.0 (today's behavior).
+    // HashMap avoids resize bookkeeping on add_cell/remove_cells.
+    pub cell_scale: std::collections::HashMap<CellId, f64>,
 }
 
 impl Field {
@@ -33,7 +36,13 @@ impl Field {
             chemo_kd: vec![0.0; n_types],
             chemo_hill: vec![0.0; n_types],
             chemo_scale: vec![0.0; n_types],
+            cell_scale: std::collections::HashMap::new(),
         }
+    }
+
+    /// Per-cell secretion multiplier; 1.0 (today's behavior) when unset.
+    pub fn cell_secretion_scale(&self, cell_id: CellId) -> f64 {
+        self.cell_scale.get(&cell_id).copied().unwrap_or(1.0)
     }
 
     /// One explicit forward-Euler diffusion+decay sub-step over the whole lattice.
@@ -93,6 +102,14 @@ impl World {
         field.secretion[t] = rate;
     }
 
+    /// Per-(field, cell) secretion multiplier, default 1.0 when unset. Scales the
+    /// per-type secretion rate for `cell_id`'s pixels in `advance_fields` (e.g. for
+    /// cell-state-regulated sources such as an infection- or resistance-gated release
+    /// rate). Does not affect diffusion, decay, or other cells' secretion.
+    pub fn set_cell_secretion_scale(&mut self, field_idx: usize, cell_id: CellId, scale: f64) {
+        self.fields[field_idx].cell_scale.insert(cell_id, scale);
+    }
+
     pub fn set_chemotaxis(&mut self, field_idx: usize, cell_type: u16, lambda: f64) {
         let t = cell_type as usize;
         let field = &mut self.fields[field_idx];
@@ -149,7 +166,8 @@ impl World {
                 let rate = self.fields[fi].secretion.get(t).copied().unwrap_or(0.0);
                 if rate != 0.0 {
                     let dt = self.fields[fi].dt;
-                    self.fields[fi].conc[idx] += (rate * dt) as f32;
+                    let scale = self.fields[fi].cell_secretion_scale(owner as CellId);
+                    self.fields[fi].conc[idx] += (rate * scale * dt) as f32;
                 }
             }
         }
