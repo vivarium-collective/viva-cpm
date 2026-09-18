@@ -104,6 +104,23 @@ Explicit-scheme stability note (per `demo-parameters.md`'s DiffusionSolverFE con
 in the source (CC3D's `ReactionDiffusionSolverFE`/`DiffusionSolverFE` sub-step internally if
 needed).
 
+**Increment 2 — exact virus-field literals confirmed against source** (re-fetched per
+`sego2022-source-notes.md`, `ImmuneModel/ImmuneModelInputs.py`, `um_to_lat_width=2.0`,
+`exp_cell_diameter=10.0`, `s_to_mcs=60`):
+
+```
+exp_virus_decay_im = virus_decay_ODE(0.412015488642712 /day) / 86400 = 4.768697785216574e-06 /s
+exp_virus_dl        = exp_cell_diameter * 5.0 = 50.0 um   (source `exp_virus_dl`; = 5 cell diameters)
+exp_virus_dc_im      = exp_virus_decay_im * exp_virus_dl**2 = 0.011921744463041435 um^2/s
+virus_decay_im       = exp_virus_decay_im * s_to_mcs = 0.00028612186711299444  /MCS  (unitless decay)
+virus_dc_im          = exp_virus_dc_im * s_to_mcs / um_to_lat_width**2 = 0.17882616694562153 lattice^2/MCS
+```
+
+CONFIRMED against `ImmuneModelInputs.py:virus_dc_im` and `virus_decay_im` — matches the ≈0.1788 /
+≈2.861e-4 approximations stated above to full precision (those were already correct; this records
+the exact literals). `diffusion_length_cell_diam = exp_virus_dl / exp_cell_diameter = 5` (source
+`exp_virus_dl`). Recorded verbatim in `params.yaml`'s `virus:` section.
+
 ## 4. Chemotaxis λ and functional form (Table 3, source confirms + extends)
 
 | Cell type | Field | λ_c (paper Table 3 & source) | Source |
@@ -193,6 +210,54 @@ paper's transition names/symbols preserved:
 | Infected death Î→D̂ (NK contact-killing, γ term) | γ(s; g_ik, K̂, H₀A_s) | Two-part: population-scaled "nearby" killing `rate = (g_ik·tot_ec_ODE/pop_scale)·num_nk_nearby·ρ`, plus local surface-contact killing `rate = g_ik·tot_ec_ODE·srf_nk·ρ/|𝒱|` | `ContactKillingSteppable` |
 | Infected death Î→D̂ (CD8+ contact-killing, γ term) | γ(s; g_ie, Ê, H₀A_s) | Same structure as NK, with `g_ie` and CD8+ population/surface | `ContactKillingSteppable` |
 | Recovery D̂→Ĥ (Allee, `a_H`) | a_H | Cellularized Allee-effect recovery, structurally symmetric to `a_D` above (swap uninfected↔dying roles in the surface-fraction calculation) | `RecoverySteppable` |
+
+**Increment 2 — exact `g_hv`/`g_vi` literals confirmed against source.** Both are ODE-calibrated
+rate constants defined in `ImmuneModel/ImmuneModelLib.py`'s `immune_model_string()` (the
+**cellularized**, per-cell Antimony model generator instantiated with real `scale_time`/
+`scale_vol`/`scale_loc` from `ViralInfectionVTMSteppables.py:1134-1144` — not the separate
+organism-scale `immune_model_string_ode()` copy of the same symbols, which uses a different
+`s_l`/`s_v` scaling and is not what the CPM steppables read via `get_model_val`):
+
+```
+g_hv (raw, ODE-calibrated) = 1.41324585239137E-06 /day   (per unit local-scale virus)
+g_vi (raw, ODE-calibrated) = 278.068781202644 /day        (per InfectedReleasing cell)
+
+s_t (day/MCS)  = s_to_mcs / 86400 = 60/86400 = 6.944444e-4          (ViralInfectionVTMSteppables.py:1140/1544)
+s_l            = 1 / tot_ec_ODE / cell_volume = 1/(250000*25) = 1.6e-7  (…:1142, cell_volume=25 sites^2)
+
+infection_g_hv (per-MCS) = g_hv * s_t / s_l = 0.006133879567670876
+  -> used directly, no further factor: ViralInternalizationSteppable.do_cell_internalization,
+     `rate = g_hv * viral_amount_com`, `viral_amount_com = secretor.amountSeenByCell(cell)/cell.volume`,
+     `Pr = 1 - exp(-rate)` (nCoVUtils/ImmuneModelLib.ul_rate_to_prob). On success: cell type ->
+     InfectedReleasing directly.
+
+secretion_g_vi (per-MCS-per-cell, pre z-factor) = g_vi * s_t = 0.19310332027961388
+secretion_g_vi (as literally applied)           = 0.19310332027961388 * dim.z(=2) = 0.38620664055922777
+  -> ViralSecretionSteppable.step: `g_vi = self.im_steppable.get_model_val('g_vi') * self.dim.z`,
+     then `sec_amount = g_vi * (1 - resist)`, `secretor.secreteInsideCell(cell, sec_amount/cell.volume)`.
+     `dim.z = 2` is the lattice's fixed z-thickness (`ViralInfectionVTM.xml <Dimensions .../>`,
+     z=2 in both the active 175x175x2 config and the commented-out 500x500x2 config — i.e. fixed
+     across both 0.3mm/1.0mm patch scenarios, not itself a scenario parameter).
+```
+
+Both `infection_g_hv` and `secretion_g_vi` are **independent of domain size / epithelial population**
+(no `s_v`/η scaling factor in either formula) — a single canonical value applies across the 0.3mm
+and 1.0mm patch scenarios. Recorded verbatim (with full derivation) in `params.yaml`'s `virus:`
+section; Task 2.1/2.2 must pick and document consistently whether to use the pre- or post-`dim.z`
+`secretion_g_vi` value depending on whether the viva-cpm virus field models a z=2 slab like the
+source or a single-layer (z=1) field — see the CONVENTION note in `params.yaml`.
+
+**Initial conditions** (source `ImmuneModel/ImmuneModelInputs.py`): `v0_ODE` is one of three
+hand-picked, mutually-commented options — `0` (default active; means "seed by
+`frac_init_infected` instead"), `50` ("non-lethal according to calibrated ODE model"), `500`
+("lethal according to calibrated ODE model"); `frac_init_infected = 0.05` is the fraction of
+epithelial cells randomly set to `InfectedReleasing` at t=0 when `v0_ODE=0`
+(`CellsInitializerSteppable`, `num_to_infect = int(num_epithelial * frac_init_infected)`). When
+`v0_ODE>0`, `v0 = v0_ODE/tot_ec_ODE` (virus per epithelial cell at ODE scale) and the virus field
+is seeded **uniformly** at every lattice site to `v0_sites = v0 * num_epithelial / (dim.x*dim.y)`
+(`FieldInitializerSteppable`, `Simulation/ViralInfectionVTMSteppables.py`) — i.e. "initial viral
+load" is a total-virus quantity converted to a per-site field concentration by the actual seeded
+cell count and domain area, not a literal field value itself.
 
 Local immune-type inflow/outflow (macrophage, NK, CD8+ recruitment — Table 2's "local immune type"
 rows) use Hill-equation recruitment (`nCoVUtils.hill_equation`) driven by chemokines C / APCs P,
