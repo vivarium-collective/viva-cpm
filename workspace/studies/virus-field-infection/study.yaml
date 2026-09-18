@@ -35,24 +35,34 @@ report:
     (0.3mm/900-cell sheet, init_infected_frac=0.01: 891 H + 9 I initial
     cells), n_I grew 9 -> 16 (7 new-infection events) with n_H shrinking
     884 in lockstep (n_H + n_I conserved every update), and total_virus grew
-    from 0.0 to 1216.34 (field sum) as the seeded I cells secreted. All 7
-    new-infection distances-to-nearest-prior-infected-cell (5.0-32.0 lattice
-    sites) fell well under the 75-site (3x the field's own 25-site diffusion
-    length) locality bound used by the integration test — the first new
-    infection appeared at update 21, 5.0 sites from the nearest already-
-    infected cell. With init_infected_frac=0.0 (no seed, no initial virus),
-    n_I stayed 0 and no new infections occurred for the whole run (null
-    control). This validates the MECHANISM (diffusing/decaying field +
-    locally-spreading stochastic infection) — it is NOT a claim that any of
-    Sego et al. 2022's Figs 3B/5/7 quantitative targets are met; that
-    evaluation is deferred to Increment 9 (the capstone).
+    from 0.0 to 1216.34 (field sum) as the seeded I cells secreted. Locality
+    is established with a DISCRIMINATING null-baseline test, not a loose
+    absolute radius: the mean distance from each new infection to the
+    nearest already-infected cell is ~0.61x (seed 17: actual_mean 15.0 vs a
+    uniform-random null_mean 24.6 sites; ~0.58-0.67x observed across
+    seeds/step counts) the mean nearest-infected distance a uniform-random
+    still-susceptible cell would have had that same update — well under the
+    0.75x pass threshold. A shuffled-virus-field non-local sanity control of
+    the same run instead gives ratio ~1.13 (at/above chance) and correctly
+    FAILS that threshold, confirming the test rejects non-local spread
+    rather than passing on any lesion shape. The first new infection
+    appeared at update 21, 5.0 sites from the nearest already-infected cell,
+    and the first 3 update-with-new-infections stayed under a tighter
+    50-site (2x diffusion-length) bound. With init_infected_frac=0.0 (no
+    seed, no initial virus), n_I stayed 0 and no new infections occurred for
+    the whole run (null control). This validates the MECHANISM (diffusing/
+    decaying field + locally-spreading stochastic infection) — it is NOT a
+    claim that any of Sego et al. 2022's Figs 3B/5/7 quantitative targets
+    are met; that evaluation is deferred to Increment 9 (the capstone).
   main_insight: >-
     A population-conserving, spatially-local infection spread emerges from
     just two mechanisms (field diffusion + a per-cell stochastic H -> I
     draw driven by local field concentration) with no explicit
-    "infect-my-neighbor" rule — new infections land near active secretors
-    because the field itself is spatially concentrated, not because the
-    transition rule encodes locality directly.
+    "infect-my-neighbor" rule — new infections land ~0.6x as far from prior
+    infection as a uniform-random null baseline (a discriminating test that
+    a shuffled-field non-local control correctly fails at ~1.13x), because
+    the field itself is spatially concentrated, not because the transition
+    rule encodes locality directly.
   caveat: >-
     This study has NO resistance/IFN gating (resist=0 throughout — the
     per-cell resistance state variable arrives in Increment 3), no
@@ -62,11 +72,15 @@ report:
     `_virus_field_params`, pre-dim.z halving of the source's `secretion_g_vi`
     spread evenly over each cell's 25 pixels) — this reproduces the source's
     RATE convention but its exact magnitude against the paper's field scale
-    is an Increment-9 calibration concern, not settled here. The 7
-    new-infection events over 60 updates come from ONE seed (17); this is a
-    single-run demonstration of the mechanism's qualitative behavior
-    (grows, stays local, conserves population), not a statistically
-    characterized rate.
+    is an Increment-9 calibration concern, not settled here. Locality is now
+    established against a discriminating uniform-random null baseline (not
+    just "within a loose radius") and a non-local shuffled-field control
+    confirms the test has teeth, but the 7 new-infection events over 60
+    updates still come from ONE seed (17); this is a single-run
+    demonstration of the mechanism's qualitative behavior (grows, is
+    genuinely local relative to chance, conserves population), not a
+    statistically characterized rate, and it is not a quantitative Fig-6
+    reproduction.
   key_metrics:
     - {name: n_I_growth, value: "9 -> 16 over 60 updates", n_cells_total: 900}
     - {name: n_H_shrinkage, value: "891 -> 884 over 60 updates"}
@@ -74,7 +88,8 @@ report:
     - {name: new_infection_count, value: 7}
     - {name: new_infection_distance_range_sites, value: "5.0-32.0"}
     - {name: virus_diffusion_length_sites, value: 25}
-    - {name: locality_bound_sites, value: "75 (3x diffusion length)"}
+    - {name: locality_null_ratio, value: "~0.61 (seed 17: actual_mean 15.0 / random_null_mean 24.6); ~0.58-0.67 across seeds/step counts, threshold <0.75"}
+    - {name: locality_shuffled_field_control_ratio, value: "~1.13 (non-local, correctly fails the <0.75 threshold)"}
     - {name: first_new_infection_update, value: 21}
 
 study_card:
@@ -82,7 +97,7 @@ study_card:
   mechanism: A single diffusing/decaying "virus" field (source-cited D, decay, and per-pixel secretion rate from InfectedReleasing cells) drives a per-cell stochastic H -> I transition (Pr = 1 - exp(-g_hv * v_bar)) each update, layered on the Increment-1 confluent sheet.
   why_before_next: Increment 3 (IFN + per-cell resistance) modulates THIS infection transition — the field and the base (resist=0) transition must be shown to behave sensibly (spread, stay local, conserve population) before adding a resistance gate on top of it.
   expected_result: n_I grows from the seeded lesion over updates while n_H shrinks correspondingly (population conserved); new infections occur near already-infected cells (within a few multiples of the field's own diffusion length), not scattered uniformly across the sheet; with no seed, nothing happens.
-  main_expert_question: Is single-seed qualitative-locality evidence (grows, stays local, conserves population) sufficient mechanism validation for Increment 2, deferring statistical characterization and quantitative figure match to the capstone?
+  main_expert_question: Is single-seed evidence (grows, is genuinely local vs a discriminating null baseline, conserves population) sufficient mechanism validation for Increment 2, deferring a systematic replicate sweep and quantitative figure match to the capstone?
 
 question: |
   Does the extracellular virus field (source-cited diffusion coefficient and
@@ -172,17 +187,24 @@ readouts:
     description: >-
       `total_virus` series (sum of `world.field_conc(field_idx)`) over the
       same run: 0.0 -> 1216.34, growing as the seeded I cells secrete.
-  - name: New-infection distance to nearest prior-infected cell
+  - name: New-infection distance to nearest prior-infected cell, vs a uniform-random null baseline
     identifier: new_infection_dists
-    units: lattice sites
+    units: lattice sites (raw); ratio (actual_mean / null_mean, dimensionless)
     status: measured
     description: >-
       For each of the 7 new-infection events over the 60-update run,
       Euclidean distance (lattice sites) from the newly-infected cell's
       centroid to the nearest already-infected cell's centroid: range
-      5.0-32.0 sites, all under the 75-site (3x the field's 25-site
-      diffusion length) locality bound; first new infection at update 21,
-      distance 5.0 sites.
+      5.0-32.0 sites (raw), first new infection at update 21, distance 5.0
+      sites. The DISCRIMINATING readout compares this against a per-update
+      uniform-random null baseline (mean nearest-prior-infected distance
+      over the full still-susceptible cell population that update):
+      actual_mean=15.0 sites vs random_null_mean=24.6 sites, ratio ~0.61
+      (seed 17; ~0.58-0.67 across seeds/step counts) — well under the 0.75x
+      pass threshold. A shuffled-virus-field non-local sanity control of the
+      same run gives ratio ~1.13 (at/above chance) and correctly fails that
+      threshold, confirming the comparison discriminates real local spread
+      from non-local placement rather than passing on any lesion shape.
 
 behavior_tests:
   - name: Seeded lesion spreads over time (population conserved)
@@ -195,15 +217,25 @@ behavior_tests:
     pass_if: {op: gt, value: 0}
     status: passed
     result: PASS
-  - name: New infections appear near existing infected cells (locality)
+  - name: New infections land closer to prior infection than random chance (locality)
     classification: primary
     description: |
-      Pass criterion: every new-infection distance-to-nearest-prior-infected
-      cell stays under 3x the field's own diffusion length (75 sites).
-      Measured: all 7 new-infection distances fall in 5.0-32.0 sites, well
-      under the 75-site bound (Task 2.3).
-    measure: {kind: new_infection_dists, condition: virus-field-infection, stat: max}
-    pass_if: {op: lt, value: 75.0}
+      Pass criterion (discriminating, not a loose absolute radius): the mean
+      new-infection distance-to-nearest-prior-infected-cell must be under
+      0.75x the mean nearest-prior-infected distance a uniform-random
+      still-susceptible cell would have had that same update (a per-update
+      population-mean null baseline). Measured: actual_mean=15.0 sites,
+      random_null_mean=24.6 sites, ratio ~0.61 (seed 17; ~0.58-0.67 across
+      seeds/step counts) — comfortably under 0.75. A shuffled-virus-field
+      non-local control of the same run gives ratio ~1.13 and correctly
+      FAILS this threshold, confirming the test has teeth (Task 2.3 fix
+      round 1, `tests/test_influenza_virus_infection.py::
+      test_new_infections_land_closer_to_prior_infection_than_random_chance`).
+      A secondary check also holds the first 3 updates with actual new
+      infections under a tighter 50-site (2x diffusion-length) absolute
+      bound.
+    measure: {kind: locality_null_ratio, condition: virus-field-infection, stat: mean}
+    pass_if: {op: lt, value: 0.75}
     status: passed
     result: PASS
   - name: No seed, no initial virus -> no infection (null control)
@@ -237,15 +269,20 @@ findings:
     status: confirms
     mechanism_origin: engineered
     evidence:
-      from_test: New infections appear near existing infected cells (locality)
-      divergence_factor: 1.0
-      observed: "7 new-infection events, distance-to-nearest-prior-infected-cell range 5.0-32.0 sites, vs the 75-site (3x diffusion length) locality bound; first new infection at update 21, 5.0 sites"
+      from_test: New infections land closer to prior infection than random chance (locality)
+      divergence_factor: 0.61
+      observed: "7 new-infection events; actual_mean distance-to-nearest-prior-infected-cell 15.0 sites vs a uniform-random null_mean of 24.6 sites (ratio ~0.61, seed 17; ~0.58-0.67 across seeds/step counts, threshold <0.75); a shuffled-virus-field non-local control of the same run gives ratio ~1.13 and correctly fails; first new infection at update 21, 5.0 sites"
     statement: |
-      New infections land close to already-infected cells rather than
-      scattered across the 150x150-site sheet — spatial locality emerges
-      from the field's own diffusion length (25 sites) without any explicit
+      New infections land significantly closer to already-infected cells
+      than uniform-random placement would predict (~0.61x the chance
+      distance, discriminated against a per-update population-mean null
+      baseline, not a loose absolute radius) — spatial locality emerges from
+      the field's own diffusion length (25 sites) without any explicit
       "infect-my-neighbor" rule in the transition itself, which only reads
-      local field concentration.
+      local field concentration. A shuffled-field non-local control
+      correctly fails the same test (ratio ~1.13), confirming the locality
+      claim is genuinely earned rather than an artifact of a bound too loose
+      to discriminate.
   - id: F-03
     kind: computational
     status: confirms
@@ -262,9 +299,11 @@ findings:
 conclusion: |
   MECHANISM VALIDATED, NOT REPRODUCED. The virus field diffuses/decays and
   drives a population-conserving, spatially-local infection spread from a
-  seeded lesion (measured: n_I 9 -> 16, 7 new-infection events all within
-  5.0-32.0 sites of a prior-infected cell, well under the 75-site locality
-  bound; null control confirms no spontaneous infection). This increment has
+  seeded lesion (measured: n_I 9 -> 16, 7 new-infection events landing
+  ~0.61x as far from a prior-infected cell as a uniform-random null
+  baseline would predict — a discriminating test a shuffled-field non-local
+  control correctly fails at ratio ~1.13; null control confirms no
+  spontaneous infection). This increment has
   no resistance/IFN gating, no death/recovery, and no immune cells, and
   makes NO claim about matching any of Sego et al. 2022's Figs 3B/5/7
   quantitative acceptance bands — that reproduction verdict is PENDING until
@@ -324,8 +363,11 @@ key_assumptions:
     resistance suppresses some fraction of would-be infections.
   - Single seed (17) for both the initial-lesion choice and the stochastic
     transition (two independent streams, see `run.run_virus_infection`
-    docstring) — the 7-event locality result is a single-run demonstration,
-    not a statistically characterized rate across replicates.
+    docstring) — the 7-event, ~0.61x-null-ratio locality result is a
+    single-run demonstration (the ~0.58-0.67x range cited above spans a
+    small number of seeds/step counts checked during test development, not
+    a full replicate study), not a statistically characterized rate across
+    a systematic replicate sweep.
   - The live-demo composite
     (`pbg_cpm_studies.composites.influenza.virus_infection`) and the
     measurement driver (`run.run_virus_infection`) use independent RNG
@@ -335,12 +377,12 @@ key_assumptions:
 
 literature_anchors:
   - expectation: "The virus field's diffusion length should be ~5 epithelial-cell diameters (source `exp_virus_dl` = exp_cell_diameter * 5.0)."
-    model_observable: "pbg_cpm_studies/influenza/fields.py VIRUS_DIFFUSION_LENGTH_SITES = 25 sites (5 cell diameters x 5 sites/diameter); new-infection distances (5.0-32.0 sites) stay within a small multiple of this length."
+    model_observable: "pbg_cpm_studies/influenza/fields.py VIRUS_DIFFUSION_LENGTH_SITES = 25 sites (5 cell diameters x 5 sites/diameter); new-infection distances (5.0-32.0 sites, raw) land ~0.61x as far from prior infection as a uniform-random null baseline (ratio threshold <0.75; shuffled-field non-local control fails at ~1.13), and the first 3 updates with new infections stay under a tighter 50-site (2x diffusion-length) absolute bound."
     source: "CC3D ViralInfectionVTM source (pbg_cpm_studies/influenza/params.yaml virus.diffusion_length_cell_diam)"
-    status_in_workspace: "Diffusion length wired into the field and used as the locality bound (3x = 75 sites) for this study's behavior test; no acceptance-band comparison to a digitized figure yet."
+    status_in_workspace: "Diffusion length wired into the field; the study's primary locality behavior test compares against a discriminating uniform-random null baseline (not a fixed multiple of this length), with the diffusion length itself used only for the secondary early-update absolute-bound check (50 sites = 2x). No acceptance-band comparison to a digitized figure yet."
     cites: [sego2022influenza]
   - expectation: "Sego et al. 2022 Fig 6 shows the spatial pattern of virus concentration and infected cells spreading outward from an initial lesion over simulated time."
-    model_observable: "This study's local new-infection-distance measurements (5.0-32.0 sites) are the same qualitative phenomenon (local outward spread from an active lesion) that Fig 6 depicts."
+    model_observable: "This study's discriminating locality result (new infections land ~0.61x as far from prior infection as a uniform-random null baseline would predict, vs ~1.13x for a shuffled-field non-local control) is the same qualitative phenomenon (local outward spread from an active lesion) that Fig 6 depicts."
     source: "Sego 2022 Fig 6"
     status_in_workspace: "Referenced QUALITATIVELY only -- no digitized acceptance band exists for Fig 6 in this workspace (unlike Figs 3B/5/7, which are cell-count time-series targets in pbg_cpm_studies/influenza/targets/ and are not spatial-pattern targets). A quantitative Fig-6 comparison is not attempted by this study."
     cites: [sego2022influenza]
@@ -384,10 +426,10 @@ runs:
         measured_value: 16.0
         notes: "n_I 9 -> 16, n_H 891 -> 884 over 60 updates; n_H + n_I conserved every update (Task 2.3, test_seeded_lesion_spreads_over_time)"
         evaluated_by: tests/test_influenza_virus_infection.py
-      'New infections appear near existing infected cells (locality)':
+      'New infections land closer to prior infection than random chance (locality)':
         result: PASS
-        measured_value: 32.0
-        notes: "7 new-infection events, distances 5.0-32.0 sites, all under the 75-site (3x diffusion length) bound (Task 2.3, test_new_infections_appear_near_existing_infected_cells)"
+        measured_value: 0.61
+        notes: "actual_mean=15.0 sites vs random_null_mean=24.6 sites, ratio ~0.61 (threshold <0.75); shuffled-virus-field non-local control of the same run gives ratio ~1.13 and correctly fails (Task 2.3 fix round 1, test_new_infections_land_closer_to_prior_infection_than_random_chance)"
         evaluated_by: tests/test_influenza_virus_infection.py
   - run_id: virus-infection-null-control
     name: Null control -- no seed, no initial virus
