@@ -1,0 +1,52 @@
+# Canonical parameters for the Sego et al. 2022 influenza reproduction.
+# Mirrors docs/cc3d-reference/sego2022-parameters.md. Every section cites a source.
+cpm:
+  source: "Sego 2022 Tables 3-4"
+  lattice_um: 2
+  cell_sites: 25          # 5x5 sites; 10 um diameter
+  volume_constraint_um2: 100
+  lambda_volume: 9
+  temperature: 10         # intrinsic random motility H*
+  neighbor_order: 3          # CONTROLLER OVERRIDE: source-literal (paper silent; ViralInfectionVTM.xml Potts+Contact NeighborOrder=3)
+  dt_min: 1
+adhesion:                 # contact energies J (Table 3)
+  source: "Sego 2022 Table 3"
+  uninfected_immune: 20
+  infected_immune: 10
+  dead_immune: 20
+  homotypic_immune: 25
+  heterotypic_immune: 10
+  epithelial_epithelial: 5.0    # CONTROLLER OVERRIDE: source-literal (ViralInfectionVTM.xml), resolves the gap
+  epithelial_medium: 25.0       # CONTROLLER OVERRIDE: source-literal (ViralInfectionVTM.xml), resolves the gap
+  # NOTE: the paper's Table 3 collapses immune adhesion; the source ships a full 8x8 matrix that
+  # does NOT collapse cleanly (infected-macrophage=20 not 10; NK-CD8=25 not 10 — discrepancies
+  # #2/#3 in docs/cc3d-reference/sego2022-parameters.md). The collapsed values below are the
+  # paper's; the transcription doc's full source matrix is the authority for Increments 6-7.
+  # Add: full_matrix_source: "docs/cc3d-reference/sego2022-parameters.md (source-literal 8x8)"
+diffusion:
+  source: "Sego 2022 Table 3 (de Jong et al. 2006)"
+  virus_um2_s: 0.0119
+  chemokine_um2_s: 1.04
+  ifn_type1_um2_s: 0.520
+  il10_um2_s: 0.327
+chemotaxis:
+  source: "Sego 2022 Table 3"
+  functional_form: "lambda_c * c / (1 + c_CM)  # saturating/COM; engine currently linear"
+  macrophage_virus: 5000
+  nk_chemokine: 5000
+  cd8_chemokine: 10000
+scaling:
+  source: "Sego 2022 p.6, Table 4"
+  ode_epithelial_population: 250000
+  theta: 4.0e-8
+  eta_0p3mm: 0.0049
+  eta_1p0mm: 0.04
+  seeding_fraction: 0.01
+  local_fraction_macrophage: 1.00
+  local_fraction_nk: 0.75
+  local_fraction_cd8: 0.75
+scenarios:
+  source: "Sego 2022 Section 3"
+  initial_viral_load: [1, 10, 100, 1000, 10000]
+  initial_infection_fraction: [0.001, 0.005, 0.01, 0.05]
+  patch_mm: [0.3, 1.0]

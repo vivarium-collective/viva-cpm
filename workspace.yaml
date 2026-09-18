@@ -47,6 +47,9 @@ references_pdfs:
 - bib_key: glazier1993
   path: workspace/references/papers/glazier-graner-1993.pdf
   sha256: 992386f9a5140f49d6b9bdaf60fbfd564ea9ea98a5f1bed7eafb37378ef52590
+- bib_key: sego2022influenza
+  path: workspace/references/papers/sego-2022-influenza.pdf
+  sha256: 846684a16af74ab39241650d5f1e20e999f9c6a2d9fdceb8f9bd9e59b2125830
 
 # Curated expert / reference-model documents (not published papers).
 expert_docs:

@@ -1,0 +1,1108 @@
+{
+  "figure": "fig5",
+  "source": "Sego 2022 Fig. 5, p.9 (digitized by eye from log-scale panels; approximate)",
+  "scenario": {
+    "patch_mm": 1.0,
+    "total_epithelial_cells": 10000,
+    "replicas": 50,
+    "viral_load_multipliers": [
+      1,
+      10,
+      100,
+      1000,
+      10000
+    ],
+    "calibrated_lethal_ode_multiplier": 10
+  },
+  "notes": "value/lo/hi track the spatial-model replica band per viral_load_multiplier column (the reproduction target for the native CPM); ode_reference (extra field, not part of the band) carries the ODE black-line value for context. Sec. 3.3: spatial model trends toward lethal outcomes only near a ~1000x increase over the ODE-calibrated dose (viral_load_multiplier 10000 column); multipliers 1/10/100/1000 remain non-lethal in the spatial model across all replicas even though the ODE model predicts lethal outcomes from multiplier 10 upward (Fig. 4/5 disagreement).",
+  "observables": {
+    "uninfected_cells": [
+      {
+        "t_days": 0,
+        "value": 10000,
+        "lo": 9000,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 10000
+      },
+      {
+        "t_days": 3,
+        "value": 9800,
+        "lo": 10,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 3000
+      },
+      {
+        "t_days": 6,
+        "value": 9600,
+        "lo": 10,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 300
+      },
+      {
+        "t_days": 9,
+        "value": 9600,
+        "lo": 500,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 20
+      },
+      {
+        "t_days": 12,
+        "value": 9700,
+        "lo": 2000,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 5
+      },
+      {
+        "t_days": 15,
+        "value": 9800,
+        "lo": 5000,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 0,
+        "value": 10000,
+        "lo": 8000,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 10000
+      },
+      {
+        "t_days": 3,
+        "value": 8000,
+        "lo": 1000,
+        "hi": 9500,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 3000
+      },
+      {
+        "t_days": 6,
+        "value": 4000,
+        "lo": 500,
+        "hi": 8000,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 300
+      },
+      {
+        "t_days": 9,
+        "value": 3000,
+        "lo": 300,
+        "hi": 7000,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 20
+      },
+      {
+        "t_days": 12,
+        "value": 3000,
+        "lo": 300,
+        "hi": 7000,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 5
+      },
+      {
+        "t_days": 15,
+        "value": 3500,
+        "lo": 500,
+        "hi": 7500,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 0,
+        "value": 10000,
+        "lo": 7000,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 10000
+      },
+      {
+        "t_days": 3,
+        "value": 6000,
+        "lo": 2000,
+        "hi": 9000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 2500
+      },
+      {
+        "t_days": 6,
+        "value": 2500,
+        "lo": 500,
+        "hi": 6000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 200
+      },
+      {
+        "t_days": 9,
+        "value": 1500,
+        "lo": 200,
+        "hi": 4000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 15
+      },
+      {
+        "t_days": 12,
+        "value": 1500,
+        "lo": 200,
+        "hi": 4000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 3
+      },
+      {
+        "t_days": 15,
+        "value": 1800,
+        "lo": 300,
+        "hi": 4500,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 0,
+        "value": 10000,
+        "lo": 6000,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 10000
+      },
+      {
+        "t_days": 3,
+        "value": 3000,
+        "lo": 500,
+        "hi": 7000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1500
+      },
+      {
+        "t_days": 6,
+        "value": 800,
+        "lo": 50,
+        "hi": 3000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 50
+      },
+      {
+        "t_days": 9,
+        "value": 300,
+        "lo": 20,
+        "hi": 2000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 3
+      },
+      {
+        "t_days": 12,
+        "value": 250,
+        "lo": 10,
+        "hi": 1500,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 250,
+        "lo": 10,
+        "hi": 1500,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 0,
+        "value": 10000,
+        "lo": 3000,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 10000
+      },
+      {
+        "t_days": 3,
+        "value": 800,
+        "lo": 50,
+        "hi": 3000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 300
+      },
+      {
+        "t_days": 6,
+        "value": 100,
+        "lo": 5,
+        "hi": 1000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 10
+      },
+      {
+        "t_days": 9,
+        "value": 30,
+        "lo": 1,
+        "hi": 500,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 12,
+        "value": 20,
+        "lo": 1,
+        "hi": 300,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 20,
+        "lo": 1,
+        "hi": 300,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
+      }
+    ],
+    "infected_cells": [
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 1,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 8,
+        "lo": 1,
+        "hi": 30,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 8
+      },
+      {
+        "t_days": 6,
+        "value": 3,
+        "lo": 1,
+        "hi": 15,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 9,
+        "value": 1,
+        "lo": 1,
+        "hi": 5,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 12,
+        "value": 1,
+        "lo": 1,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 1,
+        "lo": 1,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 1,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 150,
+        "lo": 20,
+        "hi": 400,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 3
+      },
+      {
+        "t_days": 6,
+        "value": 60,
+        "lo": 5,
+        "hi": 200,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 9,
+        "value": 15,
+        "lo": 1,
+        "hi": 80,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 12,
+        "value": 5,
+        "lo": 1,
+        "hi": 30,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 2,
+        "lo": 1,
+        "hi": 15,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 1,
+        "hi": 3,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 400,
+        "lo": 80,
+        "hi": 900,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 4
+      },
+      {
+        "t_days": 6,
+        "value": 150,
+        "lo": 20,
+        "hi": 500,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 9,
+        "value": 40,
+        "lo": 5,
+        "hi": 200,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 12,
+        "value": 15,
+        "lo": 2,
+        "hi": 80,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 5,
+        "lo": 1,
+        "hi": 30,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 1,
+        "hi": 5,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 700,
+        "lo": 150,
+        "hi": 1500,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 5
+      },
+      {
+        "t_days": 6,
+        "value": 300,
+        "lo": 50,
+        "hi": 900,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 9,
+        "value": 100,
+        "lo": 15,
+        "hi": 400,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 12,
+        "value": 40,
+        "lo": 5,
+        "hi": 150,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 15,
+        "lo": 2,
+        "hi": 60,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 0,
+        "value": 2,
+        "lo": 1,
+        "hi": 10,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 3,
+        "value": 900,
+        "lo": 300,
+        "hi": 2000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 6
+      },
+      {
+        "t_days": 6,
+        "value": 500,
+        "lo": 150,
+        "hi": 1500,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 9,
+        "value": 250,
+        "lo": 60,
+        "hi": 900,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 12,
+        "value": 120,
+        "lo": 20,
+        "hi": 500,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 60,
+        "lo": 10,
+        "hi": 300,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
+      }
+    ],
+    "extracellular_virus": [
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 1,
+        "hi": 3,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 200,
+        "lo": 20,
+        "hi": 1000,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 50
+      },
+      {
+        "t_days": 6,
+        "value": 50,
+        "lo": 5,
+        "hi": 300,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 10
+      },
+      {
+        "t_days": 9,
+        "value": 10,
+        "lo": 1,
+        "hi": 80,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 3
+      },
+      {
+        "t_days": 12,
+        "value": 3,
+        "lo": 1,
+        "hi": 20,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 1,
+        "lo": 1,
+        "hi": 5,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 0,
+        "value": 10,
+        "lo": 3,
+        "hi": 30,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 10
+      },
+      {
+        "t_days": 3,
+        "value": 3000,
+        "lo": 500,
+        "hi": 8000,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 200
+      },
+      {
+        "t_days": 6,
+        "value": 2000,
+        "lo": 200,
+        "hi": 6000,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 30
+      },
+      {
+        "t_days": 9,
+        "value": 800,
+        "lo": 50,
+        "hi": 3000,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 5
+      },
+      {
+        "t_days": 12,
+        "value": 300,
+        "lo": 10,
+        "hi": 1500,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 15,
+        "value": 100,
+        "lo": 3,
+        "hi": 700,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 0,
+        "value": 100,
+        "lo": 30,
+        "hi": 300,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 100
+      },
+      {
+        "t_days": 3,
+        "value": 8000,
+        "lo": 2000,
+        "hi": 20000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 2000
+      },
+      {
+        "t_days": 6,
+        "value": 6000,
+        "lo": 1000,
+        "hi": 15000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 200
+      },
+      {
+        "t_days": 9,
+        "value": 3000,
+        "lo": 300,
+        "hi": 8000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 20
+      },
+      {
+        "t_days": 12,
+        "value": 1200,
+        "lo": 80,
+        "hi": 4000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 5
+      },
+      {
+        "t_days": 15,
+        "value": 500,
+        "lo": 30,
+        "hi": 2000,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 0,
+        "value": 1000,
+        "lo": 300,
+        "hi": 3000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1000
+      },
+      {
+        "t_days": 3,
+        "value": 15000,
+        "lo": 4000,
+        "hi": 40000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 8000
+      },
+      {
+        "t_days": 6,
+        "value": 12000,
+        "lo": 3000,
+        "hi": 35000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 800
+      },
+      {
+        "t_days": 9,
+        "value": 7000,
+        "lo": 1000,
+        "hi": 20000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 80
+      },
+      {
+        "t_days": 12,
+        "value": 3000,
+        "lo": 300,
+        "hi": 10000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 20
+      },
+      {
+        "t_days": 15,
+        "value": 1500,
+        "lo": 100,
+        "hi": 5000,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 5
+      },
+      {
+        "t_days": 0,
+        "value": 10000,
+        "lo": 3000,
+        "hi": 30000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 10000
+      },
+      {
+        "t_days": 3,
+        "value": 30000,
+        "lo": 8000,
+        "hi": 80000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 30000
+      },
+      {
+        "t_days": 6,
+        "value": 25000,
+        "lo": 6000,
+        "hi": 70000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 3000
+      },
+      {
+        "t_days": 9,
+        "value": 18000,
+        "lo": 3000,
+        "hi": 50000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 300
+      },
+      {
+        "t_days": 12,
+        "value": 10000,
+        "lo": 1000,
+        "hi": 30000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 50
+      },
+      {
+        "t_days": 15,
+        "value": 6000,
+        "lo": 500,
+        "hi": 20000,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 10
+      }
+    ],
+    "antibodies": [
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 0.5,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 0.3,
+        "lo": 0.05,
+        "hi": 1,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 0.4
+      },
+      {
+        "t_days": 6,
+        "value": 0.5,
+        "lo": 0.1,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 0.5
+      },
+      {
+        "t_days": 9,
+        "value": 1,
+        "lo": 0.3,
+        "hi": 3,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 12,
+        "value": 2,
+        "lo": 0.5,
+        "hi": 5,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 15,
+        "value": 3,
+        "lo": 1,
+        "hi": 8,
+        "soft": true,
+        "viral_load_multiplier": 1,
+        "ode_reference": 4
+      },
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 0.5,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 0.2,
+        "lo": 0.03,
+        "hi": 0.8,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 0.25
+      },
+      {
+        "t_days": 6,
+        "value": 0.3,
+        "lo": 0.05,
+        "hi": 1.5,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 0.3
+      },
+      {
+        "t_days": 9,
+        "value": 0.8,
+        "lo": 0.2,
+        "hi": 3,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 0.7
+      },
+      {
+        "t_days": 12,
+        "value": 2,
+        "lo": 0.5,
+        "hi": 6,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 2
+      },
+      {
+        "t_days": 15,
+        "value": 4,
+        "lo": 1,
+        "hi": 10,
+        "soft": true,
+        "viral_load_multiplier": 10,
+        "ode_reference": 5
+      },
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 0.4,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 0.15,
+        "lo": 0.02,
+        "hi": 0.6,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 0.15
+      },
+      {
+        "t_days": 6,
+        "value": 0.2,
+        "lo": 0.03,
+        "hi": 1,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 0.15
+      },
+      {
+        "t_days": 9,
+        "value": 0.5,
+        "lo": 0.1,
+        "hi": 2.5,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 0.4
+      },
+      {
+        "t_days": 12,
+        "value": 1.5,
+        "lo": 0.4,
+        "hi": 5,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 1.5
+      },
+      {
+        "t_days": 15,
+        "value": 4,
+        "lo": 1,
+        "hi": 10,
+        "soft": true,
+        "viral_load_multiplier": 100,
+        "ode_reference": 5
+      },
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 0.3,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 0.1,
+        "lo": 0.01,
+        "hi": 0.5,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 0.08
+      },
+      {
+        "t_days": 6,
+        "value": 0.15,
+        "lo": 0.02,
+        "hi": 0.8,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 0.08
+      },
+      {
+        "t_days": 9,
+        "value": 0.3,
+        "lo": 0.05,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 0.2
+      },
+      {
+        "t_days": 12,
+        "value": 1,
+        "lo": 0.2,
+        "hi": 4,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 15,
+        "value": 3,
+        "lo": 0.5,
+        "hi": 8,
+        "soft": true,
+        "viral_load_multiplier": 1000,
+        "ode_reference": 4
+      },
+      {
+        "t_days": 0,
+        "value": 1,
+        "lo": 0.2,
+        "hi": 2,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
+      },
+      {
+        "t_days": 3,
+        "value": 0.08,
+        "lo": 0.01,
+        "hi": 0.4,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 0.05
+      },
+      {
+        "t_days": 6,
+        "value": 0.1,
+        "lo": 0.01,
+        "hi": 0.6,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 0.04
+      },
+      {
+        "t_days": 9,
+        "value": 0.2,
+        "lo": 0.03,
+        "hi": 1.5,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 0.1
+      },
+      {
+        "t_days": 12,
+        "value": 0.6,
+        "lo": 0.1,
+        "hi": 3,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 0.6
+      },
+      {
+        "t_days": 15,
+        "value": 2,
+        "lo": 0.3,
+        "hi": 6,
+        "soft": true,
+        "viral_load_multiplier": 10000,
+        "ode_reference": 3
+      }
+    ]
+  }
+}

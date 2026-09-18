@@ -1,0 +1,243 @@
+schema_version: 3
+name: parameter-provenance
+status: in-progress
+phase: Design
+title: "Parameter provenance: CC3D source authority for the Sego 2022 reproduction"
+confidence: medium
+investigation: influenza-sego2022
+
+purpose:
+  question: |
+    What is the authoritative, cited parameter set for reproducing Sego et al.
+    2022's cellularized influenza model, and where does that authority (the
+    CC3D ViralInfectionVTM source) disagree with the paper's own printed
+    tables?
+  mechanism: |
+    Documentation only — no simulation is run by this study. It establishes
+    the parameter/spec authority that all later increments build on.
+  expected_outcome: |
+    A cited, machine-readable parameter file (params.yaml) and provenance
+    docs that a reviewer can audit line-by-line, plus digitized figure-target
+    acceptance bands, with every source-vs-paper disagreement recorded
+    explicitly rather than silently resolved.
+
+report:
+  title: "Parameter authority established: CC3D source + paper tables, 8 discrepancies recorded"
+  verdict: documented
+  confidence: medium
+  evidence_quality: cited
+  objective: >-
+    Acquire the Sego et al. 2022 supplementary CC3D source (ViralInfectionVTM),
+    transcribe Tables 1-4 into a single cited params.yaml, extend
+    docs/cc3d-reference/ with formula/constant/source documentation, and
+    digitize the target curves from Figs 3B, 5, 7 into acceptance-band data —
+    before any engine code exists.
+  conclusion: >-
+    The parameter authority for this investigation is established and cited:
+    pbg_cpm_studies/influenza/params.yaml mirrors
+    docs/cc3d-reference/sego2022-parameters.md, every section cites either the
+    paper's Tables 1-4 or the CC3D source directly, and figure-target
+    acceptance bands exist for Figs 3B, 5, 7. Eight places where the CC3D
+    source and the paper's printed tables disagree are recorded, not
+    resolved, in sego2022-parameters.md §7. This is NOT a claim that
+    reproduction has been demonstrated — no simulation exists yet.
+  main_insight: >-
+    Treating the paper's own supplementary source as ground truth (rather
+    than only its printed tables) surfaces real, previously-implicit
+    modeling choices the paper's prose alone would hide — e.g. the source's
+    NeighborOrder=3 vs. the paper-silent default assumption of 2, and two
+    immune-adhesion entries where the source's per-subtype matrix does not
+    collapse to the paper's stated single value.
+  caveat: >-
+    This study documents provenance; it does not validate reproduction. The
+    8 discrepancies in sego2022-parameters.md §7 are open items — params.yaml
+    currently follows the source-literal value in each case (a recorded
+    modeling choice, not a settled resolution). Figure targets are digitized
+    by eye from log-scale panels and are approximate.
+  key_metrics: []
+
+study_card:
+  goal: Establish and cite the authoritative parameter set (CC3D source + paper tables) and digitized figure targets before any reproduction engine code is written.
+  mechanism: Pure documentation — transcribe params.yaml from the CC3D ViralInfectionVTM source and the paper's Tables 1-4, cross-cited in docs/cc3d-reference/, plus digitized Fig 3B/5/7 acceptance bands.
+  why_before_next: Increment 1 (epithelial-sheet-baseline) and every later increment consume params.yaml and the figure targets directly; they must rest on an audited, cited authority rather than ad hoc numbers.
+  expected_result: A cited params.yaml, two provenance docs, three figure-target JSON files, and an explicit list of 8 source-vs-paper discrepancies — no pass/fail simulation result.
+  main_expert_question: Should any of the 8 recorded discrepancies be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks params.yaml in as ground truth?
+
+question: |
+  What is the authoritative, cited parameter set for reproducing Sego et al.
+  2022's cellularized influenza model (CompuCell3D ViralInfectionVTM), and
+  where does the source disagree with the paper's own printed tables?
+
+hypothesis: |
+  N/A — this is a documentation/provenance study, not a hypothesis-testing
+  simulation. No hypothesis is evaluated here.
+
+objective: |
+  Produce a single, cited parameter file and supporting provenance
+  documentation that later increments can consume without re-deriving
+  constants from the paper or source, and digitize the paper's Figs 3B, 5, 7
+  into acceptance-band targets for the eventual capstone reproduction.
+
+description: |
+  Increment 0 of the influenza-sego2022 investigation. This study documents,
+  rather than simulates: it cites the parameter authority
+  (pbg_cpm_studies/influenza/params.yaml), the CC3D-source acquisition and
+  transcription docs (docs/cc3d-reference/sego2022-source-notes.md and
+  sego2022-parameters.md), and the digitized figure targets
+  (pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json). It reference the
+  bibliography entry sego2022influenza (workspace/references/papers.bib) for
+  the paper itself. No composite, run, or simulated observable exists in this
+  study — those begin at Increment 1 (epithelial-sheet-baseline).
+
+claim: |
+  The parameter authority for the influenza-sego2022 investigation is
+  established and cited: params.yaml is sourced from the CC3D
+  ViralInfectionVTM package and the paper's Tables 1-4, with every value
+  traceable to one or the other, and figure-target acceptance bands exist for
+  Figs 3B, 5, 7. This is a claim of DOCUMENTATION COMPLETENESS, not of
+  reproduction — no simulation has been run against these targets.
+
+expected_behavior:
+  - "Parameter authority is established and cited"
+  - "Source-vs-paper discrepancies are recorded, not silently resolved"
+  - "Figure-target acceptance bands exist for Figs 3B, 5, 7"
+
+readouts: []
+
+behavior_tests: []
+
+findings:
+  - id: F-01
+    kind: methodological
+    status: confirms
+    mechanism_origin: cited
+    evidence:
+      from_test: null
+      observed: >-
+        params.yaml (pbg_cpm_studies/influenza/params.yaml) cites every
+        section to either "Sego 2022 Table N" or the CC3D source directly;
+        docs/cc3d-reference/sego2022-parameters.md mirrors it with formulas
+        and constants; three figure-target JSON files
+        (pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json) digitize
+        acceptance bands from Figs 3B, 5, 7.
+    statement: |
+      The parameter/spec authority for reproducing Sego et al. 2022 is
+      established and fully cited (CC3D ViralInfectionVTM source + paper
+      Tables 1-4), with digitized acceptance-band targets for the three
+      figures the capstone increment must reproduce. No simulation evidence
+      exists yet — this finding is about documentation completeness only.
+  - id: F-02
+    kind: methodological
+    status: partial
+    mechanism_origin: cited
+    evidence:
+      from_test: null
+      observed: >-
+        docs/cc3d-reference/sego2022-parameters.md §7 lists 8 places where
+        the CC3D source and the paper's printed tables disagree: (1) neighbor
+        order 3 (source) vs. an assumed 2 (paper silent), (2) Infected-
+        Macrophage adhesion 20 (source, per-subtype) vs. the paper's
+        collapsed "infected-immune = 10", (3) NKcell-CD8Tcell adhesion 25
+        (source) vs. the paper's collapsed heterotypic-immune = 10, (4)
+        active lattice dimensions (175x175, source default) matching neither
+        paper patch size exactly, (5) the initial-viral-load sweep
+        {1,10,100,1000,10000} is scenario config, not enumerated in the
+        source's base ModelInputs, (6) ViralCellDeathSteppable is an
+        explicitly "simplified version" omitting the paper's printed
+        ROS/viral-load Hill-saturation death term, (7)
+        ContactKillingSteppable multiplies by cell_resist directly rather
+        than (1 - cell_resist) like every other resistance consumer, (8)
+        macrophage-virus chemotaxis is labeled "moderate" in the paper's
+        table but numerically equals the "strong" NK value (5,000) in both
+        source and paper — a qualitative-label mismatch, not a numeric one.
+    statement: |
+      Eight source-vs-paper discrepancies are recorded as open items rather
+      than silently resolved. params.yaml currently follows the CC3D
+      source-literal value in each numeric case, per the controller ruling
+      that the source is what actually produced the published figures — but
+      this is a recorded modeling choice, not a settled resolution, and is
+      carried forward as a decision_needed at the investigation level.
+
+robustness:
+  n_replicates: 0
+  seeds: []
+  parameter_sweep: false
+
+key_assumptions:
+  - "The CC3D ViralInfectionVTM supplementary source is treated as the authoritative, source-literal parameter reference where it disagrees with the paper's printed tables (controller ruling; see decisions_needed at the investigation level)."
+  - "Figure targets (Figs 3B, 5, 7) are digitized by eye from log-scale panels in the published PDF and are approximate acceptance bands, not extracted vector/tabular data."
+  - "params.yaml's chemotaxis functional_form is noted as saturating/COM in the source while the engine currently implements a linear term — recorded as a future-increment gap, not resolved here."
+
+literature_anchors:
+  - expectation: "Sego et al. 2022 Tables 1-4 specify the CPM, adhesion, diffusion, chemotaxis, and scaling parameters for the cellularized influenza model."
+    model_observable: "pbg_cpm_studies/influenza/params.yaml (every section cites Table 1-4 or the CC3D source)"
+    source: "Sego 2022 Tables 3-4"
+    status_in_workspace: "Transcribed and cited; not yet consumed by any simulation."
+    cites: [sego2022influenza]
+  - expectation: "The CC3D ViralInfectionVTM source is the literal implementation that produced the paper's published figures."
+    model_observable: "docs/cc3d-reference/sego2022-source-notes.md (acquisition + module map), sego2022-parameters.md (formulas/constants/sources)"
+    source: "CompuCell3D ViralInfectionVTM supplementary package"
+    status_in_workspace: "Acquired and cross-checked against the paper; 8 discrepancies recorded in §7."
+    cites: [sego2022influenza]
+
+conclusion: |
+  Increment 0's documentation goal is met: the parameter authority is
+  established, cited, and cross-checked against the CC3D source, with 8
+  disagreements recorded rather than hidden, and digitized acceptance-band
+  targets exist for the three figures the capstone increment must
+  eventually reproduce. This study makes no claim about reproduction
+  fidelity — that is out of scope until Increment 1 introduces the first
+  simulation code.
+
+conclusion_verdicts:
+  regression_compatibility:
+    result: PENDING
+    basis: No engine code exists yet; nothing to regress against.
+  biological_validation:
+    result: PENDING
+    basis: No simulation has been run against the digitized figure targets; biological validation begins at Increment 9 (the capstone).
+  explanatory_gain:
+    result: POSITIVE
+    basis: Cross-checking the CC3D source against the paper's printed tables surfaced 8 discrepancies that would otherwise have been silently absorbed into an implicit "best guess" parameter set.
+
+biological_summary: |
+  This study does not simulate biology — it documents the parameter
+  authority a future simulation will use. Sego et al. 2022's cellularized
+  influenza model specifies epithelial, macrophage, NK, and CD8+ T cell
+  types; diffusible virus, type-I IFN, chemokine, and IL-10 fields; per-cell
+  resistance and death/recovery rules; and chemotactic recruitment
+  strengths — all summarized with formulas and cited constants in
+  docs/cc3d-reference/sego2022-parameters.md and encoded machine-readably in
+  pbg_cpm_studies/influenza/params.yaml. Establishing this authority first,
+  and recording where the paper's own supplementary source disagrees with
+  its printed tables, lets every later increment build on an audited
+  foundation instead of quietly picking whichever number seemed
+  plausible.
+
+gate_status: passed
+
+model_change:
+  base_model: "none — documentation study, no composite is defined or run"
+  new_processes: []
+  new_state_variables: []
+  new_parameters: []
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    No engine/composite code is introduced by this study. It is pure
+    documentation: params.yaml, docs/cc3d-reference/sego2022-source-notes.md,
+    docs/cc3d-reference/sego2022-parameters.md, and
+    pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json.
+
+discovery_implications:
+  followup_study_proposals:
+    - id: epithelial-sheet-baseline
+      title: "Increment 1: Epithelial sheet at scale"
+      motivation: "First simulation code: 5x5-site cells, 2 um lattice, vol 100 um^2, adhesion J, at 1 mm^2 scale — consumes params.yaml's cpm/adhesion sections directly."
+
+narrative_spine_skip: [implementation_requirements, interventions, variants]
+narrative_spine_skip_reason: >-
+  Documentation-only study (Design phase, no simulation): implementation_requirements
+  is a forward-looking build checklist that belongs to Increment 1+, and
+  interventions/variants presuppose a baseline composite that does not exist
+  yet in this study.

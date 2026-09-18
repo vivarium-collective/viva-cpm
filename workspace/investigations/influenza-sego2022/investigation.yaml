@@ -1,0 +1,156 @@
+# influenza-sego2022/investigation.yaml — schema v2
+schema_version: 2
+name: influenza-sego2022
+title: "Influenza infection & immune response (Sego 2022 reproduction)"
+created: '2026-09-18'
+status: planning
+
+question: |
+  Can viva-cpm's native Cellular Potts engine reproduce, to quantitative figure
+  match, the cellularized multiscale influenza-infection and immune-response
+  model of Sego et al. 2022 — built on CompuCell3D's ViralInfectionVTM — at
+  paper scale (Figs 3B, 5, 7)?
+
+hypothesis: |
+  A CPM composite that reproduces the paper's cell types (epithelial,
+  macrophage, NK, CD8+ T), diffusible fields (virus, type-I IFN, chemokine,
+  IL-10), per-cell resistance/state transitions, and coupling to the global
+  immune ODE compartment — parameterized from the CC3D source
+  (ViralInfectionVTM) as ground truth, cross-checked against the paper's own
+  tables — will land within the paper's reported acceptance bands for
+  infected/uninfected/dead epithelial counts and immune-cell trajectories
+  across the initial-viral-load and initial-infection-fraction scenario
+  sweeps.
+
+lead: |
+  A native viva-cpm reproduction of Sego et al. 2022's cellularized influenza
+  model, built up increment-by-increment (a 10-increment capability ladder,
+  see how_to_read) from a bare epithelial sheet to the full multiscale
+  composite at 1 mm^2 paper scale. The CC3D source (ViralInfectionVTM) is the
+  authoritative parameter/spec reference, cross-checked against the paper's
+  own tables; Increment 0 establishes that authority and records where the
+  two disagree, before any engine code exists.
+
+executive:
+  what_is_this: |
+    A ground-up native reproduction of a published cellularized multiscale
+    infection model (Sego, Mochan, Ermentrout & Glazier 2022, J. Theor. Biol.
+    532:110918), used as a rigor exercise for viva-cpm's CPM engine: can it
+    reach quantitative figure match against a real, independently-published
+    spatial immunology model, using the authors' own CompuCell3D source as
+    ground truth rather than just the paper's prose? The investigation is
+    structured as a 10-increment capability ladder (Increment 0 spec/targets,
+    1-8 individual mechanisms at reduced scale, 9 the full capstone
+    reproduction) so reproducibility accrues cumulatively and each step is
+    independently reviewable.
+  verdict: |
+    Increment 0 only: no simulation code exists yet. The parameter/spec
+    authority is established (pbg_cpm_studies/influenza/params.yaml, cited to
+    the CC3D source and the paper's Tables 1-4) and figure-target acceptance
+    bands are digitized for Figs 3B, 5, 7. Eight source-vs-paper discrepancies
+    are recorded rather than silently resolved. Reproduction fidelity is not
+    yet assessed — that begins at Increment 1.
+  verdict_status: in-progress
+  verdict_detail: |
+    Member study parameter-provenance (Design phase, documentation-only)
+    establishes the parameter authority: it cites params.yaml, the two
+    provenance docs (docs/cc3d-reference/sego2022-source-notes.md and
+    sego2022-parameters.md), and the digitized figure targets
+    (pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json). It records,
+    not resolves, the 8 source-vs-paper discrepancies in
+    sego2022-parameters.md §7 (e.g. neighbor order 3 vs the expected 2,
+    Infected-Macrophage adhesion 20 vs the paper's collapsed 10,
+    NKcell-CD8Tcell adhesion 25 vs the paper's collapsed 10). No engine code,
+    simulation, or reproduction verdict exists yet.
+  decisions_needed:
+    - question: "Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?"
+      context: |
+        params.yaml currently follows the CONTROLLER RULING to prefer the
+        CC3D source literally (it is what actually produced the paper's
+        results) over the paper's prose tables where they disagree. This is
+        defensible but is a modeling choice, not a settled fact, and should
+        be revisited once Increment 1+ studies can show whether either choice
+        changes reproduction quality.
+
+scientific_argument:
+  main_claim: |
+    Target claim for the investigation (not yet demonstrated): a native
+    viva-cpm CPM composite, parameterized from the CC3D ViralInfectionVTM
+    source, reproduces Sego et al. 2022's spatial influenza-infection and
+    immune-response dynamics within the paper's reported acceptance bands
+    (Figs 3B, 5, 7) at paper scale.
+  evidence_for: []
+  evidence_against: []
+  key_figures: []
+  caveats:
+    - "No simulation evidence exists yet — Increment 0 is spec/provenance/targets only. evidence_for/evidence_against are intentionally empty rather than fabricated."
+    - "The parameter authority (params.yaml) makes an explicit, recorded choice to follow the CC3D source literally over the paper's prose in 8 places (sego2022-parameters.md §7); these are open items, not settled."
+    - "Figure targets (Figs 3B/5/7) are hand-digitized from log-scale panels by eye and are approximate acceptance bands, not extracted data."
+
+biological_story: |
+  Sego et al. 2022 built a cellularized, multiscale model of local influenza
+  infection: a 2-D epithelial sheet (Cellular Potts) is infected by a
+  diffusing virus field, mounts a type-I interferon response that confers
+  per-cell resistance, and recruits macrophages, NK cells and CD8+ T cells via
+  chemokine gradients to clear infected cells — all coupled bidirectionally to
+  a global ODE compartment (Price 2015) that scales the spatial patch to a
+  physiological lung-epithelium population. It is a rich, independently
+  published, source-available target for testing whether a from-scratch CPM
+  engine (viva-cpm) can reach genuine quantitative reproduction of a
+  real spatial-immunology model, not just a qualitative phenomenon.
+
+  The investigation treats the paper's own CompuCell3D supplementary source
+  (ViralInfectionVTM) as the ground-truth spec, not just the paper's printed
+  tables — because the source is what actually produced the published
+  figures, and the two disagree in eight places (neighbor order, two
+  immune-adhesion entries, lattice-size defaults, the initial-viral-load
+  sweep encoding, a simplified death-rate term, an asymmetric resistance
+  usage, and a qualitative-vs-numeric label mismatch on macrophage
+  chemotaxis). Recording these discrepancies up front, before any engine code
+  exists, is the point of Increment 0: later increments build on a stated,
+  auditable authority rather than an implicit blend of "whichever value
+  looked right."
+
+  Capability accrues on a 10-increment ladder: epithelial sheet at scale,
+  virus field + infection, IFN + resistance, epithelial death/recovery,
+  chemokine + IL-10 fields, macrophage response, NK/CD8+ cytotoxic response,
+  the global ODE coupling, and finally the full capstone reproduction against
+  Figs 3B, 5, and 7 at paper scale with 50 replicas.
+
+how_to_read: |
+  Read this top-down as a capability ladder, not a finished result:
+
+  1. INCREMENT 0 (this scaffold) — spec authority & targets, no engine code.
+     Acquire the CC3D source, transcribe Tables 1-4 into a cited params.yaml,
+     digitize Figs 3B/5/7 into acceptance bands, record source-vs-paper
+     discrepancies. Study: parameter-provenance (documentation only).
+  2. INCREMENTS 1-8 — one capability + one study + one paper target each,
+     validated at reduced (0.3 mm) scale: epithelial sheet, virus field +
+     infection, IFN + resistance, death/recovery, chemokine/IL-10 fields,
+     macrophage response, NK/CD8+ cytotoxic killing, global ODE coupling.
+  3. INCREMENT 9 — the capstone: full composite at 1 mm^2 paper scale, 50
+     replicas, evaluated against the Increment-0 acceptance bands for Figs
+     3B (time series vs ODE), 5 (viral-load sweep, lethal threshold), and 7
+     (infection-fraction sweep). This is the "reproducibility achieved"
+     deliverable — not yet reached.
+
+  Full ladder detail: docs/superpowers/specs/2026-09-18-influenza-sego2022-reproduction-design.md §5.
+
+glossary:
+  - {term: "ViralInfectionVTM", definition: "The CompuCell3D supplementary source package for Sego et al. 2022 — the authoritative, source-literal parameter reference for this investigation (as opposed to the paper's printed prose tables, which it occasionally disagrees with)."}
+  - {term: "Source-vs-paper discrepancy", definition: "A place where the CC3D source's literal parameter/behavior differs from the paper's printed table or text. Eight are recorded in docs/cc3d-reference/sego2022-parameters.md §7 and are treated as open items, not resolved."}
+  - {term: "Cellular viral resistance (rho)", definition: "A per-cell state variable modulating virus release and infected-cell death, driven by local type-I IFN exposure."}
+  - {term: "Global ODE compartment", definition: "The Price (2015)-derived whole-organ immune ODE model that Sego 2022 couples bidirectionally to the spatial CPM patch via scaling factors eta/theta."}
+  - {term: "Acceptance band", definition: "A digitized value/lo/hi target range per observable, read by eye from a paper figure (Figs 3B/5/7), used as the pass/fail criterion for the Increment 9 capstone reproduction."}
+
+at_a_glance:
+  - {study: parameter-provenance, role: "Increment 0: establishes the cited parameter authority, provenance docs, and digitized figure targets; documents open source-vs-paper discrepancies. No simulation."}
+  - {study: epithelial-sheet-baseline, role: "Increment 1: validates the confluent epithelial-sheet substrate (geometry + 1mm^2 throughput) as a process-bigraph composite. Substrate only — no biology reproduction claim."}
+
+members:
+- parameter-provenance
+- epithelial-sheet-baseline
+
+acceptance_criteria:
+- {study: parameter-provenance, behavior: "Parameter authority is established and cited"}
+- {study: epithelial-sheet-baseline, behavior: "Confluent epithelial sheet holds stable geometry (~25 sites/cell) and 1mm^2 throughput clears the perf-gate floor (200.0 MCS/s)"}
