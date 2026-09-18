@@ -42,3 +42,13 @@ def test_params_carry_virus_section():
     assert v["diffusion_length_cell_diam"] == 5
     assert isinstance(v["secretion_g_vi"], (int,float)) and v["secretion_g_vi"] > 0
     assert isinstance(v["infection_g_hv"], (int,float)) and v["infection_g_hv"] > 0
+
+
+def test_params_carry_ifn_and_resistance_sections():
+    p = params.load_params()
+    ifn = p["ifn"]; res = p["resistance"]
+    for k in ("diffusion_lat2_per_mcs","decay_per_mcs","diffusion_length_cell_diam","secretion_g_fp","source"):
+        assert k in ifn, f"ifn missing {k}"
+    assert ifn["diffusion_length_cell_diam"] == 2
+    assert ifn["secretion_g_fp"] > 0
+    assert "a_rf" in res and res["a_rf"] > 0 and "source" in res
