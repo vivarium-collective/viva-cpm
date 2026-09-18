@@ -295,7 +295,8 @@
         "lo": 1,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -303,7 +304,8 @@
         "lo": 1,
         "hi": 30,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 8
       },
       {
         "t_days": 6,
@@ -311,7 +313,8 @@
         "lo": 1,
         "hi": 15,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 2
       },
       {
         "t_days": 9,
@@ -319,7 +322,8 @@
         "lo": 1,
         "hi": 5,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 12,
@@ -327,7 +331,8 @@
         "lo": 1,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 15,
@@ -335,7 +340,8 @@
         "lo": 1,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 0,
@@ -343,7 +349,8 @@
         "lo": 1,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -351,7 +358,8 @@
         "lo": 20,
         "hi": 400,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 3
       },
       {
         "t_days": 6,
@@ -359,7 +367,8 @@
         "lo": 5,
         "hi": 200,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
       },
       {
         "t_days": 9,
@@ -367,7 +376,8 @@
         "lo": 1,
         "hi": 80,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
       },
       {
         "t_days": 12,
@@ -375,7 +385,8 @@
         "lo": 1,
         "hi": 30,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
       },
       {
         "t_days": 15,
@@ -383,7 +394,8 @@
         "lo": 1,
         "hi": 15,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
       },
       {
         "t_days": 0,
@@ -391,7 +403,8 @@
         "lo": 1,
         "hi": 3,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -399,7 +412,8 @@
         "lo": 80,
         "hi": 900,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 4
       },
       {
         "t_days": 6,
@@ -407,7 +421,8 @@
         "lo": 20,
         "hi": 500,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
       },
       {
         "t_days": 9,
@@ -415,7 +430,8 @@
         "lo": 5,
         "hi": 200,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
       },
       {
         "t_days": 12,
@@ -423,7 +439,8 @@
         "lo": 2,
         "hi": 80,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
       },
       {
         "t_days": 15,
@@ -431,7 +448,8 @@
         "lo": 1,
         "hi": 30,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
       },
       {
         "t_days": 0,
@@ -439,7 +457,8 @@
         "lo": 1,
         "hi": 5,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -447,7 +466,8 @@
         "lo": 150,
         "hi": 1500,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 5
       },
       {
         "t_days": 6,
@@ -455,7 +475,8 @@
         "lo": 50,
         "hi": 900,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 2
       },
       {
         "t_days": 9,
@@ -463,7 +484,8 @@
         "lo": 15,
         "hi": 400,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
       },
       {
         "t_days": 12,
@@ -471,7 +493,8 @@
         "lo": 5,
         "hi": 150,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
       },
       {
         "t_days": 15,
@@ -479,7 +502,8 @@
         "lo": 2,
         "hi": 60,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
       },
       {
         "t_days": 0,
@@ -487,7 +511,8 @@
         "lo": 1,
         "hi": 10,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 2
       },
       {
         "t_days": 3,
@@ -495,7 +520,8 @@
         "lo": 300,
         "hi": 2000,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 6
       },
       {
         "t_days": 6,
@@ -503,7 +529,8 @@
         "lo": 150,
         "hi": 1500,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 2
       },
       {
         "t_days": 9,
@@ -511,7 +538,8 @@
         "lo": 60,
         "hi": 900,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
       },
       {
         "t_days": 12,
@@ -519,7 +547,8 @@
         "lo": 20,
         "hi": 500,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
       },
       {
         "t_days": 15,
@@ -527,7 +556,8 @@
         "lo": 10,
         "hi": 300,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
       }
     ],
     "extracellular_virus": [
@@ -537,7 +567,8 @@
         "lo": 1,
         "hi": 3,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -545,7 +576,8 @@
         "lo": 20,
         "hi": 1000,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 50
       },
       {
         "t_days": 6,
@@ -553,7 +585,8 @@
         "lo": 5,
         "hi": 300,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 10
       },
       {
         "t_days": 9,
@@ -561,7 +594,8 @@
         "lo": 1,
         "hi": 80,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 3
       },
       {
         "t_days": 12,
@@ -569,7 +603,8 @@
         "lo": 1,
         "hi": 20,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 15,
@@ -577,7 +612,8 @@
         "lo": 1,
         "hi": 5,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 0,
@@ -585,7 +621,8 @@
         "lo": 3,
         "hi": 30,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 10
       },
       {
         "t_days": 3,
@@ -593,7 +630,8 @@
         "lo": 500,
         "hi": 8000,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 200
       },
       {
         "t_days": 6,
@@ -601,7 +639,8 @@
         "lo": 200,
         "hi": 6000,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 30
       },
       {
         "t_days": 9,
@@ -609,7 +648,8 @@
         "lo": 50,
         "hi": 3000,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 5
       },
       {
         "t_days": 12,
@@ -617,7 +657,8 @@
         "lo": 10,
         "hi": 1500,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 2
       },
       {
         "t_days": 15,
@@ -625,7 +666,8 @@
         "lo": 3,
         "hi": 700,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
       },
       {
         "t_days": 0,
@@ -633,7 +675,8 @@
         "lo": 30,
         "hi": 300,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 100
       },
       {
         "t_days": 3,
@@ -641,7 +684,8 @@
         "lo": 2000,
         "hi": 20000,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 2000
       },
       {
         "t_days": 6,
@@ -649,7 +693,8 @@
         "lo": 1000,
         "hi": 15000,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 200
       },
       {
         "t_days": 9,
@@ -657,7 +702,8 @@
         "lo": 300,
         "hi": 8000,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 20
       },
       {
         "t_days": 12,
@@ -665,7 +711,8 @@
         "lo": 80,
         "hi": 4000,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 5
       },
       {
         "t_days": 15,
@@ -673,7 +720,8 @@
         "lo": 30,
         "hi": 2000,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 2
       },
       {
         "t_days": 0,
@@ -681,7 +729,8 @@
         "lo": 300,
         "hi": 3000,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1000
       },
       {
         "t_days": 3,
@@ -689,7 +738,8 @@
         "lo": 4000,
         "hi": 40000,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 8000
       },
       {
         "t_days": 6,
@@ -697,7 +747,8 @@
         "lo": 3000,
         "hi": 35000,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 800
       },
       {
         "t_days": 9,
@@ -705,7 +756,8 @@
         "lo": 1000,
         "hi": 20000,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 80
       },
       {
         "t_days": 12,
@@ -713,7 +765,8 @@
         "lo": 300,
         "hi": 10000,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 20
       },
       {
         "t_days": 15,
@@ -721,7 +774,8 @@
         "lo": 100,
         "hi": 5000,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 5
       },
       {
         "t_days": 0,
@@ -729,7 +783,8 @@
         "lo": 3000,
         "hi": 30000,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 10000
       },
       {
         "t_days": 3,
@@ -737,7 +792,8 @@
         "lo": 8000,
         "hi": 80000,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 30000
       },
       {
         "t_days": 6,
@@ -745,7 +801,8 @@
         "lo": 6000,
         "hi": 70000,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 3000
       },
       {
         "t_days": 9,
@@ -753,7 +810,8 @@
         "lo": 3000,
         "hi": 50000,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 300
       },
       {
         "t_days": 12,
@@ -761,7 +819,8 @@
         "lo": 1000,
         "hi": 30000,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 50
       },
       {
         "t_days": 15,
@@ -769,7 +828,8 @@
         "lo": 500,
         "hi": 20000,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 10
       }
     ],
     "antibodies": [
@@ -779,7 +839,8 @@
         "lo": 0.5,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -787,7 +848,8 @@
         "lo": 0.05,
         "hi": 1,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 0.4
       },
       {
         "t_days": 6,
@@ -795,7 +857,8 @@
         "lo": 0.1,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 0.5
       },
       {
         "t_days": 9,
@@ -803,7 +866,8 @@
         "lo": 0.3,
         "hi": 3,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 1
       },
       {
         "t_days": 12,
@@ -811,7 +875,8 @@
         "lo": 0.5,
         "hi": 5,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 2
       },
       {
         "t_days": 15,
@@ -819,7 +884,8 @@
         "lo": 1,
         "hi": 8,
         "soft": true,
-        "viral_load_multiplier": 1
+        "viral_load_multiplier": 1,
+        "ode_reference": 4
       },
       {
         "t_days": 0,
@@ -827,7 +893,8 @@
         "lo": 0.5,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -835,7 +902,8 @@
         "lo": 0.03,
         "hi": 0.8,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 0.25
       },
       {
         "t_days": 6,
@@ -843,7 +911,8 @@
         "lo": 0.05,
         "hi": 1.5,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 0.3
       },
       {
         "t_days": 9,
@@ -851,7 +920,8 @@
         "lo": 0.2,
         "hi": 3,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 0.7
       },
       {
         "t_days": 12,
@@ -859,7 +929,8 @@
         "lo": 0.5,
         "hi": 6,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 2
       },
       {
         "t_days": 15,
@@ -867,7 +938,8 @@
         "lo": 1,
         "hi": 10,
         "soft": true,
-        "viral_load_multiplier": 10
+        "viral_load_multiplier": 10,
+        "ode_reference": 5
       },
       {
         "t_days": 0,
@@ -875,7 +947,8 @@
         "lo": 0.4,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -883,7 +956,8 @@
         "lo": 0.02,
         "hi": 0.6,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 0.15
       },
       {
         "t_days": 6,
@@ -891,7 +965,8 @@
         "lo": 0.03,
         "hi": 1,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 0.15
       },
       {
         "t_days": 9,
@@ -899,7 +974,8 @@
         "lo": 0.1,
         "hi": 2.5,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 0.4
       },
       {
         "t_days": 12,
@@ -907,7 +983,8 @@
         "lo": 0.4,
         "hi": 5,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 1.5
       },
       {
         "t_days": 15,
@@ -915,7 +992,8 @@
         "lo": 1,
         "hi": 10,
         "soft": true,
-        "viral_load_multiplier": 100
+        "viral_load_multiplier": 100,
+        "ode_reference": 5
       },
       {
         "t_days": 0,
@@ -923,7 +1001,8 @@
         "lo": 0.3,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -931,7 +1010,8 @@
         "lo": 0.01,
         "hi": 0.5,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 0.08
       },
       {
         "t_days": 6,
@@ -939,7 +1019,8 @@
         "lo": 0.02,
         "hi": 0.8,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 0.08
       },
       {
         "t_days": 9,
@@ -947,7 +1028,8 @@
         "lo": 0.05,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 0.2
       },
       {
         "t_days": 12,
@@ -955,7 +1037,8 @@
         "lo": 0.2,
         "hi": 4,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 1
       },
       {
         "t_days": 15,
@@ -963,7 +1046,8 @@
         "lo": 0.5,
         "hi": 8,
         "soft": true,
-        "viral_load_multiplier": 1000
+        "viral_load_multiplier": 1000,
+        "ode_reference": 4
       },
       {
         "t_days": 0,
@@ -971,7 +1055,8 @@
         "lo": 0.2,
         "hi": 2,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 1
       },
       {
         "t_days": 3,
@@ -979,7 +1064,8 @@
         "lo": 0.01,
         "hi": 0.4,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 0.05
       },
       {
         "t_days": 6,
@@ -987,7 +1073,8 @@
         "lo": 0.01,
         "hi": 0.6,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 0.04
       },
       {
         "t_days": 9,
@@ -995,7 +1082,8 @@
         "lo": 0.03,
         "hi": 1.5,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 0.1
       },
       {
         "t_days": 12,
@@ -1003,7 +1091,8 @@
         "lo": 0.1,
         "hi": 3,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 0.6
       },
       {
         "t_days": 15,
@@ -1011,7 +1100,8 @@
         "lo": 0.3,
         "hi": 6,
         "soft": true,
-        "viral_load_multiplier": 10000
+        "viral_load_multiplier": 10000,
+        "ode_reference": 3
       }
     ]
   }
