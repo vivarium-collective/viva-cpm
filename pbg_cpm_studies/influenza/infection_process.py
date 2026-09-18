@@ -16,11 +16,18 @@ import numpy as np
 from process_bigraph import Process
 
 from . import transitions, types
+from .params import load_params
+
+# Resolved from params.yaml at import time (single source of truth for the
+# rate coefficient) rather than duplicated as a hardcoded literal here; the
+# `virus_infection` composite always passes `g_hv` explicitly, so this only
+# matters as the schema's documented default.
+_DEFAULT_G_HV = float(load_params()["virus"]["infection_g_hv"])
 
 
 class InfectionProcess(Process):
     config_schema = {
-        "g_hv": {"_type": "float", "_default": 0.006133879567670876},
+        "g_hv": {"_type": "float", "_default": _DEFAULT_G_HV},
         "seed": {"_type": "integer", "_default": 17},
     }
 
