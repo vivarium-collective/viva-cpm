@@ -18,7 +18,9 @@ def _sites_per_side(patch_mm: float, lattice_um: int) -> int:
 
 
 def build_sheet_spec(patch_mm: float, seed: int = 17) -> dict:
-    p = load_params()["cpm"]
+    params = load_params()
+    p = params["cpm"]
+    adh = params["adhesion"]
     n = _sites_per_side(patch_mm, p["lattice_um"])          # sites per side
     cells_per_side = n // CELL_SIDE_SITES
     cells = []
@@ -34,11 +36,12 @@ def build_sheet_spec(patch_mm: float, seed: int = 17) -> dict:
                                x0 + CELL_SIDE_SITES, y0 + CELL_SIDE_SITES, 1],
             })
     # Epithelial-only adhesion: cohesive H-H, higher H-medium so the sheet
-    # stays confluent. Source-literal values (ViralInfectionVTM.xml).
+    # stays confluent. Source-literal values (ViralInfectionVTM.xml), read
+    # from params.yaml (single source of truth) rather than duplicated here.
     contact = [
         {"a": types.MEDIUM, "b": types.MEDIUM, "j": 0.0},
-        {"a": types.MEDIUM, "b": types.H, "j": 25.0},   # CONTROLLER OVERRIDE: source-literal epithelial-medium (was 16.0 CC3D-typical)
-        {"a": types.H, "b": types.H, "j": 5.0},         # CONTROLLER OVERRIDE: source-literal epithelial-epithelial (was 4.0 CC3D-typical)
+        {"a": types.MEDIUM, "b": types.H, "j": float(adh["epithelial_medium"])},   # CONTROLLER OVERRIDE: source-literal epithelial-medium (was 16.0 CC3D-typical)
+        {"a": types.H, "b": types.H, "j": float(adh["epithelial_epithelial"])},    # CONTROLLER OVERRIDE: source-literal epithelial-epithelial (was 4.0 CC3D-typical)
     ]
     return {
         "potts": {"dims": [n, n, 1], "boundary": "noflux",
