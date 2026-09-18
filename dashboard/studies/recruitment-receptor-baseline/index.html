@@ -25,6 +25,8 @@
     
     <button type="button" id="study-reproduce" class="btn-mini" title="Replay this study's most recent run's RECORDED manifest verbatim (POST /api/study-reproduce) — ignores any study.yaml edits made since">↻ Reproduce</button>
     <button type="button" id="study-run-current-spec" class="btn-mini" title="Run this study's CURRENT baseline spec (POST /api/study-run-baseline) as a brand-new run">▶ Run current spec</button>
+    
+    <button type="button" id="study-run-composite" class="btn-mini" title="Dispatch a specific process-bigraph composite_id to the remote compute backend (pbg-native multi_node/mbp, or the Nextflow campaign path) — advanced, independent of this study's own pinned baseline">⚙ Dispatch composite</button>
   </span>
   </div>
   <div class="study-status-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
@@ -616,6 +618,9 @@ Measured from workspace/chemotaxis_data/results/receptor_baseline.json
       
       
       
+      
+      
+      
       <div class="finding-card finding-kind-computational finding-status-confirms">
         <details class="finding-details">
           <summary class="finding-row">
@@ -659,6 +664,7 @@ CXCL8-CXCR1 Kd rather than an arbitrary chemotaxis strength.
         </details>
       </div>
       
+      
     </div>
     
       
@@ -692,7 +698,9 @@ CXCL8-CXCR1 Kd rather than an arbitrary chemotaxis strength.
   </div>
 
   
-  <div id="model-composite-cards" class="model-composite-cards" data-study="recruitment-receptor-baseline">
+  
+  <div id="model-composite-cards" class="model-composite-cards" data-study="recruitment-receptor-baseline"
+       data-study-config="">
     <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
   </div>
 
@@ -803,7 +811,7 @@ computation.
 
 <div class="overview-section" id="simulations-section">
   <h2>Simulations</h2>
-  <div id="study-sim-table" style="overflow-x:auto"><p class="muted" style="margin:0">Loading simulations…</p></div>
+  <div id="study-sim-table" style="overflow-x:auto"><p class="muted" style="margin:0">Loading…</p></div>
   <div id="study-run-detail" style="margin-top:14px"></div>
 </div>
 
@@ -922,7 +930,7 @@ computation.
       <iframe src="/viva-cpm/dashboard/workspace/studies/recruitment-receptor-baseline/viz/scene.html"
               class="figure-media-frame figure-media-frame--embed"
               loading="lazy" title="Animated spatial scene"
-              onload="(function(f){try{var d=f.contentDocument;if(!d)return;var b=d.body,e=d.documentElement;var bStyle=b&&d.defaultView&&d.defaultView.getComputedStyle?d.defaultView.getComputedStyle(b):null;var pinnedH=0;if(bStyle&&(bStyle.overflow||'').indexOf('hidden')>=0){var hm=(bStyle.height||'').match(/^(\d+(?:\.\d+)?)px$/);if(hm)pinnedH=Math.round(parseFloat(hm[1]));}var h=pinnedH>0?pinnedH:Math.max(e?e.scrollHeight:0,b?b.scrollHeight:0);if(h>0)f.style.height=(h+24)+'px';}catch(e){}})(this)"
+              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
               ></iframe>
       
       <div class="figure-caption-row">
@@ -937,7 +945,7 @@ computation.
       <iframe src="/viva-cpm/dashboard/workspace/studies/recruitment-receptor-baseline/viz/occupancy-law.html"
               class="figure-media-frame figure-media-frame--embed"
               loading="lazy" title="Receptor occupancy law"
-              onload="(function(f){try{var d=f.contentDocument;if(!d)return;var b=d.body,e=d.documentElement;var bStyle=b&&d.defaultView&&d.defaultView.getComputedStyle?d.defaultView.getComputedStyle(b):null;var pinnedH=0;if(bStyle&&(bStyle.overflow||'').indexOf('hidden')>=0){var hm=(bStyle.height||'').match(/^(\d+(?:\.\d+)?)px$/);if(hm)pinnedH=Math.round(parseFloat(hm[1]));}var h=pinnedH>0?pinnedH:Math.max(e?e.scrollHeight:0,b?b.scrollHeight:0);if(h>0)f.style.height=(h+24)+'px';}catch(e){}})(this)"
+              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
               ></iframe>
       
       <div class="figure-caption-row">
@@ -952,7 +960,7 @@ computation.
       <iframe src="/viva-cpm/dashboard/workspace/studies/recruitment-receptor-baseline/viz/recruitment-curve.html"
               class="figure-media-frame figure-media-frame--embed"
               loading="lazy" title="Receptor-gated recruitment curve"
-              onload="(function(f){try{var d=f.contentDocument;if(!d)return;var b=d.body,e=d.documentElement;var bStyle=b&&d.defaultView&&d.defaultView.getComputedStyle?d.defaultView.getComputedStyle(b):null;var pinnedH=0;if(bStyle&&(bStyle.overflow||'').indexOf('hidden')>=0){var hm=(bStyle.height||'').match(/^(\d+(?:\.\d+)?)px$/);if(hm)pinnedH=Math.round(parseFloat(hm[1]));}var h=pinnedH>0?pinnedH:Math.max(e?e.scrollHeight:0,b?b.scrollHeight:0);if(h>0)f.style.height=(h+24)+'px';}catch(e){}})(this)"
+              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
               ></iframe>
       
       <div class="figure-caption-row">
@@ -1387,7 +1395,7 @@ hill/activate_occupancy remain modeling choices, not independently fit
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "0f5352f499cf026204f0e54e9c5926f85a505b53", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/0f5352f499cf026204f0e54e9c5926f85a505b53", "branch": "main", "lockfile": "uv.lock@dd03582ba38f", "generated_at": "2026-08-19 16:48 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "9bc871339c9fe2c6cabac96908c77d71808cb610", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/9bc871339c9fe2c6cabac96908c77d71808cb610", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-18 15:00 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "recruitment-receptor-baseline";
@@ -1416,10 +1424,10 @@ function _saveExpertInput(studyName, eiName, btn) {
   flash.className = 'cond-ei-flash';
   flash.style.display = '';
   flash.textContent = 'saving…';
-  fetch('/api/study-expert-input-set', {
-    method: 'POST',
+  fetch('/api/study/' + encodeURIComponent(studyName), {
+    method: 'PATCH',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({study: studyName, name: eiName, current: val}),
+    body: JSON.stringify({expert_input: {name: eiName, current: val}}),
   }).then(function(r) {
     return r.text().then(function(t) { return {ok: r.ok, status: r.status, body: t}; });
   }).then(function(res) {
