@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Study: position_reversal</title>
+<title>Study: virus-field-infection</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
 <!-- Inherit the workbench light/dark theme (this page loads in an iframe;
@@ -14,11 +14,11 @@
 <header class="study-header">
   <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
-    <span class="study-name" id="study-name" data-slug="position_reversal" title="position_reversal">Position reversal</span>
+    <span class="study-name" id="study-name" data-slug="virus-field-infection" title="virus-field-infection">Increment 2: virus field diffusion/decay + stochastic local infection spread</span>
     
     <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
     
-    <span class="phase-pill phase-decide" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Decide</span>
+    <span class="phase-pill phase-simulate" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Simulate</span>
     
   </h1>
   <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0;">
@@ -36,7 +36,7 @@
     
 
     
-    <div id="readiness-panel" data-slug="position_reversal"></div>
+    <div id="readiness-panel" data-slug="virus-field-infection"></div>
 
     
     
@@ -58,7 +58,7 @@
             <span class="dot"></span>2&nbsp;·&nbsp;Execution
           </span>
           
-          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 3 · Evidence">
+          <span class="status-step gate-step axis-evaluation_status gate-state-passed-with-conditions set" title="Gate 3 · Evidence">
             <span class="dot"></span>3&nbsp;·&nbsp;Evidence
           </span>
           
@@ -90,19 +90,21 @@
           <span class="status-detail-axis">2 · Execution</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="1 completed run(s)">◆ computed: ran</span>
+          <span class="gate-computed-chip gate-state-passed" title="2 completed run(s)">◆ computed: ran</span>
           
           
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed">
+        <div class="status-detail-row gate-row gate-state-passed-with-conditions">
           <span class="status-detail-axis">3 · Evidence</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          <span class="gate-computed-chip gate-state-passed-with-conditions" title="completed run + recorded verdicts + visualization readiness gate (V4)">◆ computed: evaluated</span>
           
           
+          
+          <span class="gate-viz-gap-note" style="font-size:0.86em;color:#92400e">visualization gap: no figures</span>
           
         </div>
         
@@ -142,20 +144,37 @@
 
 
 
+<div class="composite-lint-banner" role="alert"
+     style="margin:8px 0 14px 0;padding:10px 14px;background:#fffbeb;border:1px solid #f59e0b;border-left-width:5px;border-radius:6px;color:#92400e;font-size:0.9em">
+  
+  <div>⚠ composite not found in registry: <code>pbg_cpm_studies.composites.influenza.virus_infection</code></div>
+  
+  <div style="margin-top:4px;font-size:0.86em;color:#a16207">
+    This study references a composite that doesn't resolve — it may not declare a
+    real, registered composite. Add a <code>.composite.yaml</code> and register it
+    in <code>core.py</code>, or fix the ref.
+  </div>
+</div>
 
 
 
 
 
 
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Does raising the light-Medium tension (gamma_lM=23) reverse the sorting so dark cells end up outside?
+
+<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Layered on the validated Increment-1 confluent sheet: does a diffusing,
+decaying extracellular virus field (source-cited D/decay, target
+diffusion length 5 cell diameters = 25 sites) and a stochastic,
+virus-driven H -&gt; I infection transition produce LOCAL lesion spread
+(new infections cluster near existing infected cells, not uniformly
+across the sheet) with population conserved?
 </p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
   <div class="act-cluster" data-act="study">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="study" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="study" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">The Study</span>
     </div>
     <div class="act-tabs">
@@ -176,7 +195,7 @@
   </div>
   <div class="act-cluster" data-act="evidence">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">Evidence</span>
     </div>
     <div class="act-tabs">
@@ -560,25 +579,86 @@
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">Dark cells sort OUTWARD, surrounding the light cells, the reversed pattern predicted for gamma_lM&gt;gamma_dM (Figs 20-21).</p>
+      <p class="ctr-text">The extracellular virus field diffuses and decays (source-cited
+parameters), and a seeded lesion of InfectedReleasing cells spreads via a
+stochastic, virus-driven H -&gt; I transition to nearby Healthy cells
+(locally, within a few diffusion lengths), with total cell population
+conserved every update. This is a MECHANISM-validation claim (the field
+and the transition behave sensibly together), not a claim that any of
+Sego et al. 2022&#39;s quantitative figure targets (Figs 3B/5/7) are met —
+that reproduction verdict remains PENDING until Increment 9 (the
+capstone).
+</p>
+      
+      <div class="ctr-context">A small seeded lesion of InfectedReleasing (I) epithelial cells secretes
+virus into a diffusing, decaying extracellular field (source-cited
+diffusion coefficient and decay rate; target diffusion length 5 cell
+diameters = 25 lattice sites, per `pbg_cpm_studies/influenza/params.yaml`
+`virus:` block). Nearby Healthy (H) cells stochastically transition to
+Infected as a function of the local mean field concentration they
+experience (`Pr(infect) = 1 - exp(-g_hv * v_bar)`), so the lesion grows
+outward from its seed rather than infecting uniformly at random across
+the sheet. This reproduces the qualitative spatial-spread PHENOMENON that
+underlies Sego et al. 2022&#39;s Fig 6 virus/infection spatial snapshots
+(referenced qualitatively here — Fig 6 has no digitized acceptance band
+in this workspace, unlike Figs 3B/5/7, which are cell-count time-series
+targets, not spatial-pattern targets, and are therefore not the right
+comparison for this study). There is no resistance/IFN response yet
+(per-cell resistance stays 0 throughout — Increment 3 adds the type-I
+IFN field and the resistance state variable that will begin to gate this
+same transition), no cell death/recovery, and no immune cells.
+</div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Test</h2>
-      <p class="ctr-text">Simulate with gamma_lM=23 from a random IC and measure medium type-correlations to detect position reversal.
+      <p class="ctr-text">Wire the virus field (Task 2.1, `pbg_cpm_studies/influenza/fields.py`) and
+the stochastic infection transition (Task 2.2,
+`pbg_cpm_studies/influenza/transitions.py`) together over the Increment-1
+sheet, drive them for 60 updates from a small seeded lesion
+(`pbg_cpm_studies/influenza/run.py::run_virus_infection`, Task 2.3), and
+report the measured spread/locality/null-control behavior from the
+integration test (`tests/test_influenza_virus_infection.py`). Wrap the
+same mechanism as a process-bigraph composite
+(`pbg_cpm_studies.composites.influenza.virus_infection`, CPMProcess +
+InfectionProcess wired through `fates`) for the dashboard live demo (Task
+2.4, this study) — measurements come from `run_virus_infection`, not the
+live-demo composite (see caveat and Task 2.3&#39;s report on why the two
+paths use independent RNG streams and are not bit-identical).
 </p>
       
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>position_reversal</code></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">Paper: Fig 20-21 — light-Medium correlation→0; dark owns the surface. Pass criterion: dark holds &gt;80% of the medium surface (light-Medium→0) AND light-dark contact falls (sorting). Measured from the reproduced run: corr_dM_final=1.000 (corr_lM 0.442→0.000), frac_ld 0.439→0.058.</span></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>virus-field-infection</code></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">Pass criterion: n_I grows and n_H shrinks correspondingly over 60
+updates, with n_H + n_I constant every update. Measured: n_I 9 -&gt; 16,
+n_H 891 -&gt; 884, population conserved every update (Task 2.3).
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Pass criterion (discriminating, not a loose absolute radius): the mean
+new-infection distance-to-nearest-prior-infected-cell must be under
+0.75x the mean nearest-prior-infected distance a uniform-random
+still-susceptible cell would have had that same update (a per-update
+population-mean null baseline). Measured: actual_mean=15.0 sites,
+random_null_mean=24.6 sites, ratio ~0.61 (seed 17; ~0.58-0.67 across
+seeds/step counts) — comfortably under 0.75. A shuffled-virus-field
+non-local control of the same run gives ratio ~1.13 and correctly
+FAILS this threshold, confirming the test has teeth (Task 2.3 fix
+round 1, `tests/test_influenza_virus_infection.py::
+test_new_infections_land_closer_to_prior_infection_than_random_chance`).
+A secondary check also holds the first 3 updates with actual new
+infections under a tighter 50-site (2x diffusion-length) absolute
+bound.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Pass criterion: with init_infected_frac=0.0, n_I stays 0 and
+new_infection_dists is empty every update, for the whole run.
+Measured: confirmed (Task 2.3,
+test_no_seed_and_no_initial_virus_means_no_infection).
+</span></div>
       </div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">Dark cells sort OUTWARD, surrounding the light cells, the reversed pattern predicted for gamma_lM&gt;gamma_dM (Figs 20-21).</p>
+      <p class="ctr-text">A population-conserving, spatially-local infection spread emerges from just two mechanisms (field diffusion + a per-cell stochastic H -&gt; I draw driven by local field concentration) with no explicit &#34;infect-my-neighbor&#34; rule — new infections land ~0.6x as far from prior infection as a uniform-random null baseline (a discriminating test that a shuffled-field non-local control correctly fails at ~1.13x), because the field itself is spatially concentrated, not because the transition rule encodes locality directly.</p>
       
       
     <div class="overview-section findings-section">
@@ -595,7 +675,13 @@
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">Dark cells sort OUTWARD, surrounding the light cells, the reversed pattern predicted for gamma_lM&gt;gamma_dM (Figs 20-21).</span>
+            <span class="finding-claim finding-statement">The virus field + stochastic H -&gt; I transition together produce a
+growing, population-conserving lesion over 60 updates from a small
+seeded start — the base infection mechanism (with resist=0, no IFN
+gating) behaves as specified.
+</span>
+            
+            <span class="finding-chip">via <code>Seeded lesion spreads over time (population conserved)</code></span>
             
           </summary>
           <div class="finding-drawer">
@@ -604,6 +690,143 @@
               <span class="finding-kind">computational</span>
               <span class="finding-status-text">confirms literature</span>
             </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> n_I 9 -&gt; 16, n_H 891 -&gt; 884 over 60 updates (0.3mm sheet, init_infected_frac=0.01, seed=17); n_H + n_I constant every update · 
+              
+              via test <a href="#bt-Seeded" onclick="_gotoStudyTab('tests','bt-Seeded');return false;"><code>Seeded lesion spreads over time (population conserved)</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×1.0 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">New infections land significantly closer to already-infected cells
+than uniform-random placement would predict (~0.61x the chance
+distance, discriminated against a per-update population-mean null
+baseline, not a loose absolute radius) — spatial locality emerges from
+the field&#39;s own diffusion length (25 sites) without any explicit
+&#34;infect-my-neighbor&#34; rule in the transition itself, which only reads
+local field concentration. A shuffled-field non-local control
+correctly fails the same test (ratio ~1.13), confirming the locality
+claim is genuinely earned rather than an artifact of a bound too loose
+to discriminate.
+</span>
+            
+            <span class="finding-chip">via <code>New infections land closer to prior infection than random chance (locality)</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-02</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> 7 new-infection events; actual_mean distance-to-nearest-prior-infected-cell 15.0 sites vs a uniform-random null_mean of 24.6 sites (ratio ~0.61, seed 17; ~0.58-0.67 across seeds/step counts, threshold &lt;0.75); a shuffled-virus-field non-local control of the same run gives ratio ~1.13 and correctly fails; first new infection at update 21, 5.0 sites · 
+              
+              via test <a href="#bt-New" onclick="_gotoStudyTab('tests','bt-New');return false;"><code>New infections land closer to prior infection than random chance (locality)</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×0.61 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">With no initial lesion and no virus source, nothing infects — the
+transition does not spontaneously activate, confirming the field is
+the sole driver of new infections in this mechanism.
+</span>
+            
+            <span class="finding-chip">via <code>No seed, no initial virus -&gt; no infection (null control)</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-03</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> n_I stays 0, new_infection_dists empty every update, for the whole 60-update run with init_infected_frac=0.0 · 
+              
+              via test <a href="#bt-No" onclick="_gotoStudyTab('tests','bt-No');return false;"><code>No seed, no initial virus -&gt; no infection (null control)</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×1.0 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
             
             
             
@@ -622,9 +845,9 @@
       <div class="ctr-meta ctr-assess">
         
         <div class="ctr-meta-row"><span class="ctr-meta-k">Confidence</span>
-          <span class="ctr-badge ctr-badge-accepted">Accepted</span>
-          
-          
+          <span class="ctr-badge ctr-badge-provisional">Provisional</span>
+          <span class="ctr-vch">biology&nbsp;PENDING</span>
+          <span class="ctr-vch">insight&nbsp;PENDING</span>
         </div>
         
         
@@ -643,12 +866,12 @@
   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
     <h2 class="overview-label" style="margin:0">Model composition</h2>
     
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'position_reversal', 'glazier-graner-1993')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'virus-field-infection', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
   </div>
 
   
   
-  <div id="model-composite-cards" class="model-composite-cards" data-study="position_reversal"
+  <div id="model-composite-cards" class="model-composite-cards" data-study="virus-field-infection"
        data-study-config="">
     <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
   </div>
@@ -667,29 +890,35 @@
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.gg1993.position_reversal" data-model-overrides='{}'>
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.virus_infection" data-model-overrides='{"init_infected_frac": 0.05, "patch_mm": 0.1, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <strong>position_reversal</strong>
+        <strong>virus-field-infection</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.gg1993.position_reversal</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.virus_infection</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.gg1993.position_reversal')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.virus_infection')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="position_reversal"
-               value="pbg_cpm_studies.composites.gg1993.position_reversal" placeholder="pkg.composites.name"
+        <input type="text" class="baseline-composite-input" data-baseline-name="virus-field-infection"
+               value="pbg_cpm_studies.composites.influenza.virus_infection" placeholder="pkg.composites.name"
                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
-                data-baseline-name="position_reversal">Set composite</button>
+                data-baseline-name="virus-field-infection">Set composite</button>
       </div>
-      <div class="baseline-composite-status muted" data-baseline-name="position_reversal" style="font-size:0.8em;margin-top:2px"></div>
+      <div class="baseline-composite-status muted" data-baseline-name="virus-field-infection" style="font-size:0.8em;margin-top:2px"></div>
       
       
       
       
       
+      
+        
+      
+        
+      
+        
       
       
       
@@ -715,6 +944,52 @@
   
   
 
+  
+  <div class="overview-section">
+    <h3>Model change</h3>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.virus_infection</code></p>
+    
+    <p><strong>New processes:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code></code> <span class="muted">(Process)</span></li>
+    </ul>
+    
+    
+    <p><strong>New state variables:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code>virus field (per-site concentration)</code></li>
+    </ul>
+    
+    
+    <p><strong>New parameters:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code></code></li><li><code></code></li><li><code></code></li>
+    </ul>
+    
+    
+    
+    <p><strong>Modified processes:</strong></p>
+    <ul style="margin:0 0 8px 18px;list-style:none;padding-left:0">
+      
+      <li style="margin:0 0 8px 0;padding:8px 10px;background:#fff;border:1px solid #e5e7eb;border-radius:6px">
+        
+        pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline (adds fields + secretory_types)
+        
+      </li>
+      
+    </ul>
+    
+    <p class="muted" style="font-size:0.88em">Wraps the existing CPMProcess (now with `n_fields=1`,
+`secretory_types=[types.I]`, and a `fields:` spec entry from
+`fields.virus_field_spec_entry()`) plus a new InfectionProcess wired
+through the shared `fates` map (same down-scale-coupling convention as
+`cpm.coupling`) -- the live-demo composite for the dashboard. The
+readouts and behavior tests above are measured directly against
+`run.run_virus_infection` (raw `cpm_core.World` loop, Task 2.3), not
+through this process-bigraph composite; see key_assumptions for why the
+two paths are not expected to be bit-identical.
+</p>
+  </div>
   
 
   
@@ -746,7 +1021,7 @@
 
   <h4>Latest run preview</h4>
   <p class="muted" style="font-size:0.9em">Per-store sparkline + first/last/min/max from the most recent run's emitted trajectory. This is a downsampled PREVIEW, not the full data — use the per-store or Download-all links for the complete arrays.</p>
-  <div id="results-preview" data-study="position_reversal">
+  <div id="results-preview" data-study="virus-field-infection">
     <p class="empty-message">Loading results preview…</p>
   </div>
 
@@ -770,9 +1045,9 @@
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
     <span class="muted" style="margin-right:auto;font-weight:600">Analysis result files</span>
     <a id="data-download-all" class="btn-mini" style="display:none"
-       href="/api/study-analysis-zip?study=position_reversal">Download all (.zip)</a>
+       href="/api/study-analysis-zip?study=virus-field-infection">Download all (.zip)</a>
   </div>
-  <div id="data-files" data-study="position_reversal">
+  <div id="data-files" data-study="virus-field-infection">
     <p class="empty-message">Loading result files…</p>
   </div>
 </div>
@@ -793,7 +1068,7 @@
     interval/buffer, output location, and emit scope — from
     <code>lib/emitters.py</code> and this study's (or the workspace's)
     <code>runtime.default_emitter</code>.</p>
-    <div id="readouts-emitter" data-study="position_reversal">
+    <div id="readouts-emitter" data-study="virus-field-infection">
       <p class="empty-message">Loading emitter configuration…</p>
     </div>
 
@@ -805,7 +1080,7 @@
     
     <div id="readouts-download" style="margin:0 0 16px 0"></div>
 
-    <div id="readouts-table" data-study="position_reversal">
+    <div id="readouts-table" data-study="virus-field-infection">
       <p class="empty-message">Loading readouts from the composite emit plan…</p>
     </div>
 
@@ -813,7 +1088,7 @@
     <p class="muted" style="font-size:0.9em">Store path, dtype, shape
     <code>(n_steps, …)</code>, units, and a best-effort byte estimate for each emitted
     leaf.</p>
-    <div id="readouts-shapes" data-study="position_reversal">
+    <div id="readouts-shapes" data-study="virus-field-infection">
       <p class="empty-message">Loading output shapes…</p>
     </div>
 
@@ -836,45 +1111,9 @@
 
     
     
-    <div class="viz-actions-row" style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'position_reversal')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
-    </div>
-    
 
     <div id="native-gallery-panel" class="figure-mount"><p class="empty-message">Loading figures…</p></div>
 
-    
-    
-    
-    <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/position_reversal/viz/interactive.html"
-              class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="Interactive figure"
-              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
-              ></iframe>
-      
-      <div class="figure-caption-row">
-        <span class="figure-source-chip">embed</span>
-        <span class="figure-title">Interactive figure</span>
-        
-        <a href="/viva-cpm/dashboard/workspace/studies/position_reversal/viz/interactive.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
-      </div>
-    </div>
-    
-    <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/position_reversal/viz/figures.html"
-              class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="All paper figures"
-              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
-              ></iframe>
-      
-      <div class="figure-caption-row">
-        <span class="figure-source-chip">embed</span>
-        <span class="figure-title">All paper figures</span>
-        
-        <a href="/viva-cpm/dashboard/workspace/studies/position_reversal/viz/figures.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
-      </div>
-    </div>
     
     
 
@@ -890,6 +1129,44 @@
   <p class="muted" style="margin:0 0 12px 0"><strong>The bar.</strong> What must be true for this model to count as correct — the acceptance criteria, their bands, and the report cards that grade them.</p>
 
   
+  
+  
+  <div class="overview-section expectations-band" id="expectations-band">
+    <h3 class="section-title">Expectations
+      <span class="muted" style="font-size:0.85em;font-weight:normal">— from literature, mapped to the model observable that measures each</span>
+    </h3>
+    <ul class="literature-anchor-list" style="list-style:none;padding-left:0">
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>The virus field&#39;s diffusion length should be ~5 epithelial-cell diameters (source `exp_virus_dl` = exp_cell_diameter * 5.0).</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>pbg_cpm_studies/influenza/fields.py VIRUS_DIFFUSION_LENGTH_SITES = 25 sites (5 cell diameters x 5 sites/diameter); new-infection distances (5.0-32.0 sites, raw) land ~0.61x as far from prior infection as a uniform-random null baseline (ratio threshold &lt;0.75; shuffled-field non-local control fails at ~1.13), and the first 3 updates with new infections stay under a tighter 50-site (2x diffusion-length) absolute bound.</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (pbg_cpm_studies/influenza/params.yaml virus.diffusion_length_cell_diam)</div>
+        
+      </li>
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Sego et al. 2022 Fig 6 shows the spatial pattern of virus concentration and infected cells spreading outward from an initial lesion over simulated time.</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>This study&#39;s discriminating locality result (new infections land ~0.61x as far from prior infection as a uniform-random null baseline would predict, vs ~1.13x for a shuffled-field non-local control) is the same qualitative phenomenon (local outward spread from an active lesion) that Fig 6 depicts.</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> Sego 2022 Fig 6</div>
+        
+      </li>
+    
+    </ul>
+  </div>
   
 
   
@@ -933,10 +1210,10 @@
     
     
     
-    <li class="expected-behavior-item" id="bt-Position reversal: dark forms the outer monolayer"
+    <li class="expected-behavior-item" id="bt-Seeded lesion spreads over time (population conserved)"
         data-test-kind="behavioral"
         
-        data-pytest-node="Position reversal: dark forms the outer monolayer"
+        data-pytest-node="Seeded lesion spreads over time (population conserved)"
         data-classification="primary"
         data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
@@ -945,19 +1222,22 @@
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">Position reversal: dark forms the outer monolayer</strong>
+        <strong style="font-size: 0.9em;">Seeded lesion spreads over time (population conserved)</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Paper: Fig 20-21 — light-Medium correlation→0; dark owns the surface. Pass criterion: dark holds &gt;80% of the medium surface (light-Medium→0) AND light-dark contact falls (sorting). Measured from the reproduced run: corr_dM_final=1.000 (corr_lM 0.442→0.000), frac_ld 0.439→0.058.</div>
+      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: n_I grows and n_H shrinks correspondingly over 60
+updates, with n_H + n_I constant every update. Measured: n_I 9 -&gt; 16,
+n_H 891 -&gt; 884, population conserved every update (Task 2.3).
+</div>
       
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 1.0</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 16.0</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: corr_dM_final=1.000 (corr_lM 0.442→0.000), frac_ld 0.439→0.058</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: n_I 9 -&gt; 16, n_H 891 -&gt; 884 over 60 updates; n_H + n_I conserved every update (Task 2.3, test_seeded_lesion_spreads_over_time)</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: pbg_cpm_studies.gg1993.validate</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
         
       </div>
       
@@ -965,8 +1245,111 @@
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: "corr_dM"
-pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND light-dark contact falls (sorting)"</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "virus-field-infection", "kind": "n_I", "stat": "delta"}
+pass_if: {"op": "gt", "value": 0}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-New infections land closer to prior infection than random chance (locality)"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="New infections land closer to prior infection than random chance (locality)"
+        data-classification="primary"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">New infections land closer to prior infection than random chance (locality)</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion (discriminating, not a loose absolute radius): the mean
+new-infection distance-to-nearest-prior-infected-cell must be under
+0.75x the mean nearest-prior-infected distance a uniform-random
+still-susceptible cell would have had that same update (a per-update
+population-mean null baseline). Measured: actual_mean=15.0 sites,
+random_null_mean=24.6 sites, ratio ~0.61 (seed 17; ~0.58-0.67 across
+seeds/step counts) — comfortably under 0.75. A shuffled-virus-field
+non-local control of the same run gives ratio ~1.13 and correctly
+FAILS this threshold, confirming the test has teeth (Task 2.3 fix
+round 1, `tests/test_influenza_virus_infection.py::
+test_new_infections_land_closer_to_prior_infection_than_random_chance`).
+A secondary check also holds the first 3 updates with actual new
+infections under a tighter 50-site (2x diffusion-length) absolute
+bound.
+</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.61</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: actual_mean=15.0 sites vs random_null_mean=24.6 sites, ratio ~0.61 (threshold &lt;0.75); shuffled-virus-field non-local control of the same run gives ratio ~1.13 and correctly fails (Task 2.3 fix round 1, test_new_infections_land_closer_to_prior_infection_than_random_chance)</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "virus-field-infection", "kind": "locality_null_ratio", "stat": "mean"}
+pass_if: {"op": "lt", "value": 0.75}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-No seed, no initial virus -&gt; no infection (null control)"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="No seed, no initial virus -&gt; no infection (null control)"
+        data-classification="primary"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">No seed, no initial virus -&gt; no infection (null control)</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: with init_infected_frac=0.0, n_I stays 0 and
+new_infection_dists is empty every update, for the whole run.
+Measured: confirmed (Task 2.3,
+test_no_seed_and_no_initial_virus_means_no_infection).
+</div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "virus-field-infection-null", "kind": "n_I", "stat": "max"}
+pass_if: {"op": "eq", "value": 0}</pre>
       </details>
       
       
@@ -1040,14 +1423,14 @@ pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND l
           <span class="narrative-label">Regression compatibility</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="regression_compatibility"
                 title="Computed from run status (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
           <span class="muted small" style="margin-left:6px">computed from run status</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged."></textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces Task 2.3&#39;s measured integration-test results exactly (same driver, same seed).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
@@ -1060,7 +1443,7 @@ pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND l
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5]."></textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This increment validates the MECHANISM (field diffusion/decay, local stochastic infection spread, population conservation) with a single seeded run, not a quantitative reproduction against any of Figs 3B/5/7. No resistance/IFN, death/recovery, or immune-cell dynamics exist yet. Do NOT read PENDING as a passing or failing reproduction verdict — no reproduction claim is made until Increment 9.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
@@ -1073,7 +1456,7 @@ pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND l
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed."></textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No alternative mechanism is being compared at this increment; deferred to later increments / the capstone where a reproduction comparison against the paper&#39;s figures becomes meaningful.</textarea>
         </label>
       </div>
     </div>
@@ -1086,7 +1469,17 @@ pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND l
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>Reproduced the paper's Position reversal example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 20, Fig 21.</p>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>MECHANISM VALIDATED, NOT REPRODUCED. The virus field diffuses/decays and
+drives a population-conserving, spatially-local infection spread from a
+seeded lesion (measured: n_I 9 -&gt; 16, 7 new-infection events landing
+~0.61x as far from a prior-infected cell as a uniform-random null
+baseline would predict — a discriminating test a shuffled-field non-local
+control correctly fails at ratio ~1.13; null control confirms no
+spontaneous infection). This increment has
+no resistance/IFN gating, no death/recovery, and no immune cells, and
+makes NO claim about matching any of Sego et al. 2022's Figs 3B/5/7
+quantitative acceptance bands — that reproduction verdict is PENDING until
+Increment 9 (the capstone).</p>
 </div>
     </div>
     
@@ -1104,7 +1497,7 @@ pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND l
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">Second-nearest-neighbour (Moore-8) square lattice, order 2.</li><li style="margin:2px 0">1 paper-MCS = 16 lattice-site sweeps (paper convention).</li><li style="margin:2px 0">Statistics/displays after 2 MCS of T=0 annealing (unless noted).</li>
+        <li style="margin:2px 0">Virus secretion magnitude uses the documented z=1/per-pixel convention (`pbg_cpm_studies/influenza/fields.py`&#39;s `_virus_field_params` — the source&#39;s per-cell `secretion_g_vi` is halved to remove the source&#39;s z=2 slab thickness for our single-layer z=1 sheet, then spread evenly over each cell&#39;s 25 pixels). This reproduces the source&#39;s RATE convention faithfully but its exact absolute magnitude against the paper&#39;s published field scale is an Increment-9 calibration concern, not validated here.</li><li style="margin:2px 0">resist=0 for every cell throughout this run — no IFN-driven resistance gating exists yet (Increment 3). The measured infection rate here is therefore an UPPER bound on what later increments will show once resistance suppresses some fraction of would-be infections.</li><li style="margin:2px 0">Single seed (17) for both the initial-lesion choice and the stochastic transition (two independent streams, see `run.run_virus_infection` docstring) — the 7-event, ~0.61x-null-ratio locality result is a single-run demonstration (the ~0.58-0.67x range cited above spans a small number of seeds/step counts checked during test development, not a full replicate study), not a statistically characterized rate across a systematic replicate sweep.</li><li style="margin:2px 0">The live-demo composite (`pbg_cpm_studies.composites.influenza.virus_infection`) and the measurement driver (`run.run_virus_infection`) use independent RNG streams for the same `seed` and are NOT expected to produce bit- identical trajectories (Task 2.3 report) — the composite exists for a fast dashboard demo, not as the source of this study&#39;s readouts.</li>
       </ul>
     </div>
     
@@ -1133,8 +1526,8 @@ pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND l
       
       
       <p class="muted" style="margin:0;font-size:0.9em">
-        <strong>1</strong> test outcome
-        — <span style="color:#065f46;font-weight:600">1 PASS</span> ·
+        <strong>2</strong> test outcomes
+        — <span style="color:#065f46;font-weight:600">2 PASS</span> ·
         <span style="color:#991b1b;font-weight:600">0 FAIL</span>.
         Per-test outcomes (measured value · evaluator · band) are canonical on the
         <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline">Tests tab →</a>.
@@ -1154,6 +1547,49 @@ pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND l
 
     
     
+    
+    <div class="overview-section" id="discovery-implications-section" style="margin-top:18px">
+      <h3 class="overview-label">Discovery implications</h3>
+      <p class="muted" style="margin:0 0 10px 0;font-size:0.88em">Where this study's results leave the mechanism model — and what to investigate next.</p>
+
+      
+
+      
+
+      
+
+      
+      
+      
+      <div class="di-group">
+        <h3>Follow-up study proposals
+          <span class="muted" style="font-weight:normal;font-size:0.82em">(discovered)</span>
+          <span class="muted" style="font-weight:normal;font-size:0.85em">(1)</span></h3>
+        <p class="muted" style="margin:0 0 8px 0;font-size:0.85em">Click <strong>➕ Add to investigation</strong> to spawn a new study node in the investigation graph.</p>
+        <div class="followup-list">
+          
+          
+          <div class="di-card di-fup-card">
+            <div class="followup-header">
+              <strong class="followup-title">Increment 3: IFN + per-cell resistance</strong>
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="followup-actions" style="margin-top:8px">
+              <button class="btn-seed-followup"
+                      onclick="_seedFollowupProposal('virus-field-infection', "ifn-resistance")">➕ Add to investigation</button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+    
 
     
     
@@ -1171,7 +1607,7 @@ pass_if: "dark holds \u003e80% of the medium surface (light-Medium\u21920) AND l
 <script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "6e6c23209edee94c2632fede1fc8b3d54c30b14c", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/6e6c23209edee94c2632fede1fc8b3d54c30b14c", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-18 17:30 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
-window._studyName = "position_reversal";
+window._studyName = "virus-field-infection";
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.

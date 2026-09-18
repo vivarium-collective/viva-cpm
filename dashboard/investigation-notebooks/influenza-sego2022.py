@@ -261,5 +261,84 @@ print("No recorded runs for this study; nothing to reproduce.")
 # | Sheet holds confluent after relaxation | kind=mean_cell_volume_sites condition=epithelial-sheet-baseline stat=mean | op gt value 0 |
 # | 1mm^2 throughput clears the perf-gate floor | kind=throughput_mcs_per_s condition=epithelial-sheet-baseline stat=min | op gt value 200.0 |
 
+# ## Study: Increment 2: virus field diffusion/decay + stochastic local infection spread (`virus-field-infection`)
+#
+# **Question.** Does the extracellular virus field (source-cited diffusion coefficient and
+# decay rate, secreted by InfectedReleasing cells) diffuse and decay as
+# specified, and does a stochastic, field-driven H -> I infection transition
+# spread a seeded lesion LOCALLY (new infections cluster near existing
+# infected cells) rather than uniformly, with total cell population
+# conserved?
+#
+# **Objective.** Wire the virus field (Task 2.1, `pbg_cpm_studies/influenza/fields.py`) and
+# the stochastic infection transition (Task 2.2,
+# `pbg_cpm_studies/influenza/transitions.py`) together over the Increment-1
+# sheet, drive them for 60 updates from a small seeded lesion
+# (`pbg_cpm_studies/influenza/run.py::run_virus_infection`, Task 2.3), and
+# report the measured spread/locality/null-control behavior from the
+# integration test (`tests/test_influenza_virus_infection.py`). Wrap the
+# same mechanism as a process-bigraph composite
+# (`pbg_cpm_studies.composites.influenza.virus_infection`, CPMProcess +
+# InfectionProcess wired through `fates`) for the dashboard live demo (Task
+# 2.4, this study) — measurements come from `run_virus_infection`, not the
+# live-demo composite (see caveat and Task 2.3's report on why the two
+# paths use independent RNG streams and are not bit-identical).
+#
+# **Hypothesis.** Layered on the Increment-1 confluent sheet: a virus field secreted by a
+# small seeded lesion of InfectedReleasing (I) cells diffuses outward and
+# decays; a stochastic H -> I transition (rate = g_hv * local mean field
+# concentration) converts nearby Healthy (H) cells to Infected (I) over
+# time, with new infections landing close to already-infected cells (within
+# a few multiples of the field's own diffusion length) rather than
+# scattered across the whole sheet, and n_H + n_I conserved every update.
+#
+# **Purpose.** virus_field_and_infection_transition
+#
+# **Claim.** The extracellular virus field diffuses and decays (source-cited
+# parameters), and a seeded lesion of InfectedReleasing cells spreads via a
+# stochastic, virus-driven H -> I transition to nearby Healthy cells
+# (locally, within a few diffusion lengths), with total cell population
+# conserved every update. This is a MECHANISM-validation claim (the field
+# and the transition behave sensibly together), not a claim that any of
+# Sego et al. 2022's quantitative figure targets (Figs 3B/5/7) are met —
+# that reproduction verdict remains PENDING until Increment 9 (the
+# capstone).
+
+# ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.influenza.virus_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.influenza.virus_infection`** — `spec_pbg_cpm_studies_composites_influenza_virus_infection` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.influenza.virus_infection` not found under `pbg_cpm_studies/composites/` — skipped._
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: virus-field-infection ===
+STUDY = 'virus-field-infection'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | Seeded lesion spreads over time (population conserved) | kind=n_I condition=virus-field-infection stat=delta | op gt value 0 |
+# | New infections land closer to prior infection than random chance (locality) | kind=locality_null_ratio condition=virus-field-infection stat=mean | op lt value 0.75 |
+# | No seed, no initial virus -> no infection (null control) | kind=n_I condition=virus-field-infection-null stat=max | op eq value 0 |
+
 # ## Open decisions
 # - Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?
