@@ -17,8 +17,11 @@ run the same model and match the paper's published results.
 
 **Fidelity target (decided in brainstorming):** *quantitative figure match at
 paper scale* — reproduce Figs 3B, 5, and 7 numerically at/near paper scale
-(1 mm × 1 mm sheets, ~250k epithelial cells, 50 replicas per condition) within
-acceptance bands.
+(1 mm × 1 mm sheets = a 500×500-site 2 µm lattice holding ~10,000 epithelial
+cells, 50 replicas per condition) within acceptance bands. Note: the paper's
+"250 k" is the *ODE organism-level* epithelial population used only for the η/θ
+cellularization scaling — the spatial domain itself holds ~10 k cells at 1 mm²
+(η = 0.04 × 250 k) and ~900–1,225 at 0.3 mm (η = 0.0049).
 
 **Oracle (decided):** the paper's supplementary **CompuCell3D source** is the
 authoritative parameter/spec; the **published figures** are the numeric
@@ -80,7 +83,7 @@ patches; Neumann + periodic BCs.
 ## 4. Architecture (Approach A)
 
 **Rust engine (`crates/cpm-core`, `crates/cpm-py`)** — the per-MCS hot path at
-250k-cell scale:
+paper scale (250k lattice sites / ~10k cells at 1 mm²):
 - New energy terms: saturating/log chemotaxis with COM normalization;
   haptotaxis. Additive, behind per-type/per-field switches so existing linear
   chemotaxis is preserved.
@@ -131,8 +134,9 @@ the full 1 mm² capstone.
 
 **Increment 1 — Epithelial sheet at scale.** 5×5-site cells, 2 µm lattice, vol
 100 µm², adhesion `J`, Neumann+periodic BCs. Study `epithelial-sheet-baseline`:
-cell-size/packing distribution + **MCS throughput at 250k cells** (perf budget is
-a first-class acceptance item). Target: Tables 3–4 geometry.
+cell-size/packing distribution + **MCS throughput at 1 mm² scale** (500×500
+sites, ~10k cells; perf budget is a first-class acceptance item). Target:
+Tables 3–4 geometry.
 
 **Increment 2 — Virus field + infection.** Virus field (D, decay → 5-cell-diam
 length), infected-cell release gated by ρ (ρ stubbed = 1 until Incr. 3),
@@ -190,8 +194,9 @@ behavior* (not the exact constant) is the fidelity criterion — the established
 
 ## 7. Compute plan
 
-The capstone (250k cells × ~20k 1-min steps × 50 replicas × multiple scenarios,
-with the cost-dominant ρ solve) is heavy. Increments 1–8 are validated at 0.3 mm
+The capstone (250k lattice sites / ~10k cells × ~20k 1-min steps × 50 replicas ×
+multiple scenarios, with the cost-dominant ρ solve) is heavy but tractable in
+Rust. Increments 1–8 are validated at 0.3 mm
 scale on this laptop; the Increment-9 full-scale runs are budgeted to the **Mac
 mini** (headless task agents, one worktree each). Increment 1 establishes the MCS
 throughput budget that makes the capstone feasible; if the budget is missed, the
