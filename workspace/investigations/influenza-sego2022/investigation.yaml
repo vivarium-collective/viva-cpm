@@ -145,9 +145,12 @@ glossary:
 
 at_a_glance:
   - {study: parameter-provenance, role: "Increment 0: establishes the cited parameter authority, provenance docs, and digitized figure targets; documents open source-vs-paper discrepancies. No simulation."}
+  - {study: epithelial-sheet-baseline, role: "Increment 1: validates the confluent epithelial-sheet substrate (geometry + 1mm^2 throughput) as a process-bigraph composite. Substrate only — no biology reproduction claim."}
 
 members:
 - parameter-provenance
+- epithelial-sheet-baseline
 
 acceptance_criteria:
 - {study: parameter-provenance, behavior: "Parameter authority is established and cited"}
+- {study: epithelial-sheet-baseline, behavior: "Confluent epithelial sheet holds stable geometry (~25 sites/cell) and 1mm^2 throughput clears the perf-gate floor (200.0 MCS/s)"}

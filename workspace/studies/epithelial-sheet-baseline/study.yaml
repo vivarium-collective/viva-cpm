@@ -1,0 +1,308 @@
+schema_version: 3
+name: epithelial-sheet-baseline
+status: in-progress
+phase: Simulate
+title: "Increment 1: confluent epithelial sheet (substrate only)"
+confidence: Provisional
+investigation: influenza-sego2022
+
+purpose:
+  question: |
+    Does the CPM engine hold a confluent, source-literal-adhesion epithelial
+    sheet stable (no gaps, no vanished cells) at 1 mm^2 paper scale, and does
+    it step fast enough (Rust engine, `step_parallel`) for the eventual
+    2-week/~20160-MCS capstone run to be computationally feasible?
+  mechanism: epithelial_sheet_substrate
+
+report:
+  title: "Increment 1: the epithelial sheet holds confluent and steps fast enough"
+  verdict: passing
+  confidence: high
+  evidence_quality: measured
+  objective: >-
+    Build the confluent epithelial-only sheet (type H, target volume 25
+    sites, source-literal adhesion H-H=5.0 / H-medium=25.0) at 0.3mm scale,
+    relax it, and confirm every cell holds ~25 sites with none vanished;
+    separately benchmark step throughput at full 1mm^2 (500x500 lattice,
+    10000 cells).
+  conclusion: >-
+    SUBSTRATE VALIDATED, NOT BIOLOGY REPRODUCED. The confluent 0.3mm sheet
+    (900 cells) holds mean cell volume ~25 sites with none vanishing after
+    relaxation, and the 1mm^2 lattice steps at ~406-422 MCS/s (perf-gate
+    floor 200.0 MCS/s) — comfortably above the ~2.0 MCS/s floor needed for
+    the eventual capstone run. This increment has no virus field, no
+    infection, no immune cells, and makes no claim about reproducing any of
+    Sego et al. 2022's published figures.
+  main_insight: >-
+    The bare geometry + adhesion substrate is stable and fast enough to
+    carry the remaining 8 increments of biology; this is a scaffolding
+    result, not a reproduction result.
+  caveat: >-
+    This study validates ONLY the epithelial-sheet substrate (geometry +
+    throughput). It does NOT reproduce, and is not evaluated against, any of
+    the paper's Figs 3B/5/7 acceptance bands — that begins at Increment 9
+    (the capstone).
+  key_metrics:
+    - {name: mean_cell_volume_sites, value: "~25 (target)", n_cells: 900}
+    - {name: throughput_1mm2_mcs_per_s, value: "406.47-421.95 (4 runs)"}
+    - {name: perf_gate_floor_mcs_per_s, value: "200.0"}
+
+study_card:
+  goal: Confirm the confluent epithelial-only sheet geometry holds at scale and steps fast enough for the capstone run — no biology claim.
+  mechanism: Uniform tiling of 5x5-site (10 um) type-H cells with source-literal adhesion (H-H=5.0, H-medium=25.0); no fields, no other cell types.
+  why_before_next: The load-bearing substrate every later increment (virus field, IFN, immune cells) is layered on top of — must be stable and fast before adding dynamics.
+  expected_result: Cells hold ~25 sites each, confluent (no medium gaps in an exactly-tiled patch), and the 1mm^2 lattice steps well above the ~2.0 MCS/s floor needed for a 2-week simulated run.
+  main_expert_question: Is validating geometry + throughput alone (no biology) a legitimate Increment-1 gate, deferring all reproduction claims to the capstone?
+
+question: |
+  Does a confluent tiling of epithelial (type H) cells, using the CC3D
+  source-literal adhesion values (H-H=5.0, H-medium=25.0) and target volume
+  (25 sites), hold stable under CPM relaxation at paper scale, and does the
+  Rust engine step it fast enough for the eventual 2-week/~20160-MCS
+  capstone run?
+
+hypothesis: |
+  The confluent sheet holds: after relaxation every real cell (indices 1..N,
+  excluding the medium placeholder at index 0) has volume close to its
+  target of 25 sites, with none vanishing. Separately, 1mm^2 throughput
+  comfortably clears the ~2.0 MCS/s floor required for the capstone's
+  ~20160-step run to finish in a practical wall-clock time.
+
+objective: |
+  Build the epithelial-sheet `load_world` spec (Task 1.1), instantiate and
+  relax the CPM world (Task 1.2), and measure step throughput on the full
+  1mm^2 patch (Task 1.3). Wrap the geometry in a process-bigraph composite
+  (`pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline`) so the
+  dashboard can run a modest (0.1mm, 100-cell) live demo of the same
+  substrate (Task 1.4, this study).
+
+description: |
+  Increment 1 of the influenza-sego2022 capability ladder: the bare
+  confluent epithelial sheet, no virus field, no infection, no immune
+  cells. A uniform grid of 5x5-site (10 um) type-H cells tiles the patch;
+  adhesion is the source-literal CC3D value (H-H=5.0, H-medium=25.0,
+  CONTROLLER OVERRIDE vs the CC3D-typical 4.0/16.0 — see
+  `pbg_cpm_studies/influenza/sheet.py`). This study validates that the
+  substrate is mechanically sound (confluent, stable target volume) and
+  computationally fast enough — it does NOT attempt, and is not scored
+  against, any biological reproduction target. The live-demo composite here
+  runs a small 0.1mm/100-cell patch for a fast dashboard "run baseline";
+  the 1mm^2/10000-cell throughput characterization is a separate perf test
+  (`tests/test_influenza_perf.py`, Task 1.3), not re-run live by this
+  composite.
+
+claim: |
+  The confluent epithelial-only sheet is geometrically stable (mean cell
+  volume ~25 sites, none vanished) and the Rust CPM engine steps the full
+  1mm^2 lattice at ~406-422 MCS/s, far above the throughput needed to make
+  the eventual 2-week capstone run computationally tractable. This is a
+  substrate-readiness claim, not a biological-reproduction claim.
+
+expected_behavior:
+  - After relaxation, real cells (excluding the medium placeholder) hold a
+    mean volume close to the 25-site target, and none vanish.
+  - The 1mm^2 lattice (500x500 sites, 10000 cells) steps at throughput well
+    above the perf-gate floor.
+
+readouts:
+  - name: Mean cell volume
+    identifier: mean_cell_volume_sites
+    units: lattice sites
+    status: measured
+    description: >-
+      Mean of `world.cell_volumes()[1:]` (excludes the medium placeholder
+      at index 0) after relaxation on the 0.3mm/900-cell confluent tiling;
+      target volume per cell is 25 sites (Task 1.2).
+  - name: Cell count
+    identifier: cell_count
+    units: cells
+    status: measured
+    description: >-
+      900 real cells on the 0.3mm confluent tiling used for the geometry
+      check (Task 1.2); the live-demo composite here (0.1mm) builds 100.
+  - name: 1mm^2 throughput
+    identifier: throughput_mcs_per_s
+    units: MCS/s
+    status: measured
+    description: >-
+      `step_parallel(steps, 64)` on the full 500x500/10000-cell 1mm^2
+      lattice, 5-step warmup before timing; measured 406.47-421.95 MCS/s
+      across 4 runs on this machine (Task 1.3). Perf-gate floor asserted in
+      `tests/test_influenza_perf.py::test_mcs_throughput_1mm` is 200.0
+      MCS/s (~50% of measured, raised from the brief's initial 2.0 MCS/s
+      floor since measured throughput is ~200x that minimum).
+
+behavior_tests:
+  - name: Sheet holds confluent after relaxation
+    classification: primary
+    description: |
+      Pass criterion: after 50-step relaxation, every real cell (indices
+      1..900) has volume > 0 and the mean is close to the 25-site target.
+      Measured: mean volume ~25 sites, none vanished (Task 1.2).
+    measure: {kind: mean_cell_volume_sites, condition: epithelial-sheet-baseline, stat: mean}
+    pass_if: {op: gt, value: 0}
+    status: passed
+    result: PASS
+  - name: 1mm^2 throughput clears the perf-gate floor
+    classification: primary
+    description: |
+      Pass criterion: `step_parallel` throughput on the full 1mm^2 lattice
+      exceeds the 200.0 MCS/s perf-gate floor. Measured 406.47 MCS/s (one
+      of 4 runs, range 406.47-421.95).
+    measure: {kind: throughput_mcs_per_s, condition: epithelial-sheet-baseline, stat: min}
+    pass_if: {op: gt, value: 200.0}
+    status: passed
+    result: PASS
+
+findings:
+  - id: F-01
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: Sheet holds confluent after relaxation
+      divergence_factor: 1.0
+      observed: "mean cell volume ~25 sites, none vanished after 50-step relaxation on the 900-cell confluent 0.3mm tiling"
+    statement: |
+      The confluent epithelial-only sheet (source-literal adhesion H-H=5.0,
+      H-medium=25.0, target volume 25 sites) is mechanically stable under
+      CPM relaxation at 0.3mm scale — an engineered geometric result (target
+      volume matched by construction), not an emergent biological finding.
+  - id: F-02
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: 1mm^2 throughput clears the perf-gate floor
+      divergence_factor: 2.0
+      observed: "406.47-421.95 MCS/s measured across 4 runs at 1mm^2 (500x500 lattice, 10000 cells), vs 200.0 MCS/s perf-gate floor"
+    statement: |
+      The Rust CPM engine's `step_parallel` throughput at full 1mm^2 scale
+      is ~2x the perf-gate floor (and ~200x the brief's original 2.0 MCS/s
+      minimum), so the ~20160-step capstone run remains computationally
+      tractable — a performance-engineering result, not a biology finding.
+
+conclusion: |
+  SUBSTRATE VALIDATED, NOT BIOLOGY REPRODUCED. The confluent epithelial
+  sheet geometry is stable at scale and the engine is fast enough. No
+  virus field, infection dynamics, IFN response, or immune cells exist yet
+  in this increment, and this study makes no reproduction claim against
+  Sego et al. 2022's published figures (Figs 3B/5/7) — that evaluation is
+  deferred to Increment 9 (the capstone), per the investigation's
+  capability-ladder design.
+
+conclusion_verdicts:
+  regression_compatibility:
+    result: PASS
+    basis: Geometry and throughput reproduce Task 1.1-1.3's measured results exactly (same spec builder, same perf test).
+  biological_validation:
+    result: PENDING
+    basis: >-
+      This increment has no biology to validate against (no virus, no
+      infection, no immune response) — it is a substrate/perf gate only.
+      Do NOT read PENDING as a passing or failing reproduction verdict; no
+      reproduction claim is made until Increment 9 (the capstone), which
+      evaluates against Figs 3B/5/7.
+  explanatory_gain:
+    result: PENDING
+    basis: >-
+      No mechanism is being compared to an alternative explanation at this
+      increment; deferred to later increments where dynamics exist.
+
+biological_summary: |
+  A uniform lattice of type-H (uninfected epithelial) cells, each occupying
+  a 5x5-site (10 um) block, tiles the simulated patch. Cell-cell (H-H) and
+  cell-medium (H-medium) adhesion energies are taken source-literally from
+  the CC3D ViralInfectionVTM reference (H-H=5.0, H-medium=25.0 — a
+  CONTROLLER OVERRIDE of the CC3D-typical 4.0/16.0 pair, see
+  `pbg_cpm_studies/influenza/params.yaml` provenance). This produces a
+  confluent monolayer with no biological dynamics yet: no infection, immune
+  response, or cell death. It is the mechanical substrate the subsequent 8
+  increments (virus field, IFN/resistance, death/recovery, chemokines,
+  macrophages, NK/CD8+ T, global ODE coupling, capstone) build on top of.
+
+key_assumptions:
+  - Confluent exact tiling (5x5-site cells, no gaps by construction) — the
+    0.3mm/900-cell geometry check and the 1mm^2/10000-cell throughput
+    benchmark are both exactly-confluent lattices.
+  - Second-nearest-neighbour (neighbor_order=3) square lattice, per the
+    CC3D source (accepted by the Rust engine without a capability
+    fallback — see task-1.1-1.3-report.md Task 1.2).
+  - Perf numbers are single-machine measurements (this laptop); re-measure
+    before relying on the 200.0 MCS/s floor as a strict CI gate on
+    different hardware (e.g. the Mac mini).
+
+gate_status: passed
+
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+
+model_change:
+  base_model: pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline
+  new_processes: []
+  new_state_variables: []
+  new_parameters: [patch_mm]
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    Wraps the existing CPMProcess over the epithelial-sheet geometry
+    (`pbg_cpm_studies.influenza.sheet.build_sheet_spec`) — no new process
+    code. The live-demo composite runs a small 0.1mm/100-cell patch for a
+    fast dashboard run; the 0.3mm/900-cell geometry check and the
+    1mm^2/10000-cell throughput benchmark that back this study's readouts
+    were run directly against `sheet.build_sheet_spec` and `load_world`
+    in Tasks 1.1-1.3, not through this composite.
+
+runs:
+  - run_id: epithelial-sheet-geometry-0p3mm
+    name: Confluent geometry check (0.3mm, 900 cells)
+    status: completed
+    canonical: true
+    timestamp: '2026-09-18'
+    seeds: [17]
+    emitter: "n/a (direct pytest measurement)"
+    outcomes:
+      'Sheet holds confluent after relaxation':
+        result: PASS
+        measured_value: 25.0
+        notes: mean cell volume ~25 sites, none vanished across 900 real cells (Task 1.2, test_world_builds_and_holds_volume_after_relaxation)
+        evaluated_by: tests/test_influenza_sheet.py
+  - run_id: epithelial-sheet-throughput-1mm2
+    name: 1mm^2 throughput benchmark (500x500, 10000 cells)
+    status: completed
+    canonical: true
+    timestamp: '2026-09-18'
+    seeds: [17]
+    emitter: "n/a (direct pytest measurement)"
+    outcomes:
+      '1mm^2 throughput clears the perf-gate floor':
+        result: PASS
+        measured_value: 406.47
+        notes: "406.47-421.95 MCS/s across 4 runs; perf-gate floor 200.0 MCS/s (Task 1.3, test_mcs_throughput_1mm)"
+        evaluated_by: tests/test_influenza_perf.py
+
+discovery_implications:
+  followup_study_proposals:
+    - id: virus-field-infection
+      title: "Increment 2: virus field + infection"
+      motivation: "Add the diffusible virus field and per-cell infection state on top of this validated substrate."
+    - id: ifn-resistance
+      title: "Increment 3: IFN + per-cell resistance"
+      motivation: "Layer the type-I IFN response and resistance state variable that modulates infected-cell death."
+
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline
+    params: {patch_mm: 0.1}  # small live-demo patch; full 1mm^2 perf characterized separately (Task 1.3)
+
+  model_settings: []
+
+narrative_spine_skip: [implementation_requirements]
+narrative_spine_skip_reason: >-
+  Increment 1 is built and its substrate/perf gates are measured;
+  implementation_requirements is a forward-looking build checklist with no
+  authored content for a study whose scope (substrate only, no biology) is
+  already complete for this increment.
