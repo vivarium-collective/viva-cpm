@@ -33,8 +33,13 @@ _FIELD_DT = 0.2
 _FIELD_SUBSTEPS = 5
 
 
-def add_virus_field(world) -> int:
-    """Add the virus field to `world`, wire I-cell secretion, return its index.
+def _virus_field_params():
+    """Compute (diffusion, decay, dt, substeps, secretion_rate) for the virus
+    field. Shared by `add_virus_field` (post-hoc `world.add_field`, used by
+    callers that need `finalize=False` -> add field -> `finalize`) and
+    `virus_field_spec_entry` (declarative `load_world` spec `fields:` entry,
+    used by composites built from a plain spec dict) so both routes apply
+    the exact same numbers.
 
     Derivation of the per-pixel secretion rate (see `params.yaml` `virus:`
     block for the full chain back to the CC3D source):
@@ -53,11 +58,8 @@ def add_virus_field(world) -> int:
     diffusion = float(virus["diffusion_lat2_per_mcs"])
     decay = float(virus["decay_per_mcs"])
 
-    field_idx = world.add_field("virus", diffusion, decay)
-
     dt, substeps = _FIELD_DT, _FIELD_SUBSTEPS
     assert dt * diffusion * 2 * 2 < 1.0, "virus field diffusion dt is unstable"
-    world.set_field_dynamics(field_idx, dt, substeps)
 
     pre_dimz_g_vi = float(virus["secretion_g_vi"]) / 2.0  # z=1 sheet, see docstring
     per_pixel_per_mcs = pre_dimz_g_vi / cell_sites
@@ -71,6 +73,32 @@ def add_virus_field(world) -> int:
     # back to per_pixel_per_mcs.
     secretion_rate = per_pixel_per_mcs / dt
 
+    return diffusion, decay, dt, substeps, secretion_rate
+
+
+def add_virus_field(world) -> int:
+    """Add the virus field to `world`, wire I-cell secretion, return its index.
+
+    See `_virus_field_params` for the secretion-rate derivation.
+    """
+    diffusion, decay, dt, substeps, secretion_rate = _virus_field_params()
+
+    field_idx = world.add_field("virus", diffusion, decay)
+    world.set_field_dynamics(field_idx, dt, substeps)
     world.set_secretion(field_idx, types.I, secretion_rate)
 
     return field_idx
+
+
+def virus_field_spec_entry() -> dict:
+    """Declarative `load_world` spec `fields:` entry for the virus field --
+    equivalent to `add_virus_field`, for composites/drivers that build the
+    world from a plain spec dict (`cpm.schema.load_world`) rather than
+    driving `cpm_core.World` directly (see `pbg_cpm_studies.composites.
+    influenza.virus_infection`)."""
+    diffusion, decay, dt, substeps, secretion_rate = _virus_field_params()
+    return {
+        "name": "virus", "d": diffusion, "decay": decay,
+        "secretion": [{"type": types.I, "rate": secretion_rate}],
+        "dynamics": {"dt": dt, "substeps": substeps},
+    }
