@@ -45,6 +45,69 @@ scaling:
   local_fraction_macrophage: 1.00
   local_fraction_nk: 0.75
   local_fraction_cd8: 0.75
+virus:                    # virus field + infection transition constants (Increment 2)
+  source: "CC3D source (ImmuneModel/ImmuneModelInputs.py, ImmuneModel/ImmuneModelLib.py,
+            Simulation/ViralInfectionVTMSteppables.py) via docs/cc3d-reference/sego2022-parameters.md
+            §3/§6; s_to_mcs=60 s/MCS, um_to_lat_width=2 um/site, cell_diameter=5 sites,
+            cell_volume=25 sites^2, tot_ec_ODE=250000"
+  diffusion_lat2_per_mcs: 0.17882616694562153   # unitless D, lattice^2/MCS
+  # = exp_virus_decay_im * exp_virus_dl^2 * s_to_mcs / um_to_lat_width^2, where
+  #   exp_virus_decay_im = virus_decay_ODE(0.412015488642712 /day) / 86400,
+  #   exp_virus_dl = exp_cell_diameter(10um) * 5.0 = 50um (diffusion_length_cell_diam below).
+  # Source: ImmuneModelInputs.py `virus_dc_im` (fed to CC3DML GlobalDiffusionConstant "virus_dc").
+  # Cross-validated: 0.011921744463041435 um^2/s * 60/4 = 0.178826... matches doc's Table-3-derived
+  # 0.0119 um^2/s to 3 s.f.
+  decay_per_mcs: 0.00028612186711299444          # unitless decay, 1/MCS
+  # = (virus_decay_ODE / 86400) * s_to_mcs. Source: ImmuneModelInputs.py `virus_decay_im`
+  # (fed to CC3DML GlobalDecayConstant "virus_decay" baseline, before the runtime
+  # min(1.0, virus_decay_im + g_va*A*dim.z) antibody-clearance term applied in
+  # ViralSecretionSteppable.step — that runtime term is NOT included here, see notes below).
+  diffusion_length_cell_diam: 5                  # source `exp_virus_dl` = exp_cell_diameter*5.0
+  secretion_g_vi: 0.38620664055922777            # per-MCS release amount per InfectedReleasing cell
+  # Derivation chain (do NOT re-derive differently in 2.1/2.2 — apply exactly this convention):
+  #   1. ODE-calibrated rate g_vi = 278.068781202644 /day
+  #      (source ImmuneModel/ImmuneModelLib.py, `immune_model_string()`'s per-cell g_vi literal,
+  #       i.e. the cellularized model instantiated with scale_loc/scale_vol set from actual cell
+  #       counts -- NOT the separate organism-scale `immune_model_string_ode()` copy of g_vi).
+  #   2. -> per-MCS: g_vi_percell_per_mcs = g_vi * s_t, s_t = s_to_mcs/86400 = 6.944444e-4 day/MCS
+  #      (ViralInfectionVTMSteppables.py:1140, `scale_time=s_to_mcs/24/60/60`) = 0.19310332027961388.
+  #   3. -> the literal value ViralSecretionSteppable multiplies by the lattice z-thickness
+  #      (`self.dim.z = 2`, source `ViralInfectionVTM.xml <Dimensions ... z="2"/>`, fixed for both
+  #      0.3mm and 1.0mm patch scenarios) BEFORE applying `sec_amount = g_vi*(1-resist)`
+  #      (Simulation/ViralInfectionVTMSteppables.py:205-208): 0.19310332027961388 * 2 = 0.38620664...
+  #      recorded here, since this is the literal number the source formula `g_vi*(1-resist)` uses.
+  # CONVENTION for Task 2.1/2.2: this value already bakes in CC3D's z=2 slab geometry. If the
+  # viva-cpm virus field is modeled as a single-layer (z=1 / pure-2D) field, use the
+  # pre-z-factor value 0.19310332027961388 instead (divide this constant by 2) and document which
+  # was chosen; if the field explicitly models a 2-lattice-site-thick slab matching the source,
+  # use this constant as-is. Apply once per MCS to each InfectedReleasing cell, multiplied by
+  # (1 - resist) and divided by cell.volume when adding to the field (secreteInsideCell semantics).
+  infection_g_hv: 0.006133879567670876           # per-MCS rate coefficient, rate = g_hv * v_mean(s)
+  # Derivation: ODE-calibrated g_hv = 1.41324585239137e-06 /day (source ImmuneModelLib.py
+  # `immune_model_string()`'s per-cell g_hv literal, `g_hv = 1.41324585239137E-06 * s_t / s_l`)
+  # with s_t = s_to_mcs/86400 = 6.944444e-4 day/MCS and s_l = 1/(tot_ec_ODE*cell_volume) =
+  # 1/(250000*25) = 1.6e-7 (ViralInfectionVTMSteppables.py:1142, `scale_loc=1/tot_ec_ODE/cell_volume`).
+  # No dim.z factor here (confirmed: ViralInternalizationSteppable.do_cell_internalization uses
+  # `rate = g_hv * viral_amount_com` directly, viral_amount_com = secretor.amountSeenByCell(cell)/
+  # cell.volume, no dim.z multiplier — unlike secretion_g_vi above).
+  # CONVENTION: apply once per MCS per Uninfected cell as
+  # Pr(infect in this MCS) = 1 - exp(-infection_g_hv * v_mean_at_cell), v_mean_at_cell = mean local
+  # virus field concentration seen by the cell (field amount / cell volume). On success the cell
+  # transitions directly to InfectedReleasing (source has no separate pre-release Infected state
+  # for this transition).
+  v0_ode_options: [0, 50, 500]                   # source ImmuneModelInputs.py `v0_ODE` (3 hand-picked
+  # options, 0 active by default = "use frac_init_infected instead"; 50 = "non-lethal according to
+  # calibrated ODE model"; 500 = "lethal according to calibrated ODE model")
+  frac_init_infected: 0.05                       # source `frac_init_infected`, used only when v0_ODE=0:
+  # num_to_infect = int(num_epithelial * frac_init_infected) cells randomly set to InfectedReleasing
+  # at t=0 (Simulation/ViralInfectionVTMSteppables.py CellsInitializerSteppable). Matches the top of
+  # the paper's initial-infection-fraction sweep {0.001,0.005,0.01,0.05} in the `scenarios:` section.
+  # Initial-field-seeding meaning (only used when v0_ODE>0): v0 = v0_ODE/tot_ec_ODE (virus per
+  # epithelial cell, ODE-scale); the field is seeded UNIFORMLY at every lattice site with
+  # v0_sites = v0 * num_epithelial / (dim.x * dim.y) (FieldInitializerSteppable, source
+  # `Simulation/ViralInfectionVTMSteppables.py` ~line 89-93) -- i.e. "initial viral load" is a total
+  # virus amount, converted to a per-site field concentration by the actual seeded epithelial count
+  # and domain area, not a literal field value itself.
 scenarios:
   source: "Sego 2022 Section 3"
   initial_viral_load: [1, 10, 100, 1000, 10000]

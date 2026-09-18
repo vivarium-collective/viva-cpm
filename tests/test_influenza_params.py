@@ -32,3 +32,13 @@ def test_diffusion_coefficients_match_table3():
     assert d["chemokine_um2_s"] == 1.04
     assert d["ifn_type1_um2_s"] == 0.520
     assert d["il10_um2_s"] == 0.327
+
+
+def test_params_carry_virus_section():
+    v = params.load_params()["virus"]
+    for k in ("diffusion_lat2_per_mcs","decay_per_mcs","diffusion_length_cell_diam",
+              "secretion_g_vi","infection_g_hv","source"):
+        assert k in v, f"virus params missing {k}"
+    assert v["diffusion_length_cell_diam"] == 5
+    assert isinstance(v["secretion_g_vi"], (int,float)) and v["secretion_g_vi"] > 0
+    assert isinstance(v["infection_g_hv"], (int,float)) and v["infection_g_hv"] > 0

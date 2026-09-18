@@ -3,7 +3,7 @@ schema_version: 2
 name: influenza-sego2022
 title: "Influenza infection & immune response (Sego 2022 reproduction)"
 created: '2026-09-18'
-status: planning
+status: running
 
 question: |
   Can viva-cpm's native Cellular Potts engine reproduce, to quantitative figure
@@ -44,12 +44,17 @@ executive:
     reproduction) so reproducibility accrues cumulatively and each step is
     independently reviewable.
   verdict: |
-    Increment 0 only: no simulation code exists yet. The parameter/spec
-    authority is established (pbg_cpm_studies/influenza/params.yaml, cited to
-    the CC3D source and the paper's Tables 1-4) and figure-target acceptance
-    bands are digitized for Figs 3B, 5, 7. Eight source-vs-paper discrepancies
-    are recorded rather than silently resolved. Reproduction fidelity is not
-    yet assessed — that begins at Increment 1.
+    Increments 0-2 of 10 landed; reproduction fidelity NOT yet assessed. The
+    parameter/spec authority is established (pbg_cpm_studies/influenza/params.yaml,
+    cited to the CC3D source and the paper's Tables 1-4) and figure-target
+    acceptance bands are digitized for Figs 3B, 5, 7 (Increment 0). The
+    confluent epithelial-sheet substrate holds stable geometry and steps fast
+    enough at scale (Increment 1). The virus field diffuses/decays and a
+    seeded lesion spreads LOCALLY via a stochastic H->I transition, with
+    population conserved (Increment 2, mechanism-only — no resistance/IFN,
+    death/recovery, or immune cells yet). Eight source-vs-paper discrepancies
+    remain recorded, not resolved. No Figs 3B/5/7 reproduction claim is made
+    — that verdict stays PENDING until Increment 9 (the capstone).
   verdict_status: in-progress
   verdict_detail: |
     Member study parameter-provenance (Design phase, documentation-only)
@@ -60,8 +65,19 @@ executive:
     not resolves, the 8 source-vs-paper discrepancies in
     sego2022-parameters.md §7 (e.g. neighbor order 3 vs the expected 2,
     Infected-Macrophage adhesion 20 vs the paper's collapsed 10,
-    NKcell-CD8Tcell adhesion 25 vs the paper's collapsed 10). No engine code,
-    simulation, or reproduction verdict exists yet.
+    NKcell-CD8Tcell adhesion 25 vs the paper's collapsed 10). Member study
+    epithelial-sheet-baseline (Increment 1) validates the bare confluent
+    sheet substrate (geometry + 1mm^2 throughput) as a process-bigraph
+    composite — substrate only, no biology. Member study
+    virus-field-infection (Increment 2) validates the virus field +
+    stochastic infection MECHANISM (measured: n_I grows 9->16 over 60
+    updates from a seeded lesion; spread is spatially LOCAL by a discriminating
+    null-baseline test — new infections land ~0.61x as far from prior-infected
+    cells as a uniform-random null (actual 15.0 vs random 24.6 sites), and a
+    shuffled-field non-local control fails at ~1.13x — population conserved;
+    null control confirms no spontaneous infection).
+    No reproduction verdict against Figs 3B/5/7 exists yet — that begins at
+    Increment 9 (the capstone).
   decisions_needed:
     - question: "Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?"
       context: |
@@ -146,11 +162,14 @@ glossary:
 at_a_glance:
   - {study: parameter-provenance, role: "Increment 0: establishes the cited parameter authority, provenance docs, and digitized figure targets; documents open source-vs-paper discrepancies. No simulation."}
   - {study: epithelial-sheet-baseline, role: "Increment 1: validates the confluent epithelial-sheet substrate (geometry + 1mm^2 throughput) as a process-bigraph composite. Substrate only — no biology reproduction claim."}
+  - {study: virus-field-infection, role: "Increment 2: validates the virus field (diffusion/decay) + stochastic H->I infection MECHANISM (local spread, population conserved) over the Increment-1 sheet. Mechanism only — no resistance/IFN/immune cells yet, and no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
 
 members:
 - parameter-provenance
 - epithelial-sheet-baseline
+- virus-field-infection
 
 acceptance_criteria:
 - {study: parameter-provenance, behavior: "Parameter authority is established and cited"}
 - {study: epithelial-sheet-baseline, behavior: "Confluent epithelial sheet holds stable geometry (~25 sites/cell) and 1mm^2 throughput clears the perf-gate floor (200.0 MCS/s)"}
+- {study: virus-field-infection, behavior: "Virus field diffuses/decays and a seeded lesion spreads locally via stochastic H->I infection (new infections within a few diffusion lengths of prior-infected cells), with population conserved and no spontaneous infection absent a seed/field"}
