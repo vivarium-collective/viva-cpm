@@ -41,3 +41,32 @@ def sheet_snapshot_figure(world) -> Figure:
 
     fig.tight_layout()
     return fig
+
+
+def virus_infection_figure(run_result: dict) -> Figure:
+    """Render a two-panel figure for a `run.run_virus_infection(...)` result
+    (Increment 2, Task 2.3/2.4): (a) infected/uninfected cell counts vs
+    update index, (b) total virus-field concentration vs update index.
+    Returns a `matplotlib.figure.Figure` (not shown/saved)."""
+    steps = run_result["steps"]
+    n_H = run_result["n_H"]
+    n_I = run_result["n_I"]
+    total_virus = run_result["total_virus"]
+
+    fig = Figure(figsize=(9, 4.2))
+    ax_counts, ax_virus = fig.subplots(1, 2)
+
+    ax_counts.plot(steps, n_I, label="n_I (infected)", color="firebrick")
+    ax_counts.plot(steps, n_H, label="n_H (uninfected)", color="steelblue")
+    ax_counts.set_title("Cell counts vs update")
+    ax_counts.set_xlabel("update index")
+    ax_counts.set_ylabel("cell count")
+    ax_counts.legend()
+
+    ax_virus.plot(steps, total_virus, color="darkorange")
+    ax_virus.set_title("Total virus-field concentration vs update")
+    ax_virus.set_xlabel("update index")
+    ax_virus.set_ylabel("sum(field concentration)")
+
+    fig.tight_layout()
+    return fig

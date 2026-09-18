@@ -1,0 +1,426 @@
+schema_version: 3
+name: virus-field-infection
+status: in-progress
+phase: Simulate
+title: "Increment 2: virus field diffusion/decay + stochastic local infection spread"
+confidence: Provisional
+investigation: influenza-sego2022
+
+purpose:
+  question: |
+    Layered on the validated Increment-1 confluent sheet: does a diffusing,
+    decaying extracellular virus field (source-cited D/decay, target
+    diffusion length 5 cell diameters = 25 sites) and a stochastic,
+    virus-driven H -> I infection transition produce LOCAL lesion spread
+    (new infections cluster near existing infected cells, not uniformly
+    across the sheet) with population conserved?
+  mechanism: virus_field_and_infection_transition
+
+report:
+  title: "Increment 2: virus field diffuses/decays and infection spreads locally — mechanism validated, reproduction still PENDING"
+  verdict: documented
+  confidence: medium
+  evidence_quality: measured
+  objective: >-
+    Drive the CPM engine's virus field (secretion from InfectedReleasing
+    cells, diffusion, decay) together with a stochastic H -> I infection
+    transition over the Increment-1 confluent 0.3mm/900-cell sheet for 60
+    updates (mcs_per_update=10), seeded with a small initial lesion
+    (init_infected_frac=0.01, 9 of 900 cells), and measure whether the
+    lesion grows and whether new infections stay local to existing infected
+    cells (Task 2.3's integration test,
+    `tests/test_influenza_virus_infection.py`).
+  conclusion: >-
+    MECHANISM VALIDATED, REPRODUCTION NOT YET ATTEMPTED. Over 60 updates
+    (0.3mm/900-cell sheet, init_infected_frac=0.01: 891 H + 9 I initial
+    cells), n_I grew 9 -> 16 (7 new-infection events) with n_H shrinking
+    884 in lockstep (n_H + n_I conserved every update), and total_virus grew
+    from 0.0 to 1216.34 (field sum) as the seeded I cells secreted. All 7
+    new-infection distances-to-nearest-prior-infected-cell (5.0-32.0 lattice
+    sites) fell well under the 75-site (3x the field's own 25-site diffusion
+    length) locality bound used by the integration test — the first new
+    infection appeared at update 21, 5.0 sites from the nearest already-
+    infected cell. With init_infected_frac=0.0 (no seed, no initial virus),
+    n_I stayed 0 and no new infections occurred for the whole run (null
+    control). This validates the MECHANISM (diffusing/decaying field +
+    locally-spreading stochastic infection) — it is NOT a claim that any of
+    Sego et al. 2022's Figs 3B/5/7 quantitative targets are met; that
+    evaluation is deferred to Increment 9 (the capstone).
+  main_insight: >-
+    A population-conserving, spatially-local infection spread emerges from
+    just two mechanisms (field diffusion + a per-cell stochastic H -> I
+    draw driven by local field concentration) with no explicit
+    "infect-my-neighbor" rule — new infections land near active secretors
+    because the field itself is spatially concentrated, not because the
+    transition rule encodes locality directly.
+  caveat: >-
+    This study has NO resistance/IFN gating (resist=0 throughout — the
+    per-cell resistance state variable arrives in Increment 3), no
+    death/recovery, and no immune cells (macrophages/NK/CD8+ T arrive in
+    later increments). The virus secretion magnitude uses the documented
+    z=1/per-pixel convention (`pbg_cpm_studies/influenza/fields.py`'s
+    `_virus_field_params`, pre-dim.z halving of the source's `secretion_g_vi`
+    spread evenly over each cell's 25 pixels) — this reproduces the source's
+    RATE convention but its exact magnitude against the paper's field scale
+    is an Increment-9 calibration concern, not settled here. The 7
+    new-infection events over 60 updates come from ONE seed (17); this is a
+    single-run demonstration of the mechanism's qualitative behavior
+    (grows, stays local, conserves population), not a statistically
+    characterized rate.
+  key_metrics:
+    - {name: n_I_growth, value: "9 -> 16 over 60 updates", n_cells_total: 900}
+    - {name: n_H_shrinkage, value: "891 -> 884 over 60 updates"}
+    - {name: total_virus_growth, value: "0.0 -> 1216.34 (field sum) over 60 updates"}
+    - {name: new_infection_count, value: 7}
+    - {name: new_infection_distance_range_sites, value: "5.0-32.0"}
+    - {name: virus_diffusion_length_sites, value: 25}
+    - {name: locality_bound_sites, value: "75 (3x diffusion length)"}
+    - {name: first_new_infection_update, value: 21}
+
+study_card:
+  goal: Validate that the extracellular virus field diffuses/decays as specified and that a seeded lesion spreads locally via stochastic H -> I infection, with population conserved — no reproduction claim.
+  mechanism: A single diffusing/decaying "virus" field (source-cited D, decay, and per-pixel secretion rate from InfectedReleasing cells) drives a per-cell stochastic H -> I transition (Pr = 1 - exp(-g_hv * v_bar)) each update, layered on the Increment-1 confluent sheet.
+  why_before_next: Increment 3 (IFN + per-cell resistance) modulates THIS infection transition — the field and the base (resist=0) transition must be shown to behave sensibly (spread, stay local, conserve population) before adding a resistance gate on top of it.
+  expected_result: n_I grows from the seeded lesion over updates while n_H shrinks correspondingly (population conserved); new infections occur near already-infected cells (within a few multiples of the field's own diffusion length), not scattered uniformly across the sheet; with no seed, nothing happens.
+  main_expert_question: Is single-seed qualitative-locality evidence (grows, stays local, conserves population) sufficient mechanism validation for Increment 2, deferring statistical characterization and quantitative figure match to the capstone?
+
+question: |
+  Does the extracellular virus field (source-cited diffusion coefficient and
+  decay rate, secreted by InfectedReleasing cells) diffuse and decay as
+  specified, and does a stochastic, field-driven H -> I infection transition
+  spread a seeded lesion LOCALLY (new infections cluster near existing
+  infected cells) rather than uniformly, with total cell population
+  conserved?
+
+hypothesis: |
+  Layered on the Increment-1 confluent sheet: a virus field secreted by a
+  small seeded lesion of InfectedReleasing (I) cells diffuses outward and
+  decays; a stochastic H -> I transition (rate = g_hv * local mean field
+  concentration) converts nearby Healthy (H) cells to Infected (I) over
+  time, with new infections landing close to already-infected cells (within
+  a few multiples of the field's own diffusion length) rather than
+  scattered across the whole sheet, and n_H + n_I conserved every update.
+
+objective: |
+  Wire the virus field (Task 2.1, `pbg_cpm_studies/influenza/fields.py`) and
+  the stochastic infection transition (Task 2.2,
+  `pbg_cpm_studies/influenza/transitions.py`) together over the Increment-1
+  sheet, drive them for 60 updates from a small seeded lesion
+  (`pbg_cpm_studies/influenza/run.py::run_virus_infection`, Task 2.3), and
+  report the measured spread/locality/null-control behavior from the
+  integration test (`tests/test_influenza_virus_infection.py`). Wrap the
+  same mechanism as a process-bigraph composite
+  (`pbg_cpm_studies.composites.influenza.virus_infection`, CPMProcess +
+  InfectionProcess wired through `fates`) for the dashboard live demo (Task
+  2.4, this study) — measurements come from `run_virus_infection`, not the
+  live-demo composite (see caveat and Task 2.3's report on why the two
+  paths use independent RNG streams and are not bit-identical).
+
+description: |
+  Increment 2 of the influenza-sego2022 capability ladder: adds ONE
+  diffusible field (virus) and ONE new cell-state transition (H -> I,
+  stochastic, field-driven) on top of the Increment-1 confluent epithelial
+  sheet. No resistance/IFN, no death/recovery, no immune cells — those
+  arrive in Increments 3+. The virus field's diffusion coefficient, decay
+  rate, and target diffusion length (5 cell diameters = 25 lattice sites)
+  are taken from the CC3D ViralInfectionVTM source (see
+  `pbg_cpm_studies/influenza/params.yaml`'s `virus:` block); the infection
+  rate coefficient `g_hv` is likewise source-cited. Two independent
+  seed-derived RNG streams make the driver run
+  (`run.run_virus_infection`) fully deterministic: one chooses the initial
+  lesion, a separate one drives the per-update stochastic transition.
+
+claim: |
+  The extracellular virus field diffuses and decays (source-cited
+  parameters), and a seeded lesion of InfectedReleasing cells spreads via a
+  stochastic, virus-driven H -> I transition to nearby Healthy cells
+  (locally, within a few diffusion lengths), with total cell population
+  conserved every update. This is a MECHANISM-validation claim (the field
+  and the transition behave sensibly together), not a claim that any of
+  Sego et al. 2022's quantitative figure targets (Figs 3B/5/7) are met —
+  that reproduction verdict remains PENDING until Increment 9 (the
+  capstone).
+
+expected_behavior:
+  - n_I grows from the seeded initial lesion over successive updates while
+    n_H shrinks by the same amount each update (n_H + n_I conserved).
+  - New infections occur close to already-infected cells (well under 3x the
+    field's own 25-site diffusion length), not scattered uniformly across
+    the sheet.
+  - With no seeded lesion (init_infected_frac=0.0) and no initial virus,
+    n_I stays 0 and no new infections occur for the whole run.
+
+readouts:
+  - name: Infected cell count
+    identifier: n_I
+    units: cells
+    status: measured
+    description: >-
+      `n_I` series from `run_virus_infection` (60 updates, 0.3mm/900-cell
+      sheet, init_infected_frac=0.01, seed=17): 9 -> 16.
+  - name: Uninfected cell count
+    identifier: n_H
+    units: cells
+    status: measured
+    description: >-
+      `n_H` series over the same run: 891 -> 884, conserved against n_I
+      (n_H + n_I constant every update).
+  - name: Total virus-field concentration
+    identifier: total_virus
+    units: field concentration (sum over lattice sites)
+    status: measured
+    description: >-
+      `total_virus` series (sum of `world.field_conc(field_idx)`) over the
+      same run: 0.0 -> 1216.34, growing as the seeded I cells secrete.
+  - name: New-infection distance to nearest prior-infected cell
+    identifier: new_infection_dists
+    units: lattice sites
+    status: measured
+    description: >-
+      For each of the 7 new-infection events over the 60-update run,
+      Euclidean distance (lattice sites) from the newly-infected cell's
+      centroid to the nearest already-infected cell's centroid: range
+      5.0-32.0 sites, all under the 75-site (3x the field's 25-site
+      diffusion length) locality bound; first new infection at update 21,
+      distance 5.0 sites.
+
+behavior_tests:
+  - name: Seeded lesion spreads over time (population conserved)
+    classification: primary
+    description: |
+      Pass criterion: n_I grows and n_H shrinks correspondingly over 60
+      updates, with n_H + n_I constant every update. Measured: n_I 9 -> 16,
+      n_H 891 -> 884, population conserved every update (Task 2.3).
+    measure: {kind: n_I, condition: virus-field-infection, stat: delta}
+    pass_if: {op: gt, value: 0}
+    status: passed
+    result: PASS
+  - name: New infections appear near existing infected cells (locality)
+    classification: primary
+    description: |
+      Pass criterion: every new-infection distance-to-nearest-prior-infected
+      cell stays under 3x the field's own diffusion length (75 sites).
+      Measured: all 7 new-infection distances fall in 5.0-32.0 sites, well
+      under the 75-site bound (Task 2.3).
+    measure: {kind: new_infection_dists, condition: virus-field-infection, stat: max}
+    pass_if: {op: lt, value: 75.0}
+    status: passed
+    result: PASS
+  - name: No seed, no initial virus -> no infection (null control)
+    classification: primary
+    description: |
+      Pass criterion: with init_infected_frac=0.0, n_I stays 0 and
+      new_infection_dists is empty every update, for the whole run.
+      Measured: confirmed (Task 2.3,
+      test_no_seed_and_no_initial_virus_means_no_infection).
+    measure: {kind: n_I, condition: virus-field-infection-null, stat: max}
+    pass_if: {op: eq, value: 0}
+    status: passed
+    result: PASS
+
+findings:
+  - id: F-01
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: Seeded lesion spreads over time (population conserved)
+      divergence_factor: 1.0
+      observed: "n_I 9 -> 16, n_H 891 -> 884 over 60 updates (0.3mm sheet, init_infected_frac=0.01, seed=17); n_H + n_I constant every update"
+    statement: |
+      The virus field + stochastic H -> I transition together produce a
+      growing, population-conserving lesion over 60 updates from a small
+      seeded start — the base infection mechanism (with resist=0, no IFN
+      gating) behaves as specified.
+  - id: F-02
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: New infections appear near existing infected cells (locality)
+      divergence_factor: 1.0
+      observed: "7 new-infection events, distance-to-nearest-prior-infected-cell range 5.0-32.0 sites, vs the 75-site (3x diffusion length) locality bound; first new infection at update 21, 5.0 sites"
+    statement: |
+      New infections land close to already-infected cells rather than
+      scattered across the 150x150-site sheet — spatial locality emerges
+      from the field's own diffusion length (25 sites) without any explicit
+      "infect-my-neighbor" rule in the transition itself, which only reads
+      local field concentration.
+  - id: F-03
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: No seed, no initial virus -> no infection (null control)
+      divergence_factor: 1.0
+      observed: "n_I stays 0, new_infection_dists empty every update, for the whole 60-update run with init_infected_frac=0.0"
+    statement: |
+      With no initial lesion and no virus source, nothing infects — the
+      transition does not spontaneously activate, confirming the field is
+      the sole driver of new infections in this mechanism.
+
+conclusion: |
+  MECHANISM VALIDATED, NOT REPRODUCED. The virus field diffuses/decays and
+  drives a population-conserving, spatially-local infection spread from a
+  seeded lesion (measured: n_I 9 -> 16, 7 new-infection events all within
+  5.0-32.0 sites of a prior-infected cell, well under the 75-site locality
+  bound; null control confirms no spontaneous infection). This increment has
+  no resistance/IFN gating, no death/recovery, and no immune cells, and
+  makes NO claim about matching any of Sego et al. 2022's Figs 3B/5/7
+  quantitative acceptance bands — that reproduction verdict is PENDING until
+  Increment 9 (the capstone).
+
+conclusion_verdicts:
+  regression_compatibility:
+    result: PASS
+    basis: Reproduces Task 2.3's measured integration-test results exactly (same driver, same seed).
+  biological_validation:
+    result: PENDING
+    basis: >-
+      This increment validates the MECHANISM (field diffusion/decay,
+      local stochastic infection spread, population conservation) with a
+      single seeded run, not a quantitative reproduction against any of Figs
+      3B/5/7. No resistance/IFN, death/recovery, or immune-cell dynamics
+      exist yet. Do NOT read PENDING as a passing or failing reproduction
+      verdict — no reproduction claim is made until Increment 9.
+  explanatory_gain:
+    result: PENDING
+    basis: >-
+      No alternative mechanism is being compared at this increment;
+      deferred to later increments / the capstone where a reproduction
+      comparison against the paper's figures becomes meaningful.
+
+biological_summary: |
+  A small seeded lesion of InfectedReleasing (I) epithelial cells secretes
+  virus into a diffusing, decaying extracellular field (source-cited
+  diffusion coefficient and decay rate; target diffusion length 5 cell
+  diameters = 25 lattice sites, per `pbg_cpm_studies/influenza/params.yaml`
+  `virus:` block). Nearby Healthy (H) cells stochastically transition to
+  Infected as a function of the local mean field concentration they
+  experience (`Pr(infect) = 1 - exp(-g_hv * v_bar)`), so the lesion grows
+  outward from its seed rather than infecting uniformly at random across
+  the sheet. This reproduces the qualitative spatial-spread PHENOMENON that
+  underlies Sego et al. 2022's Fig 6 virus/infection spatial snapshots
+  (referenced qualitatively here — Fig 6 has no digitized acceptance band
+  in this workspace, unlike Figs 3B/5/7, which are cell-count time-series
+  targets, not spatial-pattern targets, and are therefore not the right
+  comparison for this study). There is no resistance/IFN response yet
+  (per-cell resistance stays 0 throughout — Increment 3 adds the type-I
+  IFN field and the resistance state variable that will begin to gate this
+  same transition), no cell death/recovery, and no immune cells.
+
+key_assumptions:
+  - Virus secretion magnitude uses the documented z=1/per-pixel convention
+    (`pbg_cpm_studies/influenza/fields.py`'s `_virus_field_params` — the
+    source's per-cell `secretion_g_vi` is halved to remove the source's z=2
+    slab thickness for our single-layer z=1 sheet, then spread evenly over
+    each cell's 25 pixels). This reproduces the source's RATE convention
+    faithfully but its exact absolute magnitude against the paper's
+    published field scale is an Increment-9 calibration concern, not
+    validated here.
+  - resist=0 for every cell throughout this run — no IFN-driven resistance
+    gating exists yet (Increment 3). The measured infection rate here is
+    therefore an UPPER bound on what later increments will show once
+    resistance suppresses some fraction of would-be infections.
+  - Single seed (17) for both the initial-lesion choice and the stochastic
+    transition (two independent streams, see `run.run_virus_infection`
+    docstring) — the 7-event locality result is a single-run demonstration,
+    not a statistically characterized rate across replicates.
+  - The live-demo composite
+    (`pbg_cpm_studies.composites.influenza.virus_infection`) and the
+    measurement driver (`run.run_virus_infection`) use independent RNG
+    streams for the same `seed` and are NOT expected to produce bit-
+    identical trajectories (Task 2.3 report) — the composite exists for a
+    fast dashboard demo, not as the source of this study's readouts.
+
+literature_anchors:
+  - expectation: "The virus field's diffusion length should be ~5 epithelial-cell diameters (source `exp_virus_dl` = exp_cell_diameter * 5.0)."
+    model_observable: "pbg_cpm_studies/influenza/fields.py VIRUS_DIFFUSION_LENGTH_SITES = 25 sites (5 cell diameters x 5 sites/diameter); new-infection distances (5.0-32.0 sites) stay within a small multiple of this length."
+    source: "CC3D ViralInfectionVTM source (pbg_cpm_studies/influenza/params.yaml virus.diffusion_length_cell_diam)"
+    status_in_workspace: "Diffusion length wired into the field and used as the locality bound (3x = 75 sites) for this study's behavior test; no acceptance-band comparison to a digitized figure yet."
+    cites: [sego2022influenza]
+  - expectation: "Sego et al. 2022 Fig 6 shows the spatial pattern of virus concentration and infected cells spreading outward from an initial lesion over simulated time."
+    model_observable: "This study's local new-infection-distance measurements (5.0-32.0 sites) are the same qualitative phenomenon (local outward spread from an active lesion) that Fig 6 depicts."
+    source: "Sego 2022 Fig 6"
+    status_in_workspace: "Referenced QUALITATIVELY only -- no digitized acceptance band exists for Fig 6 in this workspace (unlike Figs 3B/5/7, which are cell-count time-series targets in pbg_cpm_studies/influenza/targets/ and are not spatial-pattern targets). A quantitative Fig-6 comparison is not attempted by this study."
+    cites: [sego2022influenza]
+
+gate_status: passed
+
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+
+model_change:
+  base_model: pbg_cpm_studies.composites.influenza.virus_infection
+  new_processes: [pbg_cpm_studies.influenza.infection_process.InfectionProcess]
+  new_state_variables: [virus field (per-site concentration)]
+  new_parameters: [patch_mm, seed, init_infected_frac]
+  modified_processes: [pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline (adds fields + secretory_types)]
+  new_listeners: []
+  notes: |
+    Wraps the existing CPMProcess (now with `n_fields=1`,
+    `secretory_types=[types.I]`, and a `fields:` spec entry from
+    `fields.virus_field_spec_entry()`) plus a new InfectionProcess wired
+    through the shared `fates` map (same down-scale-coupling convention as
+    `cpm.coupling`) -- the live-demo composite for the dashboard. The
+    readouts and behavior tests above are measured directly against
+    `run.run_virus_infection` (raw `cpm_core.World` loop, Task 2.3), not
+    through this process-bigraph composite; see key_assumptions for why the
+    two paths are not expected to be bit-identical.
+
+runs:
+  - run_id: virus-infection-lesion-spread-0p3mm
+    name: Seeded-lesion spread + locality (0.3mm, 900 cells, 60 updates)
+    status: completed
+    canonical: true
+    timestamp: '2026-09-18'
+    seeds: [17]
+    emitter: "n/a (direct pytest measurement)"
+    outcomes:
+      'Seeded lesion spreads over time (population conserved)':
+        result: PASS
+        measured_value: 16.0
+        notes: "n_I 9 -> 16, n_H 891 -> 884 over 60 updates; n_H + n_I conserved every update (Task 2.3, test_seeded_lesion_spreads_over_time)"
+        evaluated_by: tests/test_influenza_virus_infection.py
+      'New infections appear near existing infected cells (locality)':
+        result: PASS
+        measured_value: 32.0
+        notes: "7 new-infection events, distances 5.0-32.0 sites, all under the 75-site (3x diffusion length) bound (Task 2.3, test_new_infections_appear_near_existing_infected_cells)"
+        evaluated_by: tests/test_influenza_virus_infection.py
+  - run_id: virus-infection-null-control
+    name: Null control -- no seed, no initial virus
+    status: completed
+    canonical: true
+    timestamp: '2026-09-18'
+    seeds: [17]
+    emitter: "n/a (direct pytest measurement)"
+    outcomes:
+      'No seed, no initial virus -> no infection (null control)':
+        result: PASS
+        measured_value: 0.0
+        notes: "init_infected_frac=0.0: n_I stays 0, new_infection_dists empty every update, for the whole run (Task 2.3, test_no_seed_and_no_initial_virus_means_no_infection)"
+        evaluated_by: tests/test_influenza_virus_infection.py
+
+discovery_implications:
+  followup_study_proposals:
+    - id: ifn-resistance
+      title: "Increment 3: IFN + per-cell resistance"
+      motivation: "Add the type-I IFN field and per-cell resistance state variable that will gate (reduce) the infection transition validated here."
+
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.influenza.virus_infection
+    params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch; the measured readouts above come from run_virus_infection at 0.3mm/900 cells (Task 2.3), not this live-demo composite
+
+  model_settings: []
+
+narrative_spine_skip: [implementation_requirements]
+narrative_spine_skip_reason: >-
+  Increment 2's mechanism is built and measured (Task 2.3's integration
+  test); implementation_requirements is a forward-looking build checklist
+  with no authored content for a study whose scope (virus field + base
+  infection transition, no resistance/IFN/immune cells) is complete for
+  this increment.
