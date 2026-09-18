@@ -23,3 +23,19 @@ def test_sheet_potts_uses_paper_cpm_constants():
     assert p["temperature"] == 10
     assert p["neighbor_order"] == 3   # CONTROLLER OVERRIDE: source-literal (was 2)
     assert p["boundary"] in ("noflux", "periodic")
+
+
+def test_world_builds_and_holds_volume_after_relaxation():
+    from pbg_cpm_studies.influenza import build, sheet
+    spec = sheet.build_sheet_spec(0.3)
+    w = build.world_from_spec(spec)
+    assert w.n_cells() == 900
+    w.step(50)  # short relaxation
+    # cell_volumes()[0] is the medium placeholder, not a real cell (see
+    # tests/test_mitosis.py:25 convention). The 0.3mm sheet is exactly
+    # confluent (900 * 25 = 22500 = 150x150 sites), so medium volume is
+    # legitimately 0 here -- exclude it and check only real epithelial cells.
+    vols = w.cell_volumes()[1:]
+    mean_v = sum(vols) / len(vols)
+    assert 18 <= mean_v <= 32          # ~25 sites, confluent, no collapse
+    assert min(vols) > 0               # no cell vanished
