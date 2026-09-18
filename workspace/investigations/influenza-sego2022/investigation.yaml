@@ -71,9 +71,11 @@ executive:
     composite — substrate only, no biology. Member study
     virus-field-infection (Increment 2) validates the virus field +
     stochastic infection MECHANISM (measured: n_I grows 9->16 over 60
-    updates from a seeded lesion, 7 new-infection events all within 5.0-32.0
-    sites of a prior-infected cell — well under the 75-site locality bound —
-    population conserved; null control confirms no spontaneous infection).
+    updates from a seeded lesion; spread is spatially LOCAL by a discriminating
+    null-baseline test — new infections land ~0.61x as far from prior-infected
+    cells as a uniform-random null (actual 15.0 vs random 24.6 sites), and a
+    shuffled-field non-local control fails at ~1.13x — population conserved;
+    null control confirms no spontaneous infection).
     No reproduction verdict against Figs 3B/5/7 exists yet — that begins at
     Increment 9 (the capstone).
   decisions_needed:
