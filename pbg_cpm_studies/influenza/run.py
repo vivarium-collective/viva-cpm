@@ -21,7 +21,8 @@ import math
 
 import numpy as np
 
-from . import allee, build, fields, immune, killing, sheet, signaling, transitions, types
+from . import (allee, build, fields, immune, killing, price_ode, sheet,
+               signaling, transitions, types)
 from .params import load_params
 from .resistance import cell_resistance
 
@@ -973,5 +974,184 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
         "margin_sites": margin_sites, "separation_sites": separation_sites,
         "seed": seed, "steps": steps, "mcs_per_update": mcs_per_update,
         "field_warmup": field_warmup,
+    }
+    return result
+
+
+def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
+                        steps: int = 20, seed: int = 17, with_immune: bool = True,
+                        seed_infection_frac: float = 0.05, mcs_per_step: int = 1,
+                        **scenario_kw) -> dict:
+    """Task 8.2 crux driver: wire the SPATIAL->ODE direction of the Sego-2022
+    hybrid coupling (dossier Sec.4a). Each MCS, advance the CPM world one step,
+    read the spatial aggregates (cell counts by type + z-normalized field
+    integrals + the resistance-weighted infected-load terms B_ei/G_ki), feed
+    them as ``inputs`` into the Task-8.1 :class:`price_ode.GlobalODE`, integrate
+    one MCS (``rr.timestep()`` cadence, dt = 60 s), and record the global
+    species + spatial trajectories.
+
+    Scenario (reused verbatim from Increments 6/7): a small non-confluent
+    epithelial patch with ``n_infected`` cells seeded infected (the virus +
+    type-I IFN sources) and a macrophage cluster secreting chemokine + IL-10
+    (`immune.build_macrophage_scenario_spec` when ``with_immune=False``);
+    ``with_immune=True`` adds the Increment-7 NK + CD8 cytotoxic cluster
+    (`immune.build_cytotoxic_scenario_spec`). No infection transitions,
+    recruitment (Task 8.4), sig_1 secretion feedback (Task 8.3) or contact
+    killing (Task 8.5) are wired here -- this task establishes the loop and the
+    spatial->ODE push ONLY. The base field secretion (virus/IFN from I cells,
+    chemokine/IL-10 from M/H cells) and the Increment-6 IL-10-Hill macrophage
+    secretion regulation are the existing physics; this driver only READS the
+    resulting aggregates (it does not reimplement field/secretion physics).
+
+    ``side`` is the nominal square epithelial-patch edge in lattice sites; the
+    scenario's ``epithelial_cells_per_side`` is ``round(side/CELL_SIDE_SITES)``
+    and, when ``num_epithelial is None``, the ODE reference population
+    ``tot_cell`` is taken as the ACTUAL epithelial (H+I) cell count in the built
+    scenario -- so ``D = tot_cell - H - I = 0`` at MCS 0 (no spurious dead
+    epithelium injected into Sigma1). Defaults are deliberately small/fast;
+    paper-scale is Increment 9.
+
+    HOMEOSTATIC-SEEDING CHOICE (load-bearing carry-forward from Task 8.1): the
+    ODE's healthy fixed point encodes tissue-resident immune homeostasis at
+    populations ``b_m, b_k`` (~= eta * homeostatic_pops_ode). This driver feeds
+    the TRUE spatial M/K/E counts (it does NOT clamp them to ``max(., b_m)``).
+    At these small ``side`` defaults ``eta`` is tiny so ``b_k`` is far below the
+    seeded NK count -- the initial (IC) IFN-gamma ``G`` was built with ``K=b_k``,
+    so feeding the larger spatial ``K`` makes ``G`` step up over MCS 1. This is
+    the expected Increment-8 coupling artifact the brief flags (recruitment in
+    Task 8.4 will grow the ODE populations to match); it is recorded, not
+    masked. See task-8.2-report.md.
+
+    Returns per-MCS series (one entry per MCS, index 0 = the first stepped MCS):
+      - "mcs": MCS index (1..steps)
+      - "ode": {sp: [...]} for each of the 10 integrated states
+        (NB, N, T, X, A, B, P, W, G, O)
+      - "spatial": {"H","I","M","K","E","DH","V","F","C","L": [...]} -- the fed-in
+        spatial aggregates (counts and z-normalized field integrals)
+      - "sigma1": [a_11*T + a_12*D] each MCS (T from the ODE, D from spatial
+        counts) -- recorded so the key exists; sig_1 becomes a DYNAMIC secretion
+        driver in Task 8.3 (not fed back into secretion here)
+      - "params": the scenario/run knobs, for the report.
+    """
+    params = load_params()
+    a_rf = float(params["resistance"]["a_rf"])
+    sig_1, g_1, g_2, d_2 = fields.il10_hill_constants()
+
+    eps = max(1, int(round(side / sheet.CELL_SIDE_SITES)))
+    n_epi_cells = eps * eps
+    n_infected = max(1, int(round(seed_infection_frac * n_epi_cells)))
+    n_infected = min(n_infected, n_epi_cells)
+
+    if with_immune:
+        spec = immune.build_cytotoxic_scenario_spec(
+            epithelial_cells_per_side=eps, n_infected=n_infected, seed=seed,
+            **scenario_kw)
+    else:
+        spec = immune.build_macrophage_scenario_spec(
+            epithelial_cells_per_side=eps, n_infected=n_infected, seed=seed,
+            **scenario_kw)
+
+    cell_type_by_idx = [c["type"] for c in spec["cells"]]  # spec index i -> cell id i+1
+    infected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I]
+    macrophage_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.M]
+    uninfected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.H]
+    n_epithelial_actual = sum(1 for t in cell_type_by_idx if t in (types.H, types.I))
+
+    # ODE reference population (tot_cell). Default: the ACTUAL epithelial count,
+    # so D = tot - H - I = 0 at MCS 0 (no spurious dead epithelium in Sigma1).
+    tot_cell = int(num_epithelial) if num_epithelial is not None else n_epithelial_actual
+
+    world = build.world_from_spec(spec, finalize=False)
+    virus_fi = fields.add_virus_field(world)
+    ifn_fi = fields.add_ifn_field(world)
+    chemo_fi = fields.add_chemokine_field(world)
+    il10_fi = fields.add_il10_field(world)
+    world.finalize(int(spec["potts"]["seed"]))
+
+    dim_z = world.dims()[2]  # z=1 in this reproduction; §4a divides integrals by dim.z
+
+    # Task-8.1 ODE: resolve constants at this tot_cell, seed the healthy IC.
+    consts = price_ode.resolve_constants(params["price_ode"], num_epithelial=tot_cell)
+    ode = price_ode.GlobalODE(consts, num_epithelial=tot_cell)
+    state = price_ode.initial_state(consts, num_epithelial=tot_cell, v0=0.0)
+    b_ei = consts["b_ei"]
+    g_ki = consts["g_ki"]
+    a_11, a_12 = consts["a_11"], consts["a_12"]
+
+    def _apply_secretion_scales():
+        # Increment-6 IL-10-Hill macrophage secretion regulation (existing
+        # physics, same as run_macrophage_signaling): local IL-10 self-limits
+        # the macrophage's chemokine + IL-10 release; uninfected cells' IL-10
+        # is (1-resist)-gated. This is NOT the Task-8.3 sig_1 feedback.
+        for cid in macrophage_ids:
+            l_loc = world.field_mean_at_cell(il10_fi, cid)
+            scale = signaling.macrophage_secretion_scale(l_loc, sig_1, g_1, g_2, d_2)
+            world.set_cell_secretion_scale(chemo_fi, cid, scale)
+            world.set_cell_secretion_scale(il10_fi, cid, scale)
+        for cid in uninfected_ids:
+            f_bar = world.field_mean_at_cell(ifn_fi, cid)
+            resist = cell_resistance(f_bar, a_rf)
+            world.set_cell_secretion_scale(il10_fi, cid, signaling.uninfected_il10_scale(resist))
+
+    result = {
+        "mcs": [],
+        "ode": {sp: [] for sp in price_ode.INTEGRATED_STATES},
+        "spatial": {k: [] for k in ("H", "I", "M", "K", "E", "DH", "V", "F", "C", "L")},
+        "sigma1": [],
+    }
+
+    for mcs in range(1, steps + 1):
+        world.step(mcs_per_step)
+        _apply_secretion_scales()
+
+        # --- read spatial aggregates (§4a) ---
+        types_now = world.cell_types()
+        H = sum(1 for t in types_now[1:] if t == types.H)
+        I = sum(1 for t in types_now[1:] if t == types.I)
+        M = sum(1 for t in types_now[1:] if t == types.M)
+        K = sum(1 for t in types_now[1:] if t == types.K)
+        E = sum(1 for t in types_now[1:] if t == types.E)
+        DH = sum(1 for t in types_now[1:] if t == types.D)  # dead-uninfected proxy (0 here)
+
+        V = float(sum(world.field_conc(virus_fi))) / dim_z
+        F = float(sum(world.field_conc(ifn_fi))) / dim_z
+        C = float(sum(world.field_conc(chemo_fi))) / dim_z
+        L = float(sum(world.field_conc(il10_fi))) / dim_z
+
+        # resistance-weighted infected load: B_ei = Σ_infected(resist)*b_ei,
+        # G_ki = Σ_infected(resist)*g_ki (§4a, ImmuneModelSteppable :1300-1306).
+        sum_resist = 0.0
+        for cid in infected_ids:
+            f_bar = world.field_mean_at_cell(ifn_fi, cid)
+            sum_resist += cell_resistance(f_bar, a_rf)
+        B_ei = sum_resist * b_ei
+        G_ki = sum_resist * g_ki
+
+        inputs = dict(H=H, I=I, M=M, K=K, E=E, DH=DH,
+                      V=V, F=F, C=C, L=L, B_ei=B_ei, G_ki=G_ki)
+
+        # --- integrate one MCS (dt = 60 s) ---
+        state = ode.step(state, inputs, dt_seconds=60.0)
+
+        # sig_1 recorded (a_11*T + a_12*D); D from spatial counts. Not fed back
+        # into secretion yet -- that is Task 8.3.
+        D = tot_cell - H - I
+        sigma1 = a_11 * state["T"] + a_12 * D
+
+        result["mcs"].append(mcs)
+        for sp in price_ode.INTEGRATED_STATES:
+            result["ode"][sp].append(state[sp])
+        for k, v in inputs.items():
+            if k in result["spatial"]:
+                result["spatial"][k].append(v)
+        result["sigma1"].append(sigma1)
+
+    result["params"] = {
+        "side": side, "epithelial_cells_per_side": eps,
+        "num_epithelial": tot_cell, "n_epithelial_actual": n_epithelial_actual,
+        "n_infected": n_infected, "seed_infection_frac": seed_infection_frac,
+        "with_immune": with_immune, "steps": steps, "seed": seed,
+        "mcs_per_step": mcs_per_step, "eta": tot_cell / price_ode.ODE_EPITHELIAL_POPULATION,
+        "b_m": consts["b_m"], "b_k": consts["b_k"], "b_p": consts["b_p"],
     }
     return result
