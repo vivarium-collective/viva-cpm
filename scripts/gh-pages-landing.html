@@ -1,41 +1,35 @@
-<!DOCTYPE html>
-<!--
-  gh-pages landing page (seeded by .github/workflows/publish-reports.yml on the
-  first publish). The investigation list between the auto-investigations markers
-  is regenerated automatically by scripts/inject_index_fragment.py — do not edit
-  that block by hand. Everything else is yours to customise.
--->
+<!doctype html>
 <html lang="en">
+<!-- Seed for the gh-pages ROOT (index.html), copied by publish-reports.yml only
+     when gh-pages has no index.html yet. The site root redirects to the
+     read-only dashboard (published to dashboard/ by publish-dashboard.yml), the
+     primary surface for this workspace. Per-investigation reports live at
+     investigations/<slug>.html and are linked from the dashboard.
+     No auto-investigations markers here on purpose: inject_index_fragment.py
+     leaves a marker-less page untouched. -->
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Investigations</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0; url=dashboard/">
+<link rel="canonical" href="dashboard/">
+<title>viva-cpm</title>
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; max-width: 820px;
-         margin: 3rem auto; padding: 0 1.25rem; color: #1e293b; line-height: 1.55; }
-  h1 { margin-bottom: .25rem; }
-  .sub { color: #64748b; margin-top: 0; }
-  a { color: #2563eb; }
-  .dash { display: inline-block; margin: 1rem 0 1.5rem; padding: .5rem .9rem;
-          background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
-          text-decoration: none; font-weight: 600; }
-  ul { padding-left: 1.1rem; }
-  li { margin: .35rem 0; }
-  .empty { color: #94a3b8; font-style: italic; }
-  footer { margin-top: 2.5rem; color: #94a3b8; font-size: .85em; }
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       background:#f6f6f4;color:#0b0b0b;display:grid;place-items:center}
+  .box{text-align:center;max-width:460px;padding:24px}
+  h1{font-size:20px;font-weight:680;letter-spacing:-.01em;margin:0 0 6px}
+  p{color:#52514e;font-size:14px;line-height:1.55;margin:6px 0 16px}
+  a{color:#256abf;text-decoration:none;font-weight:600}
+  a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-<h1>Investigations</h1>
-<p class="sub">Read-only published reports. Generated automatically from <code>main</code>.</p>
-
-<a class="dash" href="dashboard/">▸ Browse the full read-only dashboard</a>
-
-<h2>Reports</h2>
-<!-- BEGIN auto-investigations -->
-<ul><li class="empty">No published investigation reports yet — they appear here after the first merge to main.</li></ul>
-<!-- END auto-investigations -->
-
-<footer>Published by the vivarium auto-publish workflows (publish-dashboard.yml · publish-reports.yml).</footer>
+  <div class="box">
+    <h1>viva-cpm</h1>
+    <p>Opening the read-only dashboard…</p>
+    <p><a href="dashboard/">Open the dashboard&nbsp;&rarr;</a></p>
+  </div>
+  <script>location.replace("dashboard/");</script>
 </body>
 </html>
