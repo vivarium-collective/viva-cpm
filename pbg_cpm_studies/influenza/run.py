@@ -21,7 +21,7 @@ import math
 
 import numpy as np
 
-from . import allee, build, fields, sheet, transitions, types
+from . import allee, build, fields, immune, sheet, transitions, types
 from .params import load_params
 from .resistance import cell_resistance
 
@@ -420,4 +420,93 @@ def run_epithelial_fate(patch_mm: float = 0.3, steps: int = 200, seed: int = 17,
         current_types = final_types
         _record(step_idx, n_allee_death, n_allee_recovery)
 
+    return result
+
+
+def run_macrophage_response(*, epithelial_cells_per_side: int = 4, n_infected: int = 1,
+                             n_macrophages: int = 6, margin_sites: int = 20,
+                             steps: int = 30, seed: int = 17, mcs_per_update: int = 10,
+                             field_warmup: int = 1500,
+                             chemotaxis_lambda: float | None = None) -> dict:
+    """Task 5.1 crux driver: build the non-confluent macrophage scenario
+    (`immune.build_macrophage_scenario_spec`), wire the virus field
+    (`fields.add_virus_field` -- I cells secrete) + macrophage chemotaxis
+    (`immune.set_macrophage_chemotaxis`), warm the field up (`World.
+    advance_fields`, matching `pbg_cpm_studies.chemotaxis.run`'s WARMUP
+    convention -- builds an initial gradient reaching the macrophages'
+    starting corner before they start responding to it), then step the
+    coupled CPM + field world and record the macrophages' localization each
+    update.
+
+    ``chemotaxis_lambda`` overrides ``params.yaml``'s ``macrophage.
+    chemotaxis_v_macro`` (5000); pass ``0.0`` for the lambda=0 control (no
+    directed chemotaxis -- see `immune.set_macrophage_chemotaxis`).
+
+    Returns per-update series (index 0 = the seeded initial state, before any
+    Potts/field updates -- but AFTER the field warmup):
+      - "steps": update index (0..steps)
+      - "mean_distance_to_infection": macrophages' mean centre-of-mass
+        distance to the infected-cell centroid
+      - "macrophage_com": macrophage centre-of-mass (x, y), for the
+        companion localization-trajectory readout
+    plus "params" (the scenario/run knobs, for the report).
+    """
+    params = load_params()
+    lam = (float(params["macrophage"]["chemotaxis_v_macro"])
+           if chemotaxis_lambda is None else float(chemotaxis_lambda))
+
+    spec = immune.build_macrophage_scenario_spec(
+        epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, margin_sites=margin_sites, seed=seed)
+
+    cell_type_by_idx = [c["type"] for c in spec["cells"]]  # spec index i -> cell id i+1
+    infected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I]
+    macrophage_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.M]
+
+    world = build.world_from_spec(spec, finalize=False)
+    virus_fi = fields.add_virus_field(world)
+    world.finalize(int(spec["potts"]["seed"]))
+
+    for _ in range(field_warmup):
+        world.advance_fields(1)
+
+    immune.set_macrophage_chemotaxis(world, virus_fi, chemotaxis_v_macro=lam)
+
+    def _infection_centroid(coms):
+        xs = [coms[cid][0] for cid in infected_ids]
+        ys = [coms[cid][1] for cid in infected_ids]
+        return (sum(xs) / len(xs), sum(ys) / len(ys))
+
+    def _macrophage_mean_distance(coms, centroid):
+        ds = [math.hypot(coms[cid][0] - centroid[0], coms[cid][1] - centroid[1])
+              for cid in macrophage_ids]
+        return sum(ds) / len(ds)
+
+    def _macrophage_com(coms):
+        xs = [coms[cid][0] for cid in macrophage_ids]
+        ys = [coms[cid][1] for cid in macrophage_ids]
+        return (sum(xs) / len(xs), sum(ys) / len(ys))
+
+    result = {"steps": [], "mean_distance_to_infection": [], "macrophage_com": []}
+
+    def _record(step_idx):
+        coms = world.cell_coms()
+        centroid = _infection_centroid(coms)
+        result["steps"].append(step_idx)
+        result["mean_distance_to_infection"].append(
+            round(_macrophage_mean_distance(coms, centroid), 3))
+        result["macrophage_com"].append(
+            tuple(round(v, 2) for v in _macrophage_com(coms)))
+
+    _record(0)
+    for step_idx in range(1, steps + 1):
+        world.step(mcs_per_update)
+        _record(step_idx)
+
+    result["params"] = {
+        "chemotaxis_v_macro": lam, "n_macrophages": n_macrophages,
+        "n_infected": n_infected, "epithelial_cells_per_side": epithelial_cells_per_side,
+        "margin_sites": margin_sites, "seed": seed, "steps": steps,
+        "mcs_per_update": mcs_per_update, "field_warmup": field_warmup,
+    }
     return result
