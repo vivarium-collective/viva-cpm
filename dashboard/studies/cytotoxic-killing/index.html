@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Study: ifn-resistance</title>
+<title>Study: cytotoxic-killing</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
 <!-- Inherit the workbench light/dark theme (this page loads in an iframe;
@@ -14,7 +14,7 @@
 <header class="study-header">
   <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
-    <span class="study-name" id="study-name" data-slug="ifn-resistance" title="ifn-resistance">Increment 3: type-I IFN + per-cell resistance gates virus release — mechanism validated, reproduction still PENDING</span>
+    <span class="study-name" id="study-name" data-slug="cytotoxic-killing" title="cytotoxic-killing">Increment 7: NK/CD8 chemotax up the chemokine field and localize robustly (5/5 seeds); contact-killing WORKS in a close-contact test (1-&gt;0) — but at the DEFAULT full-scale scenario NK/CD8 never reach the infected cell, so end-to-end cytotoxic CLEARANCE is WEAK — capability proven, clearance an Increment-9 calibration gap</span>
     
     <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
     
@@ -36,7 +36,7 @@
     
 
     
-    <div id="readiness-panel" data-slug="ifn-resistance"></div>
+    <div id="readiness-panel" data-slug="cytotoxic-killing"></div>
 
     
     
@@ -90,7 +90,7 @@
           <span class="status-detail-axis">2 · Execution</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="1 completed run(s)">◆ computed: ran</span>
+          <span class="gate-computed-chip gate-state-passed" title="3 completed run(s)">◆ computed: ran</span>
           
           
           
@@ -150,12 +150,16 @@
 
 
 
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Layered on the validated Increment-2 virus field + infection transition:
-does a diffusing type-I IFN field, converted per-cell into a resistance
-scalar (source formula `resist = f_bar/(a_rf+f_bar)`), gate an infected
-cell&#39;s virus secretion by `(1-resist)` strongly enough to measurably
-REDUCE infection spread and total virus versus the same run with no IFN
-(Increment 2&#39;s path, unchanged)?
+<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Introducing NK (`types.K`) and CD8+ T (`types.E`) cells, wired to
+chemotax up the macrophage-released chemokine field (Increment 6) and to
+contact-kill infected cells via the CC3D source&#39;s literal LOCAL
+(surface-contact) kill-rate formula: do NK/CD8 genuinely LOCALIZE toward
+the infection (robust across seeds), does the contact-killing MECHANISM
+itself actually clear an infected cell once contact happens, and — the
+honest question this study exists to surface — does that killing
+mechanism actually engage end-to-end at the scenario&#39;s own DEFAULT
+full scale, or do NK/CD8 simply never get close enough within a
+feasible step budget?
 </p>
 
 <nav class="study-tabs" aria-label="Study sections">
@@ -567,106 +571,117 @@ REDUCE infection spread and total virus versus the same run with no IFN
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">A type-I IFN field, sampled locally per infected cell into a resistance
-scalar (source formula) that gates that cell&#39;s virus secretion by
-`(1-resist)`, measurably reduces total virus versus an identical no-IFN
-run (same seed, same 60-update driver) — roughly HALVED at every sampled
-step (819.16 vs 1750.69 at step 20, ~53%; 1222.88 vs 2752.34 at step 30,
-~56%; 1624.58 vs 3905.38 at step 40, ~58%). This is the study&#39;s PRIMARY,
-robust quantitative evidence. Infected-cell count (n_I) moves in the same
-protective direction but is a WEAKER signal at the step Task 3.3&#39;s
-integration test actually asserts: 48 vs 50 at step 20 is only a ~4%
-reduction; the gap widens to ~15% at step 30 (51 vs 60) and ~23% at step
-40 (53 vs 69) as the virus-load reduction has more time to compound into
-a visible count difference. So n_I is treated here as a corroborating
-directional trend, not co-equal quantitative evidence with total_virus.
-This is a MECHANISM-validation claim (the IFN-&gt;resistance-&gt;reduced-
-secretion chain behaves in the protective direction and has a real,
-non-trivial magnitude on virus load, with a smaller/slower-to-emerge
-effect on cell counts), not a claim that any of Sego et al. 2022&#39;s
-quantitative figure targets (Figs 3B/5/7) are met — that reproduction
-verdict remains PENDING until Increment 9 (the capstone).
+      <p class="ctr-text">NK/CD8 chemotaxis up the (unchanged, Increment-6) chemokine field
+produces genuine spatial LOCALIZATION, robust across 5 tried seeds (NK
+mean distance change -20.37, CD8 -35.99, both negative in 5/5 seeds,
+against a near-isotropic lambda=0 control, NK -1.02/CD8 -0.54) with CD8
+(2x NK&#39;s lambda) localizing more strongly than NK in every seed and on
+average -- matching the paper&#39;s Sec. 2.3 &#34;CD8+ sensitivity twice that of
+NK cells.&#34; Separately, the contact-killing MECHANISM itself
+(`killing.contact_kill_rate`, the source&#39;s literal LOCAL surface-contact
+form, resist-DIRECT per discrepancy #7) is proven correct: a small
+close-contact scenario kills the one infected cell (1 -&gt; 0 at update 22
+of 45) with killing enabled vs steady at 1 with the identical seed and
+killing disabled. THIS STUDY DOES NOT CLAIM &#34;NK/CD8 CLEAR THE INFECTION&#34;
+AT REALISTIC SCALE -- at the scenario&#39;s own DEFAULT full scale (same
+6-macrophage/6-NK/6-CD8, 60-update scenario the localization numbers
+above come from), NK/CD8 close much of the distance to the infection
+(NK ~81.6 -&gt; ~57.8, CD8 ~81.6 -&gt; ~39.8) but NEVER reach actual contact
+within the run budget, so `n_infected` is unchanged (stays at 1 for all
+61 recorded steps, no kill fires). The killing CAPABILITY is
+demonstrated; end-to-end cytotoxic CLEARANCE at default/realistic scale
+is an OPEN Increment-9 field-magnitude-calibration item, the same root
+cause as the localization mechanism&#39;s own 100x engine-unit-scale
+correction, deliberately NOT tuned away here.
 </p>
       
-      <div class="ctr-context">Infected epithelial cells secrete type-I interferon (IFN) into a second
-diffusing, decaying extracellular field (source-cited diffusion
-coefficient, decay rate, and secretion constant, per
-`pbg_cpm_studies/influenza/params.yaml`&#39;s `ifn:` block), layered on the
-Increment-2 virus field. Each update, every currently-infected cell reads
-its own locally-diffused mean IFN concentration and converts it into a
-resistance scalar via the CC3D-source formula `resist =
-f_bar/(a_rf+f_bar)` (params.yaml `resistance:` block; NOT the paper&#39;s
-printed `1 - f_bar&#39;/(theta*a_f+f_bar&#39;)` form — every source consumer
-applies `(1-resist_source)` wherever the paper&#39;s rho appears
-protectively, matched here). That resistance throttles the SAME cell&#39;s
-own virus secretion for the next update by a factor of `(1-resist)`, so a
-cell that has accumulated more local IFN releases proportionally less
-virus. Measured against an identical no-IFN run (Increment 2&#39;s path,
-unchanged), this produces a substantial, sustained brake on VIRUS LOAD —
-total_virus is the study&#39;s primary, robust quantitative evidence, roughly
-halved already at step 20 (~53%) and staying in that ~53-58%-reduction
-regime through step 40. Infected-cell COUNT (n_I) moves in the same
-protective direction but only weakly at step 20 (~4%, 48 vs 50 cells);
-the reduction widens to a clearly meaningful ~23% by step 40 (53 vs 69)
-as the virus-load reduction has more time to compound into fewer new
-infections — a corroborating trend, not evidence as strong as
-total_virus&#39;s. mean_resist itself reaches a fast
-local steady state (~0.53-0.57) almost immediately rather than climbing
-toward saturation — because the IFN field&#39;s fast decay and diffusion
-drive each infected cell&#39;s local IFN to a quasi-steady concentration
-within about one update, and that concentration happens to sit close to
-(about 1.2x) the resistance formula&#39;s `a_rf` constant rather than far
-above it. There is no cell death/recovery, no Allee effect, no IL-10
-cross-talk, no immune cells (macrophages/NK/CD8+ T), and no APC-driven
-global IFN amplification feedback yet — all later increments.
+      <div class="ctr-context">NK (`types.K`) and CD8+ T (`types.E`) cells are placed in the domain
+interior (the Task-7.1 three-cluster scenario: epithelial/infection patch
+| macrophage cluster | NK+CD8 cluster, every cluster &gt;= `margin_sites`
+from every noflux wall) and wired to chemotax up the macrophage-released
+chemokine field (Increment 6, unchanged) via the engine&#39;s linear-lambda
+`World.set_chemotaxis` primitive, at the documented, non-per-seed-tuned
+`NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` correction (Task 7.1 -- the literal
+source lambda is statistically undetectable at this engine&#39;s
+chemokine-field concentration scale). Over a 60-update run, tested across
+5 seeds (5, 17, 23, 42, 100), both NK and CD8&#39;s mean distance to the
+infection centroid falls consistently when chemotaxis is on (NK mean
+change -20.37, CD8 -35.99, negative in 5/5 seeds each), against a
+near-isotropic lambda=0 control (NK -1.02, CD8 -0.54, no consistent sign)
+-- CD8 (2x NK&#39;s literal lambda) localizes more strongly than NK in every
+seed, matching the paper&#39;s Sec. 2.3 stated 2x-sensitivity ratio. Each
+update, `killing.contact_kill_rate` (the CC3D source&#39;s literal LOCAL
+surface-contact kill-rate form, applying `cell_resist` DIRECTLY per
+discrepancy #7, NK checked before CD8 per the source&#39;s ordering) draws a
+stochastic kill for every currently-infected cell from its NK/CD8 contact
+area; a small, deliberately close-contact scenario (2 macrophages/2 NK/2
+CD8, tight margin/separation) confirms this mechanism actually clears the
+infected cell (1 -&gt; 0 at update 22 of 45) once genuine lattice contact
+happens, vs steady at 1 with killing disabled, same seed. This study&#39;s
+central, deliberately UN-hidden finding: at the SAME scenario&#39;s own
+DEFAULT full scale (6 macrophages/6 NK/6 CD8, the scale the localization
+numbers above are measured at), NK/CD8 close much of the distance to the
+infection (NK ~81.6 -&gt; ~57.8, CD8 ~81.6 -&gt; ~39.8 over 60 updates) but
+NEVER reach actual contact within the run budget -- n_infected stays
+unchanged at 1 for all 61 recorded steps, no kill fires. The killing
+CAPABILITY is demonstrated and verified correct; end-to-end cytotoxic
+CLEARANCE at default/realistic scale is NOT -- this is the same root
+cause as the localization mechanism&#39;s own 100x engine-unit-scale
+correction (the chemokine field&#39;s raw concentration is far below what the
+source&#39;s literal parameters were calibrated for), compounded by the
+three-cluster scenario&#39;s extra cluster-separation distance, and is
+recorded as an open Increment-9 field-magnitude-calibration item rather
+than tuned away. Discrepancy #7 (resist-DIRECT), the deferred
+nearby-population killing term, haptotaxis, stubbed recruitment, and
+2D-approximation geometry are all additional open items, not resolved
+here.
 </div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Test</h2>
-      <p class="ctr-text">Wire the type-I IFN field (Task 3.2, `pbg_cpm_studies/influenza/fields.py`
-`add_ifn_field`) and the pure per-cell resistance function (Task 3.3,
-`pbg_cpm_studies/influenza/resistance.py::cell_resistance`) into a new
-driver, `run.run_virus_infection_with_ifn` (Task 3.3), alongside the
-unmodified Increment-2 `run_virus_infection`, and compare their per-update
-series (n_I, n_H, total_virus, plus `mean_resist` recorded only by the
-with-IFN driver) at identical seed/parameters (Task 3.3&#39;s integration test
-`tests/test_influenza_virus_infection.py::test_ifn_resistance_slows_spread_vs_no_ifn`
-and the fuller with/without series in Task 3.3&#39;s report). A minimal
-in-package figure (`pbg_cpm_studies/influenza/viz.py::ifn_resistance_figure`,
-Task 3.4) renders both series side by side plus the mean_resist trajectory.
+      <p class="ctr-text">Wire NK (`types.K`)/CD8+ (`types.E`) chemotaxis (`immune.
+set_nk_cd8_chemotaxis`, Task 7.1) up the chemokine field (Increment 6)
+and contact-killing (`killing.contact_kill_rate`, Task 7.2, the literal
+`ContactKillingSteppable` LOCAL form) into the Task-7.1 three-cluster
+scenario (`immune.build_cytotoxic_scenario_spec`) and driver (`run.
+run_cytotoxic_response`), and measure: (a) NK/CD8 `mean_distance_to_
+infection` across 5 seeds (5, 17, 23, 42, 100), chemotaxis on (lambda x
+`NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100`) vs a lambda=0 control (`tests/
+test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds`,
+task-7.1-report.md); (b) `n_infected` in a small close-contact scenario,
+killing enabled vs disabled, same seed (`tests/test_influenza_killing.py::
+test_infected_count_lower_with_nk_cd8_killing_than_without`,
+task-7.2-report.md); (c) `n_infected` at the scenario&#39;s own DEFAULT full
+scale with killing enabled, an ad hoc (not fast-pytest-suite) measurement
+recorded honestly in task-7.2-report.md&#39;s &#34;Honest assessment&#34; section. A
+minimal in-package figure (`pbg_cpm_studies/influenza/viz.py::
+cytotoxic_killing_figure`, Task 7.3) renders the NK+CD8 distance
+trajectory (on vs control overlay) plus the infected-count trajectory
+(killing enabled vs disabled overlay).
 </p>
       
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>ifn-resistance</code></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">WEAK, DIRECTIONAL check only, not the study&#39;s quantitative gate: `op:
-le, value: 0` passes on ANY reduction, however small, so a PASS here
-proves only that n_I did not get WORSE with the gate active — it does
-NOT by itself establish a meaningful effect size. Measured at the step
-Task 3.3&#39;s integration test actually asserts (step 20): with_ifn
-n_I[-1]=48 &lt;= without n_I[-1]=50, a reduction of only 2 cells (~4%) —
-a genuinely weak signal at that step. The gap does widen at later
-steps (51 vs 60 at step 30, ~15%; 53 vs 69 at step 40, ~23%, per Task
-3.3&#39;s fuller report series), so the directional trend strengthens over
-time, but the quantitative claim for THIS study rests on total_virus
-(next test), not on this loose n_I criterion.
-</span><span class="ctr-dot">·</span><span class="ctr-meta-item">This is the study&#39;s PRIMARY quantitative evidence for the mechanism&#39;s
-effect. Pass criterion: total_virus at the run&#39;s final step with the
-gate active must be strictly less than the same-seed no-IFN run&#39;s
-total_virus at that step. Measured at step 20 (the step Task 3.3&#39;s
-integration test actually asserts): with_ifn total_virus[-1]=819.16 &lt;
-without total_virus[-1]=1750.69 — a ~53% reduction, already
-substantial at the earliest sampled step, not just a loose
-any-reduction pass like the n_I check above. The reduction stays in
-the ~53-58% regime through step 40 (1222.88 vs 2752.34 at step 30;
-1624.58 vs 3905.38 at step 40).
-</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Pass criterion: mean_resist over currently-infected cells must be &gt; 0
-by the run&#39;s final step (sanity that the gate is not a no-op).
-Measured: mean_resist[-1] &gt; 0 at step 20 (Task 3.3); the fuller series
-shows mean_resist reaches ~0.53 after just the first update and
-plateaus at ~0.55-0.57 through step 40 — well above 0, though it does
-NOT climb toward 1 (see the FLAG in report.caveat).
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>cytotoxic-killing</code></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">The full interior-placed cytotoxic scenario, chemotaxis on
+(NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x params.yaml default), across 5
+seeds (5, 17, 23, 42, 100): NK mean distance to the infection centroid
+must decrease (final &lt; initial) in EVERY seed.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Same scenario/seeds: CD8 mean distance to the infection centroid must
+decrease in EVERY seed, and CD8&#39;s gap over the lambda=0 control must
+exceed NK&#39;s (matching the paper&#39;s Sec. 2.3 2x-sensitivity claim).
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">A small close-contact scenario (2 macrophages/2 NK/2 CD8,
+margin_sites=4, separation_sites=1, steps=45, seed=17): n_infected at
+the final step must be lower WITH killing enabled than WITHOUT,
+same-seed/scenario otherwise.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">`enable_killing=False` must build the SAME scenario/chemotaxis (NK/CD8
+present, still chemotaxing) as `enable_killing=True`, isolating the
+killing step&#39;s own effect from any localization run-to-run variation.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">`killing.contact_kill_rate`&#39;s LOCAL kill-rate formula must reproduce
+params.yaml&#39;s precomputed `pr_cf_nk_loc`/`pr_cf_cd8_loc` (= g_i *
+tot_ec_ODE) to 1e-9 relative tolerance, and must apply `cell_resist`
+DIRECTLY (discrepancy #7), not `(1 - cell_resist)`.
 </span></div>
       </div>
       
@@ -674,7 +689,7 @@ NOT climb toward 1 (see the FLAG in report.caveat).
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">A per-cell resistance scalar computed purely from each infected cell&#39;s OWN locally-sampled IFN (no explicit cell-cell signaling beyond field diffusion) is sufficient to cut total virus roughly in half from the earliest sampled step onward — that virus-load reduction is the robust, well-supported effect. Infected-cell count responds to the same mechanism but more slowly: the n_I gap is small at step 20 (~4%) and only widens to a clearly meaningful ~23% by step 40, because fewer infections have had time to compound into a visible count difference even though virus release is already substantially throttled. The protective effect is real, but it comes from resistance hitting a fast local steady state (~0.55) almost immediately, not from resistance climbing toward saturation (~1) as more IFN mass nominally accumulates in the field over time.</p>
+      <p class="ctr-text">The weak end-to-end result is NOT a separate bug — it is the SAME root cause Task 7.1 already flagged for localization: the chemokine field&#39;s raw concentration in this engine&#39;s units is ~2-3 orders of magnitude smaller than the virus field&#39;s at comparable distances, so the source&#39;s literal chemotaxis lambda (5000/10000) is statistically undetectable against thermal/adhesion noise at this field&#39;s scale, requiring the documented, non-per-seed-tuned `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100` correction just to produce a MEASURABLE on/off localization gap — itself still far short of closing the FULL distance to actual contact within a feasible step budget. This compounds with `build_cytotoxic_scenario_spec`&#39;s three-cluster layout (epithelial/infection patch -&gt; macrophage cluster -&gt; NK/CD8 cluster): NK/CD8 must close TWO cluster-separations&#39; worth of distance to physically reach an infected cell, not one. Both are Increment-9 field-magnitude-calibration items, recorded not tuned away (per the brief&#39;s explicit instruction not to smuggle a rescue via re-tuning): if this study widened `NK_CD8_CHEMOTAXIS_ENGINE_SCALE` or shrank `separation_sites` until the default scenario also cleared the infection, that would hide the real finding (the source&#39;s literal parameters don&#39;t calibrate against this engine&#39;s field-concentration units) behind a number that looks better than the mechanism&#39;s honest state.</p>
       
       
     <div class="overview-section findings-section">
@@ -687,35 +702,33 @@ NOT climb toward 1 (see the FLAG in report.caveat).
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-partial">
+      <div class="finding-card finding-kind-computational finding-status-confirms">
         <details class="finding-details">
           <summary class="finding-row">
-            <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">With the IFN-&gt;resistance gate active, infected-cell growth is
-slightly slower than the identical no-IFN path, but the effect is
-WEAK at step 20 (only ~4% reduction, 2 cells) — not on its own strong
-evidence of slowed spread. The gap widens meaningfully by step 40
-(~23%) as the effect compounds, so this is a corroborating
-directional trend that strengthens over time, not the study&#39;s primary
-quantitative evidence (that&#39;s total_virus, F-02) and not a strong
-signal at the step the underlying integration test actually asserts.
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">NK cells chemotaxing up the (Increment-6, unchanged) chemokine field
+via the engine&#39;s linear-lambda `World.set_chemotaxis` primitive
+genuinely and consistently localize to the infection, at the
+documented `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` engine-unit
+correction -- robust across every one of 5 tried seeds, comfortably
+beyond the lambda=0 control&#39;s own noise floor.
 </span>
             
-            <span class="finding-chip">via <code>IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)</code></span>
+            <span class="finding-chip">via <code>NK localization -- distance to infection decreases in every tried seed</code></span>
             
           </summary>
           <div class="finding-drawer">
             <div class="finding-header">
               <span class="finding-id">F-01</span>
               <span class="finding-kind">computational</span>
-              <span class="finding-status-text">partial literature</span>
+              <span class="finding-status-text">confirms literature</span>
             </div>
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> n_I with-IFN 48/51/53 vs without 50/60/69 at steps 20/30/40 (same seed=17, patch_mm=0.3, init_infected_frac=0.05); ratio 0.96 (step 20, ~4% reduction) -&gt; 0.85 (step 30, ~15%) -&gt; 0.77 (step 40, ~23%) · 
+              <strong>observed:</strong> NK distance change -18.59 (seed 5), -23.39 (17), -15.22 (23), -23.77 (42), -20.86 (100); mean -20.37, negative in 5/5 seeds; lambda=0 control mean -1.02, spread 7.59 · 
               
-              via test <a href="#bt-IFN-gated" onclick="_gotoStudyTab('tests','bt-IFN-gated');return false;"><code>IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)</code></a> · 
+              via test <a href="#bt-NK" onclick="_gotoStudyTab('tests','bt-NK');return false;"><code>NK localization -- distance to infection decreases in every tried seed</code></a> · 
               
               
               
@@ -723,7 +736,7 @@ signal at the step the underlying integration test actually asserts.
             
             
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×0.96 vs expected</span>
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
               
               
             </div>
@@ -751,17 +764,14 @@ signal at the step the underlying integration test actually asserts.
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">This is the study&#39;s PRIMARY, robust quantitative evidence. Gating
-each infected cell&#39;s virus secretion by (1-resist) cuts total virus
-roughly in half already at step 20 (~53% reduction, the step the
-underlying integration test actually asserts) and stays in the
-~53-58%-reduction regime through step 40 — a substantial, sustained
-brake on virus load that is the direct, measurable output of the
-resistance mechanism, and a much stronger signal at the tested step
-than the n_I check (F-01).
+            <span class="finding-claim finding-statement">CD8+ T cells localize even more strongly than NK cells in every seed
+and on average (mean on/off gap 35.45 vs NK&#39;s 19.35), consistent with
+CD8&#39;s 2x-larger literal chemotaxis lambda (10000 vs 5000) and matching
+the paper&#39;s Sec. 2.3 qualitative claim (&#34;CD8+ sensitivity twice that
+of NK cells&#34;).
 </span>
             
-            <span class="finding-chip">via <code>IFN-gated virus release leaves strictly less total virus (primary quantitative gate)</code></span>
+            <span class="finding-chip">via <code>CD8 localization -- distance to infection decreases in every tried seed</code></span>
             
           </summary>
           <div class="finding-drawer">
@@ -773,9 +783,9 @@ than the n_I check (F-01).
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> total_virus with-IFN 819.16/1222.88/1624.58 vs without 1750.69/2752.34/3905.38 at steps 20/30/40; ratio 0.42-0.47 across the three sampled steps · 
+              <strong>observed:</strong> CD8 distance change -22.87 (seed 5), -41.86 (17), -39.81 (23), -35.48 (42), -39.94 (100); mean -35.99, negative in 5/5 seeds; on/off gap 35.45 vs NK&#39;s 19.35 (ratio ~1.86) · 
               
-              via test <a href="#bt-IFN-gated" onclick="_gotoStudyTab('tests','bt-IFN-gated');return false;"><code>IFN-gated virus release leaves strictly less total virus (primary quantitative gate)</code></a> · 
+              via test <a href="#bt-CD8" onclick="_gotoStudyTab('tests','bt-CD8');return false;"><code>CD8 localization -- distance to infection decreases in every tried seed</code></a> · 
               
               
               
@@ -783,7 +793,66 @@ than the n_I check (F-01).
             
             
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×0.42 vs expected</span>
+              <span class="finding-divergence" style="font-weight:600">×1.86 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">The contact-killing mechanism (`killing.contact_kill_rate`&#39;s literal
+LOCAL surface-contact form, applied via a per-update stochastic draw,
+NK checked before CD8 per the source&#39;s ordering) is implemented and
+verified CORRECT: once NK/CD8 cells are in actual lattice contact with
+an infected cell, the kill draw engages and removes it. This confirms
+the killing MECHANISM works, isolated from whether NK/CD8 can reach an
+infected cell at any particular scenario scale (see F-04).
+</span>
+            
+            <span class="finding-chip">via <code>Contact-killing reduces infected count vs. killing-disabled control</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-03</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> n_infected: 1 -&gt; 0 at update 22 of 45 with killing enabled; steady at 1 (unchanged) with killing disabled, same seed=17 and scenario · 
+              
+              via test <a href="#bt-Contact-killing" onclick="_gotoStudyTab('tests','bt-Contact-killing');return false;"><code>Contact-killing reduces infected count vs. killing-disabled control</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
               
               
             </div>
@@ -811,32 +880,34 @@ than the n_I check (F-01).
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">The resistance gate engages immediately (not a no-op) and stays
-substantially positive throughout, confirming the mechanism&#39;s
-qualitative direction. It only PARTIALLY confirms the expected
-behavior, though: resistance reaches a fast local steady state near
-0.55 and stays essentially flat, rather than climbing toward
-saturation (~1) as the naive expectation of &#34;more IFN accumulates
-over time -&gt; more resistance&#34; would suggest. This is flagged, not
-hidden, as an Increment-9 calibration/convention open question (see
-report.caveat and the standalone caveat item below).
+            <span class="finding-claim finding-statement">This is the study&#39;s central honest finding, reported as a GAP, not
+hidden as a clean pass (status: partial): the SAME contact-killing
+mechanism verified correct in F-03 does NOT engage end-to-end at the
+scenario&#39;s own default/realistic scale within a feasible step budget
+-- NK/CD8 localize (closing much of the distance, per F-01/F-02) but
+never reach actual lattice contact with the infected cell, so no kill
+draw ever fires. This is the SAME root cause as F-01/F-02&#39;s own
+`NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` engine-unit correction (the
+chemokine field&#39;s raw concentration is far below what the source&#39;s
+literal chemotaxis lambda was calibrated for), compounded by the
+three-cluster scenario&#39;s extra cluster-separation distance. NOT tuned
+away here, per the brief&#39;s explicit instruction -- an open
+Increment-9 field-magnitude-calibration item.
 </span>
-            
-            <span class="finding-chip">via <code>Resistance gate actually engages (mean_resist &gt; 0)</code></span>
             
           </summary>
           <div class="finding-drawer">
             <div class="finding-header">
-              <span class="finding-id">F-03</span>
+              <span class="finding-id">F-04</span>
               <span class="finding-kind">computational</span>
               <span class="finding-status-text">partial literature</span>
             </div>
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> mean_resist 0.0 (step 0) -&gt; 0.5290 (step 1) -&gt; 0.5543 (step 2) -&gt; plateau 0.5555-0.5697 through step 40; never approaches 1 · 
+              <strong>observed:</strong> n_infected constant at 1 for all 61 recorded steps at the DEFAULT full-scale scenario (6 macrophages/6 NK/6 CD8, margin_sites=20, separation_sites=20, steps=60, seed=17); NK mean distance to infection closes ~81.6 -&gt; ~57.8, CD8 ~81.6 -&gt; ~39.8 over the same run -- substantial closing, but contact is never reached · 
               
-              via test <a href="#bt-Resistance" onclick="_gotoStudyTab('tests','bt-Resistance');return false;"><code>Resistance gate actually engages (mean_resist &gt; 0)</code></a> · 
+              
               
               
               
@@ -844,7 +915,7 @@ report.caveat and the standalone caveat item below).
             
             
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×0.55 vs expected</span>
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
               
               
             </div>
@@ -890,12 +961,12 @@ report.caveat and the standalone caveat item below).
   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
     <h2 class="overview-label" style="margin:0">Model composition</h2>
     
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'ifn-resistance', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'cytotoxic-killing', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
   </div>
 
   
   
-  <div id="model-composite-cards" class="model-composite-cards" data-study="ifn-resistance"
+  <div id="model-composite-cards" class="model-composite-cards" data-study="cytotoxic-killing"
        data-study-config="">
     <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
   </div>
@@ -914,29 +985,31 @@ report.caveat and the standalone caveat item below).
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.virus_infection" data-model-overrides='{"init_infected_frac": 0.05, "patch_mm": 0.1, "seed": 17}'>
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.cytotoxic_response" data-model-overrides='{"chemotaxis_v_cd8": 1000000.0, "chemotaxis_v_macro": 5000.0, "chemotaxis_v_nk": 500000.0, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <strong>ifn-resistance</strong>
+        <strong>cytotoxic-killing</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.virus_infection</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.cytotoxic_response</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.virus_infection')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.cytotoxic_response')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="ifn-resistance"
-               value="pbg_cpm_studies.composites.influenza.virus_infection" placeholder="pkg.composites.name"
+        <input type="text" class="baseline-composite-input" data-baseline-name="cytotoxic-killing"
+               value="pbg_cpm_studies.composites.influenza.cytotoxic_response" placeholder="pkg.composites.name"
                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
-                data-baseline-name="ifn-resistance">Set composite</button>
+                data-baseline-name="cytotoxic-killing">Set composite</button>
       </div>
-      <div class="baseline-composite-status muted" data-baseline-name="ifn-resistance" style="font-size:0.8em;margin-top:2px"></div>
+      <div class="baseline-composite-status muted" data-baseline-name="cytotoxic-killing" style="font-size:0.8em;margin-top:2px"></div>
       
       
       
       
       
+      
+        
       
         
       
@@ -971,30 +1044,40 @@ report.caveat and the standalone caveat item below).
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.virus_infection</code></p>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.cytotoxic_response</code></p>
     
     
     <p><strong>New state variables:</strong></p>
     <ul style="margin:0 0 8px 18px">
-      <li><code>type-I IFN field (per-site concentration)</code></li><li><code>per-cell resistance (derived</code></li><li><code>not stored on the composite)</code></li>
+      <li><code>per-cell types K (NK) and E (CD8+ T)</code></li><li><code>NK/CD8 centre-of-mass localization diagnostic</code></li><li><code>per-infected-cell n_infected series</code></li>
     </ul>
     
     
     <p><strong>New parameters:</strong></p>
     <ul style="margin:0 0 8px 18px">
-      <li><code></code></li>
+      <li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li>
     </ul>
     
     
     
-    <p class="muted" style="font-size:0.88em">No new process-bigraph composite is added this increment (see
-key_assumptions): the IFN field, resistance computation, and secretion
-gating are driven directly by `run.run_virus_infection_with_ifn` (a raw
-`cpm_core.World` loop, Task 3.3), not through a live-demo composite.
-`base_model` above points at the SAME Increment-2 composite reused as
-this study&#39;s dashboard-loadable baseline entry; it has no IFN/resistance
-wiring. A composite for the with-IFN driver, if wanted for a live demo,
-is deferred to a later task/increment.
+    <p class="muted" style="font-size:0.88em">A new dashboard-loadable composite IS added this increment:
+`pbg_cpm_studies.composites.influenza.cytotoxic_response` (Task 7.3) --
+wraps the Task-7.1 three-cluster scenario + virus field (macrophage
+chemotaxis, unchanged) + chemokine field (a NEW declarative spec entry,
+`fields.chemokine_field_spec_entry`, Task 7.3), with NK/CD8 chemotaxis
+wired declaratively via the chemokine field&#39;s `chemotaxis` list (the
+same `cpm.schema.load_world` convention `macrophage_response` uses).
+This is a LIVE-DEMO wrapper for the LOCALIZATION half ONLY -- it does
+NOT implement the contact-killing step (`killing.contact_kill_rate` is
+a custom per-update Python calculation over `world.
+cell_contact_area_by_type`, not expressible in this declarative spec
+format), and does not reproduce the field warmup or the
+distance/n_infected readouts this study&#39;s measured numbers come from.
+Those numbers (both the 5-seed localization table and the
+close-contact/default-scale killing numbers) come directly from
+`run.run_cytotoxic_response` (Tasks 7.1/7.2, a raw `cpm_core.World`
+loop), not from this composite. `chemotaxis_v_nk=chemotaxis_v_cd8=0.0`
+reproduces the localization lambda=0 control on the composite side too.
 </p>
   </div>
   
@@ -1028,7 +1111,7 @@ is deferred to a later task/increment.
 
   <h4>Latest run preview</h4>
   <p class="muted" style="font-size:0.9em">Per-store sparkline + first/last/min/max from the most recent run's emitted trajectory. This is a downsampled PREVIEW, not the full data — use the per-store or Download-all links for the complete arrays.</p>
-  <div id="results-preview" data-study="ifn-resistance">
+  <div id="results-preview" data-study="cytotoxic-killing">
     <p class="empty-message">Loading results preview…</p>
   </div>
 
@@ -1052,9 +1135,9 @@ is deferred to a later task/increment.
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
     <span class="muted" style="margin-right:auto;font-weight:600">Analysis result files</span>
     <a id="data-download-all" class="btn-mini" style="display:none"
-       href="/api/study-analysis-zip?study=ifn-resistance">Download all (.zip)</a>
+       href="/api/study-analysis-zip?study=cytotoxic-killing">Download all (.zip)</a>
   </div>
-  <div id="data-files" data-study="ifn-resistance">
+  <div id="data-files" data-study="cytotoxic-killing">
     <p class="empty-message">Loading result files…</p>
   </div>
 </div>
@@ -1075,7 +1158,7 @@ is deferred to a later task/increment.
     interval/buffer, output location, and emit scope — from
     <code>lib/emitters.py</code> and this study's (or the workspace's)
     <code>runtime.default_emitter</code>.</p>
-    <div id="readouts-emitter" data-study="ifn-resistance">
+    <div id="readouts-emitter" data-study="cytotoxic-killing">
       <p class="empty-message">Loading emitter configuration…</p>
     </div>
 
@@ -1087,7 +1170,7 @@ is deferred to a later task/increment.
     
     <div id="readouts-download" style="margin:0 0 16px 0"></div>
 
-    <div id="readouts-table" data-study="ifn-resistance">
+    <div id="readouts-table" data-study="cytotoxic-killing">
       <p class="empty-message">Loading readouts from the composite emit plan…</p>
     </div>
 
@@ -1095,7 +1178,7 @@ is deferred to a later task/increment.
     <p class="muted" style="font-size:0.9em">Store path, dtype, shape
     <code>(n_steps, …)</code>, units, and a best-effort byte estimate for each emitted
     leaf.</p>
-    <div id="readouts-shapes" data-study="ifn-resistance">
+    <div id="readouts-shapes" data-study="cytotoxic-killing">
       <p class="empty-message">Loading output shapes…</p>
     </div>
 
@@ -1147,28 +1230,28 @@ is deferred to a later task/increment.
       
       <li class="literature-anchor-card expectation-item">
         <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span>Type-I IFN secreted by infected cells confers a per-cell resistance that reduces virus release (Sego 2022 Sec. 2.2, cellular viral resistance rho).</span>
+          <span>NK and CD8+ T cells are chemotactically recruited to and localize at the infection site, with CD8+ cells having roughly twice NK cells&#39; chemotactic sensitivity (Sego 2022 Sec. 2.3); Table 3/ImmuneModelInputs.py give chemotaxis_v_nk=5E3/chemotaxis_v_cd8=10E3.</span>
           
         </div>
         <div class="anchor-observable">
-          <em>Model observable:</em> <code>mean_resist over currently-infected cells (this study&#39;s `resist` field, `resistance.cell_resistance`) rises from 0.0 to ~0.53 after the first update and plateaus at ~0.55-0.57 through step 40; total_virus with the resulting (1-resist) gate is roughly halved vs the no-IFN path at steps 20/30/40 (819.16/1222.88/1624.58 vs 1750.69/2752.34/3905.38).</code>
+          <em>Model observable:</em> <code>NK/CD8 mean distance to the infection centroid falls in 5/5 tried seeds for both types (NK mean -20.37, CD8 -35.99) with chemotaxis on, vs a near-isotropic lambda=0 control (NK -1.02, CD8 -0.54); CD8&#39;s on/off gap (35.45) exceeds NK&#39;s (19.35) in every seed and on average, matching the paper&#39;s 2x-sensitivity claim -- at a documented, non-per-seed-tuned 100x chemotaxis engine-unit scale.</code>
         </div>
         
-        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (Type1InterferonModelSteppable.update_resistance) via pbg_cpm_studies/influenza/params.yaml resistance: block</div>
+        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (ChemotaxisSteppable, ImmuneModelInputs.py chemotaxis_v_nk/chemotaxis_v_cd8) via pbg_cpm_studies/influenza/params.yaml nk: and cd8: blocks</div>
         
       </li>
     
       
       <li class="literature-anchor-card expectation-item">
         <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span>Sego et al. 2022&#39;s reproduction (Figs 3B/5/7) implicitly requires the IFN-resistance mechanism to be strong enough to shape infected/uninfected epithelial-cell trajectories at paper scale.</span>
+          <span>NK/CD8 cells contact-kill infected epithelial cells (ContactKillingSteppable), clearing the infection over the course of the immune response (Sego 2022&#39;s overall model narrative, and the source&#39;s ContactKillingSteppable LOCAL surface-contact kill-rate term).</span>
           
         </div>
         <div class="anchor-observable">
-          <em>Model observable:</em> <code>This study&#39;s with/without comparison shows the mechanism moves trajectories in the correct (protective) direction, with a robust, non-trivial magnitude on total_virus (roughly halved at every sampled step) but only a WEAK effect on n_I at the tested step (48 vs 50 at step 20, ~4%), widening to a more meaningful ~23% by step 40 (53 vs 69) — at 0.3mm/900-cell reduced scale, using source-cited constants throughout.</code>
+          <em>Model observable:</em> <code>The contact-killing MECHANISM is implemented (killing.contact_kill_rate, the literal LOCAL kill-rate form, resist-DIRECT per discrepancy #7) and verified correct in a small close-contact scenario (n_infected 1 -&gt; 0 at update 22 of 45 with killing enabled, vs steady at 1 disabled). BUT at the scenario&#39;s own default full scale, NK/CD8 never reach actual contact within the run budget, so n_infected is UNCHANGED there -- end-to-end cytotoxic clearance is NOT demonstrated at this scale, honestly reported as a gap rather than tuned away.</code>
         </div>
         
-        <div class="anchor-source"><em>Source:</em> Sego 2022 Figs 3B, 5, 7 (digitized acceptance bands, Increment 0)</div>
+        <div class="anchor-source"><em>Source:</em> Sego 2022 (paper narrative) vs CC3D ViralInfectionVTM source (ContactKillingSteppable, ~lines 212-319)</div>
         
       </li>
     
@@ -1217,42 +1300,35 @@ is deferred to a later task/increment.
     
     
     
-    <li class="expected-behavior-item" id="bt-IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)"
+    <li class="expected-behavior-item" id="bt-NK localization -- distance to infection decreases in every tried seed"
         data-test-kind="behavioral"
         
-        data-pytest-node="IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)"
-        data-classification="diagnostic"
+        data-pytest-node="NK localization -- distance to infection decreases in every tried seed"
+        data-classification="primary"
         data-result="PASS"
-        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #f59e0b; background: #f8fafc; border-radius: 4px;">
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
-        <span class="classification-pill classification-diagnostic">diagnostic</span>
-        <strong style="font-size: 0.9em;">IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)</strong>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">NK localization -- distance to infection decreases in every tried seed</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">WEAK, DIRECTIONAL check only, not the study&#39;s quantitative gate: `op:
-le, value: 0` passes on ANY reduction, however small, so a PASS here
-proves only that n_I did not get WORSE with the gate active — it does
-NOT by itself establish a meaningful effect size. Measured at the step
-Task 3.3&#39;s integration test actually asserts (step 20): with_ifn
-n_I[-1]=48 &lt;= without n_I[-1]=50, a reduction of only 2 cells (~4%) —
-a genuinely weak signal at that step. The gap does widen at later
-steps (51 vs 60 at step 30, ~15%; 53 vs 69 at step 40, ~23%, per Task
-3.3&#39;s fuller report series), so the directional trend strengthens over
-time, but the quantitative claim for THIS study rests on total_virus
-(next test), not on this loose n_I criterion.
+      <div style="margin-top: 6px; font-size: 0.95em;">The full interior-placed cytotoxic scenario, chemotaxis on
+(NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x params.yaml default), across 5
+seeds (5, 17, 23, 42, 100): NK mean distance to the infection centroid
+must decrease (final &lt; initial) in EVERY seed.
 </div>
       
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 48.0</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: -20.37</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: WEAK signal at the tested step: with_ifn n_I[-1]=48 &lt;= without n_I[-1]=50 at step 20 (Task 3.3, test_ifn_resistance_slows_spread_vs_no_ifn), only ~4% reduction; gap widens to 51 vs 60 (~15%, step 30) and 53 vs 69 (~23%, step 40) per Task 3.3&#39;s report series. Corroborating directional trend, not this study&#39;s primary quantitative evidence (see total_virus below).</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: mean NK distance change over 5 seeds; per-seed: -18.59 (5), -23.39 (17), -15.22 (23), -23.77 (42), -20.86 (100); negative in 5/5 seeds; control mean -1.02, spread 7.59 (task-7.1-report.md).</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds</code>
         
       </div>
       
@@ -1260,8 +1336,8 @@ time, but the quantitative claim for THIS study rests on total_virus
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "ifn-resistance", "kind": "n_I_delta_vs_without_ifn", "stat": "final"}
-pass_if: {"op": "le", "value": 0}</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "cytotoxic-nk-on-multiseed", "kind": "all_seeds_nk_on_distance_change_negative", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
       </details>
       
       
@@ -1276,10 +1352,10 @@ pass_if: {"op": "le", "value": 0}</pre>
     
     
     
-    <li class="expected-behavior-item" id="bt-IFN-gated virus release leaves strictly less total virus (primary quantitative gate)"
+    <li class="expected-behavior-item" id="bt-CD8 localization -- distance to infection decreases in every tried seed"
         data-test-kind="behavioral"
         
-        data-pytest-node="IFN-gated virus release leaves strictly less total virus (primary quantitative gate)"
+        data-pytest-node="CD8 localization -- distance to infection decreases in every tried seed"
         data-classification="primary"
         data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
@@ -1288,29 +1364,22 @@ pass_if: {"op": "le", "value": 0}</pre>
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">IFN-gated virus release leaves strictly less total virus (primary quantitative gate)</strong>
+        <strong style="font-size: 0.9em;">CD8 localization -- distance to infection decreases in every tried seed</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">This is the study&#39;s PRIMARY quantitative evidence for the mechanism&#39;s
-effect. Pass criterion: total_virus at the run&#39;s final step with the
-gate active must be strictly less than the same-seed no-IFN run&#39;s
-total_virus at that step. Measured at step 20 (the step Task 3.3&#39;s
-integration test actually asserts): with_ifn total_virus[-1]=819.16 &lt;
-without total_virus[-1]=1750.69 — a ~53% reduction, already
-substantial at the earliest sampled step, not just a loose
-any-reduction pass like the n_I check above. The reduction stays in
-the ~53-58% regime through step 40 (1222.88 vs 2752.34 at step 30;
-1624.58 vs 3905.38 at step 40).
+      <div style="margin-top: 6px; font-size: 0.95em;">Same scenario/seeds: CD8 mean distance to the infection centroid must
+decrease in EVERY seed, and CD8&#39;s gap over the lambda=0 control must
+exceed NK&#39;s (matching the paper&#39;s Sec. 2.3 2x-sensitivity claim).
 </div>
       
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 819.16</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: -35.99</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: PRIMARY quantitative evidence: with_ifn total_virus[-1]=819.16 &lt; without total_virus[-1]=1750.69 at step 20, a ~53% reduction already at the tested step; stays in the ~53-58%-reduction regime through step 40 (1624.58 vs 3905.38)</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: mean CD8 distance change over 5 seeds; per-seed: -22.87 (5), -41.86 (17), -39.81 (23), -35.48 (42), -39.94 (100); negative in 5/5 seeds; on/off gap 35.45 exceeds NK&#39;s 19.35, matching paper Sec. 2.3&#39;s 2x-sensitivity claim.</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds</code>
         
       </div>
       
@@ -1318,8 +1387,8 @@ the ~53-58% regime through step 40 (1222.88 vs 2752.34 at step 30;
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "ifn-resistance", "kind": "total_virus_delta_vs_without_ifn", "stat": "final"}
-pass_if: {"op": "lt", "value": 0}</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "cytotoxic-cd8-on-multiseed", "kind": "all_seeds_cd8_on_distance_change_negative", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
       </details>
       
       
@@ -1334,46 +1403,114 @@ pass_if: {"op": "lt", "value": 0}</pre>
     
     
     
-    <li class="expected-behavior-item" id="bt-Resistance gate actually engages (mean_resist &gt; 0)"
+    <li class="expected-behavior-item" id="bt-Contact-killing reduces infected count vs. killing-disabled control"
         data-test-kind="behavioral"
         
-        data-pytest-node="Resistance gate actually engages (mean_resist &gt; 0)"
+        data-pytest-node="Contact-killing reduces infected count vs. killing-disabled control"
         data-classification="primary"
-        data-result="PASS"
+        data-result="pending"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">Resistance gate actually engages (mean_resist &gt; 0)</strong>
+        <strong style="font-size: 0.9em;">Contact-killing reduces infected count vs. killing-disabled control</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: mean_resist over currently-infected cells must be &gt; 0
-by the run&#39;s final step (sanity that the gate is not a no-op).
-Measured: mean_resist[-1] &gt; 0 at step 20 (Task 3.3); the fuller series
-shows mean_resist reaches ~0.53 after just the first update and
-plateaus at ~0.55-0.57 through step 40 — well above 0, though it does
-NOT climb toward 1 (see the FLAG in report.caveat).
+      <div style="margin-top: 6px; font-size: 0.95em;">A small close-contact scenario (2 macrophages/2 NK/2 CD8,
+margin_sites=4, separation_sites=1, steps=45, seed=17): n_infected at
+the final step must be lower WITH killing enabled than WITHOUT,
+same-seed/scenario otherwise.
 </div>
-      
-      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
-        <strong>Latest result:</strong>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.5555</code>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: mean_resist[-1] &gt; 0 at step 20 in the pytest assertion; the fuller report series shows 0.5290 at step 1, plateauing 0.5555-0.5697 through step 40 (does not ramp toward 1 — flagged as an Increment-9 calibration question)</code>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
-        
-      </div>
       
       
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "ifn-resistance", "kind": "mean_resist", "stat": "final"}
-pass_if: {"op": "gt", "value": 0.0}</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "close-contact-killing-on-vs-off", "kind": "n_infected_final_with_killing_lt_without", "stat": "final"}
+pass_if: {"op": "lt", "value": "n_infected_without_killing[final]"}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-Killing-disabled control holds an identical scenario"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="Killing-disabled control holds an identical scenario"
+        data-classification="secondary"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-secondary">secondary</span>
+        <strong style="font-size: 0.9em;">Killing-disabled control holds an identical scenario</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">`enable_killing=False` must build the SAME scenario/chemotaxis (NK/CD8
+present, still chemotaxing) as `enable_killing=True`, isolating the
+killing step&#39;s own effect from any localization run-to-run variation.
+</div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "killing-control-scenario-identity", "kind": "scenario_params_match_across_killing_flag", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-contact_kill_rate matches params.yaml&#39;s precomputed coefficients"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="contact_kill_rate matches params.yaml&#39;s precomputed coefficients"
+        data-classification="secondary"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-secondary">secondary</span>
+        <strong style="font-size: 0.9em;">contact_kill_rate matches params.yaml&#39;s precomputed coefficients</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">`killing.contact_kill_rate`&#39;s LOCAL kill-rate formula must reproduce
+params.yaml&#39;s precomputed `pr_cf_nk_loc`/`pr_cf_cd8_loc` (= g_i *
+tot_ec_ODE) to 1e-9 relative tolerance, and must apply `cell_resist`
+DIRECTLY (discrepancy #7), not `(1 - cell_resist)`.
+</div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "contact-kill-rate-unit", "kind": "contact_kill_rate_matches_precomputed_coefficients", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
       </details>
       
       
@@ -1454,7 +1591,7 @@ pass_if: {"op": "gt", "value": 0.0}</pre>
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces Task 3.3&#39;s measured integration-test result and report series exactly (same driver, same seed, same params.yaml constants).</textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces Task 7.1&#39;s (commit e5c9e50) and Task 7.2&#39;s (commit 4f28eba) measured integration-test results and report tables exactly (same driver, same seeds, same params.yaml constants); Increments 0-6 unchanged (48 influenza tests pass at Task 7.2, no regressions; this task&#39;s viz addition adds tests without touching any driver).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
@@ -1467,7 +1604,7 @@ pass_if: {"op": "gt", "value": 0.0}</pre>
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This increment validates the MECHANISM (IFN accumulates -&gt; per-cell resistance rises -&gt; virus secretion is gated -&gt; total virus load is substantially reduced, with a weaker, later-emerging reduction in infected-cell count) with a single seeded run, not a quantitative reproduction against any of Figs 3B/5/7. Death/recovery, the Allee effect, IL-10 cross-talk, immune cells, and APC-driven global IFN amplification don&#39;t exist yet. The resist plateau (~0.55, not ~1) is an OPEN magnitude/convention question for Increment 9 — do NOT read PENDING here as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9.</textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This study validates the NK/CD8 LOCALIZATION mechanism (5-seed on/off comparison against an unbiased interior-placed control) and the CONTACT-KILLING mechanism (a small close-contact scenario) as independently correct, but explicitly does NOT demonstrate end-to-end cytotoxic clearance at the scenario&#39;s own default/realistic scale (n_infected unchanged there) -- an honestly-reported gap, not a quantitative reproduction against any figure&#39;s acceptance band. Do NOT read PENDING here as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
@@ -1493,23 +1630,31 @@ pass_if: {"op": "gt", "value": 0.0}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>MECHANISM VALIDATED, NOT REPRODUCED. The type-I IFN field drives a
-per-cell resistance scalar that gates virus secretion and measurably
-reduces total virus relative to the Increment-2 no-IFN path (same seed):
-total_virus is the PRIMARY, robust quantitative evidence, roughly halved
-at every sampled step (~53% at step 20, the step Task 3.3's integration
-test actually asserts, through ~58% at step 40). n_I moves in the same
-protective direction but is a WEAKER, corroborating signal at the tested
-step (48 vs 50, ~4% at step 20), widening to a more meaningful ~23% by
-step 40 (53 vs 69) as the effect compounds — n_I alone at step 20 is not
-strong evidence of slowed spread. mean_resist confirms the gate engages
-(&gt;0 from step 1 onward) but plateaus at ~0.55 rather than ramping toward
-1 — a flagged Increment-9 calibration/convention question, not resolved
-here. This increment has no death/recovery, no Allee effect, no IL-10
-cross-talk, no immune cells, and no APC-driven global IFN amplification,
-and makes NO claim about matching any of Sego et al. 2022's Figs 3B/5/7
-quantitative acceptance bands — that reproduction verdict is PENDING
-until Increment 9 (the capstone).</p>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>LOCALIZATION MECHANISM VALIDATED (robust, 5/5 seeds, both NK and CD8,
+CD8 stronger per its 2x lambda); CONTACT-KILLING MECHANISM VALIDATED as a
+working, correctly-implemented primitive (close-contact test, 1 -&gt; 0);
+END-TO-END CYTOTOXIC CLEARANCE AT DEFAULT/REALISTIC SCALE IS WEAK -- NOT
+DEMONSTRATED. NK/CD8 chemotaxing up the (Increment-6, unchanged) chemokine
+field genuinely localize to the infection, robustly across 5 seeds for
+both cell types, with CD8 localizing more strongly than NK (matching the
+paper's stated 2x sensitivity ratio). Separately, <code>killing. contact_kill_rate</code> (the CC3D source's literal LOCAL surface-contact
+kill-rate form, resist-DIRECT per discrepancy #7) is implemented and
+proven correct: a small close-contact scenario shows it removes an
+infected cell once NK/CD8 reach it. But at the SAME scenario's own default
+full scale (6 macrophages/6 NK/6 CD8, 60 updates, same seed as the
+close-contact test) NK/CD8 never reach actual contact within the run
+budget -- the infected count is unchanged. This study does NOT claim
+&quot;NK/CD8 clear the infection&quot;: the killing CAPABILITY is demonstrated, but
+end-to-end clearance at realistic scale is an OPEN Increment-9
+field-magnitude-calibration item, the same root cause as the localization
+mechanism's own 100x engine-unit-scale correction, deliberately reported
+as a gap rather than tuned away. Other open items, all recorded not
+resolved: discrepancy #7 (resist-DIRECT kill rate), the deferred
+nearby-population killing term (Increment 8), haptotaxis (not modeled),
+stubbed recruitment (a fixed population), 2D-approximation geometry, and
+the engine's linear (not the source's saturating/COM-scaled) chemotaxis
+form. No Figs 2/3A/3B/5/7 reproduction claim is made -- that verdict stays
+PENDING until Increment 9 (the capstone).</p>
 </div>
     </div>
     
@@ -1527,7 +1672,7 @@ until Increment 9 (the capstone).</p>
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">APC-driven IFN amplification is entirely omitted — in this study, IFN comes only from directly-infected cells&#39; own local secretion, not from the global ODE-compartment feedback loop the paper models (Increment 8). The measured protective effect here is therefore a LOWER bound on what a full model with amplification might show.</li><li style="margin:2px 0">Resistance in this study ONLY gates virus secretion (via `set_cell_secretion_scale`). The source also uses resistance to modulate infected-cell death probability and the model&#39;s Allee-effect term, and IL-10 secretion cross-talks with it — none of that exists yet (later increments).</li><li style="margin:2px 0">OPEN CALIBRATION QUESTION (flagged for Increment 9, not resolved here) -- mean_resist plateaus at ~0.55 (f_bar ≈ 1.2x a_rf), not climbing toward 1, because each infected cell&#39;s local IFN reaches a fast secretion/diffusion/decay steady state that happens to land close in magnitude to `a_rf` (8.5e-6) — a plausible but &#34;suspiciously just right&#34; coincidence between two independently-derived constants (Task 3.3&#39;s report). Worth cross-checking against the source&#39;s actual field magnitudes/resist trajectories before Increment 9 locks in a reproduction verdict.</li><li style="margin:2px 0">Single seed (17) for both drivers (same two-RNG-stream convention as Increment 2) — the with/without comparison is a single-run demonstration of the mechanism&#39;s qualitative and approximate quantitative behavior, not a statistically characterized effect size across a systematic replicate sweep.</li><li style="margin:2px 0">As in Increment 2, there is no live-demo process-bigraph composite for the WITH-IFN driver — `run_virus_infection_with_ifn` is a raw `cpm_core.World` loop (Task 3.3), not wrapped as a composite. The `conditions.baseline` entry below reuses the SAME Increment-2 live-demo composite (`pbg_cpm_studies.composites.influenza.virus_infection`, no IFN/resistance wiring) purely so this study has a dashboard-loadable baseline; it is NOT the composite this study&#39;s readouts are measured from, and it does not reproduce the IFN mechanism. All readouts above come directly from `run.run_virus_infection_with_ifn` / `run.run_virus_infection`.</li><li style="margin:2px 0">The with-IFN driver `run_virus_infection_with_ifn` is ~4-5x slower per step than `run_virus_infection` (two diffusing fields, IFN needing 40 vs virus&#39;s 5 stiff-diffusion substeps per MCS) — a performance note for Increment 9&#39;s longer/larger reproduction runs, not addressed here.</li>
+        <li style="margin:2px 0">100x CHEMOTAXIS ENGINE-UNIT SCALE — `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100.0` (Task 7.1), applied identically to NK and CD8&#39;s literal params.yaml lambda (preserving CD8&#39;s exact 2:1 ratio over NK), chosen from a one-time grid scan (50/200/500x) at a single seed then CONFIRMED (not re-tuned) across all 5 required seeds. The chemokine field&#39;s raw concentration is ~2-3 orders of magnitude smaller than the virus field&#39;s at comparable distances (chemokine diffuses ~87x faster, the same secreted mass spreads far more thinly), so the literal source lambda (5000/10000) is statistically undetectable against thermal/adhesion noise at this concentration scale -- a documented, non-per-seed-tuned engine-unit correction, an open Increment-9 calibration item.</li><li style="margin:2px 0">DISCREPANCY #7 (resist-DIRECT) — `ContactKillingSteppable.step()` multiplies `kill_rate` by `cell_resist` DIRECTLY, not `(1 - cell_resist)`, unlike every other resistance consumer in this codebase (`transitions.infected_death_step`, `allee.*`, the secretion-scale gates). Implemented literally per the source, not &#34;fixed&#34; -- a cell with MORE local IFN is killed FASTER by contact NK/CD8, the opposite of every other resist-gated protective mechanism here. Left unresolved as recorded (possible intentional antigen-presentation effect, or a source inconsistency -- not adjudicated).</li><li style="margin:2px 0">NEARBY-POPULATION killing term deferred — `ContactKillingSteppable` also applies a well-mixed, non-spatial &#34;nearby&#34; kill term (`params.yaml`&#39;s `nk.killing.nearby_term_deferred`/ `cd8.killing.nearby_term_deferred`), independent of the LOCAL surface-contact term modeled here; requires Increment 8&#39;s population-scale ODE bookkeeping.</li><li style="margin:2px 0">HAPTOTAXIS not modeled — only field-gradient chemotaxis (toward the chemokine field) drives NK/CD8 movement here; any adhesion/contact-gradient-driven directed-migration component is not implemented, an open Increment-9 item.</li><li style="margin:2px 0">RECRUITMENT is stubbed — a FIXED NK/CD8 population (6 cells each) is placed at scenario build time; chemokine-driven inflow/outflow (`params.yaml`&#39;s `nk.recruitment`/`cd8.recruitment`) is not modeled (requires the live immune-model ODE/SBML solver, Increment 8).</li><li style="margin:2px 0">2D-APPROXIMATION geometry — the same non-confluent, interior-placed 2D three-cluster patch as Increments 5/6, not the source&#39;s z=2 immune-layer-over-confluent-z=1-sheet geometry. Faithful z=2 geometry is deferred to Increment 9, and may place NK/CD8 closer to the infection than this study&#39;s layout does (see report.main_expert_question).</li><li style="margin:2px 0">CHEMOTAXIS FUNCTIONAL-FORM gap — the source uses a saturating, per-cell-COM-scaled lambda (`chemotaxis_v_nk / (1 + concentration)`); the engine primitive used here (`World.set_chemotaxis`) is a fixed LINEAR-regime lambda per (field, type). The fidelity criterion tested here is the localization/killing BEHAVIOR, not the exact functional form -- an Increment-9 calibration item.</li><li style="margin:2px 0">END-TO-END CLEARANCE not demonstrated at default scale — reported honestly as this study&#39;s central gap (finding F-04), not tuned away by widening `NK_CD8_CHEMOTAXIS_ENGINE_SCALE` further or shrinking `separation_sites` until the default scenario also clears the infection; doing so would hide the real finding (the source&#39;s literal parameters don&#39;t calibrate against this engine&#39;s field-concentration units at any scale tried so far) behind a number that looks better than the mechanism&#39;s honest state.</li><li style="margin:2px 0">No chemokine-driven APC/global-ODE-coupled recruitment amplification, no global ODE compartment, and no Figs 2/3A/3B/5/7 reproduction claim exist yet -- all later increments.</li>
       </ul>
     </div>
     
@@ -1556,8 +1701,8 @@ until Increment 9 (the capstone).</p>
       
       
       <p class="muted" style="margin:0;font-size:0.9em">
-        <strong>3</strong> test outcomes
-        — <span style="color:#065f46;font-weight:600">3 PASS</span> ·
+        <strong>2</strong> test outcomes
+        — <span style="color:#065f46;font-weight:600">2 PASS</span> ·
         <span style="color:#991b1b;font-weight:600">0 FAIL</span>.
         Per-test outcomes (measured value · evaluator · band) are canonical on the
         <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline">Tests tab →</a>.
@@ -1594,14 +1739,14 @@ until Increment 9 (the capstone).</p>
       <div class="di-group">
         <h3>Follow-up study proposals
           <span class="muted" style="font-weight:normal;font-size:0.82em">(discovered)</span>
-          <span class="muted" style="font-weight:normal;font-size:0.85em">(2)</span></h3>
+          <span class="muted" style="font-weight:normal;font-size:0.85em">(3)</span></h3>
         <p class="muted" style="margin:0 0 8px 0;font-size:0.85em">Click <strong>➕ Add to investigation</strong> to spawn a new study node in the investigation graph.</p>
         <div class="followup-list">
           
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Increment 4: epithelial cell death and recovery</strong>
+              <strong class="followup-title">Increment 9: chemokine field magnitude / chemotaxis lambda joint calibration</strong>
               
               
               
@@ -1611,14 +1756,14 @@ until Increment 9 (the capstone).</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('ifn-resistance', "epithelial-death-recovery")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('cytotoxic-killing', "incr9-field-magnitude-calibration")">➕ Add to investigation</button>
             </div>
           </div>
           
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Increment 9 (or earlier spike): cross-check the resist ~0.55 plateau</strong>
+              <strong class="followup-title">Increment 8: nearby-population killing term + chemokine-driven NK/CD8/macrophage recruitment</strong>
               
               
               
@@ -1628,7 +1773,24 @@ until Increment 9 (the capstone).</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('ifn-resistance', "ifn-resist-calibration")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('cytotoxic-killing', "incr8-nearby-killing-and-recruitment")">➕ Add to investigation</button>
+            </div>
+          </div>
+          
+          
+          <div class="di-card di-fup-card">
+            <div class="followup-header">
+              <strong class="followup-title">Increment 9 (or earlier spike): larger-ensemble statistical characterization of NK/CD8 localization</strong>
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="followup-actions" style="margin-top:8px">
+              <button class="btn-seed-followup"
+                      onclick="_seedFollowupProposal('cytotoxic-killing', "cytotoxic-larger-ensemble")">➕ Add to investigation</button>
             </div>
           </div>
           
@@ -1654,7 +1816,7 @@ until Increment 9 (the capstone).</p>
 <script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "143b5e91e463cc6dac1af646bf287f5d2f6fb2a1", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/143b5e91e463cc6dac1af646bf287f5d2f6fb2a1", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 09:12 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
-window._studyName = "ifn-resistance";
+window._studyName = "cytotoxic-killing";
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.
