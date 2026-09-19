@@ -914,19 +914,19 @@ report.caveat and the standalone caveat item below).
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.virus_infection" data-model-overrides='{"init_infected_frac": 0.05, "patch_mm": 0.1, "seed": 17}'>
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.viral_infection" data-model-overrides='{"init_infected_frac": 0.05, "patch_mm": 0.1, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <strong>ifn-resistance</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.virus_infection</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.viral_infection</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.virus_infection')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.viral_infection')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
         <input type="text" class="baseline-composite-input" data-baseline-name="ifn-resistance"
-               value="pbg_cpm_studies.composites.influenza.virus_infection" placeholder="pkg.composites.name"
+               value="pbg_cpm_studies.composites.influenza.viral_infection" placeholder="pkg.composites.name"
                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
                 data-baseline-name="ifn-resistance">Set composite</button>
@@ -971,7 +971,7 @@ report.caveat and the standalone caveat item below).
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.virus_infection</code></p>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.viral_infection</code></p>
     
     
     <p><strong>New state variables:</strong></p>
@@ -1527,7 +1527,7 @@ until Increment 9 (the capstone).</p>
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">APC-driven IFN amplification is entirely omitted — in this study, IFN comes only from directly-infected cells&#39; own local secretion, not from the global ODE-compartment feedback loop the paper models (Increment 8). The measured protective effect here is therefore a LOWER bound on what a full model with amplification might show.</li><li style="margin:2px 0">Resistance in this study ONLY gates virus secretion (via `set_cell_secretion_scale`). The source also uses resistance to modulate infected-cell death probability and the model&#39;s Allee-effect term, and IL-10 secretion cross-talks with it — none of that exists yet (later increments).</li><li style="margin:2px 0">OPEN CALIBRATION QUESTION (flagged for Increment 9, not resolved here) -- mean_resist plateaus at ~0.55 (f_bar ≈ 1.2x a_rf), not climbing toward 1, because each infected cell&#39;s local IFN reaches a fast secretion/diffusion/decay steady state that happens to land close in magnitude to `a_rf` (8.5e-6) — a plausible but &#34;suspiciously just right&#34; coincidence between two independently-derived constants (Task 3.3&#39;s report). Worth cross-checking against the source&#39;s actual field magnitudes/resist trajectories before Increment 9 locks in a reproduction verdict.</li><li style="margin:2px 0">Single seed (17) for both drivers (same two-RNG-stream convention as Increment 2) — the with/without comparison is a single-run demonstration of the mechanism&#39;s qualitative and approximate quantitative behavior, not a statistically characterized effect size across a systematic replicate sweep.</li><li style="margin:2px 0">As in Increment 2, there is no live-demo process-bigraph composite for the WITH-IFN driver — `run_virus_infection_with_ifn` is a raw `cpm_core.World` loop (Task 3.3), not wrapped as a composite. The `conditions.baseline` entry below reuses the SAME Increment-2 live-demo composite (`pbg_cpm_studies.composites.influenza.virus_infection`, no IFN/resistance wiring) purely so this study has a dashboard-loadable baseline; it is NOT the composite this study&#39;s readouts are measured from, and it does not reproduce the IFN mechanism. All readouts above come directly from `run.run_virus_infection_with_ifn` / `run.run_virus_infection`.</li><li style="margin:2px 0">The with-IFN driver `run_virus_infection_with_ifn` is ~4-5x slower per step than `run_virus_infection` (two diffusing fields, IFN needing 40 vs virus&#39;s 5 stiff-diffusion substeps per MCS) — a performance note for Increment 9&#39;s longer/larger reproduction runs, not addressed here.</li>
+        <li style="margin:2px 0">APC-driven IFN amplification is entirely omitted — in this study, IFN comes only from directly-infected cells&#39; own local secretion, not from the global ODE-compartment feedback loop the paper models (Increment 8). The measured protective effect here is therefore a LOWER bound on what a full model with amplification might show.</li><li style="margin:2px 0">Resistance in this study ONLY gates virus secretion (via `set_cell_secretion_scale`). The source also uses resistance to modulate infected-cell death probability and the model&#39;s Allee-effect term, and IL-10 secretion cross-talks with it — none of that exists yet (later increments).</li><li style="margin:2px 0">OPEN CALIBRATION QUESTION (flagged for Increment 9, not resolved here) -- mean_resist plateaus at ~0.55 (f_bar ≈ 1.2x a_rf), not climbing toward 1, because each infected cell&#39;s local IFN reaches a fast secretion/diffusion/decay steady state that happens to land close in magnitude to `a_rf` (8.5e-6) — a plausible but &#34;suspiciously just right&#34; coincidence between two independently-derived constants (Task 3.3&#39;s report). Worth cross-checking against the source&#39;s actual field magnitudes/resist trajectories before Increment 9 locks in a reproduction verdict.</li><li style="margin:2px 0">Single seed (17) for both drivers (same two-RNG-stream convention as Increment 2) — the with/without comparison is a single-run demonstration of the mechanism&#39;s qualitative and approximate quantitative behavior, not a statistically characterized effect size across a systematic replicate sweep.</li><li style="margin:2px 0">As in Increment 2, there is no live-demo process-bigraph composite for the WITH-IFN driver — `run_virus_infection_with_ifn` is a raw `cpm_core.World` loop (Task 3.3), not wrapped as a composite. The `conditions.baseline` entry below reuses the SAME Increment-2 live-demo composite (`pbg_cpm_studies.composites.influenza.viral_infection`, no IFN/resistance wiring) purely so this study has a dashboard-loadable baseline; it is NOT the composite this study&#39;s readouts are measured from, and it does not reproduce the IFN mechanism. All readouts above come directly from `run.run_virus_infection_with_ifn` / `run.run_virus_infection`.</li><li style="margin:2px 0">The with-IFN driver `run_virus_infection_with_ifn` is ~4-5x slower per step than `run_virus_infection` (two diffusing fields, IFN needing 40 vs virus&#39;s 5 stiff-diffusion substeps per MCS) — a performance note for Increment 9&#39;s longer/larger reproduction runs, not addressed here.</li>
       </ul>
     </div>
     
@@ -1651,7 +1651,7 @@ until Increment 9 (the capstone).</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "2042b34ee16a172cb0d046bf0a23beb2d323f50f", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/2042b34ee16a172cb0d046bf0a23beb2d323f50f", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 11:40 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "e7373446e2ebcf3d028d782f60e8e368cdd2953b", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/e7373446e2ebcf3d028d782f60e8e368cdd2953b", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 14:22 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "ifn-resistance";
