@@ -1,7 +1,8 @@
 """Minimal in-package visualizations for the influenza-sego2022 capability
-ladder (Increments 1-4): the epithelial-sheet baseline, the virus-field
-infection mechanism, the IFN/resistance mechanism, and the cellularized
-epithelial-fate (infection/death/Allee recovery) mechanism.
+ladder (Increments 1-5): the epithelial-sheet baseline, the virus-field
+infection mechanism, the IFN/resistance mechanism, the cellularized
+epithelial-fate (infection/death/Allee recovery) mechanism, and the
+macrophage-localization (chemotaxis) mechanism.
 
 The dashboard workbench isn't the delivery path for these increments (no
 server running in this worktree), so these are plain matplotlib functions
@@ -160,6 +161,57 @@ def epithelial_fate_figure(run_result: dict) -> Figure:
     ax_events.set_xlabel("update index")
     ax_events.set_ylabel("cumulative event count")
     ax_events.legend()
+
+    fig.tight_layout()
+    return fig
+
+
+def macrophage_response_figure(run_result: dict, control_result: dict | None = None) -> Figure:
+    """Render a two-panel MINIMAL mechanism figure (Increment 5, Task 5.2) for
+    a `run.run_macrophage_response(...)` result (Task 5.1): (a) macrophages'
+    mean centre-of-mass distance to the infection centroid vs update index --
+    the falsifiable localization claim (measured across 5 seeds, interior-
+    placed scenario: chemotaxis on reduces the distance in 5/5 seeds, mean
+    change -13.39 sites, vs a near-isotropic lambda=0 control, mean change
+    -0.85 sites -- task-5.1-report.md's fix-round-1 section); (b) the
+    macrophage centre-of-mass trajectory (x vs y over the run, one seed),
+    with start/end markers.
+
+    If `control_result` (a second `run_macrophage_response(...)` result, e.g.
+    the lambda=0 control) is also passed, panel (a) overlays both distance
+    trajectories so the on/off contrast is visible in one figure -- this is
+    the study's primary evidence, not two separate plots.
+
+    This is a minimal in-package stub, NOT the polished viz system under
+    `pbg_cpm_studies/visualizations/` (owned by a peer session). Returns a
+    `matplotlib.figure.Figure` (not shown/saved)."""
+    steps = run_result["steps"]
+    dist = run_result["mean_distance_to_infection"]
+    com = run_result["macrophage_com"]
+    lam = run_result.get("params", {}).get("chemotaxis_v_macro")
+    run_label = f"chemotaxis on (lambda={lam:g})" if lam is not None else "chemotaxis on"
+
+    fig = Figure(figsize=(9, 4.2))
+    ax_dist, ax_traj = fig.subplots(1, 2)
+
+    ax_dist.plot(steps, dist, label=run_label, color="firebrick")
+    if control_result is not None:
+        ax_dist.plot(control_result["steps"], control_result["mean_distance_to_infection"],
+                     label="lambda=0 control", color="dimgray", linestyle="--")
+    ax_dist.set_title("Macrophage mean distance to infection vs update")
+    ax_dist.set_xlabel("update index")
+    ax_dist.set_ylabel("mean distance to infection centroid (sites)")
+    ax_dist.legend()
+
+    xs = [c[0] for c in com]
+    ys = [c[1] for c in com]
+    ax_traj.plot(xs, ys, color="steelblue", marker="o", markersize=3, label="macrophage COM")
+    ax_traj.scatter([xs[0]], [ys[0]], color="seagreen", zorder=3, label="start")
+    ax_traj.scatter([xs[-1]], [ys[-1]], color="firebrick", zorder=3, label="end")
+    ax_traj.set_title("Macrophage centre-of-mass trajectory")
+    ax_traj.set_xlabel("x (sites)")
+    ax_traj.set_ylabel("y (sites)")
+    ax_traj.legend()
 
     fig.tight_layout()
     return fig

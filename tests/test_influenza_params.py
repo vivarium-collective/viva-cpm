@@ -61,3 +61,16 @@ def test_params_carry_death_and_allee_sections():
     for k in ("b_h", "srf_threshold", "source"):
         assert k in al, f"allee missing {k}"
     assert al["b_h"] > 0
+
+
+def test_params_carry_macrophage_section():
+    m = params.load_params()["macrophage"]
+    assert m.get("chemotaxis_v_macro", 0) == 5000
+    for k in ("adhesion", "source"):
+        assert k in m, f"macrophage missing {k}"
+    assert m["adhesion"]["macrophage_macrophage"] == 25.0
+    assert m["adhesion"]["infected_macrophage"] == 20.0  # source-literal, NOT paper's collapsed 10
+    assert m["volume_sites"] == 25
+    assert m["lambda_volume"] == 9
+    assert m["recruitment"]["chemokine_driven"] is True
+    assert m["recruitment"]["hill_coefficient_h_m"] == 3

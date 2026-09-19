@@ -99,6 +99,79 @@ def test_epithelial_fate_figure_returns_figure_with_axes():
     assert max(recovery_cum) > 0  # sanity: the hand-built result has events
 
 
+def _small_macrophage_result(chemotaxis_v_macro=5000.0):
+    """Hand-built `run.run_macrophage_response(...)`-shaped result (Task 5.1)
+    -- exercises the viz against the driver's actual return keys
+    ("steps", "mean_distance_to_infection", "macrophage_com", "params")
+    without paying for a real CPM+field run in this test."""
+    return {
+        "steps": [0, 1, 2, 3],
+        "mean_distance_to_infection": [47.20, 43.0, 38.5, 33.8],
+        "macrophage_com": [(25.0, 25.0), (27.2, 26.8), (29.5, 28.9), (31.8, 30.5)],
+        "params": {
+            "chemotaxis_v_macro": chemotaxis_v_macro, "n_macrophages": 6,
+            "n_infected": 1, "epithelial_cells_per_side": 4,
+            "margin_sites": 30, "separation_sites": 25, "seed": 17, "steps": 3,
+            "mcs_per_update": 10, "field_warmup": 3000,
+        },
+    }
+
+
+def _small_macrophage_control_result():
+    """Same shape, lambda=0 interior control -- distance stays roughly flat
+    (near-isotropic) instead of closing. Illustrative synthetic values only
+    (not tied to a specific run), exercising the plotting code."""
+    result = _small_macrophage_result(chemotaxis_v_macro=0.0)
+    result["mean_distance_to_infection"] = [47.20, 47.5, 46.8, 47.0]
+    result["macrophage_com"] = [(25.0, 25.0), (24.6, 25.4), (25.3, 24.7), (24.9, 25.2)]
+    return result
+
+
+def test_macrophage_response_figure_returns_figure_with_axes():
+    """Task 5.2: mechanism figure -- macrophage mean-distance-to-infection
+    over time (panel a) and the macrophage centre-of-mass trajectory
+    (panel b). Non-vacuous: plotted data must match the driver's actual
+    return series."""
+    result = _small_macrophage_result()
+
+    fig = viz.macrophage_response_figure(result)
+
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) == 2
+    ax_dist, ax_traj = fig.axes
+
+    # panel (a): mean_distance_to_infection vs update index
+    assert len(ax_dist.lines) >= 1
+    dist_line = ax_dist.lines[0]
+    xdata, ydata = dist_line.get_data()
+    assert len(xdata) == len(result["steps"])
+    assert list(xdata) == result["steps"]
+    assert list(ydata) == result["mean_distance_to_infection"]
+
+    # panel (b): macrophage centre-of-mass trajectory (x vs y)
+    assert len(ax_traj.lines) >= 1
+    tx, ty = ax_traj.lines[0].get_data()
+    assert len(tx) == len(result["macrophage_com"])
+    assert list(tx) == [c[0] for c in result["macrophage_com"]]
+    assert list(ty) == [c[1] for c in result["macrophage_com"]]
+
+
+def test_macrophage_response_figure_with_control_overlays_second_distance_line():
+    """When a lambda=0 control result is also passed, panel (a) overlays
+    both trajectories so the on/off contrast (Task 5.1's falsifiable claim)
+    is visible in one figure."""
+    result = _small_macrophage_result()
+    control = _small_macrophage_control_result()
+
+    fig = viz.macrophage_response_figure(result, control_result=control)
+
+    ax_dist, _ax_traj = fig.axes
+    assert len(ax_dist.lines) >= 2
+    ydata_by_line = [list(line.get_data()[1]) for line in ax_dist.lines]
+    assert result["mean_distance_to_infection"] in ydata_by_line
+    assert control["mean_distance_to_infection"] in ydata_by_line
+
+
 def test_ifn_resistance_figure_returns_figure_with_axes():
     """Task 3.4: mechanism figure -- n_I and total_virus, with-IFN vs
     without, plus the mean_resist trajectory (only `run_virus_infection_with_ifn`

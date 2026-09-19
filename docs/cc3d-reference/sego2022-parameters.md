@@ -534,6 +534,148 @@ additional `dim.z=2` factor. Recorded verbatim (with `formula: "resist = f_bar/(
 
 ---
 
+## 9. Macrophage (Increment 5 — RE-SCOPED from chemokine/IL-10 fields)
+
+**Why macrophages come before chemokine/IL-10 fields.** The spec originally slated Increment 5 for
+the chemokine and IL-10 diffusion fields. Tracing their source implementation shows both are
+macrophage-sourced: `ChemokineSecretionSteppable.step` (`Simulation/ViralInfectionVTMSteppables.py`
+~line 1453) loops `for cell in self.cell_list_by_type(self.MACROPHAGE):` for its local-secretion
+term, and `IL10SecretionSteppable.step` (~line 1504) does the same (`for cell in
+self.cell_list_by_type(self.MACROPHAGE):`). Neither field can be meaningfully wired without a
+macrophage cell type/population already existing in the composite. Increment 5 therefore introduces
+macrophages (cell type, adhesion, volume, chemotaxis) first; Increment 6 wires the chemokine and
+IL-10 fields, at which point macrophage recruitment (below) stops being a stub.
+
+**Chemotaxis (up the Virus field).** Source `ImmuneModel/ImmuneModelInputs.py`:
+`chemotaxis_v_macro = 5E3`, `chemotaxis_f_macro = "Virus"`. Applied in `ChemotaxisSteppable`
+(`Simulation/ViralInfectionVTMSteppables.py`, class starts line 320; `start()` builds
+`self.__chemo_dict = {self.MACROPHAGE: {chemotaxis_f_macro: chemotaxis_v_macro}, ...}` at line 335;
+`__update_chemotaxis_lambda` at ~line 340-351 does `concentration = field[cell.xCOM, cell.yCOM,
+cell.zCOM]; cd.setLambda(chemotax_val / (1.0 + concentration))` — the same saturating,
+per-cell-COM-evaluated lambda mechanism already documented in §4 for macrophage/NK/CD8+, confirmed
+again here directly against the macrophage entry. Already cross-validated against paper Table 3
+(§4) — no discrepancy.
+
+**Volume / lambda_volume.** Source `Simulation/ViralInfectionVTMSteppables.py`,
+`ImmuneModelSteppable.new_immune_cell` (~line 1288-1291): `cell.targetVolume = cell_volume;
+cell.lambdaVolume = volume_lm` — the SAME helper creates macrophage, NK, and CD8+ cells, and reads
+the plain Simulation-level `cell_volume` (=25, `cell_diameter**2`, `ViralInfectionVTMModelInputs.py`)
+/ `volume_lm` (=9, same file) constants, i.e. **identical to epithelial** (§1). Note:
+`ImmuneModel/ImmuneModelInputs.py` separately defines `cell_volume_macro = cell_diam_macro**2` where
+`cell_diam_macro = exp_cell_diam_macro(10 µm) / um_to_lat_width(2) = 5` sites → `cell_volume_macro =
+25` — numerically identical to `cell_volume`, but this is NOT the symbol `new_immune_cell()` actually
+reads (it reads plain `cell_volume`); `cell_volume_macro` is only used as a bookkeeping entry in
+`ImmuneModelSteppable.__type_target_vol` (~line 1064), not for the actual `cell.targetVolume`
+assignment. Recorded because a later reader might otherwise "fix" `params.yaml` to cite the wrong
+symbol.
+
+**Adhesion (Contact) — literal macrophage rows**, from `Simulation/ViralInfectionVTM.xml
+<Plugin Name="Contact">` (already tabulated in full in §2; extracted here per-row for the brief):
+
+| Pair | J | Note |
+|---|---|---|
+| Medium – Macrophage | 10.0 | |
+| Uninfected – Macrophage | 20.0 | matches paper's collapsed "uninfected-immune=20" |
+| Infected – Macrophage | 20.0 | **discrepancy #2** (§7.2) vs. paper's collapsed "infected-immune=10" |
+| InfectedReleasing – Macrophage | 10.0 | matches paper's collapsed "infected-immune=10" |
+| Dying – Macrophage | 20.0 | matches paper's collapsed "dead-immune=20" |
+| Macrophage – Macrophage | 25.0 | matches paper's "homotypic immune=25" |
+| Macrophage – NKcell | 10.0 | matches paper's "heterotypic immune=10" |
+| Macrophage – CD8Tcell | 10.0 | matches paper's "heterotypic immune=10" |
+
+Every macrophage row matches the paper's collapsed Table 3 values **except** Infected–Macrophage
+(20 vs. the paper's collapsed 10) — the same discrepancy #2 already flagged in §7, confirmed again
+here as the macrophage-specific instance of it.
+
+**Virus uptake / phagocytosis — NOT PRESENT in the source (do not fabricate).** Grepped the full
+re-fetched source tree for `phago` (no hits) and traced every consumer of the Virus field.
+`ViralInternalizationSteppable.step` (`Simulation/ViralInfectionVTMSteppables.py` ~line 145) — the
+only per-cell stochastic viral-uptake transition in the source — iterates
+`cell_list_by_type(self.UNINFECTED)` exclusively (epithelial infection, already recorded as
+`virus.infection_g_hv` in Increment 2). There is no macrophage-equivalent
+internalization/phagocytosis steppable anywhere in `ViralInfectionVTMSteppables.py`,
+`ImmuneModelLib.py`, or `ImmuneModelInputs.py`. Macrophages affect/are affected by the Virus field
+only via (a) chemotaxis up its gradient (above) and (b) being recruited/seeded at the field's local
+maximum (`self.__target_fields = {self.MACROPHAGE: self.field.Virus, ...}`, `ImmuneModelSteppable`
+~line 1057, consumed by `new_immune_cell_by_type`'s placement search ~line 1245) — neither removes
+virus from the field. The closest ODE-level analog, recorded for completeness but **not**
+macrophage-attributed by the source, is the un-subscripted term `g_v*V/(1+a_v*V)` in the full virus
+ODE (`ImmuneModel/ImmuneModelLib.py`, comment ~line 177: `-> V; g_vi*(1-R)*I - g_vh*H*V - g_va*V*A -
+g_v*V/(1+a_v*V) - mu_v*V`) — a spatially-uniform field reaction (`ViralInfectionVTM.xml
+<AdditionalTerm id="virus_react">`, set in `ViralSecretionSteppable.step` as
+`f'-{g_v}*Virus/(1+{a_v}*Virus)'`), not cell-mediated. Raw: `g_v = 197.445019092656 /day * s_t`,
+`a_v = 9.33445943442858 / s_l`. `params.yaml`'s `macrophage.virus_uptake_phagocytosis` records this
+finding (`present: false`) rather than inventing a macrophage uptake constant.
+
+**Recruitment — Hill-driven inflow/outflow, CHEMOKINE(C)-DRIVEN, STUBBED in Increment 5.** Source
+`ImmuneModelSteppable.inflow_rate_by_type`/`.outflow_rate_by_type`
+(`Simulation/ViralInfectionVTMSteppables.py` ~line 1183-1200):
+
+```python
+if _type_int == self.MACROPHAGE:
+    r1 = self.__rr["b_mc"] * nCoVUtils.hill_equation(self.__rr["C"], self.__rr["a_mc"], self.__rr["h_m"])
+    r2 = self.__rr["mu_m"] * self.__rr["b_m"]
+    return r1 + r2          # inflow_rate_by_type
+# outflow_rate_by_type(MACROPHAGE) = self.__rr["mu_m"]
+```
+
+`hill_equation(val, diss_cf, hill_cf)` (`nCoVToolkit/nCoVUtils.py` line 42-52): `0` if `val==0`, else
+`1/(1+(diss_cf/val)**hill_cf)` — algebraically `= val**h/(val**h + diss_cf**h)`.
+
+The inflow rate has **two** terms: `r1` (the Hill term on chemokine field mean `C` — genuinely
+chemokine-driven, confirming the brief) and `r2 = mu_m*b_m`, a **constant, population-scaled
+homeostatic-replenishment term that does NOT depend on C**. Both terms (and outflow's `mu_m`) come
+from the same immune-model ODE/SBML solver instance (`self.__rr`, generated by
+`generate_ode_model_instance`/`ImmuneModelLib.immune_model_string`), which this task does not
+implement — so both are stubbed together pending Increment 6's chemokine field (and whatever
+increment wires the ODE solver itself); `params.yaml` flags this precisely (`chemokine_driven: true`,
+with `r2`'s non-chemokine nature noted) rather than silently treating the whole rate as chemokine-only.
+
+Raw ODE-calibrated constants (`ImmuneModel/ImmuneModelLib.py`, `immune_model_string()`):
+`h_m = 3` (Hill exponent, unscaled), `b_mc = 13620.4859808076 * s_t * s_v`, `a_mc = 574.707608135459
+* s_v`, `mu_m = 0.242202409519884 * s_t`, `b_m = {hs_macro}` (templated per-run from
+`ImmuneModelLib.get_homeostatic_pops(num_epithelial)['M']` = `get_pop_scale_factor(num_epithelial) *
+hs_macro_ODE`, `hs_macro_ODE = 21347.2655837073`, `ImmuneModelLib.py` ~line 597-612). Cellularized
+(`s_t = s_to_mcs/86400 = 6.944444e-4` day/MCS, `s_v = eta`, scenario-dependent as in §6/Cellularization):
+
+```
+0.3mm patch (eta=0.0049): b_mc=0.04634748701802586, a_mc=2.8160672798637494,
+                          mu_m=0.00016819611772214167, b_m=104.60160136016576
+1.0mm patch (eta=0.04):   b_mc=0.3783468328002111,   a_mc=22.988304325418362,
+                          mu_m=0.00016819611772214167 (scenario-independent, no s_v factor),
+                          b_m=853.890623348292
+```
+
+**Seeding fraction — RESOLVES an earlier open flag.** §1's "Seeding fraction" row previously noted
+"no literal `0.01` constant found... used in immune-cell recruitment logic... not a single named
+constant." Re-reading `ImmuneModelSteppable.new_immune_cell_by_type`
+(`Simulation/ViralInfectionVTMSteppables.py` ~line 1235) for this task finds the literal:
+`sample_frac = 0.01  # Move to inputs` — the fraction of the domain's current Medium-pixel set
+randomly sampled each placement attempt when seeding a new immune cell (any of
+macrophage/NK/CD8+) at the local maximum of its `__target_fields` entry (Virus for macrophage,
+chemo for NK/CD8+). This is the same `0.01` already recorded as `scaling.seeding_fraction`; this
+increment adds the exact call-site citation.
+
+**Local fraction (100%) and how immune cells enter.** `ImmuneModel/ImmuneModelInputs.py:
+local_ratio_macro = 1.0` (vs. 0.75 for NK/CD8+) — ALL of the ODE-predicted macrophage population is
+placed as actual CPM cells ("local"), none held back as an implicit "nearby" surrogate. Entry
+mechanics, from `ImmuneModelSteppable`:
+- **Initial** (`init_fresh_immune_model`, ~line 1096-1126): reads the ODE solver's initial `M` value
+  (homeostatic steady state), computes `init_val_local = local_ratio_macro * M`, places
+  `floor(init_val_local)` macrophages via `try_add_immune_cells_by_type` (plus one more with
+  probability = the fractional remainder).
+- **Ongoing** (`update_populations`, called every MCS): `inflow_by_type`/`outflow_by_type` apply a
+  Poisson-like stepwise add/remove using the `inflow_rate_by_type`/`outflow_rate_by_type` rates
+  above.
+- **Placement** (`new_immune_cell_by_type`, both paths): samples `sample_frac=0.01` of the current
+  Medium-pixel set and places the new cell at the sampled site with the highest local value of the
+  cell type's target field (Virus for macrophage), falling back to no placement if the domain has no
+  open space.
+
+Recorded verbatim in `params.yaml`'s new `macrophage:` section.
+
+---
+
 ## Fidelity convention
 
 Per `demo-parameters.md` and the source-notes fidelity convention: values in §1-§6 and §8 marked
