@@ -54,3 +54,12 @@ def test_repro_fig3b_runs_and_evaluates_bands():
     # non-vacuous: the ensemble uninfected series declines under infection
     u = r["ensemble"]["uninfected_cells"]
     assert u[-1][1] <= u[0][1]
+
+
+def test_repro_fig5_viral_load_sweep():
+    r = run.repro_fig5(loads=(1, 10000), replicas=1, cells_per_side=12, steps=15, seed0=0)  # reduced
+    assert set(r["by_load"].keys()) == {1, 10000}
+    # higher initial viral load => not more surviving uninfected than the low-load case
+    surv = lambda L: r["by_load"][L]["uninfected_final_frac"]
+    assert surv(10000) <= surv(1) + 1e-9
+    assert "band_eval" in r

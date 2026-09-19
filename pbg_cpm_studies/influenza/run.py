@@ -2132,3 +2132,204 @@ def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240
         "cells_per_side": cells_per_side,
         "steps": steps,
     }
+
+
+# Task 9.3: `targets/fig5.json`'s observable list uses the SAME 4 keys as a
+# subset of `_FIG3B_OBSERVABLE_MAP` (uninfected_cells, infected_cells,
+# extracellular_virus, antibodies -- fig5 has no dead_cells/macrophages/nk/
+# cd8/chemokines/type1_ifn/il10/apcs entries; read directly from the file,
+# not invented here). Map into the SAME (section, key) pairs as fig3b's map
+# -- both figures read the same `run_full_model` sections.
+_FIG5_OBSERVABLE_MAP = {
+    "uninfected_cells": ("counts", "uninfected"),
+    "infected_cells": ("counts", "infected"),
+    "extracellular_virus": ("fields", "virus"),
+    "antibodies": ("ode", "A"),
+}
+
+
+def _fig5_target_subset(target_observables: dict, load) -> dict:
+    """SCENARIO-GROUPING GUARD (Task-9.0-review finding, load-bearing here):
+    `targets/fig5.json`'s ``"observables"`` dict interleaves FIVE viral-load
+    scenarios (``viral_load_multiplier`` in ``{1,10,100,1000,10000}``) in one
+    flat list per observable. Passing that whole heterogeneous list to
+    `bands.series_in_band`/`bands.evaluate_study` for a single-`load` model
+    run would silently compare against a mix of every OTHER load's band too
+    (e.g. `load`'s low-infection ensemble checked against `load=10000`'s
+    near-total-lesion band at the same `t_days`) -- a wrong, averaged-away
+    comparison that could fabricate a pass or a fail.
+
+    This filters ``target_observables`` (the raw ``fig5.json["observables"]``
+    dict) down to ONLY the entries tagged ``viral_load_multiplier == load``,
+    per observable key. Raises ``ValueError`` (fail loudly, per the brief) if
+    ANY observable has zero matching entries for the requested `load` --
+    never silently falls back to the unfiltered (mixed-scenario) list.
+    """
+    subset = {}
+    for obs_name, obs_list in target_observables.items():
+        matched = [o for o in obs_list if o.get("viral_load_multiplier") == load]
+        if not matched:
+            raise ValueError(
+                f"fig5.json has no {obs_name!r} entries tagged "
+                f"viral_load_multiplier={load!r}; refusing to fall back to "
+                f"the unfiltered (multi-scenario) observable list -- fix the "
+                f"requested `load` or fig5.json's tagging, do not silently mix "
+                f"scenarios")
+        subset[obs_name] = matched
+    return subset
+
+
+def _evaluate_fig5_subset(ensemble: dict, target_subset: dict) -> dict:
+    """`bands.evaluate_study`'s own per-observable loop (soft-widening +
+    `series_in_band` + the `passed` reduction), applied to an ALREADY
+    scenario-filtered ``target_subset`` (`_fig5_target_subset`'s output)
+    instead of `bands.load("fig5")["observables"]` wholesale -- see
+    `_fig5_target_subset`'s docstring for why the raw multi-scenario dict
+    must never reach `series_in_band` directly for a single-load comparison.
+    """
+    results = {}
+    passed = True
+    for name, obs_list in target_subset.items():
+        if name not in ensemble:
+            continue
+        soft = any(o.get("soft", False) for o in obs_list)
+        verdict = bands.series_in_band(ensemble[name], obs_list, soft=soft)
+        results[name] = verdict
+        if not verdict["in_band"]:
+            passed = False
+    return {"figure": "fig5", "observables": results, "passed": passed}
+
+
+def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
+              cells_per_side: int = 35, steps: int = 240, seed0: int = 0) -> dict:
+    """Increment 9 Task 9.3 -- the CAPSTONE `repro_fig5` driver: run the full
+    model (`run_full_model`, Task 9.1) as a seeded ensemble at EACH initial
+    viral load in `loads`, matching `targets/fig5.json`'s
+    ``"scenario"`` block (``patch_mm=1.0, total_epithelial_cells=10000,
+    replicas=50, viral_load_multipliers=[1,10,100,1000,10000]``): for every
+    load, `replicas` runs seed a ~uniform virus-field IC at that
+    concentration with NO pre-infected cells (`run_full_model(...,
+    init_viral_load=load, init_infection_frac=None)` -- infection emerges
+    from the field, per `run_full_model`'s ``init_viral_load`` branch and
+    `_seed_uniform_virus`), each mapped onto fig5's 4 observable keys
+    (`_FIG5_OBSERVABLE_MAP`: uninfected_cells, infected_cells,
+    extracellular_virus, antibodies), ensemble-meaned across that load's
+    replicas (`bands.aggregate_replicas`), and evaluated against ONLY that
+    load's band subset (`_fig5_target_subset` + `_evaluate_fig5_subset` --
+    the scenario-grouping guard; see those functions' docstrings).
+
+    The paper's own Sec. 3.3 finding (`targets/fig5.json`'s ``"notes"``) is
+    the fidelity criterion this driver is built to expose: the spatial model
+    trends toward LETHAL outcomes only near a ~1000x dose increase
+    (``viral_load_multiplier=10000``), while multipliers 1/10/100/1000 stay
+    non-lethal across all replicas -- i.e. a MONOTONE, but strongly
+    NONLINEAR/threshold-like, dose-response in final uninfected (surviving)
+    fraction, NOT a claim that every load's band is individually matched at
+    reduced scale (see CALIBRATION HONESTY below).
+
+    PAPER-SCALE CONFIG (the Mac-mini Phase-B follow-up that will set the
+    `reproduced` verdict -- NOT this function's default, which stays small
+    for a fast test suite): ``replicas=50, cells_per_side=35, steps≈3086``.
+    As in `repro_fig3b`, `steps` is in RECORD units of ``mcs_per_step=7`` MCS
+    each at ``s_per_mcs=60`` (1 min/MCS), so each record advances 7 min and
+    ``t_days = i*mcs_per_step*s_per_mcs/86400 = i*0.0048611...``; fig5's
+    checkpoints run to ``max t_days=15`` (see `targets/fig5.json`), which
+    needs ``steps ≈ 15/0.0048611 ≈ 3086`` records -- NOT 2880 (2 simulated
+    days, which would badly undershoot fig5's 15-day window; that number was
+    a documented prior-task error for THIS figure, corrected here). This
+    function's small defaults (``replicas=3, cells_per_side=35, steps=240``)
+    keep the full paper patch size but far fewer replicas and a much shorter
+    window (``steps=240`` reaches only ``t_days≈1.17``) than the 50-replica,
+    15-day paper ensemble.
+
+    CALIBRATION HONESTY (per `run_full_model`'s docstring, inherited here):
+    this function WIRES the full model at each viral load and EVALUATES it
+    against fig5's per-load band subsets; it does NOT tune any constant to
+    pass them, and `targets/fig5.json` is never edited by this driver. A
+    reduced-scale (small `loads`/`replicas`/`steps`) run is expected to
+    diverge from the bands on most observables/loads -- the MONOTONE
+    dose-response direction (higher initial load -> not-more surviving
+    uninfected fraction) is the reduced-scale fidelity criterion this
+    driver's own test checks, not per-load band containment; only the
+    paper-scale ensemble sets the `reproduced` verdict. See
+    `workspace/studies/repro-fig5-viral-load/study.yaml` for the honestly-
+    reported reduced-scale result.
+
+    Returns::
+
+        {
+          "by_load": {
+            load: {
+              "ensemble": {obs_name: [(t_days, value)]},
+              "band_eval": {"figure": "fig5", "observables": {...}, "passed": bool},
+              "uninfected_final_frac": float,   # final ensemble-mean uninfected / tot_cell
+              "uninfected_min_frac": float,      # min ensemble-mean uninfected / tot_cell
+            }
+            for load in loads
+          },
+          "lethal_threshold": load or None,   # see below
+          "band_eval": {"figure": "fig5", "by_load": {load: {...}}, "passed": bool},
+          "loads": tuple(loads), "replicas": replicas,
+          "cells_per_side": cells_per_side, "steps": steps,
+        }
+
+    ``lethal_threshold`` is the SMALLEST tested `load` (in ascending order)
+    whose ensemble-mean final uninfected fraction is <= 0.5 (majority of the
+    epithelial patch no longer uninfected) -- a MODEL-side threshold computed
+    from this driver's own run, distinct from `targets/fig5.json["scenario"]
+    ["calibrated_lethal_ode_multiplier"]` (the paper's ODE-model threshold,
+    which Sec. 3.3 explicitly notes the spatial model does NOT agree with;
+    conflating the two would misrepresent the paper's own Fig-4/5
+    disagreement finding). ``None`` if no tested load reaches that
+    threshold.
+    """
+    target_observables = bands.load("fig5")["observables"]
+    tot_cell = cells_per_side * cells_per_side
+
+    by_load: dict = {}
+    for load_idx, load in enumerate(loads):
+        runs = []
+        for r in range(replicas):
+            seed = seed0 + load_idx * replicas + r
+            res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
+                                 init_infection_frac=None, init_viral_load=float(load))
+            mapped = {}
+            for obs_name, (section, key) in _FIG5_OBSERVABLE_MAP.items():
+                mapped[obs_name] = list(zip(res["t_days"], res[section][key]))
+            runs.append(mapped)
+
+        ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
+                   for obs_name in _FIG5_OBSERVABLE_MAP}
+
+        target_subset = _fig5_target_subset(target_observables, load)
+        load_band_eval = _evaluate_fig5_subset(ensemble, target_subset)
+
+        uninfected_series = [v for _, v in ensemble["uninfected_cells"]]
+        by_load[load] = {
+            "ensemble": ensemble,
+            "band_eval": load_band_eval,
+            "uninfected_final_frac": uninfected_series[-1] / tot_cell,
+            "uninfected_min_frac": min(uninfected_series) / tot_cell,
+        }
+
+    lethal_threshold = None
+    for load in sorted(by_load):
+        if by_load[load]["uninfected_final_frac"] <= 0.5:
+            lethal_threshold = load
+            break
+
+    band_eval = {
+        "figure": "fig5",
+        "by_load": {load: by_load[load]["band_eval"] for load in by_load},
+        "passed": all(by_load[load]["band_eval"]["passed"] for load in by_load),
+    }
+
+    return {
+        "by_load": by_load,
+        "lethal_threshold": lethal_threshold,
+        "band_eval": band_eval,
+        "loads": tuple(loads),
+        "replicas": replicas,
+        "cells_per_side": cells_per_side,
+        "steps": steps,
+    }
