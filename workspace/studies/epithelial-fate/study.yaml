@@ -330,7 +330,7 @@ findings:
     evidence:
       from_test: Dead cell fully surrounded by healthy tissue recovers (D->H)
       divergence_factor: null
-      observed: "center D cell (8/8 UNINFECTED Moore neighbors, frozen geometry) recovers to H within 500 stochastic draws (seed=3); organically, 3 recovery events fire over 200 updates and 10 over 500 updates in the full driver with no hand-made geometry"
+      observed: "center D cell (8/8 UNINFECTED Moore neighbors, frozen geometry) recovers to H within 500 stochastic draws (seed=3); organically, 3 recovery events fire over 200 updates and 12 over 500 updates in the full driver with no hand-made geometry"
     statement: |
       Allee recovery (D->H) responds correctly to local contact geometry:
       a dead cell embedded in healthy tissue recovers, both in a
