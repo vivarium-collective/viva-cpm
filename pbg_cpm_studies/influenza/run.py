@@ -21,7 +21,7 @@ import math
 
 import numpy as np
 
-from . import allee, build, fields, immune, sheet, transitions, types
+from . import allee, build, fields, immune, sheet, signaling, transitions, types
 from .params import load_params
 from .resistance import cell_resistance
 
@@ -507,6 +507,187 @@ def run_macrophage_response(*, epithelial_cells_per_side: int = 4, n_infected: i
     for step_idx in range(1, steps + 1):
         world.step(mcs_per_update)
         _record(step_idx)
+
+    result["params"] = {
+        "chemotaxis_v_macro": lam, "n_macrophages": n_macrophages,
+        "n_infected": n_infected, "epithelial_cells_per_side": epithelial_cells_per_side,
+        "margin_sites": margin_sites, "separation_sites": separation_sites,
+        "seed": seed, "steps": steps,
+        "mcs_per_update": mcs_per_update, "field_warmup": field_warmup,
+    }
+    return result
+
+
+def _radial_field_profile(world, field_idx, center_xy, n_bins=6):
+    """Mean field concentration over `n_bins` concentric distance bins from
+    `center_xy` (x, y in lattice-site units), computed over the RAW lattice
+    (`world.field_conc`/`world.dims`) -- independent of where any CELL
+    happens to sit, unlike `field_mean_at_cell`'s per-cell averages. The
+    direct "gradient centered on a location, decaying with distance"
+    evidence for `run_macrophage_signaling`'s chemokine assertion.
+
+    `world`'s flat field array is laid out `idx = x + y*nx` (z is always 0
+    in this z=1 domain) -- `crates/cpm-core/src/lattice.rs`'s
+    `index`/`coords` -- so `conc.reshape(ny, nx)` (standard C-order,
+    row-major) recovers `conc[y, x]`.
+
+    Returns `(bin_edges, bin_means)`: `bin_edges` has `n_bins + 1` entries,
+    0 .. the domain's max corner-to-corner distance from `center_xy`;
+    `bin_means[i]` is the mean concentration over lattice sites whose
+    distance to `center_xy` falls in `[bin_edges[i], bin_edges[i+1]]` (the
+    last bin's upper edge is inclusive so the single farthest corner site
+    isn't dropped); `nan` if no site falls in a bin.
+    """
+    nx, ny, _nz = world.dims()
+    conc = np.asarray(world.field_conc(field_idx), dtype=float).reshape(ny, nx)
+    xs, ys = np.meshgrid(np.arange(nx), np.arange(ny))
+    dist = np.hypot(xs - center_xy[0], ys - center_xy[1])
+    max_d = float(dist.max())
+    bin_edges = np.linspace(0.0, max_d, n_bins + 1)
+    bin_means = []
+    for i in range(n_bins):
+        lo, hi = bin_edges[i], bin_edges[i + 1]
+        mask = (dist >= lo) & (dist <= hi if i == n_bins - 1 else dist < hi)
+        bin_means.append(float(conc[mask].mean()) if mask.any() else float("nan"))
+    return bin_edges.tolist(), bin_means
+
+
+def run_macrophage_signaling(*, epithelial_cells_per_side: int = 4, n_infected: int = 1,
+                              n_macrophages: int = 6, margin_sites: int = 30,
+                              separation_sites: int = 25,
+                              steps: int = 20, seed: int = 17, mcs_per_update: int = 10,
+                              field_warmup: int = 0,
+                              chemotaxis_lambda: float | None = None,
+                              radial_bins: int = 6) -> dict:
+    """Task 6.1 crux driver: extend `run_macrophage_response`'s Increment-5
+    non-confluent macrophage scenario (`immune.build_macrophage_scenario_spec`)
+    with the macrophage-released chemokine + IL-10 diffusive fields (`fields.
+    add_chemokine_field`/`add_il10_field`), on top of the existing virus
+    (`fields.add_virus_field`) + type-I IFN (`fields.add_ifn_field`) fields,
+    and the per-cell secretion regulation this task adds
+    (`signaling.macrophage_secretion_scale`/`uninfected_il10_scale`).
+
+    Each update, AFTER `world.step` advances all four fields together
+    (`fields.py`'s module docstring -- callers must not call `advance_fields`
+    separately once stepping has started):
+      - every macrophage (`types.M`) cell: `L_loc = world.
+        field_mean_at_cell(il10_fi, cid)` (local mean IL-10), `scale =
+        signaling.macrophage_secretion_scale(L_loc, *fields.
+        il10_hill_constants())`, applied via `world.
+        set_cell_secretion_scale` to BOTH the chemokine and the IL-10
+        field's per-cell scale for that cell -- source: the SAME
+        IL-10-Hill self-regulation gates both fields (`b_c`/`b_l` share
+        `sig_1`/`g_1`/`g_2`/`d_2`, see `signaling.py`'s module docstring /
+        the sig_1-STUB ruling there).
+      - every uninfected (`types.H`) epithelial cell: `f_bar = world.
+        field_mean_at_cell(ifn_fi, cid)`, `resist = resistance.
+        cell_resistance(f_bar, a_rf)`, `scale = signaling.
+        uninfected_il10_scale(resist)`, applied to the IL-10 field's
+        per-cell scale for that cell.
+    The IFN field here exists ONLY to supply `resist` for the IL-10
+    uninfected-cell gate -- infection/virus-release throttling (Increment
+    3/4's mechanism) is out of THIS task's scope (chemokine/IL-10 field
+    fidelity) and is not modeled by this driver.
+
+    Returns per-update series (index 0 = the seeded initial state, before
+    any Potts/field updates, but AFTER `field_warmup`):
+      - "steps": update index (0..steps)
+      - "total_chemokine", "total_il10": field sums over the lattice
+      - "chemo_at_macrophages": mean chemokine field value AT macrophage
+        cells (the near-the-source reading)
+      - "chemo_at_uninfected": mean chemokine field value AT uninfected (H)
+        epithelial cells, `separation_sites` of open Medium away from the
+        macrophage cluster (the far-from-the-source reading)
+      - "il10_at_macrophages", "il10_at_uninfected": same near/far split
+        for the IL-10 field (both macrophage AND uninfected cells are IL-10
+        SOURCES, unlike chemokine, so this pair is a secondary diagnostic,
+        not the locality signal)
+    plus, computed ONCE from the FINAL state:
+      - "chemo_radial_profile": `{"bin_edges": [...], "bin_means": [...]}`
+        from `_radial_field_profile` around the macrophage cluster's
+        centroid -- the direct, cell-position-independent "gradient
+        centered on the macrophage cluster, decaying with distance"
+        evidence.
+      - "params" (the scenario/run knobs, for the report).
+    """
+    params = load_params()
+    a_rf = float(params["resistance"]["a_rf"])
+    sig_1, g_1, g_2, d_2 = fields.il10_hill_constants()
+    lam = (float(params["macrophage"]["chemotaxis_v_macro"])
+           if chemotaxis_lambda is None else float(chemotaxis_lambda))
+
+    spec = immune.build_macrophage_scenario_spec(
+        epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, margin_sites=margin_sites,
+        separation_sites=separation_sites, seed=seed)
+
+    cell_type_by_idx = [c["type"] for c in spec["cells"]]  # spec index i -> cell id i+1
+    macrophage_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.M]
+    uninfected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.H]
+
+    world = build.world_from_spec(spec, finalize=False)
+    virus_fi = fields.add_virus_field(world)
+    ifn_fi = fields.add_ifn_field(world)
+    chemo_fi = fields.add_chemokine_field(world)
+    il10_fi = fields.add_il10_field(world)
+    world.finalize(int(spec["potts"]["seed"]))
+
+    for _ in range(field_warmup):
+        world.advance_fields(1)
+
+    immune.set_macrophage_chemotaxis(world, virus_fi, chemotaxis_v_macro=lam)
+
+    def _macrophage_centroid(coms):
+        xs = [coms[cid][0] for cid in macrophage_ids]
+        ys = [coms[cid][1] for cid in macrophage_ids]
+        return (sum(xs) / len(xs), sum(ys) / len(ys))
+
+    def _apply_secretion_scales():
+        # Freshly-diffused (post-`world.step`) field readings gate the NEXT
+        # update's secretion -- same "this update's local reading throttles
+        # the following update's release" convention as
+        # `run_virus_infection_with_ifn`/`run_epithelial_fate` above.
+        for cid in macrophage_ids:
+            l_loc = world.field_mean_at_cell(il10_fi, cid)
+            scale = signaling.macrophage_secretion_scale(l_loc, sig_1, g_1, g_2, d_2)
+            world.set_cell_secretion_scale(chemo_fi, cid, scale)
+            world.set_cell_secretion_scale(il10_fi, cid, scale)
+        for cid in uninfected_ids:
+            f_bar = world.field_mean_at_cell(ifn_fi, cid)
+            resist = cell_resistance(f_bar, a_rf)
+            scale = signaling.uninfected_il10_scale(resist)
+            world.set_cell_secretion_scale(il10_fi, cid, scale)
+
+    result = {
+        "steps": [], "total_chemokine": [], "total_il10": [],
+        "chemo_at_macrophages": [], "chemo_at_uninfected": [],
+        "il10_at_macrophages": [], "il10_at_uninfected": [],
+    }
+
+    def _record(step_idx):
+        result["steps"].append(step_idx)
+        result["total_chemokine"].append(float(sum(world.field_conc(chemo_fi))))
+        result["total_il10"].append(float(sum(world.field_conc(il10_fi))))
+
+        chemo_macro = [world.field_mean_at_cell(chemo_fi, cid) for cid in macrophage_ids]
+        chemo_h = [world.field_mean_at_cell(chemo_fi, cid) for cid in uninfected_ids]
+        il10_macro = [world.field_mean_at_cell(il10_fi, cid) for cid in macrophage_ids]
+        il10_h = [world.field_mean_at_cell(il10_fi, cid) for cid in uninfected_ids]
+
+        result["chemo_at_macrophages"].append(sum(chemo_macro) / len(chemo_macro))
+        result["chemo_at_uninfected"].append(sum(chemo_h) / len(chemo_h))
+        result["il10_at_macrophages"].append(sum(il10_macro) / len(il10_macro))
+        result["il10_at_uninfected"].append(sum(il10_h) / len(il10_h))
+
+    _record(0)
+    for step_idx in range(1, steps + 1):
+        world.step(mcs_per_update)
+        _apply_secretion_scales()
+        _record(step_idx)
+
+    macro_centroid = _macrophage_centroid(world.cell_coms())
+    bin_edges, bin_means = _radial_field_profile(world, chemo_fi, macro_centroid, radial_bins)
+    result["chemo_radial_profile"] = {"bin_edges": bin_edges, "bin_means": bin_means}
 
     result["params"] = {
         "chemotaxis_v_macro": lam, "n_macrophages": n_macrophages,

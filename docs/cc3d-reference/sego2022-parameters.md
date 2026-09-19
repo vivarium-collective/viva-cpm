@@ -250,6 +250,15 @@ uptake into the field-consumer logic is deferred to a later task per the brief.
 | Chemokines c̄ | Natural decay `μ_c` | Release regulated by TNF and dead-cell presence `𝓑(τ,D̂)·b_p·ρ'` | `ChemokineSecretionSteppable` |
 | IL-10 l̄ | Natural decay `μ_l` | Release by macrophages regulated by TNF and dead cells, resistance-scaled `(1−ρ)` | `IL10SecretionSteppable` (`sec_amount = mu_l*b_lh*(1-resist)`) |
 
+**Increment 6 — exact chemokine/IL-10 diffusion, decay, and macrophage-secretion literals confirmed
+against source** (§10 below): the "release regulated by TNF and dead-cell presence" language above
+is the *paper's* Table 1 prose; the *source's* macrophage-secretion mechanism is literally an
+IL-10-Hill term (`sec = b_{c,l}·sig_1/(sig_1+(g_1·L_loc+g_2)/(L_loc+d_2))`, `sig_1 := a_11·T+a_12·D`
+— "TNF" ≈ `T`, "dead-cell presence" ≈ `D`, consistent in spirit but not literally the paper's printed
+form). The IL-10 row's `mu_l*b_lh*(1-resist)` term (already noted here) is the **uninfected-cell**
+secretion path, separate from the macrophage-secretion Hill term above — both are IL-10 sources.
+Full derivation, exact literals, and the deferred global-boundary/IC items are in §10.
+
 Paper's auxiliary form: `ζ = 1 + η(g₁l + g₂c)/((a₁1²+a₁2)(1+a₀2))` (mean-field IL-10/chemokine
 cross-term; Table 1 footnote) and `z̄̄ = (1/|𝒱(σ,t)|)∫_{𝒱(σ,t)} z̄ dV` (mean cellular field
 measurement). Transcribed as given in the paper; not independently re-derived from source (the
@@ -673,6 +682,146 @@ mechanics, from `ImmuneModelSteppable`:
   open space.
 
 Recorded verbatim in `params.yaml`'s new `macrophage:` section.
+
+---
+
+## 10. Chemokine + IL-10 fields (Increment 6)
+
+Both fields are **macrophage-sourced**, gated by the SAME IL-10-Hill regulation term read from the
+shared immune-model ODE-solver instance. Re-fetched per `sego2022-source-notes.md`
+(`ImmuneModel/ImmuneModelInputs.py`, `ImmuneModel/ImmuneModelLib.py` `immune_model_string()`,
+`Simulation/ViralInfectionVTMSteppables.py` `ChemokineSecretionSteppable` (~lines 1453-1502) /
+`IL10SecretionSteppable` (~lines 1504-1571)):
+
+```
+s_t (day/MCS) = s_to_mcs / 86400 = 6.944444e-4          (as in Increments 2-4)
+s_l            = 1 / tot_ec_ODE / cell_volume = 1.6e-7   (as in Increments 2-4)
+s_v            = η = num_epithelial / tot_ec_ODE          (SCENARIO-dependent: 0.0049 for 0.3mm,
+                                                             0.04 for 1.0mm)
+dim.z          = 2                                        (lattice z-thickness, as in Increments 2-3)
+```
+
+**Diffusion + decay** (`ImmuneModel/ImmuneModelInputs.py`):
+
+```
+chemo_decay_ODE = 8.99003894588318 /day  -> exp_chemo_decay = /86400 = 1.0405137668846273e-04 /s
+exp_chemo_dl = exp_cell_diameter(10um) * 10.0 = 100um       ("exp_chemo_dl")
+chemo_dc  (unitless D)    = exp_chemo_decay * exp_chemo_dl^2 * s_to_mcs / um_to_lat_width^2
+                           = 15.60770650326941   (matches brief's approx 15.601)
+chemo_decay (unitless)    = exp_chemo_decay * s_to_mcs = 0.006243082601307764 (approx 6.240e-3)
+
+il10_decay_ODE  = 2.82296559789435 /day  -> exp_il10_decay = /86400 = 3.2673212938592015e-05 /s
+exp_il10_dl  = exp_cell_diameter(10um) * 10.0 = 100um        ("exp_il10_dl", source comment:
+                                                                "assumed same as chemokines")
+il10_dc   (unitless D)    = exp_il10_decay * exp_il10_dl^2 * s_to_mcs / um_to_lat_width^2
+                           = 4.900981940788802   (matches brief's approx 4.901)
+il10_decay (unitless)     = exp_il10_decay * s_to_mcs = 0.001960392776315521 (approx 1.960e-3)
+```
+
+CROSS-CHECK: `il10_decay_ODE` (2.82296559789435) is numerically identical to the Antimony model's
+`mu_l` raw literal (below) — an independent confirmation via two different source files
+(`ImmuneModelInputs.py` vs. `ImmuneModelLib.py`) of the same calibrated constant.
+
+**Macrophage secretion — the Hill-regulation form** (identical in both steppables' "Local" block,
+lines 1482-1490 / 1544-1552):
+
+```python
+sig_1 = self.im_steppable.get_model_val('Sigma1')
+b_c   = self.im_steppable.get_model_val('b_c') * self.dim.z      # (b_l for IL-10)
+g_1   = self.im_steppable.get_model_val('g_1')
+g_2   = self.im_steppable.get_model_val('g_2')
+d_2   = self.im_steppable.get_model_val('d_2')
+for cell in self.cell_list_by_type(self.MACROPHAGE):
+    amount_seen = il10_secretor.amountSeenByCell(cell) / cell.volume        # L_loc
+    sec_amount = b_c * sig_1 / (sig_1 + (g_1 * amount_seen + g_2) / (amount_seen + d_2))
+    chemo_secretor.secreteInsideCell(cell, sec_amount / cell.volume)
+```
+
+i.e. `sec = b_{c,l} · sig_1 / (sig_1 + (g_1·L_loc + g_2) / (L_loc + d_2))`, L_loc = local mean IL-10
+seen by the macrophage. **Both** fields are regulated by local IL-10, not by their own field.
+
+**IMPORTANT — `sig_1` (Sigma1) is NOT a fixed parameter, unlike `g_1`/`g_2`/`d_2`/`b_c`/`b_l`.**
+`ImmuneModelLib.py`'s Antimony string declares it as an **assignment rule** (`:=`, dynamically
+recomputed from live ODE state each query), not a `parameter`:
+
+```
+Sigma1 := a_11*T + a_12*D        # line ~62
+a_11 = 0.00061091213762049       # line ~68 (flat literal, no scaling)
+a_12 = 0.0000192792875130612     # line ~69 (flat literal, no scaling)
+D := tot_cell - H - I            # "dying"/damage-associated tissue state, itself dynamic
+```
+
+`T` (a TNF-like ODE population) and `D` (derived from `H`, `I`, the live uninfected/infected ODE
+populations) are both immune-model ODE-solver state, requiring the full Antimony/SBML solver loop
+to evaluate — which this increment (and all prior ones) does not implement. **A numeric `sig_1`
+literal is therefore NOT recorded** (would be a fabrication); `params.yaml`'s `il10.sig_1` instead
+documents the assignment-rule formula and the two raw `a_11`/`a_12` coefficients, flagged
+explicitly as non-engine-usable pending the ODE solver (same deferred category as
+`macrophage.recruitment`'s Hill term on the chemokine field mean `C`, which reads from the same
+solver instance).
+
+**`g_1`/`g_2`/`d_2` — raw Antimony literals, SCENARIO-dependence differs per constant**
+(`ImmuneModelLib.py` lines ~72-74):
+
+```
+g_1 = 498.217901666102 * s_v                 # SCENARIO-DEPENDENT (s_v = η)
+g_2 = 5462.05818489935 * s_v * s_l           # SCENARIO-DEPENDENT (s_v) + s_l-scaled
+d_2 = 428.253164311871 * s_l                 # SCENARIO-INDEPENDENT (only s_l)
+
+Cellularized:
+  0.3mm patch (eta=0.0049): g_1=2.4412677181638998, g_2=4.28225361696109e-06,
+                            d_2=6.852050628989936e-05 (scenario-independent)
+  1.0mm patch (eta=0.04):   g_1=19.928716066644082,  g_2=3.495717238335584e-05,
+                            d_2=6.852050628989936e-05 (same as above)
+```
+
+`params.yaml`'s `il10.g_1`/`g_2`/`d_2` keys record the RAW (pre-`*s_v`/`*s_l`) literals above
+(consistent with the `macrophage.recruitment.*_raw` convention for scenario-dependent quantities),
+with the cellularized per-scenario numbers in the accompanying comment.
+
+**`b_c` (chemokine, macrophage), `b_l`/`b_lh`/`mu_l` (IL-10) — as literally applied** (cellularized
+AND, where the steppable multiplies by `dim.z`, z-multiplied — same convention as
+`virus.secretion_g_vi`/`ifn.secretion_g_fp`):
+
+```
+b_c (raw, ODE-calibrated) = 40.203310453199 /day    (immune_model_string(): "b_c = ... * s_t")
+  -> per-MCS = 40.203310453199 * s_t = 0.027918965592499307
+  -> ChemokineSecretionSteppable: * dim.z(=2) = 0.055837931184998614   (b_c key; SCENARIO-INDEPENDENT)
+
+b_l (raw, ODE-calibrated) = 2.32377371988728 /day   ("b_l = ... * s_t")
+  -> per-MCS = 2.32377371988728 * s_t = 0.0016137317499217224
+  -> IL10SecretionSteppable: * dim.z(=2) = 0.0032274634998434447       (b_l key; SCENARIO-INDEPENDENT)
+
+b_lh (raw, ODE-calibrated) = 0.000463779438894315   (flat literal, NO s_t/s_v/s_l factor)
+  -> IL10SecretionSteppable "Uninfected cell secretion" block: * dim.z(=2) = 0.00092755887778863
+     (b_lh key). NOTE: the SAME raw b_lh (WITHOUT dim.z) is separately used at mcs==0 for the
+     field's uniform initial condition (`amount_init = b_lh*(1-mean_resist)*num_epithelial/
+     (dim.x*dim.y)`) -- a DIFFERENT literal, deferred (see below), not the b_lh params.yaml key.
+
+mu_l (raw, ODE-calibrated) = 2.82296559789435 /day  ("mu_l = ... * s_t") -- numerically identical to
+  il10_decay_ODE above (cross-check).
+  -> per-MCS = 2.82296559789435 * s_t = 0.001960392776315521 (mu_l key). NO dim.z factor applied
+     in the source (`mu_l = self.im_steppable.get_model_val('mu_l')`, no `*self.dim.z`) --
+     confirmed line-by-line, unlike b_lh immediately above.
+  Combined: `sec_amount = mu_l * b_lh * (1 - resist)` per UNINFECTED cell
+  (IL10SecretionSteppable "Uninfected cell secretion" block, source's resistance-gating convention
+  per the "Cellular viral resistance ρ" section above: `(1 - resist_source)`).
+```
+
+**Deferred (not recorded as params.yaml engine keys):**
+1. **Global boundary secretion** (both steppables' "Global" block, after "Local"): a `num_macro`
+   (nearby-surrogate macrophage count)-scaled, domain-uniform write to 8 XML elements
+   (`chemo_secr0..7` / `il10_secr0..7`) via the same Hill form applied to the ODE solver's
+   total-`L` state, population/η-scaled via `loc_to_global = scale_vol/scale_loc`. Out of scope
+   (Increment 8 per the brief).
+2. **IL-10 uniform initial condition**: `IL10SecretionSteppable.step`, `mcs==0` branch —
+   `L = b_lh*(1-mean_resist)*num_epithelial/(dim.x*dim.y)`, written directly into
+   `self.field.il10[...]`. Skipped — viva-cpm's field engine (as used by prior increments) has no
+   field-write API for a uniform IC; the formula + raw `b_lh` are documented in `params.yaml` for a
+   later increment.
+
+Recorded verbatim (with full derivation, the exact Hill form, and the `sig_1` non-fabrication
+note) in `params.yaml`'s new `chemokine:` and `il10:` sections.
 
 ---
 

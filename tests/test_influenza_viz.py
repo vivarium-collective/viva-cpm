@@ -205,3 +205,67 @@ def test_ifn_resistance_figure_returns_figure_with_axes():
     rx, ry = ax_resist.lines[0].get_data()
     assert len(rx) == len(with_result["steps"])
     assert list(ry) == with_result["mean_resist"]
+
+
+def _small_signaling_result():
+    """Hand-built `run.run_macrophage_signaling(...)`-shaped result (Task
+    6.1) -- exercises the viz against the driver's ACTUAL return keys
+    ("steps", "total_chemokine", "total_il10", "chemo_at_macrophages",
+    "chemo_at_uninfected", "il10_at_macrophages", "il10_at_uninfected",
+    "chemo_radial_profile", "params") without paying for a real CPM+field
+    run in this test. Shape/pattern (near > far, gradient decays with
+    distance) matches task-6.1-report.md's measured numbers, but the exact
+    values here are illustrative, not re-asserted."""
+    return {
+        "steps": [0, 1, 2, 3],
+        "total_chemokine": [0.0, 2.1, 5.4, 9.17],
+        "total_il10": [0.0, 0.15, 0.4, 0.72],
+        "chemo_at_macrophages": [0.0, 0.0009, 0.0018, 0.00261],
+        "chemo_at_uninfected": [0.0, 0.0002, 0.00045, 0.00062],
+        "il10_at_macrophages": [0.0, 1.0e-4, 2.0e-4, 2.97e-4],
+        "il10_at_uninfected": [0.0, 1.2e-5, 2.5e-5, 3.71e-5],
+        "chemo_radial_profile": {
+            "bin_edges": [0.0, 15.5, 31.0, 46.4, 61.9, 77.4, 92.9],
+            "bin_means": [0.00195, 0.00127, 0.00098, 0.00060, 0.00038, 0.00033],
+        },
+        "params": {
+            "chemotaxis_v_macro": 5000.0, "n_macrophages": 6, "n_infected": 1,
+            "epithelial_cells_per_side": 4, "margin_sites": 30,
+            "separation_sites": 25, "seed": 17, "steps": 3,
+            "mcs_per_update": 10, "field_warmup": 0,
+        },
+    }
+
+
+def test_signaling_fields_figure_returns_figure_with_axes():
+    """Task 6.2: mechanism figure -- chemokine field radial profile centered
+    on the macrophage cluster (panel a: peak-near-macrophages, decaying with
+    distance), and IL-10 level over time at both source populations (panel
+    b). Non-vacuous: plotted data must match the driver's actual return
+    series/keys (`run.run_macrophage_signaling`, Task 6.1)."""
+    result = _small_signaling_result()
+
+    fig = viz.signaling_fields_figure(result)
+
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) == 2
+    ax_radial, ax_il10 = fig.axes
+
+    # panel (a): chemokine radial profile -- bin_means vs bin centers,
+    # non-vacuous, and actually decaying (peak near the macrophage cluster).
+    bin_means = result["chemo_radial_profile"]["bin_means"]
+    assert len(ax_radial.lines) >= 1 or len(ax_radial.patches) >= 1
+    if ax_radial.lines:
+        plotted = [list(line.get_data()[1]) for line in ax_radial.lines]
+        assert bin_means in plotted
+    else:
+        heights = [p.get_height() for p in ax_radial.patches]
+        assert list(heights) == bin_means
+    assert bin_means[0] > bin_means[-1]  # peak near macrophages, decaying
+
+    # panel (b): IL-10 over time -- at least the macrophage + uninfected
+    # source trajectories, matching the driver's actual series.
+    assert len(ax_il10.lines) >= 2
+    ydata_by_line = [list(line.get_data()[1]) for line in ax_il10.lines]
+    assert result["il10_at_macrophages"] in ydata_by_line
+    assert result["il10_at_uninfected"] in ydata_by_line
