@@ -44,3 +44,13 @@ def test_full_model_fidelity_fixes():
     # recorded ode K vs spatial macrophage/nk counts, or an exposed debug hook. Keep FAST.
     r = run.run_full_model(cells_per_side=15, steps=8, seed=4, init_infection_frac=0.05)
     assert "K" in r["ode"]
+
+
+def test_repro_fig3b_runs_and_evaluates_bands():
+    r = run.repro_fig3b(replicas=2, cells_per_side=15, steps=20, seed0=0)  # reduced for CI
+    assert r["replicas"] == 2
+    assert "uninfected_cells" in r["ensemble"]
+    assert "band_eval" in r and "passed" in r["band_eval"]
+    # non-vacuous: the ensemble uninfected series declines under infection
+    u = r["ensemble"]["uninfected_cells"]
+    assert u[-1][1] <= u[0][1]

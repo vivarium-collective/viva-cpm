@@ -21,8 +21,8 @@ import math
 
 import numpy as np
 
-from . import (allee, build, fields, immune, killing, price_ode, recruitment,
-               sheet, signaling, transitions, types)
+from . import (allee, bands, build, fields, immune, killing, price_ode,
+               recruitment, sheet, signaling, transitions, types)
 from .params import load_params
 from .resistance import cell_resistance
 
@@ -2036,3 +2036,94 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
         "dims": list(world.dims()),
     }
     return result
+
+
+# Task 9.2 (this task): maps `run_full_model`'s returned series onto the
+# `targets/fig3b.json` observable keys -- the EXACT names as they appear in
+# that JSON's "observables" dict (some differ from `run_full_model`'s own
+# section/key names, e.g. fields.virus -> "extracellular_virus", ode.P (the
+# integrated APC state, dossier/`price_ode.INTEGRATED_STATES`) -> "apcs",
+# ode.A (the integrated antibody state) -> "antibodies"). Each value is a
+# ``(section, key)`` pair into a single replica's `run_full_model` result
+# dict; `repro_fig3b` zips the matching series against that replica's
+# `t_days` to build the ``[(t_days, value)]`` series `bands.
+# aggregate_replicas`/`bands.series_in_band` expect. `apcs`/`antibodies` come
+# from the ODE state, not a spatial count/field -- the source models both as
+# well-mixed ODE-only populations (no CPM cell type or diffusive field of
+# their own), so `run_full_model`'s `ode` dict is their only source.
+_FIG3B_OBSERVABLE_MAP = {
+    "uninfected_cells": ("counts", "uninfected"),
+    "infected_cells": ("counts", "infected"),
+    "dead_cells": ("counts", "dead"),
+    "macrophages": ("counts", "macrophage"),
+    "nk_cells": ("counts", "nk"),
+    "cd8_t_cells": ("counts", "cd8"),
+    "extracellular_virus": ("fields", "virus"),
+    "type1_ifn": ("fields", "ifn"),
+    "chemokines": ("fields", "chemo"),
+    "il10": ("fields", "il10"),
+    "apcs": ("ode", "P"),
+    "antibodies": ("ode", "A"),
+}
+
+
+def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240,
+                seed0: int = 0) -> dict:
+    """Increment 9 Task 9.2 -- the CAPSTONE `repro_fig3b` driver: run the full
+    model (`run_full_model`, Task 9.1) over the Sego-2022 Fig-3B scenario (5%
+    initial infection fraction, 0.3 mm patch -> ``cells_per_side x
+    cells_per_side`` epithelial cells, matching `targets/fig3b.json`'s
+    ``"scenario"`` block: ``initial_infection_fraction=0.05, patch_mm=0.3,
+    total_epithelial_cells=1225`` at ``cells_per_side=35``) for ``replicas``
+    seeds (``seed0, seed0+1, ..., seed0+replicas-1``), maps each run's
+    counts/fields/ode series onto the fig3b target's observable keys
+    (`_FIG3B_OBSERVABLE_MAP` -- the EXACT names in `targets/fig3b.json`, read
+    from that file, not invented here), ensemble-means each observable across
+    replicas (`bands.aggregate_replicas`), and evaluates the ensemble against
+    the digitized Fig-3B acceptance bands (`bands.evaluate_study`).
+
+    PAPER-SCALE CONFIG (the Mac-mini Phase-B follow-up that will set the
+    `reproduced` verdict -- NOT this function's default, which stays small so
+    the test suite is fast): ``replicas=50, cells_per_side=35, steps≈2880``
+    (2 days of model time at `run_full_model`'s default ``s_per_mcs=60``,
+    i.e. 1 minute/MCS, and ``mcs_per_step=7`` -- `steps` here is in RECORD
+    units of ``mcs_per_step`` MCS each, matching `run_full_model`'s own
+    convention). This function's small defaults (``replicas=3,
+    cells_per_side=35, steps=240``) run the full paper patch size but far
+    fewer replicas/steps than the 50-replica, ~2-day paper ensemble.
+
+    CALIBRATION HONESTY (per `run_full_model`'s docstring, inherited here):
+    this function WIRES the full model and EVALUATES it against the fig3b
+    bands; it does NOT tune any constant to pass them, and `targets/
+    fig3b.json` itself is never edited by this driver. A reduced-scale
+    (small ``replicas``/``steps``, e.g. this module's own test) run is
+    expected to diverge from the bands on some observables -- see
+    `workspace/studies/repro-fig3b/study.yaml` for the honestly-reported
+    reduced-scale comparison; only the paper-scale 50-replica ensemble sets
+    the `reproduced` verdict.
+
+    Returns ``{"ensemble": {obs_name: [(t_days, value)]}, "band_eval":
+    {"figure": "fig3b", "observables": {...}, "passed": bool}, "replicas":
+    replicas, "cells_per_side": cells_per_side, "steps": steps}``.
+    """
+    runs = []
+    for i in range(replicas):
+        seed = seed0 + i
+        r = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
+                           init_infection_frac=0.05)
+        mapped = {}
+        for obs_name, (section, key) in _FIG3B_OBSERVABLE_MAP.items():
+            mapped[obs_name] = list(zip(r["t_days"], r[section][key]))
+        runs.append(mapped)
+
+    ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
+                for obs_name in _FIG3B_OBSERVABLE_MAP}
+    band_eval = bands.evaluate_study(ensemble, "fig3b")
+
+    return {
+        "ensemble": ensemble,
+        "band_eval": band_eval,
+        "replicas": replicas,
+        "cells_per_side": cells_per_side,
+        "steps": steps,
+    }
