@@ -159,7 +159,7 @@ def _render_one(address, config, runs_db, study_yaml):
         return _p.read_text(encoding='utf-8', errors='replace')
     return f'<p style="color:#6b7280">unsupported figure type: {address}</p>'
 
-# ## Study: Parameter provenance: CC3D source authority for the Sego 2022 reproduction (`parameter-provenance`)
+# ## Study: Parameter provenance & digitized Fig 3B/5/7 targets (`parameter-provenance`)
 #
 # **Question.** What is the authoritative, cited parameter set for reproducing Sego et al.
 # 2022's cellularized influenza model (CompuCell3D ViralInfectionVTM), and
@@ -214,7 +214,7 @@ def _save_viz(study, slug, html):
 # Acceptance-band targets (Fig 3B)
 _save_viz('parameter-provenance', 'Acceptance-band_targets_Fig_3B', _render_one('local:InfluenzaFig3BTargets', {}, RUNS_DB, STUDY_YAML))
 
-# ## Study: Increment 1: confluent epithelial sheet (substrate only) (`epithelial-sheet-baseline`)
+# ## Study: Epithelial sheet baseline (`epithelial-sheet-baseline`)
 #
 # **Question.** Does a confluent tiling of epithelial (type H) cells, using the CC3D
 # source-literal adhesion values (H-H=5.0, H-medium=25.0) and target volume
@@ -292,7 +292,7 @@ _save_viz('epithelial-sheet-baseline', 'Confluent_epithelial_sheet', _render_one
 # | Sheet holds confluent after relaxation | kind=mean_cell_volume_sites condition=epithelial-sheet-baseline stat=mean | op gt value 0 |
 # | 1mm^2 throughput clears the perf-gate floor | kind=throughput_mcs_per_s condition=epithelial-sheet-baseline stat=min | op gt value 200.0 |
 
-# ## Study: Increment 2: virus field diffusion/decay + stochastic local infection spread (`virus-field-infection`)
+# ## Study: Virus field & stochastic H→I infection (`virus-field-infection`)
 #
 # **Question.** Does the extracellular virus field (source-cited diffusion coefficient and
 # decay rate, secreted by InfectedReleasing cells) diffuse and decay as
@@ -390,7 +390,7 @@ _save_viz('virus-field-infection', 'Infection_dynamics_locality', _render_one('l
 # | New infections land closer to prior infection than random chance (locality) | kind=locality_null_ratio condition=virus-field-infection stat=mean | op lt value 0.75 |
 # | No seed, no initial virus -> no infection (null control) | kind=n_I condition=virus-field-infection-null stat=max | op eq value 0 |
 
-# ## Study: Increment 3: type-I IFN + per-cell resistance gates virus release — mechanism validated, reproduction still PENDING (`ifn-resistance`)
+# ## Study: Type-I IFN field & cellular resistance (`ifn-resistance`)
 #
 # **Question.** Does a diffusing type-I IFN field, converted per-cell into a resistance
 # scalar via the CC3D-source formula `resist = f_bar/(a_rf+f_bar)`, gate
@@ -490,7 +490,7 @@ _save_viz('ifn-resistance', 'IFN_per-cell_resistance', _render_one('local:Influe
 # | IFN-gated virus release leaves strictly less total virus (primary quantitative gate) | kind=total_virus_delta_vs_without_ifn condition=ifn-resistance stat=final | op lt value 0 |
 # | Resistance gate actually engages (mean_resist > 0) | kind=mean_resist condition=ifn-resistance stat=final | op gt value 0.0 |
 
-# ## Study: Increment 4: cellularized epithelial-fate lifecycle (H->I->D, D->H Allee recovery) — mechanism validated, reproduction still PENDING (`epithelial-fate`)
+# ## Study: Epithelial death & Allee recovery (`epithelial-fate`)
 #
 # **Question.** Does wiring infection (H->I), infected death (I->D), and the cellularized
 # Allee effect (H->D death / D->H recovery, both gated by local contact
@@ -597,7 +597,7 @@ _save_viz('epithelial-fate', 'Epithelial-fate_lifecycle', _render_one('local:Inf
 # | Dead cell fully surrounded by healthy tissue recovers (D->H) | kind=recovers_within_500_draws condition=epithelial-fate stat=final | op eq value True |
 # | Dead cell surrounded by dying tissue never recovers (negative control) | kind=recovery_rate_over_500_draws condition=epithelial-fate stat=max | op eq value 0.0 |
 
-# ## Study: Increment 5: macrophages chemotax up the virus field and LOCALIZE to the infection, robust across 5 seeds with an unbiased interior control — LOCALIZATION mechanism validated, reproduction still PENDING (`macrophage-response`)
+# ## Study: Macrophage localization to infection (`macrophage-response`)
 #
 # **Question.** Does wiring the macrophage cell type to chemotax up the extracellular-virus
 # gradient (via the engine's existing `World.set_chemotaxis` primitive, no
@@ -715,7 +715,7 @@ _save_viz('macrophage-response', 'Macrophage_localization', _render_one('local:I
 # | Engine-sanity — macrophage moves up the virus gradient | kind=distance_final_lt_initial condition=engine-sanity-on stat=final | op lt value distance[0] |
 # | Engine-sanity — no approach without chemotaxis (negative control) | kind=distance_final_ge_initial condition=engine-sanity-off stat=final | op ge value distance[0] |
 
-# ## Study: Increment 6: chemokine field forms a gradient centered on the macrophage cluster (4.2x per-cell, 5.9x radial decay), IL-10 positive from both regulated sources — FIELD MECHANISM documented, reproduction still PENDING (`signaling-fields`)
+# ## Study: Chemokine & IL-10 signaling fields (`signaling-fields`)
 #
 # **Question.** Do the macrophage-released chemokine and IL-10 diffusible fields (Task
 # 6.1) actually form the expected spatial and regulatory structure: a
@@ -826,7 +826,7 @@ _save_viz('signaling-fields', 'Chemokine_IL-10_fields', _render_one('local:Influ
 # | IL-10 positive from both macrophage and uninfected sources | kind=il10_dual_source_positive condition=signaling-fields-il10-sources stat=final | op eq value True |
 # | Run is fully deterministic given a fixed seed | kind=series_equal_across_repeats condition=signaling-fields-determinism stat=all | op eq value True |
 
-# ## Study: Increment 7: NK/CD8 chemotax up the chemokine field and localize robustly (5/5 seeds); contact-killing WORKS in a close-contact test (1->0) — but at the DEFAULT full-scale scenario NK/CD8 never reach the infected cell, so end-to-end cytotoxic CLEARANCE is WEAK — capability proven, clearance an Increment-9 calibration gap (`cytotoxic-killing`)
+# ## Study: NK / CD8⁺ cytotoxic killing (`cytotoxic-killing`)
 #
 # **Question.** Do NK (type K) and CD8+ T (type E) cells, chemotaxing up the macrophage-
 # released chemokine field and contact-killing infected cells via the CC3D
@@ -946,7 +946,7 @@ _save_viz('cytotoxic-killing', 'NK_CD8_localization_killing', _render_one('local
 # | Killing-disabled control holds an identical scenario | kind=scenario_params_match_across_killing_flag condition=killing-control-scenario-identity stat=final | op eq value True |
 # | contact_kill_rate matches params.yaml's precomputed coefficients | kind=contact_kill_rate_matches_precomputed_coefficients condition=contact-kill-rate-unit stat=final | op eq value True |
 
-# ## Study: Increment 8: hybrid 10-species global ODE (Price 2015) integrates once/MCS, coupled bidirectionally to the spatial CPM model — the three carried stubs (dynamic sig_1, ODE-driven recruitment, NK/CD8 nearby-killing) are RESOLVED as mechanisms, source-faithful and wired correctly — but at reduced scale the coupling MAGNITUDES are not yet calibrated (dynamic sig_1 collapses ~1e-6 vs the old stub's 2.44; recruitment/nearby-killing stay too weak to engage naturally): mechanism-resolved, calibration-pending, Increment 9 (`global-coupling`)
+# ## Study: Global Price-2015 ODE coupling (`global-coupling`)
 #
 # **Question.** Does coupling the Price (2015)-derived global immune ODE (10 systemic
 # species) bidirectionally to the spatial CPM patch — dynamic sig_1
@@ -1062,7 +1062,7 @@ _save_viz('global-coupling', 'Hybrid_global_ODE_coupling', _render_one('local:In
 # | DH-input fix -- dead-from-infected cells do not inflate the dead-from-healthy ODE input | kind=dh_input_zero_regardless_of_killing condition=dh-input-fix stat=final | op eq value True |
 # | global_coupling_figure renders a non-vacuous 2-panel mechanism figure | kind=figure_axes_and_data_match_driver_output condition=global-coupling-figure-non-vacuous stat=final | op eq value True |
 
-# ## Study: Increment 9 Task 9.2 (CAPSTONE): repro_fig3b wires run_full_model into an ensemble driver and evaluates it against the digitized Fig-3B acceptance bands — at REDUCED scale (2 replicas, 15x15 cells, 20 records ~0.09 days) 0/12 observables land in-band for every checkpoint (band_eval.passed=False), expected at this population/time scale — the paper-scale 50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict (`repro-fig3b`)
+# ## Study: Reproduction — Fig 3B (time series vs ODE) (`repro-fig3b`)
 #
 # **Question.** Does `run.repro_fig3b` (Task 9.2) correctly assemble a seeded ensemble of
 # `run.run_full_model` (Task 9.1) over the Sego-2022 Fig-3B scenario, map
@@ -1170,7 +1170,7 @@ _save_viz('repro-fig3b', 'Fig-3B_reproduction_ensemble_vs_acceptance_band', _ren
 # | --- | --- | --- |
 # | repro_fig3b runs and returns a well-formed ensemble/band evaluation | kind=repro_fig3b_wellformed_and_uninfected_nonincreasing condition=repro-fig3b-reduced-scale stat=final | op eq value True |
 
-# ## Study: Increment 9 Task 9.3 (CAPSTONE): repro_fig5 sweeps run_full_model over Sego-2022's viral-load scenarios (1x/10000x, REDUCED scale: 1 replica, 12x12 cells, 15 records ~0.068 days) and evaluates each load against ONLY that load's fig5.json band subset (scenario-grouping guard) — the monotone dose-response direction holds (load=10000 ends with 0/144 uninfected vs load=1's 88/144) but per-load band_eval.passed is False for both loads; the paper-scale 50-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict (`repro-fig5-viral-load`)
+# ## Study: Reproduction — Fig 5 (viral-load sweep) (`repro-fig5-viral-load`)
 #
 # **Question.** Does `run.repro_fig5` (Task 9.3) correctly sweep `run.run_full_model`
 # (Task 9.1) over Sego-2022 Fig-5's initial-viral-load scenarios, evaluate
@@ -1293,7 +1293,7 @@ _save_viz('repro-fig5-viral-load', 'Fig-5_reproduction_dose-response_vs_acceptan
 # | --- | --- | --- |
 # | repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response | kind=repro_fig5_wellformed_and_monotone_dose_response condition=repro-fig5-reduced-scale stat=final | op eq value True |
 
-# ## Study: Increment 9 Task 9.4 (CAPSTONE): repro_fig7 sweeps run_full_model over Sego-2022's initial-infection-fraction scenarios (0.001x/0.05x, REDUCED scale: 1 replica, 12x12 cells, 15 records ~0.068 days) and evaluates each fraction against ONLY that fraction's fig7.json band subset (scenario-grouping guard) — the monotone dose-response direction holds trivially (frac=0.001 rounds to 0 pre-infected cells of 144 at this reduced population -> uninfected_final_frac=1.0; frac=0.05 seeds 7 -> 0.9444) but per-fraction band_eval.passed is False for both fractions; the paper-scale 20-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict (`repro-fig7-infection-fraction`)
+# ## Study: Reproduction — Fig 7 (infection-fraction sweep) (`repro-fig7-infection-fraction`)
 #
 # **Question.** Does `run.repro_fig7` (Task 9.4) correctly sweep `run.run_full_model`
 # (Task 9.1) over Sego-2022 Fig-7's initial-infection-fraction scenarios,
