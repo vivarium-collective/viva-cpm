@@ -1,9 +1,12 @@
-"""Minimal visualization for the epithelial-sheet baseline (Increment 1).
+"""Minimal in-package visualizations for the influenza-sego2022 capability
+ladder (Increments 1-3): the epithelial-sheet baseline, the virus-field
+infection mechanism, and the IFN/resistance mechanism.
 
-The dashboard workbench isn't the delivery path for this increment (no
-server running in this worktree), so this is a plain in-package matplotlib
-function: a cell-type lattice snapshot plus the cell-volume distribution
-histogram, per the spec's minimal figure requirement (spec §5).
+The dashboard workbench isn't the delivery path for these increments (no
+server running in this worktree), so these are plain matplotlib functions
+(Agg, no display). This module is a MINIMAL stub -- the polished viz system
+lives under `pbg_cpm_studies/visualizations/` (owned by a peer session); do
+not add anything there from here.
 """
 from __future__ import annotations
 
@@ -67,6 +70,49 @@ def virus_infection_figure(run_result: dict) -> Figure:
     ax_virus.set_title("Total virus-field concentration vs update")
     ax_virus.set_xlabel("update index")
     ax_virus.set_ylabel("sum(field concentration)")
+
+    fig.tight_layout()
+    return fig
+
+
+def ifn_resistance_figure(with_result: dict, without_result: dict) -> Figure:
+    """Render a three-panel MINIMAL mechanism figure (Increment 3, Task 3.4)
+    comparing a `run.run_virus_infection_with_ifn(...)` result against a
+    `run.run_virus_infection(...)` result run with the same driver params:
+    (a) n_I with-IFN vs without over update index, (b) total_virus with-IFN
+    vs without, (c) the with-IFN run's mean_resist trajectory (the per-cell
+    resistance signal that gates virus secretion by (1-resist); the
+    no-resistance run has no such series).
+
+    This is a minimal in-package stub, NOT the polished viz system under
+    `pbg_cpm_studies/visualizations/` (owned by a peer session). Returns a
+    `matplotlib.figure.Figure` (not shown/saved)."""
+    steps = with_result["steps"]
+
+    fig = Figure(figsize=(13, 4.2))
+    ax_nI, ax_virus, ax_resist = fig.subplots(1, 3)
+
+    ax_nI.plot(steps, with_result["n_I"], label="n_I (with IFN)", color="firebrick")
+    ax_nI.plot(steps, without_result["n_I"], label="n_I (without IFN)",
+               color="firebrick", linestyle="--")
+    ax_nI.set_title("Infected cell count vs update")
+    ax_nI.set_xlabel("update index")
+    ax_nI.set_ylabel("cell count")
+    ax_nI.legend()
+
+    ax_virus.plot(steps, with_result["total_virus"], label="total_virus (with IFN)",
+                  color="darkorange")
+    ax_virus.plot(steps, without_result["total_virus"], label="total_virus (without IFN)",
+                  color="darkorange", linestyle="--")
+    ax_virus.set_title("Total virus-field concentration vs update")
+    ax_virus.set_xlabel("update index")
+    ax_virus.set_ylabel("sum(field concentration)")
+    ax_virus.legend()
+
+    ax_resist.plot(steps, with_result["mean_resist"], color="seagreen")
+    ax_resist.set_title("Mean per-cell resistance (with-IFN run)")
+    ax_resist.set_xlabel("update index")
+    ax_resist.set_ylabel("mean resist (infected cells)")
 
     fig.tight_layout()
     return fig
