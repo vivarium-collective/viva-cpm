@@ -72,7 +72,7 @@ objective: |
   Build the epithelial-sheet `load_world` spec (Task 1.1), instantiate and
   relax the CPM world (Task 1.2), and measure step throughput on the full
   1mm^2 patch (Task 1.3). Wrap the geometry in a process-bigraph composite
-  (`pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline`) so the
+  (`pbg_cpm_studies.composites.influenza.epithelium`) so the
   dashboard can run a modest (0.1mm, 100-cell) live demo of the same
   substrate (Task 1.4, this study).
 
@@ -248,7 +248,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline
+  base_model: pbg_cpm_studies.composites.influenza.epithelium
   new_processes: []
   new_state_variables: []
   new_parameters: [patch_mm]
@@ -303,7 +303,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline
+    composite: pbg_cpm_studies.composites.influenza.epithelium
     params: {patch_mm: 0.1}  # small live-demo patch; full 1mm^2 perf characterized separately (Task 1.3)
 
   model_settings: []

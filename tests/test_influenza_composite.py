@@ -5,7 +5,7 @@ from pbg_cpm_studies.influenza import types as inf_types
 
 
 def test_composite_document_runs_and_emits():
-    doc = inf.epithelial_sheet_baseline()
+    doc = inf.epithelium()
     assert isinstance(doc, dict)
     # smoke: the demo composite builds a modest sheet, not the full 1mm^2
     spec = inf.build_spec(patch_mm=0.1)   # 50x50 sites, 100 cells
@@ -14,7 +14,7 @@ def test_composite_document_runs_and_emits():
 
 
 def test_virus_infection_spec_wires_field_and_seeds_lesion():
-    spec = inf.build_virus_infection_spec(patch_mm=0.1, seed=17, init_infected_frac=0.05)
+    spec = inf.build_viral_infection_spec(patch_mm=0.1, seed=17, init_infected_frac=0.05)
     assert len(spec["fields"]) == 1
     assert spec["fields"][0]["name"] == "virus"
     n_init = sum(1 for c in spec["cells"] if c["type"] == inf_types.I)
@@ -23,7 +23,7 @@ def test_virus_infection_spec_wires_field_and_seeds_lesion():
 
 def test_virus_infection_composite_runs_through_the_engine():
     core = pb.allocate_core()
-    doc = inf.virus_infection(core=core, patch_mm=0.1, seed=17, init_infected_frac=0.05)
+    doc = inf.viral_infection(core=core, patch_mm=0.1, seed=17, init_infected_frac=0.05)
     comp = pb.Composite({"state": doc}, core=core)
     comp.run(10)
     world = comp.state["cpm"]["instance"].world

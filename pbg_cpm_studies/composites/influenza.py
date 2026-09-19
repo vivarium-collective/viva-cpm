@@ -1,19 +1,36 @@
-"""process-bigraph composite factory for the influenza-sego2022 studies.
+"""Modular process-bigraph composites for the influenza-sego2022 model.
 
-Increment 1: the confluent epithelial-sheet baseline (CPM only, no fields,
-no immune cells). The full multiscale composite (virus field, IFN,
-chemokines, macrophages/NK/CD8+ T, global ODE coupling) arrives across
-later increments.
+The composites are organized as **biological subsystems that compose
+bottom-up**, not one composite per figure/study. Each is a reusable,
+parameterized ``@composite_generator``; studies reference the subsystem they
+need with config rather than getting a bespoke composite:
 
-Factory returns a composite *document* wrapping the real Rust CPM engine
-(``cpm.processes.cpm_process.CPMProcess``) over the epithelial-sheet
-geometry built by ``pbg_cpm_studies.influenza.sheet.build_sheet_spec``. The
-live-demo patch (0.1 mm, 100 cells) is deliberately small so the dashboard's
-"run baseline" is fast; the full-scale 1 mm^2 throughput characterization is
-Task 1.3 (``tests/test_influenza_perf.py``), not this live-demo composite.
+    epithelium          -- CPM epithelial sheet (the tissue substrate)
+      |
+    viral_infection     -- + virus field + stochastic H->I infection (on the sheet)
+      |
+    innate_immunity     -- + macrophages: chemotaxis up virus toward the lesion
+      |
+    cytotoxic_immunity  -- + NK/CD8+ T: chemotaxis up the macrophage chemokine
+      |
+    systemic_ode        -- the Price-2015 global (non-spatial) compartment,
+                           coupled to the epithelial-infection substrate
+      |
+    full_model          -- composition of all five subsystems
 
-Referenced from the study's ``baseline[].composite`` as
-``pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline``.
+Each composite returns a process-bigraph *document* wrapping the real Rust CPM
+engine (``cpm.processes.cpm_process.CPMProcess``, + ``InfectionProcess`` for the
+H->I transition) over a ``load_world`` scene built by the ``influenza.sheet`` /
+``influenza.immune`` spec builders. These are dashboard/live-demo scenes: the
+quantitative, calibration-pending mechanism (per-cell IL-10-Hill secretion, the
+hybrid Price-2015 ODE + dynamic sig_1 feedback, ODE-driven recruitment, and
+NK/CD8 contact/nearby killing) is a custom per-MCS loop that is NOT expressible
+in the declarative composite spec format -- it runs in the ``influenza.run``
+drivers (``run_full_model`` and the per-subsystem ``run_*``), which are what the
+studies' measured numbers and the ``influenza.viz`` figures come from. The
+composites carry the SCENE (geometry + fields + chemotaxis wiring); the run
+drivers carry the mechanism. Not a Fig-3B/5/7 reproduction (that is the capstone
+reproduction studies, which drive ``run_full_model``).
 """
 from __future__ import annotations
 
@@ -34,67 +51,70 @@ DEMO_SEED = 17
 DEMO_INIT_INFECTED_FRAC = 0.05
 
 
-def build_spec(patch_mm: float = DEMO_PATCH_MM) -> dict:
-    """Return a load_world spec dict for a modest live demo of the sheet."""
-    return sheet.build_sheet_spec(patch_mm)
-
-
-def composite_document(patch_mm: float = DEMO_PATCH_MM) -> dict:
-    """A process-bigraph composite document embedding the CPM engine over the
-    confluent epithelial-sheet geometry."""
-    spec = build_spec(patch_mm)
+def _cpm_store(spec: dict, *, n_fields: int, secretory_types: list[int]) -> dict:
+    """The shared CPMProcess store wrapping a ``load_world`` scene ``spec`` --
+    identical wiring across every subsystem composite (only the scene, field
+    count, and secretory types differ)."""
     return {
-        "cpm": {
-            "_type": "process",
-            "address": CPM_ADDR,
-            "config": {"spec": spec, "mcs_per_update": 10, "n_fields": 0,
-                       "secretory_types": []},
-            "inputs": {"fates": ["fates"]},
-            "outputs": {
-                "volumes": ["volumes"],
-                "types": ["types"],
-                "positions": ["positions"],
-                "field_at_cell": ["field_at_cell"],
-                "neighbor_secretory": ["neighbor_secretory"],
-            },
+        "_type": "process",
+        "address": CPM_ADDR,
+        "config": {"spec": spec, "mcs_per_update": 10, "n_fields": n_fields,
+                   "secretory_types": list(secretory_types)},
+        "inputs": {"fates": ["fates"]},
+        "outputs": {
+            "volumes": ["volumes"],
+            "types": ["types"],
+            "positions": ["positions"],
+            "field_at_cell": ["field_at_cell"],
+            "neighbor_secretory": ["neighbor_secretory"],
         },
-        "fates": {},
     }
 
 
+# ===========================================================================
+# 1. epithelium -- the CPM epithelial-sheet substrate every subsystem builds on
+# ===========================================================================
+
+def build_spec(patch_mm: float = DEMO_PATCH_MM) -> dict:
+    """A ``load_world`` spec for a confluent epithelial sheet (CPM only)."""
+    return sheet.build_sheet_spec(patch_mm)
+
+
+def epithelium_composite_document(patch_mm: float = DEMO_PATCH_MM) -> dict:
+    """Composite document: the CPM engine over the confluent epithelial sheet
+    (no fields, no immune cells) -- the tissue substrate."""
+    return {"cpm": _cpm_store(build_spec(patch_mm), n_fields=0, secretory_types=[]),
+            "fates": {}}
+
+
 @composite_generator(
-    name="epithelial_sheet_baseline", default_n_steps=10,
+    name="epithelium", default_n_steps=10,
     description=(
-        "Influenza-sego2022 Increment 1: confluent epithelial sheet baseline "
-        "(single CPMProcess, no fields, no immune cells). Validates the "
-        "substrate geometry — not a biology reproduction."
+        "Influenza-sego2022 subsystem 1/5 -- the epithelial tissue substrate: a "
+        "confluent CPM epithelial sheet (single CPMProcess, no fields, no immune "
+        "cells). Every other subsystem composes on top of this. Validates the "
+        "substrate geometry, not a biology reproduction."
     ),
     parameters={
         "patch_mm": {"type": "float", "default": DEMO_PATCH_MM,
                      "description": "square patch side length in mm (live demo; small by default)"},
     },
 )
-def epithelial_sheet_baseline(core=None, patch_mm: float = DEMO_PATCH_MM) -> dict:
-    return composite_document(patch_mm)
+def epithelium(core=None, patch_mm: float = DEMO_PATCH_MM) -> dict:
+    return epithelium_composite_document(patch_mm)
 
 
-# ---------------------------------------------------------------------------
-# Increment 2 (Task 2.3): virus field + infection transition wired over the
-# Increment-1 sheet. Dashboard/live-demo wrapper only -- the quantitative
-# lesion-spread measurements (and the integration test) come from
-# ``pbg_cpm_studies.influenza.run.run_virus_infection``, which drives the same
-# mechanism directly against ``cpm_core.World`` without going through
-# process-bigraph. Not a Fig-3B/5/7 reproduction (Increment 9).
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 2. viral_infection -- epithelium + virus field + stochastic H->I infection
+# ===========================================================================
 
-def build_virus_infection_spec(patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SEED,
+def build_viral_infection_spec(patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SEED,
                                init_infected_frac: float = DEMO_INIT_INFECTED_FRAC) -> dict:
-    """A ``load_world`` spec for the sheet + virus field, with
+    """Extends the ``epithelium`` sheet scene with the virus field and
     ``init_infected_frac`` of the (seeded-RNG-chosen) H cells pre-set to
-    ``types.I`` so the live demo starts from a lesion, not a blank sheet."""
+    ``types.I`` so the live demo starts from a lesion."""
     spec = sheet.build_sheet_spec(patch_mm, seed=seed)
     spec["fields"] = [fields.virus_field_spec_entry()]
-
     n_cells = len(spec["cells"])
     n_init = int(round(n_cells * init_infected_frac))
     if n_init > 0:
@@ -105,32 +125,17 @@ def build_virus_infection_spec(patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO
     return spec
 
 
-def virus_infection_composite_document(patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SEED,
+def viral_infection_composite_document(patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SEED,
                                        init_infected_frac: float = DEMO_INIT_INFECTED_FRAC) -> dict:
-    """CPMProcess (sheet + virus field) + InfectionProcess (2.2's stochastic
-    H -> I transition), wired through the shared ``fates`` map -- matching
-    the ``cpm.coupling`` down-scale-coupling convention used by
-    ``chemotaxis_receptor.recruitment_receptor``, but with ONE population-
-    level infection process (a single shared RNG for the whole sheet) rather
-    than one subcell process per cell, since the transition is a population-
-    wide stochastic draw, not an independent per-cell deterministic rule."""
-    spec = build_virus_infection_spec(patch_mm, seed=seed, init_infected_frac=init_infected_frac)
+    """CPMProcess (epithelium + virus field) + InfectionProcess (the stochastic
+    H -> I transition), wired through the shared ``fates`` map (the
+    ``cpm.coupling`` down-scale convention). One population-level infection
+    process (a single shared RNG for the whole sheet), since the transition is
+    a population-wide stochastic draw."""
+    spec = build_viral_infection_spec(patch_mm, seed=seed, init_infected_frac=init_infected_frac)
     g_hv = float(load_params()["virus"]["infection_g_hv"])
     return {
-        "cpm": {
-            "_type": "process",
-            "address": CPM_ADDR,
-            "config": {"spec": spec, "mcs_per_update": 10, "n_fields": 1,
-                       "secretory_types": [inf_types.I]},
-            "inputs": {"fates": ["fates"]},
-            "outputs": {
-                "volumes": ["volumes"],
-                "types": ["types"],
-                "positions": ["positions"],
-                "field_at_cell": ["field_at_cell"],
-                "neighbor_secretory": ["neighbor_secretory"],
-            },
-        },
+        "cpm": _cpm_store(spec, n_fields=1, secretory_types=[inf_types.I]),
         "infection": {
             "_type": "process",
             "address": INFECTION_ADDR,
@@ -143,13 +148,14 @@ def virus_infection_composite_document(patch_mm: float = DEMO_PATCH_MM, seed: in
 
 
 @composite_generator(
-    name="virus_infection", default_n_steps=20,
+    name="viral_infection", default_n_steps=20,
     description=(
-        "Influenza-sego2022 Increment 2: virus field (secretion/diffusion/decay "
-        "from InfectedReleasing cells) + stochastic H -> I infection transition, "
-        "wired over the Increment-1 confluent epithelial sheet. Live-demo/"
-        "dashboard wrapper -- the lesion-spread measurements come from "
-        "run_virus_infection, not this composite."
+        "Influenza-sego2022 subsystem 2/5 -- viral infection on the epithelium: "
+        "composes the virus field (secretion/diffusion/decay from "
+        "InfectedReleasing cells) + the stochastic H->I infection transition on "
+        "top of the epithelial sheet. Live-demo scene; the lesion-spread + "
+        "IFN/resistance measurements come from run.run_virus_infection / "
+        "run_virus_infection_with_ifn."
     ),
     parameters={
         "patch_mm": {"type": "float", "default": DEMO_PATCH_MM,
@@ -160,44 +166,21 @@ def virus_infection_composite_document(patch_mm: float = DEMO_PATCH_MM, seed: in
                                "description": "fraction of H cells seeded as I (InfectedReleasing) at t=0"},
     },
 )
-def virus_infection(core=None, patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SEED,
+def viral_infection(core=None, patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SEED,
                     init_infected_frac: float = DEMO_INIT_INFECTED_FRAC) -> dict:
-    return virus_infection_composite_document(patch_mm, seed=seed,
+    return viral_infection_composite_document(patch_mm, seed=seed,
                                               init_infected_frac=init_infected_frac)
 
 
-# ---------------------------------------------------------------------------
-# Increment 5 (Task 5.2, updated for Task 5.1's fix round 1 -- commit
-# 4092d7c): macrophage-response live-demo composite. Wraps the Task-5.1
-# non-confluent 2D-approximation scenario (``immune.
-# build_macrophage_scenario_spec``) + virus field, with macrophage
-# (``inf_types.M``) chemotaxis wired DECLARATIVELY via the field's
-# ``chemotaxis`` list (the same ``cpm.schema.load_world`` convention
-# ``pbg_cpm_studies.composites.chemotaxis.build_spec`` uses), rather than the
-# ``World.set_chemotaxis``/``immune.set_macrophage_chemotaxis`` post-hoc call
-# ``run.run_macrophage_response`` makes on a live ``cpm_core.World``.
-#
-# Geometry (fix round 1): BOTH the epithelial/infection patch and the
-# macrophage cluster sit in the domain's INTERIOR (each >= margin_sites from
-# every noflux wall, separated by separation_sites of open Medium) -- not a
-# domain corner. An earlier version pinned the macrophage cluster in a corner
-# diagonally opposite the infection, which biased the lambda=0 control's
-# thermal/wall drift to net-point roughly toward the infection (a confound);
-# interior placement removes that bias, matching ``run.
-# run_macrophage_response``'s current scenario (see immune.py's docstring /
-# task-5.1-report.md's fix note).
-#
-# Dashboard/live-demo wrapper ONLY -- the measured localization numbers cited
-# by the macrophage-response study (chemotaxis-on closes the mean distance to
-# the infection in 5/5 tried seeds, mean change -13.39 sites, vs a near-
-# isotropic lambda=0 control, mean change -0.85 sites) come directly from
-# ``run.run_macrophage_response`` across multiple seeds, which ALSO warms the
-# virus field up via ``World.advance_fields`` before stepping and records
-# ``mean_distance_to_infection``/``macrophage_com`` each update -- a plain
-# CPMProcess has neither of those readouts, so this composite reproduces
-# neither the warmup nor the localization measurement, only the scenario
-# geometry + chemotaxis wiring. Not a Fig-2B/3A reproduction (Increment 9).
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 3. innate_immunity -- + macrophages chemotaxing up the virus toward the lesion
+# ===========================================================================
+# Interior-placed clusters (both the epithelial/infection patch and the
+# macrophage cluster >= margin from every noflux wall) -- an unbiased lambda=0
+# control geometry (see immune.build_macrophage_scenario_spec). Live-demo scene:
+# the measured localization (chemotaxis-on closes the mean distance to the
+# infection across 5/5 seeds vs a near-isotropic lambda=0 control) comes from
+# run.run_macrophage_response, not this composite.
 
 DEMO_MACROPHAGE_CELLS_PER_SIDE = 4
 DEMO_N_INFECTED = 1
@@ -207,20 +190,17 @@ DEMO_SEPARATION_SITES = 25
 DEMO_CHEMOTAXIS_V_MACRO = 5000.0  # params.yaml macrophage.chemotaxis_v_macro; pass 0.0 for the control
 
 
-def build_macrophage_response_spec(*, epithelial_cells_per_side: int = DEMO_MACROPHAGE_CELLS_PER_SIDE,
-                                   n_infected: int = DEMO_N_INFECTED,
-                                   n_macrophages: int = DEMO_N_MACROPHAGES,
-                                   margin_sites: int = DEMO_MARGIN_SITES,
-                                   separation_sites: int = DEMO_SEPARATION_SITES,
-                                   seed: int = DEMO_SEED,
-                                   chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO) -> dict:
-    """A ``load_world`` spec for the Task-5.1 macrophage scenario + virus
-    field -- both the epithelial/infection patch and the macrophage cluster
-    placed in the domain's INTERIOR (unbiased lambda=0-control geometry, see
-    module note above) -- with macrophage (``inf_types.M``) chemotaxis on
-    the virus field wired via the field's ``chemotaxis`` list.
-    ``chemotaxis_v_macro=0.0`` reproduces the lambda=0 control (no directed
-    chemotaxis)."""
+def build_innate_immunity_spec(*, epithelial_cells_per_side: int = DEMO_MACROPHAGE_CELLS_PER_SIDE,
+                               n_infected: int = DEMO_N_INFECTED,
+                               n_macrophages: int = DEMO_N_MACROPHAGES,
+                               margin_sites: int = DEMO_MARGIN_SITES,
+                               separation_sites: int = DEMO_SEPARATION_SITES,
+                               seed: int = DEMO_SEED,
+                               chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO) -> dict:
+    """The macrophage scenario (interior epithelial/infection patch + interior
+    macrophage cluster) + virus field with macrophage (``types.M``) chemotaxis
+    on the virus field. ``chemotaxis_v_macro=0.0`` reproduces the lambda=0
+    control."""
     spec = immune.build_macrophage_scenario_spec(
         epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
         n_macrophages=n_macrophages, margin_sites=margin_sites,
@@ -231,47 +211,30 @@ def build_macrophage_response_spec(*, epithelial_cells_per_side: int = DEMO_MACR
     return spec
 
 
-def macrophage_response_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
-                                            n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
-                                            margin_sites=DEMO_MARGIN_SITES,
-                                            separation_sites=DEMO_SEPARATION_SITES, seed=DEMO_SEED,
-                                            chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO) -> dict:
-    spec = build_macrophage_response_spec(
+def innate_immunity_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
+                                       n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
+                                       margin_sites=DEMO_MARGIN_SITES,
+                                       separation_sites=DEMO_SEPARATION_SITES, seed=DEMO_SEED,
+                                       chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO) -> dict:
+    spec = build_innate_immunity_spec(
         epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
         n_macrophages=n_macrophages, margin_sites=margin_sites,
         separation_sites=separation_sites, seed=seed,
         chemotaxis_v_macro=chemotaxis_v_macro)
-    return {
-        "cpm": {
-            "_type": "process",
-            "address": CPM_ADDR,
-            "config": {"spec": spec, "mcs_per_update": 10, "n_fields": 1,
-                       "secretory_types": [inf_types.I]},
-            "inputs": {"fates": ["fates"]},
-            "outputs": {
-                "volumes": ["volumes"],
-                "types": ["types"],
-                "positions": ["positions"],
-                "field_at_cell": ["field_at_cell"],
-                "neighbor_secretory": ["neighbor_secretory"],
-            },
-        },
-        "fates": {},
-    }
+    return {"cpm": _cpm_store(spec, n_fields=1, secretory_types=[inf_types.I]),
+            "fates": {}}
 
 
 @composite_generator(
-    name="macrophage_response", default_n_steps=40,
+    name="innate_immunity", default_n_steps=40,
     description=(
-        "Influenza-sego2022 Increment 5: macrophage (type M) chemotaxis up the "
-        "virus field toward the infection, over the Task-5.1 non-confluent "
-        "2D-approximation scenario (both clusters placed in the domain interior, "
-        "an unbiased lambda=0-control geometry). Live-demo/dashboard wrapper -- "
-        "the measured localization numbers (chemotaxis-on closes the distance in "
-        "5/5 tried seeds, mean -13.39 sites, vs a near-isotropic lambda=0 control, "
-        "mean -0.85 sites) come from run.run_macrophage_response across multiple "
-        "seeds, not this composite. chemotaxis_v_macro=0.0 reproduces the "
-        "lambda=0 control."
+        "Influenza-sego2022 subsystem 3/5 -- innate (macrophage) response: adds "
+        "macrophages (type M) chemotaxing up the virus field toward the infection "
+        "on top of the viral-infection scene (interior-placed clusters, an "
+        "unbiased lambda=0-control geometry). Live-demo scene; the measured "
+        "localization + chemokine/IL-10 signaling numbers come from "
+        "run.run_macrophage_response / run_macrophage_signaling. "
+        "chemotaxis_v_macro=0.0 reproduces the lambda=0 control."
     ),
     parameters={
         "chemotaxis_v_macro": {"type": "float", "default": DEMO_CHEMOTAXIS_V_MACRO,
@@ -280,40 +243,21 @@ def macrophage_response_composite_document(*, epithelial_cells_per_side=DEMO_MAC
                  "description": "RNG seed for the scenario build"},
     },
 )
-def macrophage_response(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
-                        seed: int = DEMO_SEED) -> dict:
-    return macrophage_response_composite_document(seed=seed, chemotaxis_v_macro=chemotaxis_v_macro)
+def innate_immunity(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
+                    seed: int = DEMO_SEED) -> dict:
+    return innate_immunity_composite_document(seed=seed, chemotaxis_v_macro=chemotaxis_v_macro)
 
 
-# ---------------------------------------------------------------------------
-# Increment 7 (Task 7.3): NK/CD8 cytotoxic-response live-demo composite.
-# Wraps the Task-7.1 three-cluster scenario (``immune.
-# build_cytotoxic_scenario_spec`` -- epithelial/infection patch | macrophage
-# cluster | NK+CD8 cluster, every cluster interior-placed) + virus field
-# (macrophage chemotaxis, unchanged from Increment 5) + chemokine field
-# (``fields.chemokine_field_spec_entry``, Task 7.3-new -- macrophage-secreted,
-# Increment 6) with NK (``inf_types.K``)/CD8+ (``inf_types.E``) chemotaxis
-# wired DECLARATIVELY via the chemokine field's ``chemotaxis`` list, the same
-# ``cpm.schema.load_world`` convention ``macrophage_response`` above uses.
-#
-# Dashboard/live-demo wrapper ONLY, same limitation as ``macrophage_response``
-# above (and now compounded): a plain declarative CPMProcess has no field
-# warmup, no per-cell IL-10-Hill secretion regulation, no NK/CD8 CONTACT-
-# KILLING step (``killing.contact_kill_rate`` is a custom per-update Python
-# calculation over ``world.cell_contact_area_by_type``, not expressible in
-# this declarative spec format), and none of ``run.run_cytotoxic_response``'s
-# distance/n_infected readouts. This composite reproduces ONLY the scenario
-# geometry + chemotaxis wiring (localization half); it does NOT reproduce or
-# claim the killing mechanism, and does NOT reproduce the measured numbers
-# cited by the cytotoxic-killing study (those come directly from
-# ``run.run_cytotoxic_response``, a raw ``cpm_core.World`` loop, across
-# multiple seeds/conditions -- see that study's ``model_change.notes``).
-# ``chemotaxis_v_nk``/``chemotaxis_v_cd8`` default to Task 7.1's chosen
-# ``run.NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x`` scale (params.yaml's literal
-# 5000/10000 would be statistically undetectable at this field's
-# concentration scale, see that constant's docstring); pass 0.0 for the
-# lambda=0 localization control.
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 4. cytotoxic_immunity -- + NK/CD8+ T chemotaxing up the macrophage chemokine
+# ===========================================================================
+# Three interior-placed clusters (epithelial/infection patch | macrophage
+# cluster | NK+CD8 cluster) + virus field (macrophage chemotaxis) + chemokine
+# field (NK/CD8 chemotaxis). Live-demo scene: the contact/nearby-killing
+# mechanism (killing.contact_kill_rate/nearby_kill_rate, a custom per-update
+# Python calc over world.cell_contact_area_by_type) is NOT in this declarative
+# scene -- the localization half is; the killing + measured numbers come from
+# run.run_cytotoxic_response.
 
 DEMO_N_NK = 6
 DEMO_N_CD8 = 6
@@ -323,7 +267,7 @@ DEMO_CHEMOTAXIS_V_NK = 500000.0    # params.yaml nk.chemotaxis_v_nk (5000) x 100
 DEMO_CHEMOTAXIS_V_CD8 = 1000000.0  # params.yaml cd8.chemotaxis_v_cd8 (10000) x 100 (same scale, preserves 2:1)
 
 
-def build_cytotoxic_response_spec(*, epithelial_cells_per_side: int = DEMO_MACROPHAGE_CELLS_PER_SIDE,
+def build_cytotoxic_immunity_spec(*, epithelial_cells_per_side: int = DEMO_MACROPHAGE_CELLS_PER_SIDE,
                                   n_infected: int = DEMO_N_INFECTED,
                                   n_macrophages: int = DEMO_N_MACROPHAGES,
                                   n_nk: int = DEMO_N_NK, n_cd8: int = DEMO_N_CD8,
@@ -333,13 +277,10 @@ def build_cytotoxic_response_spec(*, epithelial_cells_per_side: int = DEMO_MACRO
                                   chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
                                   chemotaxis_v_nk: float = DEMO_CHEMOTAXIS_V_NK,
                                   chemotaxis_v_cd8: float = DEMO_CHEMOTAXIS_V_CD8) -> dict:
-    """A ``load_world`` spec for the Task-7.1 three-cluster cytotoxic
-    scenario + virus field (macrophage chemotaxis) + chemokine field (NK/CD8
-    chemotaxis) -- every cluster placed in the domain's INTERIOR (see
-    ``immune.build_cytotoxic_scenario_spec``'s docstring). ``chemotaxis_v_nk``/
-    ``chemotaxis_v_cd8=0.0`` reproduces the localization lambda=0 control (no
-    directed NK/CD8 chemotaxis); NO killing step exists in this declarative
-    composite (see module note above)."""
+    """The three-cluster scenario + virus field (macrophage chemotaxis) +
+    chemokine field (NK/CD8 chemotaxis), every cluster interior-placed.
+    ``chemotaxis_v_nk``/``chemotaxis_v_cd8=0.0`` reproduces the localization
+    lambda=0 control; no killing step exists in this declarative scene."""
     spec = immune.build_cytotoxic_scenario_spec(
         epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
         n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
@@ -355,7 +296,7 @@ def build_cytotoxic_response_spec(*, epithelial_cells_per_side: int = DEMO_MACRO
     return spec
 
 
-def cytotoxic_response_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
+def cytotoxic_immunity_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
                                           n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
                                           n_nk=DEMO_N_NK, n_cd8=DEMO_N_CD8,
                                           margin_sites=DEMO_CYTOTOXIC_MARGIN_SITES,
@@ -363,44 +304,27 @@ def cytotoxic_response_composite_document(*, epithelial_cells_per_side=DEMO_MACR
                                           chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO,
                                           chemotaxis_v_nk=DEMO_CHEMOTAXIS_V_NK,
                                           chemotaxis_v_cd8=DEMO_CHEMOTAXIS_V_CD8) -> dict:
-    spec = build_cytotoxic_response_spec(
+    spec = build_cytotoxic_immunity_spec(
         epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
         n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
         margin_sites=margin_sites, separation_sites=separation_sites, seed=seed,
         chemotaxis_v_macro=chemotaxis_v_macro, chemotaxis_v_nk=chemotaxis_v_nk,
         chemotaxis_v_cd8=chemotaxis_v_cd8)
-    return {
-        "cpm": {
-            "_type": "process",
-            "address": CPM_ADDR,
-            "config": {"spec": spec, "mcs_per_update": 10, "n_fields": 2,
-                       "secretory_types": [inf_types.I, inf_types.M]},
-            "inputs": {"fates": ["fates"]},
-            "outputs": {
-                "volumes": ["volumes"],
-                "types": ["types"],
-                "positions": ["positions"],
-                "field_at_cell": ["field_at_cell"],
-                "neighbor_secretory": ["neighbor_secretory"],
-            },
-        },
-        "fates": {},
-    }
+    return {"cpm": _cpm_store(spec, n_fields=2, secretory_types=[inf_types.I, inf_types.M]),
+            "fates": {}}
 
 
 @composite_generator(
-    name="cytotoxic_response", default_n_steps=60,
+    name="cytotoxic_immunity", default_n_steps=60,
     description=(
-        "Influenza-sego2022 Increment 7: NK (type K) + CD8+ (type E) chemotaxis "
-        "up the macrophage-released chemokine field, over the Task-7.1 "
-        "three-cluster non-confluent scenario (epithelial/infection patch | "
-        "macrophage cluster | NK+CD8 cluster, every cluster interior-placed). "
-        "Live-demo/dashboard wrapper -- LOCALIZATION geometry/chemotaxis only, "
-        "NO contact-killing step (not expressible in this declarative composite "
-        "format; see killing.contact_kill_rate / run.run_cytotoxic_response for "
-        "the actual killing mechanism and its measured numbers). "
-        "chemotaxis_v_nk=chemotaxis_v_cd8=0.0 reproduces the localization "
-        "lambda=0 control."
+        "Influenza-sego2022 subsystem 4/5 -- cytotoxic (NK + CD8+ T) response: "
+        "adds NK (type K) + CD8+ (type E) cells chemotaxing up the "
+        "macrophage-released chemokine field on top of the innate-immunity "
+        "scene (three interior-placed clusters). Live-demo scene -- LOCALIZATION "
+        "geometry/chemotaxis only, NO contact-killing step (not expressible in "
+        "the declarative scene; see killing.contact_kill_rate / "
+        "run.run_cytotoxic_response for the killing mechanism + measured numbers). "
+        "chemotaxis_v_nk=chemotaxis_v_cd8=0.0 reproduces the localization control."
     ),
     parameters={
         "chemotaxis_v_macro": {"type": "float", "default": DEMO_CHEMOTAXIS_V_MACRO,
@@ -413,50 +337,88 @@ def cytotoxic_response_composite_document(*, epithelial_cells_per_side=DEMO_MACR
                  "description": "RNG seed for the scenario build"},
     },
 )
-def cytotoxic_response(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
+def cytotoxic_immunity(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
                        chemotaxis_v_nk: float = DEMO_CHEMOTAXIS_V_NK,
                        chemotaxis_v_cd8: float = DEMO_CHEMOTAXIS_V_CD8,
                        seed: int = DEMO_SEED) -> dict:
-    return cytotoxic_response_composite_document(
+    return cytotoxic_immunity_composite_document(
         seed=seed, chemotaxis_v_macro=chemotaxis_v_macro,
         chemotaxis_v_nk=chemotaxis_v_nk, chemotaxis_v_cd8=chemotaxis_v_cd8)
 
 
-# ---------------------------------------------------------------------------
-# Increment 8 (Task 8.6): global-coupling live-demo composite. Same
-# limitation as ``cytotoxic_response`` above, now compounded further: a
-# plain declarative ``CPMProcess`` has no per-MCS `price_ode.GlobalODE`
-# integration step (Task 8.1), no spatial->ODE aggregate push / ODE->spatial
-# dynamic sig_1 feedback (Tasks 8.2/8.3), no ODE-driven recruitment
-# inflow/outflow (Task 8.4), and no NK/CD8 LOCAL+NEARBY cytotoxic killing
-# (Task 8.5) -- none of these are expressible in this declarative spec
-# format (custom per-MCS Python over ``price_ode.GlobalODE``/`recruitment`/
-# `killing`, not a CPMProcess config). This composite reproduces ONLY the
-# Task-7.1 three-cluster scenario geometry + the virus/chemokine field
-# stack + NK/CD8/macrophage chemotaxis wiring (identical to
-# ``cytotoxic_response`` above); it does NOT reproduce or claim the global
-# ODE coupling, dynamic sig_1, recruitment, or nearby-killing mechanisms --
-# those come directly from ``run.run_global_coupling`` (Tasks 8.1-8.5, a raw
-# ``cpm_core.World`` + ``price_ode.GlobalODE`` loop), not from this
-# composite. See that study's ``model_change.notes`` and
-# ``pbg_cpm_studies/influenza/viz.py::global_coupling_figure``, which render
-# ``run.run_global_coupling``'s actual output, not this composite's.
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 5. systemic_ode -- the Price-2015 global (non-spatial) compartment
+# ===========================================================================
+# The systemic compartment (antibodies, TNF, IL-12, type-II IFN, CD4+, B,
+# neutrophils, ROS, APCs) coupled to the epithelial-infection substrate. The
+# hybrid Price-2015 ODE integration + spatial<->ODE bidirectional coupling +
+# dynamic sig_1 feedback are a custom per-MCS loop (price_ode.GlobalODE), NOT
+# expressible in the declarative scene -- this composite carries the coupled
+# spatial substrate (the epithelial-infection scene) as the systemic
+# compartment's spatial anchor; the ODE mechanism + measured (calibration-
+# pending) numbers come from run.run_global_coupling / run_full_model.
 
 
-def global_coupling_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
-                                        n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
-                                        n_nk=DEMO_N_NK, n_cd8=DEMO_N_CD8,
-                                        margin_sites=DEMO_CYTOTOXIC_MARGIN_SITES,
-                                        separation_sites=DEMO_CYTOTOXIC_SEPARATION_SITES, seed=DEMO_SEED,
-                                        chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO,
-                                        chemotaxis_v_nk=DEMO_CHEMOTAXIS_V_NK,
-                                        chemotaxis_v_cd8=DEMO_CHEMOTAXIS_V_CD8) -> dict:
-    """Reuses ``cytotoxic_response_composite_document`` verbatim -- see the
-    module note above for why the global-ODE coupling/recruitment/killing
-    mechanisms (Tasks 8.1-8.5) are not expressible in this declarative
-    composite format."""
-    return cytotoxic_response_composite_document(
+def systemic_ode_composite_document(patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SEED,
+                                    init_infected_frac: float = DEMO_INIT_INFECTED_FRAC) -> dict:
+    """The epithelial-infection substrate the systemic Price-2015 ODE couples
+    to (reuses the ``viral_infection`` scene). The ODE compartment + coupling
+    run in run.run_global_coupling / run_full_model (see module note)."""
+    return viral_infection_composite_document(patch_mm, seed=seed,
+                                              init_infected_frac=init_infected_frac)
+
+
+@composite_generator(
+    name="systemic_ode", default_n_steps=40,
+    description=(
+        "Influenza-sego2022 subsystem 5/5 -- the systemic Price-2015 global "
+        "(non-spatial) ODE compartment (TNF, ROS, antibody, APC, IL-12, IFN-gamma, "
+        "CD4+, B, neutrophils) coupled to the epithelial-infection substrate. The "
+        "hybrid ODE integration + spatial<->ODE coupling + dynamic sig_1 feedback "
+        "are a custom per-MCS loop (price_ode.GlobalODE), NOT expressible in this "
+        "declarative scene -- the composite carries the coupled spatial substrate; "
+        "the ODE mechanism + measured (calibration-pending) numbers come from "
+        "run.run_global_coupling / run_full_model and viz.global_coupling_figure."
+    ),
+    parameters={
+        "patch_mm": {"type": "float", "default": DEMO_PATCH_MM,
+                     "description": "square patch side length in mm (live demo; small by default)"},
+        "seed": {"type": "int", "default": DEMO_SEED,
+                 "description": "RNG seed for the scenario build"},
+        "init_infected_frac": {"type": "float", "default": DEMO_INIT_INFECTED_FRAC,
+                               "description": "fraction of H cells seeded as I at t=0"},
+    },
+)
+def systemic_ode(core=None, patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SEED,
+                 init_infected_frac: float = DEMO_INIT_INFECTED_FRAC) -> dict:
+    return systemic_ode_composite_document(patch_mm, seed=seed,
+                                           init_infected_frac=init_infected_frac)
+
+
+# ===========================================================================
+# full_model -- composition of all five biological subsystems
+# ===========================================================================
+# The complete multiscale scene: epithelium + viral infection + innate + cytotoxic
+# immune cells + the systemic ODE compartment. The full per-MCS mechanism
+# (infection/death/Allee transitions, per-cell IL-10-Hill secretion, the hybrid
+# Price-2015 ODE + dynamic sig_1, ODE-driven recruitment, NK/CD8 contact+nearby
+# killing) runs in run.run_full_model -- which the capstone reproduction studies
+# (repro-fig3b / repro-fig5 / repro-fig7) drive and measure against the digitized
+# Fig 3B/5/7 acceptance bands. This composite carries the full spatial scene.
+
+
+def full_model_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
+                                  n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
+                                  n_nk=DEMO_N_NK, n_cd8=DEMO_N_CD8,
+                                  margin_sites=DEMO_CYTOTOXIC_MARGIN_SITES,
+                                  separation_sites=DEMO_CYTOTOXIC_SEPARATION_SITES, seed=DEMO_SEED,
+                                  chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO,
+                                  chemotaxis_v_nk=DEMO_CHEMOTAXIS_V_NK,
+                                  chemotaxis_v_cd8=DEMO_CHEMOTAXIS_V_CD8) -> dict:
+    """The complete spatial scene (all immune subsystems); the full mechanism +
+    the systemic ODE run in run.run_full_model (see module note). Reuses the
+    ``cytotoxic_immunity`` scene as the spatial substrate for all subsystems."""
+    return cytotoxic_immunity_composite_document(
         epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
         n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
         margin_sites=margin_sites, separation_sites=separation_sites, seed=seed,
@@ -465,21 +427,16 @@ def global_coupling_composite_document(*, epithelial_cells_per_side=DEMO_MACROPH
 
 
 @composite_generator(
-    name="global_coupling", default_n_steps=60,
+    name="full_model", default_n_steps=60,
     description=(
-        "Influenza-sego2022 Increment 8: live-demo/dashboard wrapper for the "
-        "Task-7.1 three-cluster scenario (epithelial/infection patch | "
-        "macrophage cluster | NK+CD8 cluster) + virus/chemokine field stack "
-        "+ macrophage/NK/CD8 chemotaxis wiring -- SCENARIO GEOMETRY ONLY. "
-        "Does NOT implement the Task 8.1-8.5 hybrid Price-2015 global ODE "
-        "(10 systemic species), the spatial<->ODE bidirectional coupling, "
-        "dynamic sig_1 secretion feedback, ODE-driven recruitment, or the "
-        "NK/CD8 nearby-population killing term -- none are expressible in "
-        "this declarative composite format (custom per-MCS Python over "
-        "price_ode.GlobalODE/recruitment/killing). See "
-        "run.run_global_coupling and viz.global_coupling_figure for the "
-        "actual coupled mechanism and its measured (calibration-pending) "
-        "numbers."
+        "Influenza-sego2022 -- the full multiscale model: the composition of all "
+        "five biological subsystems (epithelium + viral_infection + innate_immunity "
+        "+ cytotoxic_immunity + systemic_ode). This composite carries the complete "
+        "spatial scene; the full per-MCS mechanism (infection/death/Allee, per-cell "
+        "IL-10-Hill secretion, the hybrid Price-2015 ODE + dynamic sig_1, ODE-driven "
+        "recruitment, NK/CD8 contact+nearby killing) runs in run.run_full_model, "
+        "which the capstone reproduction studies (repro-fig3b/5/7) drive and measure "
+        "against the digitized Fig 3B/5/7 acceptance bands."
     ),
     parameters={
         "chemotaxis_v_macro": {"type": "float", "default": DEMO_CHEMOTAXIS_V_MACRO,
@@ -492,10 +449,10 @@ def global_coupling_composite_document(*, epithelial_cells_per_side=DEMO_MACROPH
                  "description": "RNG seed for the scenario build"},
     },
 )
-def global_coupling(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
-                    chemotaxis_v_nk: float = DEMO_CHEMOTAXIS_V_NK,
-                    chemotaxis_v_cd8: float = DEMO_CHEMOTAXIS_V_CD8,
-                    seed: int = DEMO_SEED) -> dict:
-    return global_coupling_composite_document(
+def full_model(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
+               chemotaxis_v_nk: float = DEMO_CHEMOTAXIS_V_NK,
+               chemotaxis_v_cd8: float = DEMO_CHEMOTAXIS_V_CD8,
+               seed: int = DEMO_SEED) -> dict:
+    return full_model_composite_document(
         seed=seed, chemotaxis_v_macro=chemotaxis_v_macro,
         chemotaxis_v_nk=chemotaxis_v_nk, chemotaxis_v_cd8=chemotaxis_v_cd8)

@@ -17,4 +17,4 @@ the lint currently warns; they could be collapsed into one parameterized composi
 from . import gg1993  # noqa: F401  (fires @composite_generator decorators)
 from . import chemotaxis  # noqa: F401
 from . import chemotaxis_receptor  # noqa: F401
-from . import influenza  # noqa: F401  (epithelial_sheet_baseline, virus_infection, ifn/resistance)
+from . import influenza  # noqa: F401  (modular biological subsystems: epithelium, viral_infection, innate_immunity, cytotoxic_immunity, systemic_ode, full_model)
