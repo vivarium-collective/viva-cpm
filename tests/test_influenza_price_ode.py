@@ -71,3 +71,16 @@ def test_run_global_coupling_smoke_and_shapes():
     assert all(v >= 0 for v in r["spatial"]["I"])
     # ODE advanced (TNF not stuck at exactly 0 once infection present) — allow 0 if no infection seeded
     assert all(t >= 0 for t in r["ode"]["T"])
+
+
+def test_sig1_is_dynamic_not_stubbed():
+    from pbg_cpm_studies.influenza import run, params
+    P = params.load_params()
+    stub = P["il10"]["sig_1_stub"]
+    r = run.run_global_coupling(side=30, steps=20, seed=3, with_immune=True, seed_infection_frac=0.05)
+    s1 = r["sigma1"]
+    # sig_1 is no longer the constant stub: it varies across the run
+    assert max(s1) != min(s1), "sig_1 must be dynamic (ODE TNF + spatial dead count)"
+    assert any(abs(v - stub) > 1e-9 for v in s1)
+    # and it should rise from ~baseline as TNF (T) and dead count build with infection
+    assert s1[-1] >= s1[0]

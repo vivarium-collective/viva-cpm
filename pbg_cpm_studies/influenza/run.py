@@ -996,12 +996,14 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     (`immune.build_macrophage_scenario_spec` when ``with_immune=False``);
     ``with_immune=True`` adds the Increment-7 NK + CD8 cytotoxic cluster
     (`immune.build_cytotoxic_scenario_spec`). No infection transitions,
-    recruitment (Task 8.4), sig_1 secretion feedback (Task 8.3) or contact
-    killing (Task 8.5) are wired here -- this task establishes the loop and the
-    spatial->ODE push ONLY. The base field secretion (virus/IFN from I cells,
-    chemokine/IL-10 from M/H cells) and the Increment-6 IL-10-Hill macrophage
-    secretion regulation are the existing physics; this driver only READS the
-    resulting aggregates (it does not reimplement field/secretion physics).
+    recruitment (Task 8.4) or contact killing (Task 8.5) are wired here --
+    this task establishes the loop, the spatial->ODE push, AND (Task 8.3) the
+    ODE->spatial sig_1 secretion feedback. The base field secretion
+    (virus/IFN from I cells, chemokine/IL-10 from M/H cells) and the
+    Increment-6 IL-10-Hill macrophage secretion regulation are the existing
+    physics; this driver only READS the resulting aggregates and feeds in the
+    dynamic ``sig_1`` (it does not reimplement field/secretion physics or the
+    Michaelis functional form -- dossier §4b(i)).
 
     ``side`` is the nominal square epithelial-patch edge in lattice sites; the
     scenario's ``epithelial_cells_per_side`` is ``round(side/CELL_SIDE_SITES)``
@@ -1029,13 +1031,24 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
       - "spatial": {"H","I","M","K","E","DH","V","F","C","L": [...]} -- the fed-in
         spatial aggregates (counts and z-normalized field integrals)
       - "sigma1": [a_11*T + a_12*D] each MCS (T from the ODE, D from spatial
-        counts) -- recorded so the key exists; sig_1 becomes a DYNAMIC secretion
-        driver in Task 8.3 (not fed back into secretion here)
+        counts) -- Task 8.3: this is the DYNAMIC sig_1 actually fed into
+        `_apply_secretion_scales` (macrophage chemokine + IL-10 Michaelis
+        secretion gate, `signaling.macrophage_secretion_scale`), replacing
+        the static Increment-6 stub (`params.il10.sig_1_stub`). Causal
+        ordering: MCS N's secretion scale uses the sig_1 computed from MCS
+        (N-1)'s freshly-integrated ODE state + spatial dead count (MCS 0 uses
+        D=0, T=the healthy IC's T=0.0) -- the ODE step for MCS N itself runs
+        AFTER MCS N's world.step/secretion, so same-MCS sig_1 isn't causally
+        available.
       - "params": the scenario/run knobs, for the report.
     """
     params = load_params()
     a_rf = float(params["resistance"]["a_rf"])
-    sig_1, g_1, g_2, d_2 = fields.il10_hill_constants()
+    # Task 8.3: sig_1 (the first element) is the STATIC Increment-6 stub --
+    # discarded here. Only the Hill-shape constants g_1/g_2/d_2 are reused;
+    # `_apply_secretion_scales` below is fed the DYNAMIC sig_1 instead
+    # (a_11*T + a_12*D, computed each MCS).
+    _, g_1, g_2, d_2 = fields.il10_hill_constants()
 
     eps = max(1, int(round(side / sheet.CELL_SIDE_SITES)))
     n_epi_cells = eps * eps
@@ -1078,14 +1091,16 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     g_ki = consts["g_ki"]
     a_11, a_12 = consts["a_11"], consts["a_12"]
 
-    def _apply_secretion_scales():
+    def _apply_secretion_scales(sig_1_dynamic):
         # Increment-6 IL-10-Hill macrophage secretion regulation (existing
-        # physics, same as run_macrophage_signaling): local IL-10 self-limits
-        # the macrophage's chemokine + IL-10 release; uninfected cells' IL-10
-        # is (1-resist)-gated. This is NOT the Task-8.3 sig_1 feedback.
+        # physics, same as run_macrophage_signaling), now driven by the
+        # Task-8.3 DYNAMIC sig_1 = a_11*T + a_12*D (ODE TNF + spatial dead
+        # count) instead of the static Increment-6 stub: local IL-10
+        # self-limits the macrophage's chemokine + IL-10 release; uninfected
+        # cells' IL-10 is (1-resist)-gated (unaffected by sig_1).
         for cid in macrophage_ids:
             l_loc = world.field_mean_at_cell(il10_fi, cid)
-            scale = signaling.macrophage_secretion_scale(l_loc, sig_1, g_1, g_2, d_2)
+            scale = signaling.macrophage_secretion_scale(l_loc, sig_1_dynamic, g_1, g_2, d_2)
             world.set_cell_secretion_scale(chemo_fi, cid, scale)
             world.set_cell_secretion_scale(il10_fi, cid, scale)
         for cid in uninfected_ids:
@@ -1100,9 +1115,19 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         "sigma1": [],
     }
 
+    # Task-8.3: sig_1 seed BEFORE MCS 1 -- D = tot_cell - H - I = 0 at MCS 0
+    # (the same invariant the module docstring already documents for the
+    # recorded sigma1 series), T = the healthy-IC ODE state's T (0.0 per
+    # §2.5). This is the dynamic sig_1 the FIRST `_apply_secretion_scales`
+    # call below uses; each subsequent MCS uses the sig_1 computed from the
+    # PRECEDING MCS's freshly-integrated ODE state + spatial dead count (the
+    # only causal ordering available: this MCS's secretion is set before this
+    # MCS's own ODE step runs).
+    sig_1_dynamic = a_11 * state["T"] + a_12 * 0.0
+
     for mcs in range(1, steps + 1):
         world.step(mcs_per_step)
-        _apply_secretion_scales()
+        _apply_secretion_scales(sig_1_dynamic)
 
         # --- read spatial aggregates (§4a) ---
         types_now = world.cell_types()
@@ -1133,10 +1158,13 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         # --- integrate one MCS (dt = 60 s) ---
         state = ode.step(state, inputs, dt_seconds=60.0)
 
-        # sig_1 recorded (a_11*T + a_12*D); D from spatial counts. Not fed back
-        # into secretion yet -- that is Task 8.3.
+        # Task 8.3: sig_1 = a_11*T + a_12*D (D from spatial counts, T from the
+        # ODE state just integrated) -- recorded AND carried into next MCS's
+        # `_apply_secretion_scales` call above, replacing the static
+        # Increment-6 stub as the macrophage chemokine/IL-10 secretion driver.
         D = tot_cell - H - I
-        sigma1 = a_11 * state["T"] + a_12 * D
+        sig_1_dynamic = a_11 * state["T"] + a_12 * D
+        sigma1 = sig_1_dynamic
 
         result["mcs"].append(mcs)
         for sp in price_ode.INTEGRATED_STATES:

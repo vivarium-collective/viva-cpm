@@ -17,15 +17,24 @@ recorded in `params.yaml`'s `il10:` block (`ChemokineSecretionSteppable` /
   - `uninfected_il10_scale`: the uninfected (H) cell IL-10 secretion gate,
     `1 - resist` (source: `sec_amount = mu_l * b_lh * (1 - resist)`).
 
-**sig_1 STUB (ruling, see params.yaml's `il10.sig_1_stub` comment):** the
-source's `sig_1 := a_11*T + a_12*D` is a live Antimony assignment-rule read
-from the immune-model ODE solver (T = TNF-like population, D = tot_cell-H-I),
-which no increment through 8 implements. Callers pass `params.il10.
-sig_1_stub` (a documented constant, NOT the true dynamic value) as this
-function's `sig_1` argument. This fixes the TNF-dependence pending
-Increment 8; the L-dependent Hill self-regulation shape captured here, and
-the resulting chemokine gradient shape (set by diffusion from macrophage
-locations, not by sig_1's exact value), are preserved regardless.
+**sig_1 STUB -- RESOLVED in Increment 8 Task 8.3** (see params.yaml's
+`il10.sig_1_stub` comment and dossier §4b(i), discrepancy #11): the source's
+`sig_1 := a_11*T + a_12*D` is a live Antimony assignment-rule read from the
+immune-model ODE solver (T = TNF-like population, D = tot_cell-H-I).
+Increments 5-7 (and the Task-8.2 spatial->ODE-only driver) passed
+`params.il10.sig_1_stub` (a documented constant, NOT the true dynamic value)
+as this function's `sig_1` argument. As of Task 8.3, `run.
+run_global_coupling` computes the DYNAMIC `sig_1 = a_11*T + a_12*D` each MCS
+(T from the Task-8.1 `price_ode.GlobalODE` state, D from the spatial H/I
+counts) and passes THAT into this function for the macrophage chemokine +
+IL-10 secretion scale, replacing the stub. HISTORICAL NOTE (why the stub was
+harmless while it lasted): the L-dependent Hill self-regulation shape
+captured here, and the resulting chemokine gradient shape (set by diffusion
+from macrophage locations, not by sig_1's exact value), were preserved
+regardless of the stub's exact value -- this function's Michaelis math is
+UNCHANGED by the sig_1-resolution (only its `sig_1` input source changed;
+dossier §4b(i) confirms the saturating `b*sig_1/(sig_1+(g_1*L+g_2)/(L+d_2))`
+form, not a linear source, was always the correct shape).
 """
 from __future__ import annotations
 
