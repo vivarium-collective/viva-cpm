@@ -18,10 +18,131 @@ from viva_superpowers.visualization import as_visualization
 
 from . import _influenza_style as S
 from ._influenza_data import INFLUENZA_DATA, INFLUENZA_STUDY_DATA
+from ._influenza_spatial import INFLUENZA_SPATIAL
 
 _D = json.loads(INFLUENZA_DATA)
 # Increments 3-8 study readouts (compact REAL engine series, no field frames).
 _SD = json.loads(INFLUENZA_STUDY_DATA)
+# Baked CPM 2D spatial-state frames (per-site cell-TYPE mosaic) per study.
+_SP = json.loads(INFLUENZA_SPATIAL)
+
+
+# ── CPM 2D spatial-state videos (the primary, animated mosaic per study) ─────
+def _spatial_stamp(text):
+    """A recessive MCS/day timestamp pinned top-left of the mosaic frame."""
+    return {"text": text, "x": 0.014, "y": 0.986, "xref": "paper", "yref": "paper",
+            "xanchor": "left", "yanchor": "top", "showarrow": False,
+            "font": {"size": 12.5, "color": S.SECONDARY, "family": S.FONT},
+            "bgcolor": "rgba(252,252,251,0.74)", "borderpad": 3}
+
+
+def _spatial_legend(codes, *, owner=False):
+    """Compact colour→cell-state legend (only the states present in a study)."""
+    if owner:
+        items = [("#cfe6fb", "each tile = one epithelial cell"),
+                 (S.MEDIUM_TINT, "open medium")]
+    else:
+        items = [(S.SPATIAL_STATES[v][1], S.SPATIAL_STATES[v][0]) for v in codes]
+    chips = "".join(
+        f'<span style="display:inline-flex;align-items:center;gap:5px;'
+        f'margin:0 15px 4px 0;font-size:11.5px;color:{S.SECONDARY}">'
+        f'<span style="width:11px;height:11px;border-radius:3px;background:{col};'
+        f'border:1px solid rgba(11,11,11,.14);flex:none"></span>{lab}</span>'
+        for col, lab in items)
+    return (f'<div style="display:flex;flex-wrap:wrap;align-items:center;'
+            f'padding:6px 4px 4px">{chips}</div>')
+
+
+def _spatial_axes(nx, ny):
+    return {
+        "xaxis": {"visible": False, "scaleanchor": "y", "constrain": "domain",
+                  "range": [-0.5, nx - 0.5]},
+        "yaxis": {"visible": False, "autorange": "reversed",
+                  "range": [ny - 0.5, -0.5]},
+    }
+
+
+def _spatial_controls(steps):
+    return {
+        "updatemenus": [{"type": "buttons", "showactive": False, "x": 0.0, "y": -0.02,
+                         "xanchor": "left", "yanchor": "top", "direction": "left",
+                         "pad": {"t": 4}, "buttons": [
+            {"label": "▶ Play", "method": "animate",
+             "args": [None, {"mode": "immediate", "fromcurrent": True,
+                             "frame": {"duration": 520, "redraw": True},
+                             "transition": {"duration": 0}}]},
+            {"label": "❙❙ Pause", "method": "animate",
+             "args": [[None], {"mode": "immediate", "frame": {"duration": 0, "redraw": False},
+                               "transition": {"duration": 0}}]}]}],
+        "sliders": [{"active": 0, "x": 0.26, "len": 0.72, "y": 0.0,
+                     "xanchor": "left", "yanchor": "top", "pad": {"t": 4},
+                     "currentvalue": {"prefix": "MCS ", "xanchor": "left",
+                                      "font": {"size": 12, "color": S.SECONDARY}},
+                     "steps": steps}],
+    }
+
+
+def _type_traces(grid_flat, nx, ny):
+    z = [grid_flat[r * nx:(r + 1) * nx] for r in range(ny)]
+    return [{"type": "heatmap", "z": z, "colorscale": S.discrete_state_colorscale(7),
+             "zmin": -0.5, "zmax": 7.5, "showscale": False, "xgap": 0, "ygap": 0,
+             "hoverinfo": "skip"}]
+
+
+def _owner_traces(grid_flat, nx, ny):
+    # hash each cell label into a repeating soft-hue tile band; medium recedes
+    zz = [[0 if grid_flat[r * nx + c] == 0
+           else 1 + (grid_flat[r * nx + c] * 2654435761 % 11)
+           for c in range(nx)] for r in range(ny)]
+    return [{"type": "heatmap", "z": zz, "colorscale": S.MOSAIC_SCALE, "zmin": 0,
+             "zmax": 11, "showscale": False, "xgap": 0, "ygap": 0, "hoverinfo": "skip"}]
+
+
+def _build_spatial(slug, title, subtitle, caption, *, increment, kpis,
+                   day=True, day_stamp="day"):
+    """Render one study's baked spatial-state frames as an animated Plotly
+    heatmap (▶ Play/❙❙ Pause + MCS slider, MCS/day stamp, colour→state legend,
+    equal-aspect gridless mosaic). ``kind='owner'`` studies (the substrate
+    sheet) render the cell-label tile mosaic; all others the cell-TYPE mosaic."""
+    d = _SP[slug]
+    nx, ny, owner = d["nx"], d["ny"], d["kind"] == "owner"
+    frames_data = d["frames"]
+    div = f"influenza-spatial-{slug}"
+
+    def _stamp_text(mcs):
+        if owner:
+            return f"MCS {mcs} · relaxation"
+        if day:
+            return f"MCS {mcs} · day {mcs / 1440.0:.2f}"
+        return f"MCS {mcs}"
+
+    def _traces(fr):
+        return (_owner_traces if owner else _type_traces)(fr["grid"], nx, ny)
+
+    frames = [{"name": str(i), "data": _traces(fr),
+               "layout": {"annotations": [_spatial_stamp(_stamp_text(fr["mcs"]))]}}
+              for i, fr in enumerate(frames_data)]
+    steps = [{"label": str(fr["mcs"]), "method": "animate",
+              "args": [[str(i)], {"mode": "immediate",
+                                  "frame": {"duration": 0, "redraw": True},
+                                  "transition": {"duration": 0}}]}
+             for i, fr in enumerate(frames_data)]
+
+    layout = S.base_layout(height=self_height(nx, ny), showlegend=False, extra={
+        "margin": {"l": 14, "r": 14, "t": 12, "b": 54},
+        "annotations": [_spatial_stamp(_stamp_text(frames_data[0]["mcs"]))],
+        **_spatial_axes(nx, ny), **_spatial_controls(steps)})
+
+    codes = sorted({v for fr in frames_data for v in set(fr["grid"])}) if not owner else []
+    body = (_spatial_legend(codes, owner=owner)
+            + S.plot(div, _traces(frames_data[0]), layout, frames=frames))
+    return S.card(title, subtitle, body, caption, increment=increment, kpis=kpis)
+
+
+def self_height(nx, ny):
+    """Pick a card height that keeps the equal-aspect mosaic compact but legible
+    (taller lattices get a little more room), clamped to a tasteful band."""
+    return int(max(360, min(540, 300 + 260 * (ny / max(nx, 1)))))
 
 
 # ── Study A · parameter-provenance (Increment 0): Fig-3B acceptance targets ──
@@ -619,6 +740,209 @@ def _build_repro_fig7():
     return _build_repro_sweep("fig7")
 
 
+# ── per-study CPM 2D spatial-state videos (the PRIMARY viz per study) ────────
+def _sp_kpis(slug, *headline):
+    """A consistent KPI row: mosaic scale + frame span (from the baked frames)
+    + the study's own one-line spatial headline."""
+    d = _SP[slug]
+    fr = d["frames"]
+    span = f'MCS {fr[0]["mcs"]}→{fr[-1]["mcs"]}'
+    return [(f'{d["nx"]}×{d["ny"]} lattice', f'coarsened ×{d["coarsen"]} mosaic'),
+            (f'{len(fr)} frames', span), headline]
+
+
+def _build_spatial_sheet():
+    """Confluent epithelial sheet relaxing under the Potts temperature (owner mosaic)"""
+    cap = ('<b>The substrate, in motion.</b> The confluent 0.3&nbsp;mm / 900-cell epithelial '
+           'tiling (Increment&nbsp;1) relaxes under the Cellular-Potts surface/volume energy over '
+           '200 MCS — each tile is one cell, and you can watch the irregular cell boundaries '
+           'settle while the sheet stays gap-free. This is geometry only: no virus, infection or '
+           'immune biology runs yet (those layer on in Increments 2+). Coarsened for display; '
+           'the mean cell volume and throughput are quantified in the companion sheet card.')
+    return _build_spatial("epithelial-sheet-baseline",
+                          "Confluent epithelial sheet — spatial relaxation",
+                          "Increment-1 substrate — the cell mosaic settling over 200 MCS (seed 17)",
+                          cap, increment=1,
+                          kpis=_sp_kpis("epithelial-sheet-baseline",
+                                        "900 cells", "confluent, gap-free tiling"))
+
+
+def _build_spatial_virus():
+    """H→I lesion spreading locally across the sheet as the virus field diffuses"""
+    ser = _D["infection"]["series"]
+    cap = (f'<b>Play it.</b> The seeded lesion of infected cells '
+           f'(<span style="color:{S.INFECTED}">■</span>) grows across the healthy sheet '
+           f'(<span style="color:{S.HEALTHY}">■</span>) as the extracellular virus field diffuses '
+           f'and drives stochastic H→I transitions — and new infections land NEXT TO existing '
+           f'ones (locality ratio {_D["infection"]["locality"]["null_ratio"]:.2f} &lt; '
+           f'{_D["infection"]["locality"]["pass_threshold"]}), not scattered uniformly. '
+           f'n_I grows {ser["n_I"][0]}→{ser["n_I"][-1]} with population conserved. '
+           f'Base infection mechanism only — no IFN resistance or cell death yet.')
+    return _build_spatial("virus-field-infection",
+                          "Virus-driven infection spread — spatial state",
+                          "Increment-2 mechanism — the H→I lesion mosaic over 60 updates (seed 17)",
+                          cap, increment=2,
+                          kpis=_sp_kpis("virus-field-infection",
+                                        f'n_I {ser["n_I"][0]}→{ser["n_I"][-1]}', "local lesion growth"))
+
+
+def _build_spatial_ifn():
+    """Same lesion under the IFN→resistance gate — visibly fewer infected cells"""
+    d = _SD["ifn"]
+    cap = (f'<b>Mechanism validated, reproduction PENDING.</b> The same 0.3&nbsp;mm / 900-cell '
+           f'sheet and seed as Increment&nbsp;2, but each infected cell\'s virus secretion is '
+           f'throttled by <b>(1−ρ)</b> from its locally-sampled type-I IFN. The primary effect is '
+           f'on virus load (~halved every step); the mosaic shows the weaker-but-real effect on '
+           f'infected COUNT — the lesion stays more contained than the no-IFN control '
+           f'(n_I {d["with"]["n_I"][40]} vs {d["without"]["n_I"][40]} at step 40). ρ plateaus near '
+           f'~0.55, a steady brake, not a hard block. No Fig&nbsp;3B/5/7 target is claimed here.')
+    return _build_spatial("ifn-resistance",
+                          "IFN-gated infection — spatial state",
+                          "Increment-3 mechanism — lesion under the resistance gate (seed 17)",
+                          cap, increment=3,
+                          kpis=_sp_kpis("ifn-resistance",
+                                        f'n_I −{100*(1-d["with"]["n_I"][40]/d["without"]["n_I"][40]):.0f}% @40',
+                                        "vs no-IFN control"))
+
+
+def _build_spatial_fate():
+    """Full epithelial lifecycle: H→I→D lesion forms, D→H recovery fires"""
+    d = _SD["fate"]
+    cap = (f'<b>Mechanism validated, reproduction PENDING.</b> The lifecycle composes spatially: '
+           f'infection seeds I cells (<span style="color:{S.INFECTED}">■</span>), infected-death '
+           f'converts them to a dead core (<span style="color:{S.DEAD}">■</span>, n_D 0→'
+           f'{d["n_D"][-1]} over 200 updates), and Allee recovery returns some dead cells to '
+           f'healthy on local contact ({d["recovery_cum"][-1]} organic D→H events). Population is '
+           f'conserved every step; direct H→D Allee death stays genuinely rare '
+           f'({d["death_cum"][-1]} events, not a bug). Dominant death path is infection. '
+           f'No Fig&nbsp;3B/5/7 target is claimed (deferred to the capstone).')
+    return _build_spatial("epithelial-fate",
+                          "Epithelial fate lifecycle — spatial state",
+                          "Increment-4 mechanism — H→I→D + D→H recovery mosaic (seed 17, 200 updates)",
+                          cap, increment=4,
+                          kpis=_sp_kpis("epithelial-fate",
+                                        f'n_D 0→{d["n_D"][-1]}', "dead lesion core forms"))
+
+
+def _build_spatial_macrophage():
+    """Macrophages chemotax up the virus field and localize to the lesion"""
+    d = _SD["macrophage"]
+    on_ch = d["on"]["dist"][-1] - d["start_distance"]
+    cap = (f'<b>Localization validated, reproduction PENDING.</b> Macrophages '
+           f'(<span style="color:{S.CELL_STATES[4][1]}">■</span>) chemotax up the virus field '
+           f'(λ=5000) and migrate toward the infected patch '
+           f'(<span style="color:{S.INFECTED}">■</span>), closing the gap by {on_ch:+.1f} sites '
+           f'from a {d["start_distance"]:.0f}-site interior start — while a λ=0 control barely '
+           f'moves ({d["off"]["dist"][-1]-d["start_distance"]:+.1f}). Across 5 seeds the on case '
+           f'localizes 5/5 (mean −13.4 vs control −0.85). A localization-mechanism claim only; '
+           f'no Fig&nbsp;3B/5/7 target is evaluated here.')
+    return _build_spatial("macrophage-response",
+                          "Macrophage recruitment — spatial state",
+                          "Increment-5 mechanism — macrophages localizing to the lesion (seed 17)",
+                          cap, increment=5,
+                          kpis=_sp_kpis("macrophage-response",
+                                        f'{on_ch:+.1f} sites', "macrophage net approach"))
+
+
+def _build_spatial_signaling():
+    """Chemokine + IL-10 fields around the macrophage cluster (spatial context)"""
+    d = _SD["signaling"]
+    cap = (f'<b>Field mechanism documented, reproduction PENDING.</b> The spatial context for the '
+           f'signaling fields: the macrophage cluster '
+           f'(<span style="color:{S.CELL_STATES[4][1]}">■</span>) sits a fixed '
+           f'{d["params"]["separation_sites"]} sites of open medium from the uninfected epithelial '
+           f'patch (<span style="color:{S.HEALTHY}">■</span>). Macrophage-released chemokine forms '
+           f'a gradient centered on the cluster ({d["chemo_near"]/d["chemo_far"]:.1f}× near/far, '
+           f'~{d["radial"]["means"][0]/d["radial"]["means"][-1]:.1f}× radial decay), and IL-10 '
+           f'accrues from both regulated sources. This validates the FIELD mechanism, not a '
+           f'Fig&nbsp;2/3A reproduction (sig_1 is a documented static stub here, resolved in '
+           f'Increment&nbsp;8).')
+    return _build_spatial("signaling-fields",
+                          "Signaling-field scene — spatial state",
+                          "Increment-6 mechanism — macrophage cluster + epithelial patch (seed 17)",
+                          cap, increment=6,
+                          kpis=_sp_kpis("signaling-fields",
+                                        f'{d["chemo_near"]/d["chemo_far"]:.1f}×', "chemokine near/far"))
+
+
+def _build_spatial_cytotoxic():
+    """NK + CD8 clusters chemotax toward the lesion; contact-killing where they touch"""
+    d = _SD["cytotoxic"]
+    cap = (f'<b>Capability proven, end-to-end clearance WEAK/PENDING.</b> The full cytotoxic scene: '
+           f'NK (<span style="color:{S.CELL_STATES[5][1]}">■</span>) and CD8⁺ '
+           f'(<span style="color:{S.CELL_STATES[6][1]}">■</span>) clusters chemotax up the '
+           f'chemokine field toward the infected patch '
+           f'(<span style="color:{S.INFECTED}">■</span>) and localize robustly (5/5 seeds: CD8 '
+           f'mean −36, NK −20). Contact-killing WORKS where cells touch (a close-contact test '
+           f'clears the infected cell 1→0). BUT at this default scale the NK/CD8 clusters close '
+           f'distance yet never reach contact, so n_infected does not drop — an Increment-9 '
+           f'field-magnitude calibration gap, NOT a reproduction claim.')
+    return _build_spatial("cytotoxic-killing",
+                          "Cytotoxic response — spatial state",
+                          "Increment-7 mechanism — NK/CD8 localization at default scale (seed 17)",
+                          cap, increment=7,
+                          kpis=_sp_kpis("cytotoxic-killing",
+                                        f'CD8 {d["cd8_dist"][0]:.0f}→{d["cd8_dist"][-1]:.0f}',
+                                        "localize, no contact yet"))
+
+
+def _build_spatial_global():
+    """The full immune scene coupled to the systemic ODE (reduced-scale patch)"""
+    d = _SD["global"]
+    cap = (f'<b>Mechanism-resolved, calibration-pending.</b> The full spatial immune scene at the '
+           f'reduced-scale side-30 patch, coupled bidirectionally to the hybrid 10-species '
+           f'Price-2015 global ODE (integrated once per MCS). Epithelial H/I cells, the '
+           f'macrophage/NK/CD8 clusters, and the '
+           f'<span style="color:{S.RESERVE_TINT}">▨</span> dormant recruit-reserve pool (parked in '
+           f'the medium margins, activated by ODE-driven inflow) all share one lattice. At this '
+           f'scale (η≈{d["params"]["eta"]:.1e}) the coupling MAGNITUDES are uncalibrated — dynamic '
+           f'sig_1 collapses ~1e-6 vs the retired stub (2.44) and recruitment stays too weak to '
+           f'engage naturally. Mechanisms wired correctly; unit-scale calibration deferred to '
+           f'Increment&nbsp;9.')
+    return _build_spatial("global-coupling",
+                          "Global immune coupling — spatial state",
+                          "Increment-8 mechanism — full scene + ODE-driven reserve pool (seed 3, side 30)",
+                          cap, increment=8, day=False,
+                          kpis=_sp_kpis("global-coupling",
+                                        "10-species ODE", "coupled per MCS"))
+
+
+def _build_spatial_repro(fig_label, increment_note):
+    """Shared full-model money-shot mosaic for the three repro-fig* studies."""
+    cap = (f'<b>Reduced-scale, band_eval.passed=False — NO reproduction claimed.</b> The '
+           f'money shot: <b>every</b> Increment 0–8 mechanism wired into ONE per-MCS loop '
+           f'(<code>run_full_model</code>), rendered as the live cell mosaic — healthy '
+           f'(<span style="color:{S.HEALTHY}">■</span>) and infected '
+           f'(<span style="color:{S.INFECTED}">■</span>) epithelium, macrophages '
+           f'(<span style="color:{S.CELL_STATES[4][1]}">■</span>), NK '
+           f'(<span style="color:{S.CELL_STATES[5][1]}">■</span>) and CD8⁺ '
+           f'(<span style="color:{S.CELL_STATES[6][1]}">■</span>) all acting on one lattice. '
+           f'This is the same REDUCED-scale config the {fig_label} study reports (15×15 cells, '
+           f'few replicas, ~0.1 simulated days) — mechanisms are wired and source-faithful but '
+           f'field/coupling MAGNITUDES remain calibration-pending, so at this scale the '
+           f'{fig_label} acceptance bands are not met. {increment_note} Only the paper-scale '
+           f'ensemble (Mac-mini Phase-B follow-up) can set a <code>reproduced</code> verdict — '
+           f'this scene must not be read as one.')
+    return _build_spatial("repro-full-model",
+                          f"Full model — spatial state ({fig_label})",
+                          f"Increment-9 CAPSTONE — the complete run_full_model mosaic (reduced scale, seed 0)",
+                          cap, increment=9,
+                          kpis=_sp_kpis("repro-full-model",
+                                        "all mechanisms", "one per-MCS loop"))
+
+
+def _build_spatial_repro_fig3b():
+    return _build_spatial_repro("Fig-3B", "The Fig-3B time-course card is the companion readout.")
+
+
+def _build_spatial_repro_fig5():
+    return _build_spatial_repro("Fig-5", "The Fig-5 dose-response card is the companion readout.")
+
+
+def _build_spatial_repro_fig7():
+    return _build_spatial_repro("Fig-7", "The Fig-7 dose-response card is the companion readout.")
+
+
 # ── registry wrappers (auto-discovered v2 Visualizations) ───────────────────
 @as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaFig3BTargets", demo={"mcs": [0.0]})
 def update_influenza_fig3b_targets(state):
@@ -749,3 +1073,115 @@ def InfluenzaReproFig5():
 
 def InfluenzaReproFig7():
     return _build_repro_fig7()
+
+
+# ── CPM 2D spatial-state videos — registry wrappers (PRIMARY per study) ──────
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialSheet", demo={"mcs": [0.0]})
+def update_influenza_spatial_sheet(state):
+    """Confluent epithelial sheet relaxing under the Potts temperature (owner mosaic)"""
+    return {"html": _build_spatial_sheet()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialVirusField", demo={"mcs": [0.0]})
+def update_influenza_spatial_virus(state):
+    """H→I lesion spreading locally across the sheet as the virus field diffuses"""
+    return {"html": _build_spatial_virus()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialIfnResistance", demo={"mcs": [0.0]})
+def update_influenza_spatial_ifn(state):
+    """Same lesion under the IFN→resistance gate — visibly fewer infected cells"""
+    return {"html": _build_spatial_ifn()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialEpithelialFate", demo={"mcs": [0.0]})
+def update_influenza_spatial_fate(state):
+    """Full epithelial lifecycle: H→I→D lesion forms, D→H recovery fires"""
+    return {"html": _build_spatial_fate()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialMacrophage", demo={"mcs": [0.0]})
+def update_influenza_spatial_macrophage(state):
+    """Macrophages chemotax up the virus field and localize to the lesion"""
+    return {"html": _build_spatial_macrophage()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialSignaling", demo={"mcs": [0.0]})
+def update_influenza_spatial_signaling(state):
+    """Chemokine + IL-10 fields around the macrophage cluster (spatial context)"""
+    return {"html": _build_spatial_signaling()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialCytotoxic", demo={"mcs": [0.0]})
+def update_influenza_spatial_cytotoxic(state):
+    """NK + CD8 clusters chemotax toward the lesion; contact-killing where they touch"""
+    return {"html": _build_spatial_cytotoxic()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialGlobalCoupling", demo={"mcs": [0.0]})
+def update_influenza_spatial_global(state):
+    """The full immune scene coupled to the systemic ODE (reduced-scale patch)"""
+    return {"html": _build_spatial_global()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialReproFig3B", demo={"mcs": [0.0]})
+def update_influenza_spatial_repro_fig3b(state):
+    """Full run_full_model cell mosaic — reduced scale, calibration-pending (Fig-3B study)"""
+    return {"html": _build_spatial_repro_fig3b()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialReproFig5", demo={"mcs": [0.0]})
+def update_influenza_spatial_repro_fig5(state):
+    """Full run_full_model cell mosaic — reduced scale, calibration-pending (Fig-5 study)"""
+    return {"html": _build_spatial_repro_fig5()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialReproFig7", demo={"mcs": [0.0]})
+def update_influenza_spatial_repro_fig7(state):
+    """Full run_full_model cell mosaic — reduced scale, calibration-pending (Fig-7 study)"""
+    return {"html": _build_spatial_repro_fig7()}
+
+
+# ── spatial zero-arg accessors (tests + file render) ────────────────────────
+def InfluenzaSpatialSheet():
+    return _build_spatial_sheet()
+
+
+def InfluenzaSpatialVirusField():
+    return _build_spatial_virus()
+
+
+def InfluenzaSpatialIfnResistance():
+    return _build_spatial_ifn()
+
+
+def InfluenzaSpatialEpithelialFate():
+    return _build_spatial_fate()
+
+
+def InfluenzaSpatialMacrophage():
+    return _build_spatial_macrophage()
+
+
+def InfluenzaSpatialSignaling():
+    return _build_spatial_signaling()
+
+
+def InfluenzaSpatialCytotoxic():
+    return _build_spatial_cytotoxic()
+
+
+def InfluenzaSpatialGlobalCoupling():
+    return _build_spatial_global()
+
+
+def InfluenzaSpatialReproFig3B():
+    return _build_spatial_repro_fig3b()
+
+
+def InfluenzaSpatialReproFig5():
+    return _build_spatial_repro_fig5()
+
+
+def InfluenzaSpatialReproFig7():
+    return _build_spatial_repro_fig7()

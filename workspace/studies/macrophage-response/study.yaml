@@ -360,9 +360,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_macrophage.py::test_macrophage_does_not_approach_source_without_chemotaxis
 
 visualizations:
+  - name: Spatial state — macrophage recruitment (animated)
+    address: local:InfluenzaSpatialMacrophage
   - name: Macrophage localization
     address: local:InfluenzaMacrophageResponse
 embed_visualizations:
+  - name: Spatial state — macrophage
+    title: "Macrophage recruitment — spatial-state mosaic (animated)"
+    url: /workspace/studies/macrophage-response/viz/spatial-macrophage.html
   - name: Macrophage localization
     title: "Macrophages localize to the infection — chemotaxis on vs λ=0 (mechanism only)"
     url: /workspace/studies/macrophage-response/viz/macrophage-response.html

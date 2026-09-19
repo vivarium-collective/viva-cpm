@@ -285,9 +285,14 @@ behavior_tests:
     result: PASS
 
 visualizations:
+  - name: Spatial state — IFN-gated infection (animated)
+    address: local:InfluenzaSpatialIfnResistance
   - name: IFN + per-cell resistance
     address: local:InfluenzaIfnResistance
 embed_visualizations:
+  - name: Spatial state — IFN-gated
+    title: "IFN-gated infection — spatial-state mosaic (animated)"
+    url: /workspace/studies/ifn-resistance/viz/spatial-ifn.html
   - name: IFN resistance
     title: "IFN-driven resistance gates virus release — mechanism validated, reproduction PENDING"
     url: /workspace/studies/ifn-resistance/viz/ifn-resistance.html

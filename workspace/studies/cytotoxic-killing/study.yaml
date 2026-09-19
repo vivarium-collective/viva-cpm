@@ -378,9 +378,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_killing.py::test_contact_kill_rate_matches_params_yaml_precomputed_coefficients
 
 visualizations:
+  - name: Spatial state — cytotoxic response (animated)
+    address: local:InfluenzaSpatialCytotoxic
   - name: NK/CD8 localization + killing
     address: local:InfluenzaCytotoxicKilling
 embed_visualizations:
+  - name: Spatial state — cytotoxic
+    title: "Cytotoxic response — spatial-state mosaic (animated)"
+    url: /workspace/studies/cytotoxic-killing/viz/spatial-cytotoxic.html
   - name: Cytotoxic killing
     title: "NK/CD8 cytotoxic localization + killing — capability proven, clearance weak/PENDING"
     url: /workspace/studies/cytotoxic-killing/viz/cytotoxic-killing.html

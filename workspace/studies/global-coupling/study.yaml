@@ -399,9 +399,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_viz.py::test_global_coupling_figure_returns_figure_with_two_axes
 
 visualizations:
+  - name: Spatial state — global immune scene (animated)
+    address: local:InfluenzaSpatialGlobalCoupling
   - name: Hybrid global ODE coupling
     address: local:InfluenzaGlobalCoupling
 embed_visualizations:
+  - name: Spatial state — global coupling
+    title: "Global immune coupling — spatial-state mosaic (animated)"
+    url: /workspace/studies/global-coupling/viz/spatial-global.html
   - name: Global coupling
     title: "Hybrid global ODE coupling (Price 2015) — mechanism-resolved, calibration-pending"
     url: /workspace/studies/global-coupling/viz/global-coupling.html

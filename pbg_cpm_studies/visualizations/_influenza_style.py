@@ -41,6 +41,41 @@ CELL_STATES = {
 }
 HEALTHY, INFECTED, DEAD = CELL_STATES[1][1], CELL_STATES[2][1], CELL_STATES[3][1]
 
+# ── spatial-state mosaic palette (2D cell-type video) ───────────────────────
+# The full discrete state set for the CPM spatial-state videos: open Medium and
+# the dormant recruit-reserve pool bracket the six semantic cell states, so the
+# same colour means the same state in every study's mosaic (fixed zmin/zmax).
+MEDIUM_TINT = "#eceef0"   # open Medium (state 0) — recessive surface
+RESERVE_TINT = "#d9dbdf"  # dormant recruit-reserve pool (state 7) — ghosted
+SPATIAL_STATES = {
+    0: ("Open medium", MEDIUM_TINT),
+    1: CELL_STATES[1], 2: CELL_STATES[2], 3: CELL_STATES[3],
+    4: CELL_STATES[4], 5: CELL_STATES[5], 6: CELL_STATES[6],
+    7: ("Dormant reserve pool", RESERVE_TINT),
+}
+
+
+def discrete_state_colorscale(vmax=7):
+    """A stepped Plotly colorscale mapping integer state codes 0..vmax to their
+    fixed SPATIAL_STATES hue (piecewise-constant bands). Pair with
+    ``zmin=-0.5, zmax=vmax+0.5`` so value v lands squarely in band v."""
+    n = vmax + 1
+    scale = []
+    for v in range(n):
+        color = SPATIAL_STATES[v][1]
+        scale.append([v / n, color])
+        scale.append([(v + 1) / n, color])
+    return scale
+
+
+# soft repeating tile hues for the confluent-sheet owner mosaic (each cell a
+# distinct tile; medium recedes) — reused by the sheet relaxation video.
+MOSAIC_SCALE = [
+    [0.0, SURFACE], [0.0001, "#d7f0e6"], [0.1, "#cfe6fb"], [0.2, "#e8dcfb"],
+    [0.3, "#fde3cf"], [0.4, "#d7f0e6"], [0.5, "#fce0ec"], [0.6, "#e3eccf"],
+    [0.7, "#cfe6fb"], [0.8, "#fdeecf"], [0.9, "#e8dcfb"], [1.0, "#d7f0e6"],
+]
+
 # blue sequential ramp for the virus field (light -> dark = low -> high)
 VIRUS_SCALE = [
     [0.0, "#fcfcfb"], [0.12, "#cde2fb"], [0.3, "#9ec5f4"], [0.5, "#6da7ec"],

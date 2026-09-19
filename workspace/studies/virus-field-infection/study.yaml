@@ -254,11 +254,16 @@ behavior_tests:
     result: PASS
 
 visualizations:
+  - name: Spatial state — infection spread (animated)
+    address: local:InfluenzaSpatialVirusField
   - name: Virus field + local spread (animated)
     address: local:InfluenzaVirusFieldScene
   - name: Infection dynamics + locality
     address: local:InfluenzaInfectionDynamics
 embed_visualizations:
+  - name: Spatial state — infection
+    title: "Virus-driven infection spread — spatial-state mosaic (animated, 60 updates)"
+    url: /workspace/studies/virus-field-infection/viz/spatial-virus-field.html
   - name: Virus-field scene
     title: "Virus field + local infection spread \u2014 animated over 60 updates"
     url: /workspace/studies/virus-field-infection/viz/virus-field-scene.html
