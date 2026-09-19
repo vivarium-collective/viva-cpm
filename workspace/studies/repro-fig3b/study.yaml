@@ -2,7 +2,7 @@ schema_version: 3
 name: repro-fig3b
 status: in-progress
 phase: Evaluate
-title: "Increment 9 Task 9.2 (CAPSTONE): repro_fig3b wires run_full_model into an ensemble driver and evaluates it against the digitized Fig-3B acceptance bands — at REDUCED scale (2 replicas, 15x15 cells, 20 records ~0.09 days) 0/12 observables land in-band for every checkpoint (band_eval.passed=False), expected at this population/time scale — the paper-scale 50-replica, 35x35-cell, ~2-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict"
+title: "Increment 9 Task 9.2 (CAPSTONE): repro_fig3b wires run_full_model into an ensemble driver and evaluates it against the digitized Fig-3B acceptance bands — at REDUCED scale (2 replicas, 15x15 cells, 20 records ~0.09 days) 0/12 observables land in-band for every checkpoint (band_eval.passed=False), expected at this population/time scale — the paper-scale 50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict"
 confidence: Provisional
 investigation: influenza-sego2022
 
@@ -22,7 +22,7 @@ purpose:
   mechanism: full_model_ensemble_vs_fig3b_acceptance_bands
 
 report:
-  title: "repro_fig3b runs a seeded ensemble of run_full_model over the Fig-3B scenario and evaluates it against targets/fig3b.json via bands.evaluate_study — at the reduced scale this task's fast test uses (replicas=2, cells_per_side=15, steps=20, ~0.09 simulated days), 0 of 12 observables are in-band at every digitized checkpoint (band_eval['passed']=False); the paper-scale 50-replica/35x35-cell/~2-day ensemble is deferred to the Mac-mini Phase-B follow-up"
+  title: "repro_fig3b runs a seeded ensemble of run_full_model over the Fig-3B scenario and evaluates it against targets/fig3b.json via bands.evaluate_study — at the reduced scale this task's fast test uses (replicas=2, cells_per_side=15, steps=20, ~0.09 simulated days), 0 of 12 observables are in-band at every digitized checkpoint (band_eval['passed']=False); the paper-scale 50-replica/35x35-cell/~3.5-day ensemble is deferred to the Mac-mini Phase-B follow-up"
   verdict: documented
   confidence: medium
   evidence_quality: measured
@@ -105,8 +105,9 @@ report:
     studies -- but this driver's REPORTED MAGNITUDES here are
     calibration-pending at this reduced population/time scale, not a
     verified reproduction. `repro_fig3b`'s own docstring documents the
-    paper-scale config (`replicas=50, cells_per_side=35, steps~2880` = 2
-    simulated days at the default `s_per_mcs=60`/`mcs_per_step=7`) as the
+    paper-scale config (`replicas=50, cells_per_side=35, steps~720` = ~3.5
+    simulated days at the default `s_per_mcs=60`/`mcs_per_step=7`, covering
+    the full 0-3.5 day Fig-3B checkpoint window) as the
     Mac-mini Phase-B follow-up that will actually set the `reproduced`
     verdict for Fig 3B -- this study's verdict stays `documented`, and
     `conclusion_verdicts.biological_validation` stays PENDING. No
@@ -155,7 +156,7 @@ study_card:
     mismatch, not by an incorrect mechanism -- reported honestly, not
     disguised as a near-miss or hidden by only reporting the observables
     that happen to land in-band.
-  main_expert_question: The reduced-scale run's simulated duration (~0.09 days) is far shorter than the target's checkpoint window (0.0-3.5 days) purely because the fast test needs to stay fast (steps=20 at mcs_per_step=7) -- should the Mac-mini Phase-B paper-scale run (steps~2880, replicas=50) be treated as this study's REQUIRED next run before any `reproduced` verdict is even attempted, or is there value in first running an intermediate scale (e.g. full cells_per_side=35 patch but few replicas and a longer but sub-2880-step duration) to separate the population-scale effect from the run-duration effect before committing the expensive 50-replica ensemble?
+  main_expert_question: The reduced-scale run's simulated duration (~0.09 days) is far shorter than the target's checkpoint window (0.0-3.5 days) purely because the fast test needs to stay fast (steps=20 at mcs_per_step=7) -- should the Mac-mini Phase-B paper-scale run (steps~720, replicas=50) be treated as this study's REQUIRED next run before any `reproduced` verdict is even attempted, or is there value in first running an intermediate scale (e.g. full cells_per_side=35 patch but few replicas and a longer but sub-720-step duration) to separate the population-scale effect from the run-duration effect before committing the expensive 50-replica ensemble?
 
 question: |
   Does `run.repro_fig3b` (Task 9.2) correctly assemble a seeded ensemble of
@@ -205,7 +206,7 @@ description: |
   into one source-ordered per-MCS loop) and Task 9.0's `bands` acceptance-
   band harness (`targets/fig3b.json`, digitized from the paper's Fig. 3B).
   This task WIRES the ensemble machinery and EVALUATES it -- it explicitly
-  does NOT attempt the paper-scale 50-replica, 35x35-cell, ~2-day ensemble
+  does NOT attempt the paper-scale 50-replica, 35x35-cell, ~3.5-day ensemble
   needed to actually claim Fig-3B reproduction; that run is deferred to the
   Mac-mini Phase-B follow-up (documented in `repro_fig3b`'s own docstring).
   The reduced-scale config this task's fast pytest test uses (`replicas=2,
@@ -231,7 +232,7 @@ claim: |
   key_metrics` above) -- expected given the ~5.4x smaller epithelial
   population and the ~0.09-simulated-day run duration vs. the target's
   0.0-3.5-day checkpoint window, not a mechanism defect. The paper-scale
-  50-replica, 35x35-cell, ~2-day ensemble (Mac-mini Phase-B) is required
+  50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required
   before any `reproduced` verdict for Fig 3B, and `conclusion_verdicts.
   biological_validation` stays PENDING here.
 
@@ -406,8 +407,8 @@ biological_summary: |
   checkpoint target values are still small and their bands are widened
   1.5x -- not because those subsystems are individually better-calibrated.
   THIS STUDY DOES NOT CLAIM FIG-3B IS REPRODUCED: the paper-scale 50-
-  replica, 1225-cell, ~2-day ensemble (`repro_fig3b`'s own docstring
-  documents this as `replicas=50, cells_per_side=35, steps~2880`) is the
+  replica, 1225-cell, ~3.5-day ensemble (`repro_fig3b`'s own docstring
+  documents this as `replicas=50, cells_per_side=35, steps~720`) is the
   Mac-mini Phase-B follow-up that will actually set the `reproduced`
   verdict for Fig 3B. No band in `targets/fig3b.json` was edited and no
   model constant was tuned toward a better-looking number.
@@ -493,11 +494,11 @@ runs:
 discovery_implications:
   followup_study_proposals:
     - id: incr9-phaseb-fig3b-paper-scale-ensemble
-      title: "Mac-mini Phase-B: paper-scale 50-replica repro_fig3b ensemble (cells_per_side=35, steps~2880)"
+      title: "Mac-mini Phase-B: paper-scale 50-replica repro_fig3b ensemble (cells_per_side=35, steps~720)"
       motivation: "This task's reduced-scale run (225 cells, 2 replicas, ~0.09 simulated days) cannot distinguish mechanism miscalibration from population-scale/run-duration mismatch -- only the paper-scale (1225 cells, 50 replicas, ~2 simulated days) ensemble repro_fig3b's own docstring documents can actually test Fig-3B reproduction and set the reproduced verdict for this study."
     - id: incr9-fig3b-intermediate-scale-diagnostic
       title: "Increment 9: intermediate-scale run to separate population-scale from run-duration effects on the fig3b band comparison"
-      motivation: "This study's report.main_expert_question: running the full cells_per_side=35 patch with few replicas but a duration between the reduced test's ~0.09 days and the paper-scale ~2 days could isolate whether population-scale or run-duration dominates the reduced-scale miss, informing how much confidence to put in Phase-B before committing the expensive 50-replica run."
+      motivation: "This study's report.main_expert_question: running the full cells_per_side=35 patch with few replicas but a duration between the reduced test's ~0.09 days and the paper-scale ~3.5 days could isolate whether population-scale or run-duration dominates the reduced-scale miss, informing how much confidence to put in Phase-B before committing the expensive 50-replica run."
 
 conditions:
   baseline:

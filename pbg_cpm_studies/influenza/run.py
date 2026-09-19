@@ -2084,13 +2084,18 @@ def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240
 
     PAPER-SCALE CONFIG (the Mac-mini Phase-B follow-up that will set the
     `reproduced` verdict -- NOT this function's default, which stays small so
-    the test suite is fast): ``replicas=50, cells_per_side=35, steps≈2880``
-    (2 days of model time at `run_full_model`'s default ``s_per_mcs=60``,
-    i.e. 1 minute/MCS, and ``mcs_per_step=7`` -- `steps` here is in RECORD
-    units of ``mcs_per_step`` MCS each, matching `run_full_model`'s own
-    convention). This function's small defaults (``replicas=3,
+    the test suite is fast): ``replicas=50, cells_per_side=35, steps≈720``.
+    `steps` is in RECORD units of ``mcs_per_step=7`` MCS each at
+    ``s_per_mcs=60`` (1 min/MCS), so each record advances 7 min and
+    ``t_days = i*mcs_per_step*s_per_mcs/86400 = i*0.004861``; ``steps≈720``
+    therefore covers ~3.5 days -- the full 0-3.5 day window of the digitized
+    Fig-3B checkpoints (``max t_days = 3.5`` in ``targets/fig3b.json``). (An
+    earlier draft said ``steps≈2880 = 2 days``; that is wrong -- 2880 records
+    x 7 MCS = 20160 MCS ~ 14 days, and 2 days would undershoot the 3.5-day
+    target window anyway.) This function's small defaults (``replicas=3,
     cells_per_side=35, steps=240``) run the full paper patch size but far
-    fewer replicas/steps than the 50-replica, ~2-day paper ensemble.
+    fewer replicas and a shorter window than the 50-replica, 3.5-day paper
+    ensemble.
 
     CALIBRATION HONESTY (per `run_full_model`'s docstring, inherited here):
     this function WIRES the full model and EVALUATES it against the fig3b
