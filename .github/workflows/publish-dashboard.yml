@@ -20,6 +20,7 @@ on:
     branches: [main]
     paths:
       - 'workspace/**'
+      - 'pbg_cpm_studies/**'
       - 'scripts/publish_dashboard.sh'
       - '.github/workflows/publish-dashboard.yml'
       - 'pyproject.toml'
