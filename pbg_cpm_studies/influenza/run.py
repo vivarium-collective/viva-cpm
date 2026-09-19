@@ -1540,7 +1540,7 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
 
 # Enable-flag tokens accepted by `run_full_model.enable` (subsystem isolation).
 _FULL_MODEL_SUBSYSTEMS = (
-    "infection", "ifn", "death", "allee", "macrophage", "chemokine",
+    "infection", "ifn", "death", "ros", "allee", "macrophage", "chemokine",
     "nk_cd8", "killing", "recruitment", "ode",
 )
 
@@ -1750,11 +1750,23 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
     g_ki = consts["g_ki"]
     a_11, a_12 = consts["a_11"], consts["a_12"]
     eta = tot_cell / price_ode.ODE_EPITHELIAL_POPULATION
+    # ROS-driven epithelial death (source OxidationAgentModelSteppable, dossier
+    # §4b): the integrated oxidant X (a well-mixed ODE scalar) kills infected
+    # (rate g_ix·hill(X,a_ix,h_x) -> dead-from-INFECTED) and uninfected
+    # (g_hx·hill(X,a_hx,h_x) -> dead-from-HEALTHY) cells each MCS. a_ix << a_hx
+    # so infected cells are far more ROS-vulnerable. This is the paper's
+    # DOMINANT epithelial killer (Fig 3B dead->1223/1225 by ~day 3), which
+    # Increments 0-9 never wired (the ladder mapped "ROS/Allee death" to the
+    # Allee helpers only) -- Increment 10 adds it, source-faithfully.
+    g_ix = consts["g_ix"]; a_ix = consts["a_ix"]
+    g_hx = consts["g_hx"]; a_hx = consts["a_hx"]
+    h_x = int(params["price_ode"]["hill_exponents"]["h_x"])
 
     # --- independent RNG streams (offsets match the other drivers) --------
     infect_rng = np.random.default_rng(seed + 1)
     death_rng = np.random.default_rng(seed + 2)
     allee_rng = np.random.default_rng(seed + 3)
+    ros_rng = np.random.default_rng(seed + 4)
     kill_rng = np.random.default_rng(seed + 800)
     recruit_rng = np.random.default_rng(seed + 900)
 
@@ -1970,6 +1982,32 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
                     world.set_cell_type(cid, types.D)
                     infected_ids.discard(cid)
                     dead_from_infected_ids.add(cid)
+
+        # (8.5) ROS-driven death (source OxidationAgentModelSteppable, dossier
+        # §4b) -- the paper's DOMINANT epithelial killer, absent from Incr 0-9.
+        # The well-mixed oxidant X (integrated ODE scalar, from the last
+        # `_ode_couple`) kills infected (I->D, dead-from-INFECTED) and
+        # uninfected (H->D, dead-from-HEALTHY) cells THIS MCS. Per-cell per-MCS
+        # rates g_ix·hill(X,a_ix,h_x) / g_hx·hill(X,a_hx,h_x); a_ix << a_hx so
+        # infected cells are far more ROS-vulnerable. Applied every MCS
+        # (matching the source's per-MCS OxidationAgentModelSteppable).
+        if "ros" in enable:
+            X = state["X"]
+            if X > 0.0:
+                pr_I = 1.0 - math.exp(-g_ix * price_ode.hill(X, a_ix, h_x))
+                pr_H = 1.0 - math.exp(-g_hx * price_ode.hill(X, a_hx, h_x))
+                if pr_I > 0.0 and infected_ids:
+                    for cid in list(infected_ids):
+                        if ros_rng.random() < pr_I:
+                            world.set_cell_type(cid, types.D)
+                            infected_ids.discard(cid)
+                            dead_from_infected_ids.add(cid)
+                if pr_H > 0.0:
+                    types_ros = list(world.cell_types())
+                    for cid in range(1, n_cells + 1):
+                        if types_ros[cid] == types.H and ros_rng.random() < pr_H:
+                            world.set_cell_type(cid, types.D)
+                            dead_from_healthy_ids.add(cid)
 
     def _ode_couple(sig_1_dynamic):
         """Step 9: spatial->ODE push -> integrate -> ODE->spatial recruitment
