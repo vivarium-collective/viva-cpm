@@ -65,14 +65,42 @@ def test_spatial_state_videos_render_animated_html():
 
 
 def test_spatial_data_is_real_multiframe():
-    # the baked spatial blob has a frame series (>=2 frames) per study, with
-    # grids sized to the recorded coarsened lattice (compact, side <= 60).
-    from pbg_cpm_studies.visualizations.influenza_studies import _SP
+    # the baked spatial blob is a FULL-RESOLUTION, full-duration frame series
+    # per study, each frame a zlib+base64-compressed cell-type/owner lattice.
+    import numpy as np
+    from pbg_cpm_studies.visualizations.influenza_studies import _SP, _decode_grid
     assert len(_SP) == 9  # 8 distinct scenes + the shared full-model repro scene
     for slug, d in _SP.items():
-        assert len(d["frames"]) >= 2
-        assert max(d["nx"], d["ny"]) <= 60
-        assert len(d["frames"][0]["grid"]) == d["nx"] * d["ny"]
+        assert len(d["frames"]) >= 10          # ~16-20 even-spaced full-duration frames
+        assert d["enc"] == "zlib+b64"          # compressed, not a raw grid list
+        # the compressed-frame decode returns a FULL-RESOLUTION 2D grid
+        g0 = _decode_grid(d["frames"][0], d["nx"], d["ny"], d.get("dtype", "uint8"))
+        assert g0.shape == (d["ny"], d["nx"])
+        assert int(g0.min()) >= 0
+        if d["kind"] == "type":
+            assert int(g0.max()) <= 7          # medium(0), 6 cell states, reserve(7)
+        # frames advance in MCS (first->last), a real time series
+        assert d["frames"][-1]["mcs"] > d["frames"][0]["mcs"]
+
+
+def test_capstone_spatial_is_full_scale_and_sweeps_to_death():
+    # The full_model money-shot must be paper-realistic: full lattice
+    # resolution (NOT coarsened <=60), full ~3.5-day duration, and — on the
+    # Increment-10 ROS-death branch — the epithelium visibly dies (green H ->
+    # grey D sweep: dead cells go from none to a large fraction of the sheet).
+    from pbg_cpm_studies.visualizations.influenza_studies import _SP, _decode_grid
+    d = _SP["repro-full-model"]
+    assert min(d["nx"], d["ny"]) >= 150        # full-res domain (35x35-cell patch + margins)
+    assert d["frames"][-1]["mcs"] >= 5000       # ~3.5 days at 7 MCS/record
+    first = _decode_grid(d["frames"][0], d["nx"], d["ny"], d["dtype"])
+    last = _decode_grid(d["frames"][-1], d["nx"], d["ny"], d["dtype"])
+    dead_first = int((first == 3).sum())
+    dead_last = int((last == 3).sum())
+    healthy_first = int((first == 1).sum())
+    healthy_last = int((last == 1).sum())
+    assert dead_first == 0                       # seeded state has no dead cells
+    assert dead_last > 5000                       # ROS death sweeps a large area
+    assert healthy_last < 0.1 * healthy_first    # the healthy sheet is nearly wiped out
 
 
 def test_data_is_real_engine_output():
