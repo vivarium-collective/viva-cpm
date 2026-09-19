@@ -1,0 +1,540 @@
+schema_version: 3
+name: ifn-resistance
+status: in-progress
+phase: Simulate
+title: "Increment 3: type-I IFN + per-cell resistance gates virus release — mechanism validated, reproduction still PENDING"
+confidence: Provisional
+investigation: influenza-sego2022
+
+purpose:
+  question: |
+    Layered on the validated Increment-2 virus field + infection transition:
+    does a diffusing type-I IFN field, converted per-cell into a resistance
+    scalar (source formula `resist = f_bar/(a_rf+f_bar)`), gate an infected
+    cell's virus secretion by `(1-resist)` strongly enough to measurably
+    REDUCE infection spread and total virus versus the same run with no IFN
+    (Increment 2's path, unchanged)?
+  mechanism: ifn_field_and_per_cell_resistance
+
+report:
+  title: "Increment 3: IFN-driven per-cell resistance substantially cuts virus load (primary evidence), with a smaller, later-emerging reduction in infected-cell spread — mechanism validated, reproduction still PENDING"
+  verdict: documented
+  confidence: medium
+  evidence_quality: measured
+  objective: >-
+    Drive `run.run_virus_infection_with_ifn` (Task 3.3) — the same
+    0.3mm/900-cell sheet, seed, and stochastic H->I transition as Increment
+    2's `run_virus_infection`, but with a second diffusing type-I IFN field
+    wired alongside the virus field, and, each update, every currently-
+    infected cell's virus secretion throttled by `(1 - resist)` where
+    `resist = cell_resistance(f_bar, a_rf)` from that cell's locally-sampled
+    mean IFN — and compare against `run_virus_infection` (no IFN, no
+    resistance) run with identical parameters, to measure whether the
+    IFN->resistance gate reduces spread and virus load (Task 3.3's
+    integration test, `test_ifn_resistance_slows_spread_vs_no_ifn`, plus the
+    fuller with/without series recorded in Task 3.3's report).
+  conclusion: >-
+    MECHANISM VALIDATED, REPRODUCTION NOT YET ATTEMPTED. Same seed (17),
+    same 0.3mm/900-cell sheet, same init_infected_frac (0.05, 45 of 900
+    cells seeded infected). The PRIMARY quantitative evidence is total_virus:
+    with the IFN->resistance gate active, total_virus is roughly HALVED at
+    every sampled step (819.16 vs 1750.69 at step 20, a ~53% reduction at
+    the step Task 3.3's integration test actually asserts; 1222.88 vs
+    2752.34 at step 30, ~56%; 1624.58 vs 3905.38 at step 40, ~58%) — a
+    robust, consistent signal from the earliest sampled step onward. n_I is
+    a WEAKER, corroborating directional signal at the tested step: 48 vs 50
+    at step 20 is only a ~4% reduction, not on its own strong evidence of
+    slowed spread, but the gap widens over later steps as the virus-load
+    reduction compounds — 51 vs 60 at step 30 (~15%), 53 vs 69 at step 40
+    (~23%). So: the gate's IMMEDIATE, well-supported effect is on virus
+    load; its effect on infected-cell COUNT is real but small early and only
+    becomes a meaningfully sized effect by step 40. mean_resist over
+    currently-infected cells jumps to ~0.53 after the first update and
+    plateaus in a narrow 0.55-0.57 band through step 40 (it does NOT ramp
+    toward 1 as more IFN nominally accumulates) — virus release is
+    throttled to roughly half (1-resist ≈ 0.44) from step 1 onward, a
+    steady brake rather than a hard block, consistent with the total_virus
+    reduction magnitude. This validates the MECHANISM (IFN accumulates ->
+    per-cell resistance rises -> virus release is gated -> total virus
+    drops substantially -> infected-cell growth slows, weakly at first and
+    more clearly with time) — it is NOT a claim that any of Sego et al.
+    2022's Figs 3B/5/7 quantitative targets are met; that evaluation is
+    deferred to Increment 9 (the capstone).
+  main_insight: >-
+    A per-cell resistance scalar computed purely from each infected cell's
+    OWN locally-sampled IFN (no explicit cell-cell signaling beyond field
+    diffusion) is sufficient to cut total virus roughly in half from the
+    earliest sampled step onward — that virus-load reduction is the robust,
+    well-supported effect. Infected-cell count responds to the same
+    mechanism but more slowly: the n_I gap is small at step 20 (~4%) and
+    only widens to a clearly meaningful ~23% by step 40, because fewer
+    infections have had time to compound into a visible count difference
+    even though virus release is already substantially throttled. The
+    protective effect is real, but it comes from resistance hitting a fast
+    local steady state (~0.55) almost immediately, not from resistance
+    climbing toward saturation (~1) as more IFN mass nominally accumulates
+    in the field over time.
+  caveat: >-
+    This is a mechanism-validation claim only, with three explicit open
+    items carried to later increments, most importantly a calibration flag
+    from Task 3.3 that stays visible rather than hidden: (1) APC-driven IFN
+    amplification is entirely omitted here (global-compartment feedback,
+    Increment 8) — this study's IFN comes only from directly-infected cells'
+    own local secretion, which here is UNGATED basal release: the CC3D source
+    also applies `(1-resist)` to IFN's OWN secretion (`sec_amount =
+    (1-resist)*b_fi` in Type1InterferonSecretionSteppable), a negative feedback
+    NOT modeled here — Increment 3 gates only virus release per plan scope. Its
+    absence removes a brake on IFN, so the modeled resist plateau (below) runs
+    somewhat HIGHER than a fully source-faithful version would; (2) resistance's
+    role in cell death, the Allee effect, and IL-10 cross-talk are all later
+    increments, not modeled here — resistance in this study gates only virus
+    secretion (and, in the source but not here, IFN self-secretion); (3) OPEN
+    CALIBRATION QUESTION (Increment 9): mean_resist plateaus at ~0.55, not
+    ~1 — the steady-state local IFN concentration each infected cell reaches
+    lands close to `a_rf` (8.5e-6) in magnitude (resist ≈ 0.55 means f_bar ≈
+    1.2x a_rf) rather than far above it, which is plausible but a
+    "suspiciously just-right" coincidence between two independently-derived
+    constants (a_rf from the ODE-scale calibration; the field magnitude from
+    a separate secretion/diffusion/decay derivation chain) that Task 3.3
+    flagged as worth cross-checking against the source's actual field
+    magnitudes/resist trajectories, not resolved here. Reproduction verdict
+    (Figs 3B/5/7) stays PENDING until Increment 9.
+  key_metrics:
+    - {name: n_I_with_ifn_vs_without_step20, value: "48 vs 50 (~4% reduction)", note: "weak signal at the tested step -- corroborating, not primary evidence"}
+    - {name: n_I_with_ifn_vs_without_step30, value: "51 vs 60 (~15% reduction)"}
+    - {name: n_I_with_ifn_vs_without_step40, value: "53 vs 69 (~23% reduction)"}
+    - {name: total_virus_with_ifn_vs_without_step20, value: "819.16 vs 1750.69 (~53% reduction)", note: "primary quantitative evidence at the tested step"}
+    - {name: total_virus_with_ifn_vs_without_step30, value: "1222.88 vs 2752.34 (~56% reduction)"}
+    - {name: total_virus_with_ifn_vs_without_step40, value: "1624.58 vs 3905.38 (~58% reduction)"}
+    - {name: mean_resist_plateau, value: "~0.53 at step 1, then 0.55-0.57 through step 40 (does NOT ramp to ~1)", flag: "Increment-9 calibration question — see caveat"}
+    - {name: a_rf, value: 8.51558276606456e-06}
+
+study_card:
+  goal: Validate that per-cell resistance, computed from local type-I IFN and used to gate virus secretion by (1-resist), measurably reduces infection spread and total virus versus the Increment-2 no-resistance path — no reproduction claim.
+  mechanism: A second diffusing/decaying type-I IFN field (secreted by infected cells) is sampled locally per infected cell each update into `resist = f_bar/(a_rf+f_bar)` (source convention, NOT the paper's printed `1 - ...` form), which throttles that cell's NEXT update's virus secretion via `world.set_cell_secretion_scale(virus_fi, cid, 1-resist)` — the infection transition itself is unchanged from Increment 2.
+  why_before_next: Increment 4 (epithelial death/recovery) and later increments (chemokine/IL-10, macrophage/NK/CD8+ response) all build on a cell's resistance state; this study establishes that the resistance signal itself moves in the protective direction and has a real, measurable effect on spread before anything downstream depends on it.
+  expected_result: With the IFN->resistance gate active, total_virus stays substantially lower than the same-seed no-IFN run at every sampled step (the study's primary, robust quantitative evidence, ~53-58% reduction); n_I also grows more slowly, but only weakly so at the earliest tested step (~4% at step 20), strengthening to a clearly meaningful gap by step 40 (~23%) — a corroborating directional trend, not co-equal evidence with total_virus. mean_resist over infected cells is > 0 once IFN has accumulated (the gate is actually engaged, not a no-op).
+  main_expert_question: Is the ~0.55 resist plateau (rather than ramping toward the paper's implied stronger protection) a real feature of the source's constants, or a magnitude/convention issue that Increment 9's calibration pass needs to resolve before the capstone reproduction can be trusted?
+
+question: |
+  Does a diffusing type-I IFN field, converted per-cell into a resistance
+  scalar via the CC3D-source formula `resist = f_bar/(a_rf+f_bar)`, gate
+  infected cells' virus secretion by `(1-resist)` strongly enough to
+  measurably slow infection spread and reduce total virus versus the same
+  seed/parameters with no IFN (Increment 2's unmodified path)?
+
+hypothesis: |
+  Layered on the Increment-2 virus field + infection transition: a type-I
+  IFN field secreted by infected cells diffuses and decays; each infected
+  cell's locally-sampled mean IFN drives a per-cell resistance scalar that
+  throttles ITS OWN virus secretion for the next update. This should leave
+  n_I lower and total_virus substantially lower than an identical no-IFN
+  run at the same steps, while mean_resist stays strictly positive once IFN
+  has had time to accumulate.
+
+objective: |
+  Wire the type-I IFN field (Task 3.2, `pbg_cpm_studies/influenza/fields.py`
+  `add_ifn_field`) and the pure per-cell resistance function (Task 3.3,
+  `pbg_cpm_studies/influenza/resistance.py::cell_resistance`) into a new
+  driver, `run.run_virus_infection_with_ifn` (Task 3.3), alongside the
+  unmodified Increment-2 `run_virus_infection`, and compare their per-update
+  series (n_I, n_H, total_virus, plus `mean_resist` recorded only by the
+  with-IFN driver) at identical seed/parameters (Task 3.3's integration test
+  `tests/test_influenza_virus_infection.py::test_ifn_resistance_slows_spread_vs_no_ifn`
+  and the fuller with/without series in Task 3.3's report). A minimal
+  in-package figure (`pbg_cpm_studies/influenza/viz.py::ifn_resistance_figure`,
+  Task 3.4) renders both series side by side plus the mean_resist trajectory.
+
+description: |
+  Increment 3 of the influenza-sego2022 capability ladder: adds ONE new
+  diffusible field (type-I IFN) and ONE new per-cell state computation
+  (resistance, from local IFN) that gates the Increment-2 virus-secretion
+  rate. No death/recovery, no Allee effect, no IL-10 cross-talk, no immune
+  cells, and no APC-driven global IFN amplification — those arrive in later
+  increments. The IFN field's diffusion/decay/secretion constants and the
+  resistance formula's `a_rf` constant are taken from the CC3D
+  ViralInfectionVTM source (see `pbg_cpm_studies/influenza/params.yaml`'s
+  `ifn:` and `resistance:` blocks); the resistance formula matches the
+  source's stored convention (`resist = f_bar/(a_rf+f_bar)`, a plain
+  Hill/saturation function), NOT the paper's printed form
+  (`rho = 1 - f_bar'/(theta*a_f+f_bar')`) — every source consumer applies
+  `(1-resist_source)` wherever the paper's rho appears protectively, which
+  is exactly how `run_virus_infection_with_ifn` uses it.
+
+claim: |
+  A type-I IFN field, sampled locally per infected cell into a resistance
+  scalar (source formula) that gates that cell's virus secretion by
+  `(1-resist)`, measurably reduces total virus versus an identical no-IFN
+  run (same seed, same 60-update driver) — roughly HALVED at every sampled
+  step (819.16 vs 1750.69 at step 20, ~53%; 1222.88 vs 2752.34 at step 30,
+  ~56%; 1624.58 vs 3905.38 at step 40, ~58%). This is the study's PRIMARY,
+  robust quantitative evidence. Infected-cell count (n_I) moves in the same
+  protective direction but is a WEAKER signal at the step Task 3.3's
+  integration test actually asserts: 48 vs 50 at step 20 is only a ~4%
+  reduction; the gap widens to ~15% at step 30 (51 vs 60) and ~23% at step
+  40 (53 vs 69) as the virus-load reduction has more time to compound into
+  a visible count difference. So n_I is treated here as a corroborating
+  directional trend, not co-equal quantitative evidence with total_virus.
+  This is a MECHANISM-validation claim (the IFN->resistance->reduced-
+  secretion chain behaves in the protective direction and has a real,
+  non-trivial magnitude on virus load, with a smaller/slower-to-emerge
+  effect on cell counts), not a claim that any of Sego et al. 2022's
+  quantitative figure targets (Figs 3B/5/7) are met — that reproduction
+  verdict remains PENDING until Increment 9 (the capstone).
+
+expected_behavior:
+  - With the IFN->resistance gate active, n_I at any given update is <=
+    the same-seed no-IFN run's n_I at that update (spread does not outrun
+    the unresisted path).
+  - total_virus with the gate active is strictly less than the no-IFN run's
+    total_virus at the same update, once IFN has had time to accumulate.
+  - mean_resist over currently-infected cells is > 0 once IFN has
+    accumulated (the gate is actually engaged, not a no-op returning
+    resist=0 everywhere).
+
+readouts:
+  - name: Infected cell count, with-IFN vs without (weak, widening signal)
+    identifier: n_I
+    units: cells
+    status: measured
+    description: >-
+      `n_I` series from `run_virus_infection_with_ifn` vs `run_virus_infection`
+      (same seed=17, patch_mm=0.3, init_infected_frac=0.05, mcs_per_update=10):
+      48/51/53 (with-IFN) vs 50/60/69 (without) at steps 20/30/40 — a WEAK
+      signal at step 20 (only ~4% reduction, 2 cells), widening to ~15% at
+      step 30 and ~23% at step 40 as the effect compounds. This is a
+      corroborating directional readout, not the study's primary
+      quantitative evidence (see total_virus below).
+  - name: Total virus-field concentration, with-IFN vs without (primary quantitative evidence)
+    identifier: total_virus
+    units: field concentration (sum over lattice sites)
+    status: measured
+    description: >-
+      `total_virus` series over the same runs: 819.16/1222.88/1624.58
+      (with-IFN) vs 1750.69/2752.34/3905.38 (without) at steps 20/30/40 —
+      roughly HALVED already at step 20 (~53% reduction, the step Task
+      3.3's integration test actually asserts) and staying in that ~53-58%
+      regime through step 40. This is the study's PRIMARY, robust
+      quantitative evidence for the mechanism's effect; n_I is a weaker
+      signal at the tested step (see above).
+  - name: Mean per-cell resistance over currently-infected cells
+    identifier: mean_resist
+    units: dimensionless (0-1)
+    status: measured
+    description: >-
+      `mean_resist` series from `run_virus_infection_with_ifn` only (no
+      no-IFN counterpart, since resistance doesn't exist without the IFN
+      field): 0.0 at step 0 (no IFN yet), 0.5290 at step 1, 0.5543 at step
+      2, then plateauing in a 0.5555-0.5697 band from step 3 through step
+      40 — reaches its local steady state almost immediately and stays
+      essentially flat rather than climbing toward 1. FLAGGED (see report
+      caveat) as an open Increment-9 calibration/convention question, not
+      hidden.
+
+behavior_tests:
+  - name: IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)
+    classification: diagnostic
+    description: |
+      WEAK, DIRECTIONAL check only, not the study's quantitative gate: `op:
+      le, value: 0` passes on ANY reduction, however small, so a PASS here
+      proves only that n_I did not get WORSE with the gate active — it does
+      NOT by itself establish a meaningful effect size. Measured at the step
+      Task 3.3's integration test actually asserts (step 20): with_ifn
+      n_I[-1]=48 <= without n_I[-1]=50, a reduction of only 2 cells (~4%) —
+      a genuinely weak signal at that step. The gap does widen at later
+      steps (51 vs 60 at step 30, ~15%; 53 vs 69 at step 40, ~23%, per Task
+      3.3's fuller report series), so the directional trend strengthens over
+      time, but the quantitative claim for THIS study rests on total_virus
+      (next test), not on this loose n_I criterion.
+    measure: {kind: n_I_delta_vs_without_ifn, condition: ifn-resistance, stat: final}
+    pass_if: {op: le, value: 0}
+    status: passed
+    result: PASS
+  - name: IFN-gated virus release leaves strictly less total virus (primary quantitative gate)
+    classification: primary
+    description: |
+      This is the study's PRIMARY quantitative evidence for the mechanism's
+      effect. Pass criterion: total_virus at the run's final step with the
+      gate active must be strictly less than the same-seed no-IFN run's
+      total_virus at that step. Measured at step 20 (the step Task 3.3's
+      integration test actually asserts): with_ifn total_virus[-1]=819.16 <
+      without total_virus[-1]=1750.69 — a ~53% reduction, already
+      substantial at the earliest sampled step, not just a loose
+      any-reduction pass like the n_I check above. The reduction stays in
+      the ~53-58% regime through step 40 (1222.88 vs 2752.34 at step 30;
+      1624.58 vs 3905.38 at step 40).
+    measure: {kind: total_virus_delta_vs_without_ifn, condition: ifn-resistance, stat: final}
+    pass_if: {op: lt, value: 0}
+    status: passed
+    result: PASS
+  - name: Resistance gate actually engages (mean_resist > 0)
+    classification: primary
+    description: |
+      Pass criterion: mean_resist over currently-infected cells must be > 0
+      by the run's final step (sanity that the gate is not a no-op).
+      Measured: mean_resist[-1] > 0 at step 20 (Task 3.3); the fuller series
+      shows mean_resist reaches ~0.53 after just the first update and
+      plateaus at ~0.55-0.57 through step 40 — well above 0, though it does
+      NOT climb toward 1 (see the FLAG in report.caveat).
+    measure: {kind: mean_resist, condition: ifn-resistance, stat: final}
+    pass_if: {op: gt, value: 0.0}
+    status: passed
+    result: PASS
+
+findings:
+  - id: F-01
+    kind: computational
+    status: partial
+    mechanism_origin: engineered
+    evidence:
+      from_test: IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)
+      divergence_factor: 0.96
+      observed: "n_I with-IFN 48/51/53 vs without 50/60/69 at steps 20/30/40 (same seed=17, patch_mm=0.3, init_infected_frac=0.05); ratio 0.96 (step 20, ~4% reduction) -> 0.85 (step 30, ~15%) -> 0.77 (step 40, ~23%)"
+    statement: |
+      With the IFN->resistance gate active, infected-cell growth is
+      slightly slower than the identical no-IFN path, but the effect is
+      WEAK at step 20 (only ~4% reduction, 2 cells) — not on its own strong
+      evidence of slowed spread. The gap widens meaningfully by step 40
+      (~23%) as the effect compounds, so this is a corroborating
+      directional trend that strengthens over time, not the study's primary
+      quantitative evidence (that's total_virus, F-02) and not a strong
+      signal at the step the underlying integration test actually asserts.
+  - id: F-02
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: IFN-gated virus release leaves strictly less total virus (primary quantitative gate)
+      divergence_factor: 0.42
+      observed: "total_virus with-IFN 819.16/1222.88/1624.58 vs without 1750.69/2752.34/3905.38 at steps 20/30/40; ratio 0.42-0.47 across the three sampled steps"
+    statement: |
+      This is the study's PRIMARY, robust quantitative evidence. Gating
+      each infected cell's virus secretion by (1-resist) cuts total virus
+      roughly in half already at step 20 (~53% reduction, the step the
+      underlying integration test actually asserts) and stays in the
+      ~53-58%-reduction regime through step 40 — a substantial, sustained
+      brake on virus load that is the direct, measurable output of the
+      resistance mechanism, and a much stronger signal at the tested step
+      than the n_I check (F-01).
+  - id: F-03
+    kind: computational
+    status: partial
+    mechanism_origin: engineered
+    evidence:
+      from_test: Resistance gate actually engages (mean_resist > 0)
+      divergence_factor: 0.55
+      observed: "mean_resist 0.0 (step 0) -> 0.5290 (step 1) -> 0.5543 (step 2) -> plateau 0.5555-0.5697 through step 40; never approaches 1"
+    statement: |
+      The resistance gate engages immediately (not a no-op) and stays
+      substantially positive throughout, confirming the mechanism's
+      qualitative direction. It only PARTIALLY confirms the expected
+      behavior, though: resistance reaches a fast local steady state near
+      0.55 and stays essentially flat, rather than climbing toward
+      saturation (~1) as the naive expectation of "more IFN accumulates
+      over time -> more resistance" would suggest. This is flagged, not
+      hidden, as an Increment-9 calibration/convention open question (see
+      report.caveat and the standalone caveat item below).
+
+conclusion: |
+  MECHANISM VALIDATED, NOT REPRODUCED. The type-I IFN field drives a
+  per-cell resistance scalar that gates virus secretion and measurably
+  reduces total virus relative to the Increment-2 no-IFN path (same seed):
+  total_virus is the PRIMARY, robust quantitative evidence, roughly halved
+  at every sampled step (~53% at step 20, the step Task 3.3's integration
+  test actually asserts, through ~58% at step 40). n_I moves in the same
+  protective direction but is a WEAKER, corroborating signal at the tested
+  step (48 vs 50, ~4% at step 20), widening to a more meaningful ~23% by
+  step 40 (53 vs 69) as the effect compounds — n_I alone at step 20 is not
+  strong evidence of slowed spread. mean_resist confirms the gate engages
+  (>0 from step 1 onward) but plateaus at ~0.55 rather than ramping toward
+  1 — a flagged Increment-9 calibration/convention question, not resolved
+  here. This increment has no death/recovery, no Allee effect, no IL-10
+  cross-talk, no immune cells, and no APC-driven global IFN amplification,
+  and makes NO claim about matching any of Sego et al. 2022's Figs 3B/5/7
+  quantitative acceptance bands — that reproduction verdict is PENDING
+  until Increment 9 (the capstone).
+
+conclusion_verdicts:
+  regression_compatibility:
+    result: PASS
+    basis: Reproduces Task 3.3's measured integration-test result and report series exactly (same driver, same seed, same params.yaml constants).
+  biological_validation:
+    result: PENDING
+    basis: >-
+      This increment validates the MECHANISM (IFN accumulates -> per-cell
+      resistance rises -> virus secretion is gated -> total virus load is
+      substantially reduced, with a weaker, later-emerging reduction in
+      infected-cell count) with a single seeded run, not a quantitative
+      reproduction
+      against any of Figs 3B/5/7. Death/recovery, the Allee effect, IL-10
+      cross-talk, immune cells, and APC-driven global IFN amplification
+      don't exist yet. The resist plateau (~0.55, not ~1) is an OPEN
+      magnitude/convention question for Increment 9 — do NOT read PENDING
+      here as a passing or failing reproduction verdict; no reproduction
+      claim is made until Increment 9.
+  explanatory_gain:
+    result: PENDING
+    basis: >-
+      No alternative mechanism is being compared at this increment;
+      deferred to later increments / the capstone where a reproduction
+      comparison against the paper's figures becomes meaningful.
+
+biological_summary: |
+  Infected epithelial cells secrete type-I interferon (IFN) into a second
+  diffusing, decaying extracellular field (source-cited diffusion
+  coefficient, decay rate, and secretion constant, per
+  `pbg_cpm_studies/influenza/params.yaml`'s `ifn:` block), layered on the
+  Increment-2 virus field. Each update, every currently-infected cell reads
+  its own locally-diffused mean IFN concentration and converts it into a
+  resistance scalar via the CC3D-source formula `resist =
+  f_bar/(a_rf+f_bar)` (params.yaml `resistance:` block; NOT the paper's
+  printed `1 - f_bar'/(theta*a_f+f_bar')` form — every source consumer
+  applies `(1-resist_source)` wherever the paper's rho appears
+  protectively, matched here). That resistance throttles the SAME cell's
+  own virus secretion for the next update by a factor of `(1-resist)`, so a
+  cell that has accumulated more local IFN releases proportionally less
+  virus. Measured against an identical no-IFN run (Increment 2's path,
+  unchanged), this produces a substantial, sustained brake on VIRUS LOAD —
+  total_virus is the study's primary, robust quantitative evidence, roughly
+  halved already at step 20 (~53%) and staying in that ~53-58%-reduction
+  regime through step 40. Infected-cell COUNT (n_I) moves in the same
+  protective direction but only weakly at step 20 (~4%, 48 vs 50 cells);
+  the reduction widens to a clearly meaningful ~23% by step 40 (53 vs 69)
+  as the virus-load reduction has more time to compound into fewer new
+  infections — a corroborating trend, not evidence as strong as
+  total_virus's. mean_resist itself reaches a fast
+  local steady state (~0.53-0.57) almost immediately rather than climbing
+  toward saturation — because the IFN field's fast decay and diffusion
+  drive each infected cell's local IFN to a quasi-steady concentration
+  within about one update, and that concentration happens to sit close to
+  (about 1.2x) the resistance formula's `a_rf` constant rather than far
+  above it. There is no cell death/recovery, no Allee effect, no IL-10
+  cross-talk, no immune cells (macrophages/NK/CD8+ T), and no APC-driven
+  global IFN amplification feedback yet — all later increments.
+
+key_assumptions:
+  - APC-driven IFN amplification is entirely omitted — in this study, IFN
+    comes only from directly-infected cells' own local secretion, not from
+    the global ODE-compartment feedback loop the paper models (Increment
+    8). The measured protective effect here is therefore a LOWER bound on
+    what a full model with amplification might show.
+  - Resistance in this study ONLY gates virus secretion (via
+    `set_cell_secretion_scale`). The source also uses resistance to modulate
+    infected-cell death probability and the model's Allee-effect term, and
+    IL-10 secretion cross-talks with it — none of that exists yet (later
+    increments).
+  - >-
+    OPEN CALIBRATION QUESTION (flagged for Increment 9, not resolved here) --
+    mean_resist plateaus at ~0.55 (f_bar ≈ 1.2x a_rf), not climbing toward
+    1, because each infected cell's local IFN reaches a fast
+    secretion/diffusion/decay steady state that happens to land close in
+    magnitude to `a_rf` (8.5e-6) — a plausible but "suspiciously just
+    right" coincidence between two independently-derived constants (Task
+    3.3's report). Worth cross-checking against the source's actual field
+    magnitudes/resist trajectories before Increment 9 locks in a
+    reproduction verdict.
+  - Single seed (17) for both drivers (same two-RNG-stream convention as
+    Increment 2) — the with/without comparison is a single-run
+    demonstration of the mechanism's qualitative and approximate
+    quantitative behavior, not a statistically characterized effect size
+    across a systematic replicate sweep.
+  - As in Increment 2, there is no live-demo process-bigraph composite for
+    the WITH-IFN driver — `run_virus_infection_with_ifn` is a raw
+    `cpm_core.World` loop (Task 3.3), not wrapped as a composite. The
+    `conditions.baseline` entry below reuses the SAME Increment-2
+    live-demo composite (`pbg_cpm_studies.composites.influenza.virus_infection`,
+    no IFN/resistance wiring) purely so this study has a dashboard-loadable
+    baseline; it is NOT the composite this study's readouts are measured
+    from, and it does not reproduce the IFN mechanism. All readouts above
+    come directly from `run.run_virus_infection_with_ifn` /
+    `run.run_virus_infection`.
+  - The with-IFN driver `run_virus_infection_with_ifn` is ~4-5x slower per
+    step than `run_virus_infection` (two diffusing fields, IFN needing 40 vs virus's
+    5 stiff-diffusion substeps per MCS) — a performance note for Increment
+    9's longer/larger reproduction runs, not addressed here.
+
+literature_anchors:
+  - expectation: "Type-I IFN secreted by infected cells confers a per-cell resistance that reduces virus release (Sego 2022 Sec. 2.2, cellular viral resistance rho)."
+    model_observable: "mean_resist over currently-infected cells (this study's `resist` field, `resistance.cell_resistance`) rises from 0.0 to ~0.53 after the first update and plateaus at ~0.55-0.57 through step 40; total_virus with the resulting (1-resist) gate is roughly halved vs the no-IFN path at steps 20/30/40 (819.16/1222.88/1624.58 vs 1750.69/2752.34/3905.38)."
+    source: "CC3D ViralInfectionVTM source (Type1InterferonModelSteppable.update_resistance) via pbg_cpm_studies/influenza/params.yaml resistance: block"
+    status_in_workspace: "Wired and measured directly (resist gates virus secretion by (1-resist) each update). The MAGNITUDE of the plateau (~0.55, not saturating toward 1) is an OPEN Increment-9 calibration question — flagged in report.caveat and key_assumptions, not resolved here. No acceptance-band comparison to a digitized figure yet."
+    cites: [sego2022influenza]
+  - expectation: "Sego et al. 2022's reproduction (Figs 3B/5/7) implicitly requires the IFN-resistance mechanism to be strong enough to shape infected/uninfected epithelial-cell trajectories at paper scale."
+    model_observable: "This study's with/without comparison shows the mechanism moves trajectories in the correct (protective) direction, with a robust, non-trivial magnitude on total_virus (roughly halved at every sampled step) but only a WEAK effect on n_I at the tested step (48 vs 50 at step 20, ~4%), widening to a more meaningful ~23% by step 40 (53 vs 69) — at 0.3mm/900-cell reduced scale, using source-cited constants throughout."
+    source: "Sego 2022 Figs 3B, 5, 7 (digitized acceptance bands, Increment 0)"
+    status_in_workspace: "Referenced QUALITATIVELY only — this study does not compare against the digitized Fig 3B/5/7 acceptance bands (pbg_cpm_studies/influenza/targets/); that quantitative reproduction comparison is Increment 9's capstone, not attempted here."
+    cites: [sego2022influenza]
+
+gate_status: passed
+
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+
+model_change:
+  base_model: pbg_cpm_studies.composites.influenza.virus_infection
+  new_processes: []
+  new_state_variables: [type-I IFN field (per-site concentration), per-cell resistance (derived, not stored on the composite)]
+  new_parameters: [a_rf]
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    No new process-bigraph composite is added this increment (see
+    key_assumptions): the IFN field, resistance computation, and secretion
+    gating are driven directly by `run.run_virus_infection_with_ifn` (a raw
+    `cpm_core.World` loop, Task 3.3), not through a live-demo composite.
+    `base_model` above points at the SAME Increment-2 composite reused as
+    this study's dashboard-loadable baseline entry; it has no IFN/resistance
+    wiring. A composite for the with-IFN driver, if wanted for a live demo,
+    is deferred to a later task/increment.
+
+runs:
+  - run_id: ifn-resistance-vs-no-ifn-0p3mm
+    name: With-IFN vs without-IFN comparison (0.3mm, 900 cells, seed 17)
+    status: completed
+    canonical: true
+    timestamp: '2026-09-18'
+    seeds: [17]
+    emitter: "n/a (direct pytest measurement)"
+    outcomes:
+      'IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)':
+        result: PASS
+        measured_value: 48.0
+        notes: "WEAK signal at the tested step: with_ifn n_I[-1]=48 <= without n_I[-1]=50 at step 20 (Task 3.3, test_ifn_resistance_slows_spread_vs_no_ifn), only ~4% reduction; gap widens to 51 vs 60 (~15%, step 30) and 53 vs 69 (~23%, step 40) per Task 3.3's report series. Corroborating directional trend, not this study's primary quantitative evidence (see total_virus below)."
+        evaluated_by: tests/test_influenza_virus_infection.py
+      'IFN-gated virus release leaves strictly less total virus (primary quantitative gate)':
+        result: PASS
+        measured_value: 819.16
+        notes: "PRIMARY quantitative evidence: with_ifn total_virus[-1]=819.16 < without total_virus[-1]=1750.69 at step 20, a ~53% reduction already at the tested step; stays in the ~53-58%-reduction regime through step 40 (1624.58 vs 3905.38)"
+        evaluated_by: tests/test_influenza_virus_infection.py
+      'Resistance gate actually engages (mean_resist > 0)':
+        result: PASS
+        measured_value: 0.5555
+        notes: "mean_resist[-1] > 0 at step 20 in the pytest assertion; the fuller report series shows 0.5290 at step 1, plateauing 0.5555-0.5697 through step 40 (does not ramp toward 1 — flagged as an Increment-9 calibration question)"
+        evaluated_by: tests/test_influenza_virus_infection.py
+
+discovery_implications:
+  followup_study_proposals:
+    - id: epithelial-death-recovery
+      title: "Increment 4: epithelial cell death and recovery"
+      motivation: "Add the death/recovery transitions that also consume resistance (Allee-effect term) alongside the secretion gating validated here."
+    - id: ifn-resist-calibration
+      title: "Increment 9 (or earlier spike): cross-check the resist ~0.55 plateau"
+      motivation: "The mean_resist plateau (~0.55, f_bar close to a_rf in magnitude) flagged in this study's caveat is an open magnitude/convention question worth resolving before the capstone reproduction locks in field-magnitude constants."
+
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.influenza.virus_infection
+    params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch, no IFN/resistance wiring; the measured readouts above come from run_virus_infection_with_ifn / run_virus_infection at 0.3mm/900 cells (Task 3.3), not this composite -- see key_assumptions
+
+  model_settings: []
+
+narrative_spine_skip: [implementation_requirements]
+narrative_spine_skip_reason: >-
+  Increment 3's mechanism is built and measured (Task 3.3's integration
+  test); implementation_requirements is a forward-looking build checklist
+  with no authored content for a study whose scope (IFN field + per-cell
+  resistance gating virus secretion, no death/recovery/Allee/IL-10/immune
+  cells) is complete for this increment.

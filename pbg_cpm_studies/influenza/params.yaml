@@ -108,6 +108,84 @@ virus:                    # virus field + infection transition constants (Increm
   # `Simulation/ViralInfectionVTMSteppables.py` ~line 89-93) -- i.e. "initial viral load" is a total
   # virus amount, converted to a per-site field concentration by the actual seeded epithelial count
   # and domain area, not a literal field value itself.
+ifn:                      # type-I IFN field + secretion/uptake constants (Increment 3)
+  source: "CC3D source (ImmuneModel/ImmuneModelInputs.py, ImmuneModel/ImmuneModelLib.py
+            `immune_model_string()`, Simulation/ViralInfectionVTMSteppables.py
+            `Type1InterferonSecretionSteppable`) via docs/cc3d-reference/sego2022-parameters.md
+            §3/§5; s_to_mcs=60 s/MCS, um_to_lat_width=2 um/site, cell_diameter=5 sites,
+            cell_volume=25 sites^2, tot_ec_ODE=250000, dim.z=2 (lattice z-thickness)"
+  diffusion_lat2_per_mcs: 7.793793725154791     # unitless D, lattice^2/MCS
+  # = exp_t1ifn_decay * exp_t1ifn_dl^2 * s_to_mcs / um_to_lat_width^2, where
+  #   exp_t1ifn_decay = t1ifn_decay_ODE(112.230629642229 /day) / 86400,
+  #   exp_t1ifn_dl = exp_cell_diameter(10um) * 2.0 = 20um (diffusion_length_cell_diam below).
+  # Source: ImmuneModelInputs.py `t1ifn_dc` (fed to CC3DML GlobalDiffusionConstant "t1ifn_dc").
+  # Exact literal (source's own approx docstring rounds to ~7.792; this is the full-precision value).
+  decay_per_mcs: 0.07793793725154792            # unitless decay, 1/MCS
+  # = (t1ifn_decay_ODE / 86400) * s_to_mcs. Source: ImmuneModelInputs.py `t1ifn_decay`
+  # (fed to CC3DML GlobalDecayConstant "t1ifn_decay"). Exact literal (was ~0.07792 approx).
+  diffusion_length_cell_diam: 2                 # source `exp_t1ifn_dl` = exp_cell_diameter*2.0
+  secretion_g_fp: 0.00027327308013600416        # per-MCS basal IFN release per InfectedReleasing/
+  # Infected cell, resistance-gated: (1-resist)*b_fi. NAMING NOTE: the task brief's "g_fp" follows
+  # the paper's Table 1 symbol for this term (basal release by infected/releasing cells,
+  # 𝓑(τ,Î)*g_fp/|V| — see sego2022-parameters.md §5); the literal CC3D/Antimony symbol that
+  # implements exactly this per-infected-cell basal-release mechanism is `b_fi`, NOT a symbol
+  # literally spelled "g_fp" (no such symbol exists in the source). Do NOT confuse this with the
+  # source's SEPARATE `b_fp*P` term (APC-count-driven, population/eta-scaled, applied as a
+  # spatially-uniform boundary secretion via 8 `t1ifn_secr0..7` XML elements, NOT per-infected-cell)
+  # -- the source code comment "Add global secretion by APCs: g_fp*P" mislabels that DIFFERENT term
+  # with the symbol "g_fp" even though the Antimony parameter name backing it is `b_fp`. This matches
+  # sego2022-parameters.md §5's own framing: "Release by infected/releasing cells g_fp/|V| (basal),
+  # plus APC-driven amplification" -- b_fi is the basal term recorded here; the b_fp/APC amplification
+  # term is NOT recorded as a params.yaml key (population-dependent via eta, out of scope for this
+  # task; flagged for whoever wires immune-cell recruitment/amplification in a later increment).
+  # Derivation chain (same convention as virus.secretion_g_vi in Increment 2):
+  #   1. ODE-calibrated rate b_fi = 0.196756617697923 /day
+  #      (source ImmuneModel/ImmuneModelLib.py, `immune_model_string()`'s per-cell b_fi literal:
+  #       `b_fi = 0.196756617697923 * s_t`, the cellularized model — NOT the separate organism-scale
+  #       `immune_model_string_old()` copy of the same raw symbol).
+  #   2. -> per-MCS per-cell: b_fi_percell_per_mcs = 0.196756617697923 * s_t, s_t = s_to_mcs/86400 =
+  #      6.944444e-4 day/MCS (ViralInfectionVTMSteppables.py:1140) = 0.00013663654006800208.
+  #   3. -> Type1InterferonSecretionSteppable.step multiplies by `self.dim.z = 2` BEFORE applying
+  #      `sec_amount = (1-resist)*b_fi` (Simulation/ViralInfectionVTMSteppables.py, `b_fi =
+  #      get_model_val('b_fi') * self.dim.z`): 0.00013663654006800208 * 2 = 0.00027327308013600416,
+  #      recorded here (same z=2-baked-in convention as virus.secretion_g_vi; see that key's
+  #      CONVENTION note for the z=1 alternative -- divide this constant by 2 if the viva-cpm IFN
+  #      field is single-layer).
+  uptake_g_fi: 15.74439694686276                # per-MCS uptake rate coefficient, per InfectedReleasing/
+  # Infected cell: `t1i_secretor.uptakeInsideCell(cell, 1E12, up_amount/cell.volume)`.
+  # Derivation: ODE-calibrated g_fi = 0.00181375452827859 /day (source ImmuneModelLib.py
+  # `immune_model_string()`'s per-cell g_fi literal, `g_fi = 0.00181375452827859 * s_t / s_l`) with
+  # s_t = 6.944444e-4 day/MCS, s_l = 1/(tot_ec_ODE*cell_volume) = 1/(250000*25) = 1.6e-7
+  # (ViralInfectionVTMSteppables.py:1142) -> 7.87219847343138, then multiplied by `self.dim.z = 2`
+  # (Type1InterferonSecretionSteppable.step: `up_amount = get_model_val('g_fi') * self.dim.z`)
+  # = 15.74439694686276. Population-independent (no s_v/eta factor), unlike secretion_g_fp's
+  # separate b_fp/APC term above -- a single canonical value applies across both patch scenarios.
+  # NOTE: this task records the exact numeric value per the brief; wiring uptake into the CPM
+  # engine's IFN-field consumer logic is deferred to a later task (Task 3.2 per the brief).
+resistance:               # cellular viral resistance rho (Increment 3)
+  source: "CC3D source (ImmuneModel/ImmuneModelLib.py `immune_model_string()`,
+            Simulation/ViralInfectionVTMSteppables.py
+            `Type1InterferonModelSteppable.update_resistance`) via
+            docs/cc3d-reference/sego2022-parameters.md 'Cellular viral resistance rho'"
+  formula: "resist = f_bar/(a_rf + f_bar)"
+  # CONVENTION (do not silently "fix" this): the source stores `resist = f_bar/(a_rf+f_bar)`, a
+  # PLAIN Hill/saturation function -- NO leading `1 -`, NO theta scaling factor -- even though the
+  # paper's printed form (Sec. 2.2) is `rho = 1 - f_bar'/(theta*a_f + f_bar')`. Every consumer of
+  # this stored value in the source (ViralCellDeathSteppable, RecoverySteppable,
+  # ChemokineSecretionSteppable, IL10SecretionSteppable) applies it as `(1 - resist)` wherever the
+  # paper's rho appears in a protective role -- i.e. `(1 - resist_source)` plays the role of the
+  # paper's rho. ONE EXCEPTION: ContactKillingSteppable multiplies by `resist` directly (not
+  # `1-resist`) -- see sego2022-parameters.md §7.7, flagged there as a possible source
+  # inconsistency, not resolved here.
+  a_rf: 8.51558276606456e-06     # resistance denominator constant, in field-concentration units
+  # matching `t1i_secretor.amountSeenByCell(cell) / cell.volume` (same s_l-scaled internal-field
+  # convention as virus/IFN secretion/uptake constants above).
+  # Derivation: ODE-calibrated a_rf = 53.2223922879035 (source ImmuneModelLib.py
+  # `immune_model_string()`'s per-cell a_rf literal, `a_rf = 53.2223922879035 * s_l`) with
+  # s_l = 1/(tot_ec_ODE*cell_volume) = 1/(250000*25) = 1.6e-7 -> 8.51558276606456e-06. Applied
+  # directly with NO dim.z factor (Type1InterferonModelSteppable.update_resistance: `a_rf =
+  # self.im_steppable.get_model_val('a_rf')`, used as-is), unlike ifn.secretion_g_fp/uptake_g_fi
+  # above which both get multiplied by dim.z=2.
 scenarios:
   source: "Sego 2022 Section 3"
   initial_viral_load: [1, 10, 100, 1000, 10000]

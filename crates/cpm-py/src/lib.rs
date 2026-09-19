@@ -141,6 +141,10 @@ impl World {
         self.world_mut().set_secretion(field_idx, cell_type, rate);
     }
 
+    fn set_cell_secretion_scale(&mut self, field_idx: usize, cell_id: u32, scale: f64) {
+        self.world_mut().set_cell_secretion_scale(field_idx, cell_id, scale);
+    }
+
     fn set_field_dynamics(&mut self, field_idx: usize, dt: f64, substeps: u32) {
         self.world_mut().set_field_dynamics(field_idx, dt, substeps);
     }

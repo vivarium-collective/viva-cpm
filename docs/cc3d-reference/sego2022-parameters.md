@@ -121,6 +121,22 @@ CONFIRMED against `ImmuneModelInputs.py:virus_dc_im` and `virus_decay_im` — ma
 the exact literals). `diffusion_length_cell_diam = exp_virus_dl / exp_cell_diameter = 5` (source
 `exp_virus_dl`). Recorded verbatim in `params.yaml`'s `virus:` section.
 
+**Increment 3 — exact type-I IFN field literals confirmed against source** (re-fetched per
+`sego2022-source-notes.md`, `ImmuneModel/ImmuneModelInputs.py`, same conversion constants as above):
+
+```
+exp_t1ifn_decay = t1ifn_decay_ODE(112.230629642229 /day) / 86400 = 0.001298965620859132 /s
+exp_t1ifn_dl     = exp_cell_diameter * 2.0 = 20.0 um   (source `exp_t1ifn_dl`; = 2 cell diameters)
+exp_t1ifn_dc     = exp_t1ifn_decay * exp_t1ifn_dl**2 = 0.5195862483436527 um^2/s
+t1ifn_decay      = exp_t1ifn_decay * s_to_mcs = 0.07793793725154792  /MCS  (unitless decay)
+t1ifn_dc         = exp_t1ifn_dc * s_to_mcs / um_to_lat_width**2 = 7.793793725154791 lattice^2/MCS
+```
+
+CONFIRMED against `ImmuneModelInputs.py:t1ifn_dc` and `t1ifn_decay` — matches the ≈7.792 / ≈0.07792
+approximations in §3's table above to full precision (those were already correct; this records the
+exact literals). `diffusion_length_cell_diam = exp_t1ifn_dl / exp_cell_diameter = 2` (source
+`exp_t1ifn_dl`). Recorded verbatim in `params.yaml`'s `ifn:` section.
+
 ## 4. Chemotaxis λ and functional form (Table 3, source confirms + extends)
 
 | Cell type | Field | λ_c (paper Table 3 & source) | Source |
@@ -182,6 +198,55 @@ the steppable that implements each in the source):
 |---|---|---|---|
 | Virus v̄ | Natural decay `μ_v` + mucociliary/antibody clearance `+ b_a·a/(a_v+A)` + uninfected-cell uptake `+ 𝓑(τ,Ĥ)·g_hv/|𝒱|` | Release by infected/releasing cells, resistance-scaled: `𝓑(τ,Î)·g_vi·(1−ρ)/|𝒱|` | `ViralSecretionSteppable` (secretion `g_vi*(1-resist)`), `ViralInternalizationSteppable` (uptake `g_hv`) |
 | Type-I IFN f̄ | Natural decay `μ_f` + uptake by infected cells `+ 𝓑(τ,Î)·g_fi/(θ|𝒱|)` | Release by infected/releasing cells `𝓑(τ,Î)·g_fp/|𝒱|` (basal), plus APC-driven amplification | `Type1InterferonSecretionSteppable` |
+
+**Increment 3 — exact `g_fp`/`g_fi`/resistance `a_rf` literals confirmed against source**, same
+cellularized-instance convention as Increment 2's `g_hv`/`g_vi` (`ImmuneModel/ImmuneModelLib.py`'s
+`immune_model_string()`, instantiated with real `scale_time=s_t`, `scale_loc=s_l`,
+`scale_vol=s_v=η` from `ViralInfectionVTMSteppables.py:1134-1144` — **not** the unscaled
+`immune_model_string_old()` copy of the same raw `/day` symbols):
+
+```
+s_t (day/MCS) = s_to_mcs / 86400 = 6.944444e-4          (as in Increment 2)
+s_l            = 1 / tot_ec_ODE / cell_volume = 1.6e-7   (as in Increment 2)
+s_v            = η = num_epithelial / tot_ec_ODE          (get_pop_scale_factor; SCENARIO-dependent,
+                                                             0.0049 for 0.3mm patch, 0.04 for 1.0mm)
+```
+
+**Naming clarification (do not conflate the two "basal IFN" terms):** no symbol literally spelled
+`g_fp` exists anywhere in the source. `Type1InterferonSecretionSteppable.step` has a code *comment*
+"Add global secretion by APCs: `g_fp*P`", but the Antimony parameter it actually reads is `b_fp`
+(`sec_amount_global = num_APCs * get_model_val('b_fp')`), applied as a spatially-**uniform**
+boundary secretion (via 8 XML elements `t1ifn_secr0`..`t1ifn_secr7`), **population(η)-scaled**
+(`b_fp = 0.221363566856883 * s_t * s_l / s_v`) — i.e. this is the table row's "plus APC-driven
+amplification" clause above, not the basal per-infected-cell term, and is **not** recorded as a
+`params.yaml` key (out of scope; flagged for whoever wires immune recruitment/amplification later).
+The literal per-infected-cell, resistance-gated term that structurally matches the table's basal
+`𝓑(τ,Î)·g_fp/|𝒱|` clause is source symbol **`b_fi`** (`Type1InterferonSecretionSteppable.step`:
+`sec_amount = (1-resist)*b_fi`, for `cell in cell_list_by_type(INFECTED, INFECTEDRELEASING)`,
+`secreteInsideCell(cell, sec_amount/cell.volume)`) — this is what `params.yaml`'s `ifn.secretion_g_fp`
+records, under the brief's `g_fp` key name but the source's `b_fi` symbol:
+
+```
+b_fi (raw, ODE-calibrated) = 0.196756617697923 /day   (ImmuneModelLib.py immune_model_string(): "b_fi = 0.196756617697923 * s_t")
+b_fi_percell_per_mcs = b_fi_raw * s_t = 0.00013663654006800208
+  -> * self.dim.z(=2) [Type1InterferonSecretionSteppable.step: `b_fi = get_model_val('b_fi') * self.dim.z`]
+  -> secretion_g_fp (as literally applied) = 0.00013663654006800208 * 2 = 0.00027327308013600416
+```
+
+`g_fi` (uptake by infected cells, matches the brief's `uptake_g_fi` key and the table's decay-side
+`g_fi/(θ|𝒱|)` clause directly — population-independent, no `s_v`/η factor):
+
+```
+g_fi (raw, ODE-calibrated) = 0.00181375452827859 /day   (ImmuneModelLib.py immune_model_string(): "g_fi = 0.00181375452827859 * s_t / s_l")
+g_fi_percell_per_mcs = 0.00181375452827859 * s_t / s_l = 7.87219847343138
+  -> * self.dim.z(=2) [Type1InterferonSecretionSteppable.step: `up_amount = get_model_val('g_fi') * self.dim.z`]
+  -> uptake_g_fi (as literally applied) = 7.87219847343138 * 2 = 15.74439694686276
+```
+
+Both `secretion_g_fp` (`b_fi`) and `uptake_g_fi` (`g_fi`) bake in the same `dim.z=2` slab-thickness
+factor as Increment 2's `secretion_g_vi` — the same z=1-vs-z=2 convention note applies (halve if the
+viva-cpm IFN field is single-layer). Recorded verbatim in `params.yaml`'s `ifn:` section; wiring
+uptake into the field-consumer logic is deferred to a later task per the brief.
 | Chemokines c̄ | Natural decay `μ_c` | Release regulated by TNF and dead-cell presence `𝓑(τ,D̂)·b_p·ρ'` | `ChemokineSecretionSteppable` |
 | IL-10 l̄ | Natural decay `μ_l` | Release by macrophages regulated by TNF and dead cells, resistance-scaled `(1−ρ)` | `IL10SecretionSteppable` (`sec_amount = mu_l*b_lh*(1-resist)`) |
 
@@ -290,6 +355,23 @@ term (the thing being subtracted from 1), not like `ρ` itself. **One exception:
 multiplies `kill_rate` by `cell_resist` *directly* (not `1−cell_resist`) — see §7, flagged as a
 possible naming/sign inconsistency worth double-checking against the paper's contact-killing γ term
 before `params.yaml` encodes it.
+
+**Increment 3 — exact `a_rf` literal confirmed against source**, same cellularized-instance
+convention as the `g_fp`/`g_fi` derivation above (`ImmuneModelLib.py`'s `immune_model_string()`,
+`scale_loc=s_l=1.6e-7`):
+
+```
+a_rf (raw, ODE-calibrated) = 53.2223922879035   (ImmuneModelLib.py immune_model_string(): "a_rf = 53.2223922879035 * s_l")
+a_rf (cellularized)        = 53.2223922879035 * s_l = 8.51558276606456e-06
+```
+
+Applied with **no** `dim.z` factor — `Type1InterferonModelSteppable.update_resistance` reads
+`a_rf = self.im_steppable.get_model_val('a_rf')` as-is, then `cell.dict[im_resist_key] =
+t1ifn_cell / (a_rf + t1ifn_cell)` where `t1ifn_cell = t1i_secretor.amountSeenByCell(cell) /
+cell.volume` — i.e. `a_rf` is in the same `s_l`-scaled internal field-concentration units as that
+per-cell mean-IFN measurement, unlike `secretion_g_fp`/`uptake_g_fi` above which both get an
+additional `dim.z=2` factor. Recorded verbatim (with `formula: "resist = f_bar/(a_rf + f_bar)"`) in
+`params.yaml`'s `resistance:` section.
 
 ## Cellularization scaling (Table 4 + Sec. 2.3 text + source)
 
