@@ -197,6 +197,23 @@ RUNS_DB = str(STUDY_DIR / "runs.db")
 
 print("No recorded runs for this study; nothing to reproduce.")
 
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Acceptance-band targets (Fig 3B)**
+
+def _save_viz(study, slug, html):
+    d = REPO / 'reports/notebooks/figures' / study
+    d.mkdir(parents=True, exist_ok=True)
+    out = d / (slug + '.html')
+    out.write_text(html, encoding='utf-8')
+    print('  wrote', out)
+
+
+# Acceptance-band targets (Fig 3B)
+_save_viz('parameter-provenance', 'Acceptance-band_targets_Fig_3B', _render_one('local:InfluenzaFig3BTargets', {}, RUNS_DB, STUDY_YAML))
+
 # ## Study: Increment 1: confluent epithelial sheet (substrate only) (`epithelial-sheet-baseline`)
 #
 # **Question.** Does a confluent tiling of epithelial (type H) cells, using the CC3D
@@ -251,6 +268,15 @@ STUDY_YAML = str(STUDY_DIR / "study.yaml")
 RUNS_DB = str(STUDY_DIR / "runs.db")
 
 print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Confluent epithelial sheet**
+
+# Confluent epithelial sheet
+_save_viz('epithelial-sheet-baseline', 'Confluent_epithelial_sheet', _render_one('local:InfluenzaEpithelialSheet', {}, RUNS_DB, STUDY_YAML))
 
 # ### Acceptance criteria
 #
@@ -329,6 +355,20 @@ STUDY_YAML = str(STUDY_DIR / "study.yaml")
 RUNS_DB = str(STUDY_DIR / "runs.db")
 
 print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Virus field + local spread (animated)**
+
+# Virus field + local spread (animated)
+_save_viz('virus-field-infection', 'Virus_field_local_spread_animated', _render_one('local:InfluenzaVirusFieldScene', {}, RUNS_DB, STUDY_YAML))
+
+# **Infection dynamics + locality**
+
+# Infection dynamics + locality
+_save_viz('virus-field-infection', 'Infection_dynamics_locality', _render_one('local:InfluenzaInfectionDynamics', {}, RUNS_DB, STUDY_YAML))
 
 # ### Acceptance criteria
 #

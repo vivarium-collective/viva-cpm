@@ -58,7 +58,7 @@
             <span class="dot"></span>2&nbsp;·&nbsp;Execution
           </span>
           
-          <span class="status-step gate-step axis-evaluation_status gate-state-passed-with-conditions set" title="Gate 3 · Evidence">
+          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 3 · Evidence">
             <span class="dot"></span>3&nbsp;·&nbsp;Evidence
           </span>
           
@@ -96,15 +96,13 @@
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed-with-conditions">
+        <div class="status-detail-row gate-row gate-state-passed">
           <span class="status-detail-axis">3 · Evidence</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed-with-conditions" title="completed run + recorded verdicts + visualization readiness gate (V4)">◆ computed: evaluated</span>
+          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
           
           
-          
-          <span class="gate-viz-gap-note" style="font-size:0.86em;color:#92400e">visualization gap: no figures</span>
           
         </div>
         
@@ -174,7 +172,7 @@ across the sheet) with population conserved?
   
   <div class="act-cluster" data-act="study">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="study" data-gate-state="passed-with-conditions"></span>
+      <span class="act-gate-dot" data-gate="study" data-gate-state="passed"></span>
       <span class="act-label">The Study</span>
     </div>
     <div class="act-tabs">
@@ -195,7 +193,7 @@ across the sheet) with population conserved?
   </div>
   <div class="act-cluster" data-act="evidence">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed-with-conditions"></span>
+      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed"></span>
       <span class="act-label">Evidence</span>
     </div>
     <div class="act-tabs">
@@ -1111,9 +1109,45 @@ two paths are not expected to be bit-identical.
 
     
     
+    <div class="viz-actions-row" style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'virus-field-infection')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
+    </div>
+    
 
     <div id="native-gallery-panel" class="figure-mount"><p class="empty-message">Loading figures…</p></div>
 
+    
+    
+    
+    <div class="figure-card embed-viz-card">
+      <iframe src="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/virus-field-scene.html"
+              class="figure-media-frame figure-media-frame--embed"
+              loading="lazy" title="Virus-field scene"
+              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
+              ></iframe>
+      
+      <div class="figure-caption-row">
+        <span class="figure-source-chip">embed</span>
+        <span class="figure-title">Virus-field scene</span>
+        
+        <a href="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/virus-field-scene.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
+      </div>
+    </div>
+    
+    <div class="figure-card embed-viz-card">
+      <iframe src="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/infection-dynamics.html"
+              class="figure-media-frame figure-media-frame--embed"
+              loading="lazy" title="Infection dynamics"
+              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
+              ></iframe>
+      
+      <div class="figure-caption-row">
+        <span class="figure-source-chip">embed</span>
+        <span class="figure-title">Infection dynamics</span>
+        
+        <a href="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/infection-dynamics.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
+      </div>
+    </div>
     
     
 
@@ -1604,7 +1638,7 @@ Increment 9 (the capstone).</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "3982c46cc87877239ed88ef167d112073f842c93", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/3982c46cc87877239ed88ef167d112073f842c93", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 02:30 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "2635dae1ecb66d0de60449cd60e1fbd137f5a360", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/2635dae1ecb66d0de60449cd60e1fbd137f5a360", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 03:03 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "virus-field-infection";
