@@ -124,3 +124,27 @@ def test_no_seed_and_no_initial_virus_means_no_infection():
     assert all(n == 0 for n in result["n_I"])
     assert result["n_H"][0] == result["n_H"][-1]
     assert all(not dists for dists in result["new_infection_dists"])
+
+
+def test_ifn_resistance_slows_spread_vs_no_ifn():
+    """Task 3.3, the key claim: gating virus release by (1-resist) from
+    per-cell IFN-driven resistance (Increment 3) SLOWS infection spread
+    relative to the Increment-2 no-IFN path, same seed. a_rf is tiny
+    (8.5e-6) so resistance ramps up strongly fast -- sample early (step 20,
+    well before the no-IFN run's endpoint) rather than only at the end.
+    """
+    kwargs = dict(patch_mm=0.3, steps=20, seed=17, init_infected_frac=0.05, mcs_per_update=10)
+    without = run.run_virus_infection(**kwargs)
+    with_ifn = run.run_virus_infection_with_ifn(**kwargs)
+
+    assert with_ifn["n_I"][-1] <= without["n_I"][-1], (
+        f"IFN resistance should not let spread outrun the no-IFN path: "
+        f"with={with_ifn['n_I'][-1]}, without={without['n_I'][-1]}"
+    )
+    assert with_ifn["total_virus"][-1] < without["total_virus"][-1], (
+        f"IFN-gated virus release should leave strictly less total virus: "
+        f"with={with_ifn['total_virus'][-1]}, without={without['total_virus'][-1]}"
+    )
+    # mean_resist over infected cells should be > 0 once IFN has accumulated
+    # (sanity: the gating mechanism actually engaged, not a no-op).
+    assert with_ifn["mean_resist"][-1] > 0.0
