@@ -269,3 +269,101 @@ def test_signaling_fields_figure_returns_figure_with_axes():
     ydata_by_line = [list(line.get_data()[1]) for line in ax_il10.lines]
     assert result["il10_at_macrophages"] in ydata_by_line
     assert result["il10_at_uninfected"] in ydata_by_line
+
+
+def _small_cytotoxic_result(enable_killing=True, chemotaxis_on=True, n_infected_series=None):
+    """Hand-built `run.run_cytotoxic_response(...)`-shaped result (Task 7.1
+    localization + Task 7.2 killing) -- exercises the viz against the
+    driver's ACTUAL return keys ("steps", "nk_mean_distance_to_infection",
+    "cd8_mean_distance_to_infection", "total_chemokine", "n_infected",
+    "params") without paying for a real CPM+field run in this test. Shape
+    (chemotaxis-on closes distance, killing-enabled reduces n_infected)
+    is illustrative only, matching task-7.1/7.2-report.md's qualitative
+    direction, not re-asserted here."""
+    if n_infected_series is None:
+        n_infected_series = [1, 1, 1, 0, 0] if enable_killing else [1, 1, 1, 1, 1]
+    if chemotaxis_on:
+        nk_dist = [81.6, 74.2, 66.8, 61.9, 57.8]
+        cd8_dist = [81.6, 68.4, 55.9, 46.1, 39.8]
+        lam_nk, lam_cd8 = 500000.0, 1000000.0
+    else:
+        nk_dist = [81.6, 82.1, 80.9, 81.7, 81.3]
+        cd8_dist = [81.6, 81.2, 82.0, 81.5, 81.9]
+        lam_nk, lam_cd8 = 0.0, 0.0
+    return {
+        "steps": [0, 1, 2, 3, 4],
+        "nk_mean_distance_to_infection": nk_dist,
+        "cd8_mean_distance_to_infection": cd8_dist,
+        "total_chemokine": [0.0, 1.2, 2.9, 4.7, 6.5],
+        "n_infected": n_infected_series,
+        "params": {
+            "chemotaxis_v_macro": 5000.0, "chemotaxis_v_nk": lam_nk, "chemotaxis_v_cd8": lam_cd8,
+            "enable_killing": enable_killing, "g_ik": 0.0001, "g_ie": 0.0001, "tot_ec_ODE": 250000.0,
+            "n_macrophages": 6, "n_nk": 6, "n_cd8": 6, "n_infected": 1,
+            "epithelial_cells_per_side": 4, "margin_sites": 20, "separation_sites": 20,
+            "seed": 17, "steps": 4, "mcs_per_update": 10, "field_warmup": 0,
+        },
+    }
+
+
+def test_cytotoxic_killing_figure_returns_figure_with_axes():
+    """Task 7.3: mechanism figure -- (a) NK + CD8 mean distance-to-infection
+    over time (chemotaxis on), and (b) infected-cell count over time,
+    killing enabled -- non-vacuous, using `run.run_cytotoxic_response`'s
+    actual return keys."""
+    result = _small_cytotoxic_result(enable_killing=True, chemotaxis_on=True)
+
+    fig = viz.cytotoxic_killing_figure(result)
+
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) == 2
+    ax_dist, ax_infected = fig.axes
+
+    # panel (a): NK + CD8 distance-to-infection -- two non-vacuous lines
+    # matching the driver's own series.
+    assert len(ax_dist.lines) >= 2
+    for line in ax_dist.lines:
+        xdata, ydata = line.get_data()
+        assert len(xdata) == len(result["steps"])
+        assert list(xdata) == result["steps"]
+    ydata_by_line = [list(line.get_data()[1]) for line in ax_dist.lines]
+    assert result["nk_mean_distance_to_infection"] in ydata_by_line
+    assert result["cd8_mean_distance_to_infection"] in ydata_by_line
+
+    # panel (b): n_infected over time -- non-vacuous, matches the driver's
+    # own series.
+    assert len(ax_infected.lines) >= 1
+    inf_ydata_by_line = [list(line.get_data()[1]) for line in ax_infected.lines]
+    assert result["n_infected"] in inf_ydata_by_line
+
+
+def test_cytotoxic_killing_figure_overlays_control_and_no_killing_results():
+    """When a chemotaxis-off control (localization contrast, Task 7.1) and a
+    killing-disabled result (killing contrast, Task 7.2) are also passed,
+    both panels overlay the on/off comparison so the study's two
+    falsifiable claims -- localization AND killing -- are visible in one
+    figure, plus the honest weak-end-to-end-clearance gap (killing-enabled
+    n_infected does not always reach 0 at default/full scale)."""
+    on_result = _small_cytotoxic_result(enable_killing=True, chemotaxis_on=True)
+    control_result = _small_cytotoxic_result(enable_killing=False, chemotaxis_on=False)
+    no_killing_result = _small_cytotoxic_result(enable_killing=False, chemotaxis_on=True)
+
+    fig = viz.cytotoxic_killing_figure(
+        on_result, control_result=control_result, no_killing_result=no_killing_result)
+
+    ax_dist, ax_infected = fig.axes
+
+    # panel (a): on's NK/CD8 distance lines AND the control's, all present.
+    assert len(ax_dist.lines) >= 4
+    ydata_by_line = [list(line.get_data()[1]) for line in ax_dist.lines]
+    assert on_result["nk_mean_distance_to_infection"] in ydata_by_line
+    assert on_result["cd8_mean_distance_to_infection"] in ydata_by_line
+    assert control_result["nk_mean_distance_to_infection"] in ydata_by_line
+    assert control_result["cd8_mean_distance_to_infection"] in ydata_by_line
+
+    # panel (b): killing-enabled n_infected AND killing-disabled n_infected,
+    # both present -- the with-vs-without-killing contrast.
+    assert len(ax_infected.lines) >= 2
+    inf_ydata_by_line = [list(line.get_data()[1]) for line in ax_infected.lines]
+    assert on_result["n_infected"] in inf_ydata_by_line
+    assert no_killing_result["n_infected"] in inf_ydata_by_line

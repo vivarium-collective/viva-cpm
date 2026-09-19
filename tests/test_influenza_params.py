@@ -84,3 +84,22 @@ def test_params_carry_chemokine_and_il10_sections():
     for k in ("diffusion_lat2_per_mcs","decay_per_mcs","diffusion_length_cell_diam","b_l","b_lh","mu_l","sig_1","g_1","g_2","d_2","source"):
         assert k in l, f"il10 missing {k}"
     assert l["diffusion_length_cell_diam"] == 10
+
+
+def test_params_carry_nk_and_cd8_sections():
+    p = params.load_params(); nk = p["nk"]; cd8 = p["cd8"]
+    assert nk.get("chemotaxis_v_nk") == 5000 and "g_ik" in nk and "adhesion" in nk and "source" in nk
+    assert cd8.get("chemotaxis_v_cd8") == 10000 and "g_ie" in cd8 and "adhesion" in cd8 and "source" in cd8
+    # chemotaxis is up the CHEMOKINE field for both (source `chemotaxis_f_nk`/`chemotaxis_f_cd8` = "chemo")
+    assert nk["chemotaxis_field"] == "chemokine" and cd8["chemotaxis_field"] == "chemokine"
+    # local contact-kill form: kill_rate = g_i*tot_ec_ODE*srf_immune*cell_resist/cell.volume
+    assert nk["adhesion"]["nkcell_nkcell"] == 25.0          # homotypic
+    assert nk["adhesion"]["nkcell_cd8tcell"] == 25.0        # heterotypic -- source-literal, NOT paper's collapsed 10
+    assert cd8["adhesion"]["cd8tcell_cd8tcell"] == 25.0     # homotypic
+    assert nk["volume_sites"] == 25 and cd8["volume_sites"] == 25
+    # DISCREPANCY #7: contact-killing multiplies by cell_resist DIRECTLY, not (1 - cell_resist)
+    assert nk["killing"]["kill_rate_resist_direct"] is True
+    assert cd8["killing"]["kill_rate_resist_direct"] is True
+    assert "nearby_term_deferred" in nk["killing"] and "nearby_term_deferred" in cd8["killing"]
+    assert nk["recruitment"]["chemokine_driven"] is True
+    assert cd8["recruitment"]["chemokine_driven"] is False   # CD8 inflow is APC(P)-driven, not chemokine(C)-driven
