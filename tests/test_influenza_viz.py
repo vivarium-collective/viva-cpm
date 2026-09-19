@@ -47,6 +47,58 @@ def test_virus_infection_figure_returns_figure_with_axes():
     assert list(vy) == result["total_virus"]
 
 
+def _small_epithelial_fate_result():
+    """Hand-built `run.run_epithelial_fate(...)`-shaped result (small,
+    deterministic, no actual CPM run) -- exercises the viz against the
+    driver's actual return keys without paying for a real sim in this test."""
+    return {
+        "steps": [0, 1, 2, 3, 4, 5],
+        "n_H": [855, 850, 842, 830, 820, 812],
+        "n_I": [45, 48, 52, 58, 60, 58],
+        "n_D": [0, 2, 6, 12, 20, 30],
+        "total_virus": [0.0, 12.3, 40.1, 88.7, 150.2, 210.9],
+        "n_allee_death": [0, 0, 0, 0, 0, 0],
+        "n_allee_recovery": [0, 0, 1, 0, 1, 0],
+    }
+
+
+def test_epithelial_fate_figure_returns_figure_with_axes():
+    """Task 4.4: mechanism figure -- cell-type composition (n_H/n_I/n_D) over
+    time, plus the Allee recovery/death event counts `run_epithelial_fate`
+    records. Non-vacuous: every series must actually be plotted with the
+    same data the driver returned."""
+    result = _small_epithelial_fate_result()
+
+    fig = viz.epithelial_fate_figure(result)
+
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) == 2
+    ax_counts, ax_events = fig.axes
+
+    # panel (a): n_H/n_I/n_D vs update index -- three non-vacuous lines
+    assert len(ax_counts.lines) >= 3
+    for line in ax_counts.lines:
+        xdata, ydata = line.get_data()
+        assert len(xdata) == len(result["steps"])
+        assert list(xdata) == result["steps"]
+    ydata_by_line = [list(line.get_data()[1]) for line in ax_counts.lines]
+    assert result["n_H"] in ydata_by_line
+    assert result["n_I"] in ydata_by_line
+    assert result["n_D"] in ydata_by_line
+
+    # panel (b): cumulative Allee recovery/death event counts -- non-vacuous,
+    # and reflects the (sparse) per-update event counts actually recorded.
+    assert len(ax_events.lines) >= 1
+    for line in ax_events.lines:
+        xdata, ydata = line.get_data()
+        assert len(xdata) == len(result["steps"])
+    recovery_cum = [sum(result["n_allee_recovery"][: i + 1])
+                     for i in range(len(result["steps"]))]
+    event_ydata = [list(line.get_data()[1]) for line in ax_events.lines]
+    assert recovery_cum in event_ydata
+    assert max(recovery_cum) > 0  # sanity: the hand-built result has events
+
+
 def test_ifn_resistance_figure_returns_figure_with_axes():
     """Task 3.4: mechanism figure -- n_I and total_virus, with-IFN vs
     without, plus the mean_resist trajectory (only `run_virus_infection_with_ifn`
