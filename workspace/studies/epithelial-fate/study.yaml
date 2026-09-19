@@ -48,7 +48,7 @@ report:
     provably 0.0 every iteration, not just empirically absent) -- the
     negative control that rules out "recovery always eventually fires"; (2)
     the full driver fires recovery ORGANICALLY (no hand-made geometry): 3
-    events over 200 updates, 10 events over 500 updates. Direct H->D Allee
+    events over 200 updates, 12 events over 500 updates. Direct H->D Allee
     death (an H cell dying WITHOUT ever being infected, from being
     surrounded by dead neighbors) essentially never fires in either run (0
     events at both 200 and 500 steps) -- verified this is NOT a wiring bug:
