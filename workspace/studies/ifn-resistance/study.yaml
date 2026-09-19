@@ -80,9 +80,15 @@ report:
     from Task 3.3 that stays visible rather than hidden: (1) APC-driven IFN
     amplification is entirely omitted here (global-compartment feedback,
     Increment 8) — this study's IFN comes only from directly-infected cells'
-    own local secretion; (2) resistance's role in cell death, the Allee
-    effect, and IL-10 cross-talk are all later increments, not modeled here
-    — resistance in this study ONLY gates virus secretion; (3) OPEN
+    own local secretion, which here is UNGATED basal release: the CC3D source
+    also applies `(1-resist)` to IFN's OWN secretion (`sec_amount =
+    (1-resist)*b_fi` in Type1InterferonSecretionSteppable), a negative feedback
+    NOT modeled here — Increment 3 gates only virus release per plan scope. Its
+    absence removes a brake on IFN, so the modeled resist plateau (below) runs
+    somewhat HIGHER than a fully source-faithful version would; (2) resistance's
+    role in cell death, the Allee effect, and IL-10 cross-talk are all later
+    increments, not modeled here — resistance in this study gates only virus
+    secretion (and, in the source but not here, IFN self-secretion); (3) OPEN
     CALIBRATION QUESTION (Increment 9): mean_resist plateaus at ~0.55, not
     ~1 — the steady-state local IFN concentration each infected cell reaches
     lands close to `a_rf` (8.5e-6) in magnitude (resist ≈ 0.55 means f_bar ≈
