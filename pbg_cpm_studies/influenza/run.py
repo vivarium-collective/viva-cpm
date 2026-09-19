@@ -1148,7 +1148,11 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
       - "ode": {sp: [...]} for each of the 10 integrated states
         (NB, N, T, X, A, B, P, W, G, O)
       - "spatial": {"H","I","M","K","E","DH","V","F","C","L": [...]} -- the fed-in
-        spatial aggregates (counts and z-normalized field integrals)
+        spatial aggregates (counts and z-normalized field integrals). Task
+        9.0 §4a fix: "M"/"K"/"E" are `num_immune_by_type` = the LOCAL CPM
+        count PLUS the Task-8.4 NEARBY ODE surrogate (state["M_nb"/"K_nb"/
+        "E_nb"], as of the end of the preceding MCS's recruitment step) --
+        this IS the value fed to the ODE, not the pure CPM count.
       - "sigma1": [a_11*T + a_12*D] each MCS (T from the ODE, D from spatial
         counts) -- Task 8.3: this is the DYNAMIC sig_1 actually fed into
         `_apply_secretion_scales` (macrophage chemokine + IL-10 Michaelis
@@ -1194,7 +1198,9 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
 
     cell_type_by_idx = [c["type"] for c in spec["cells"]]  # spec index i -> cell id i+1
     infected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I]
-    macrophage_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.M]
+    # NB: no static `macrophage_ids` here (Task 9.0 §4a fix) -- the
+    # secretion-scale loop below recomputes the CURRENT macrophage id list
+    # every MCS, so it picks up Task-8.4-recruited macrophages too.
     uninfected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.H]
     n_epithelial_actual = sum(1 for t in cell_type_by_idx if t in (types.H, types.I))
 
@@ -1329,7 +1335,15 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         # count) instead of the static Increment-6 stub: local IL-10
         # self-limits the macrophage's chemokine + IL-10 release; uninfected
         # cells' IL-10 is (1-resist)-gated (unaffected by sig_1).
-        for cid in macrophage_ids:
+        # Task 9.0 §4a fix: refresh the macrophage-id list EVERY MCS (any
+        # cell currently typed `types.M`, seeded OR Task-8.4-recruited),
+        # not the static pre-loop `macrophage_ids` -- else a macrophage
+        # activated from the reserve pool by `_recruit_step` never gets its
+        # chemokine/IL-10 secretion scale set. Same "current cells of a
+        # type" pattern `_recruit_step`'s own outflow draw already uses.
+        current_macrophage_ids = [cid for cid, ct in enumerate(world.cell_types())
+                                   if ct == types.M and cid != 0]
+        for cid in current_macrophage_ids:
             l_loc = world.field_mean_at_cell(il10_fi, cid)
             scale = signaling.macrophage_secretion_scale(l_loc, sig_1_dynamic, g_1, g_2, d_2)
             world.set_cell_secretion_scale(chemo_fi, cid, scale)
@@ -1450,7 +1464,18 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         B_ei = sum_resist * b_ei
         G_ki = sum_resist * g_ki
 
-        inputs = dict(H=H, I=I, M=M, K=K, E=E, DH=DH,
+        # Task 9.0 §4a fix: ODE `num_immune_by_type` = LOCAL CPM count +
+        # NEARBY ODE surrogate (dossier §4a), not the pure CPM count --
+        # `state["M_nb"/"K_nb"/"E_nb"]` as of the end of the PRECEDING MCS's
+        # `_recruit_step` (same causal-ordering convention
+        # `_apply_cytotoxic_killing`'s NEARBY term already uses). Macro
+        # `M_nb` stays 0 (macro `local_ratio`=1.0 -> no nearby accrual, see
+        # `_recruit_step`); NK/CD8 pick up their Task-8.4 nearby surrogates.
+        M_ode = M + state["M_nb"]
+        K_ode = K + state["K_nb"]
+        E_ode = E + state["E_nb"]
+
+        inputs = dict(H=H, I=I, M=M_ode, K=K_ode, E=E_ode, DH=DH,
                       V=V, F=F, C=C, L=L, B_ei=B_ei, G_ki=G_ki)
 
         # --- integrate one MCS (dt = 60 s) ---
