@@ -106,6 +106,14 @@ readouts: []
 
 behavior_tests: []
 
+visualizations:
+  - name: Acceptance-band targets (Fig 3B)
+    address: local:InfluenzaFig3BTargets
+embed_visualizations:
+  - name: Fig 3B targets
+    title: "Acceptance-band targets (Sego 2022, Fig 3B) \u2014 what the capstone must reproduce"
+    url: /workspace/studies/parameter-provenance/viz/acceptance-targets.html
+
 findings:
   - id: F-01
     kind: methodological

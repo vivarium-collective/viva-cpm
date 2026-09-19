@@ -154,6 +154,14 @@ behavior_tests:
     status: passed
     result: PASS
 
+visualizations:
+  - name: Confluent epithelial sheet
+    address: local:InfluenzaEpithelialSheet
+embed_visualizations:
+  - name: Confluent sheet
+    title: "Confluent epithelial sheet at scale \u2014 geometry + throughput"
+    url: /workspace/studies/epithelial-sheet-baseline/viz/confluent-sheet.html
+
 findings:
   - id: F-01
     kind: computational

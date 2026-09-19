@@ -250,6 +250,19 @@ behavior_tests:
     status: passed
     result: PASS
 
+visualizations:
+  - name: Virus field + local spread (animated)
+    address: local:InfluenzaVirusFieldScene
+  - name: Infection dynamics + locality
+    address: local:InfluenzaInfectionDynamics
+embed_visualizations:
+  - name: Virus-field scene
+    title: "Virus field + local infection spread \u2014 animated over 60 updates"
+    url: /workspace/studies/virus-field-infection/viz/virus-field-scene.html
+  - name: Infection dynamics
+    title: "Infection dynamics + locality control \u2014 conservation, load, spread locality"
+    url: /workspace/studies/virus-field-infection/viz/infection-dynamics.html
+
 findings:
   - id: F-01
     kind: computational
