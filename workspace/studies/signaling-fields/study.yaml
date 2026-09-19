@@ -301,6 +301,14 @@ behavior_tests:
     result: PASS
     evaluated_by: tests/test_influenza_signaling.py::test_macrophage_signaling_run_is_deterministic
 
+visualizations:
+  - name: Chemokine + IL-10 fields
+    address: local:InfluenzaSignalingFields
+embed_visualizations:
+  - name: Signaling fields
+    title: "Chemokine + IL-10 signaling fields — radial gradient + IL-10 sources (field mechanism)"
+    url: /workspace/studies/signaling-fields/viz/signaling-fields.html
+
 findings:
   - id: F-01
     kind: computational

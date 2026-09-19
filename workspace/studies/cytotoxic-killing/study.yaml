@@ -374,6 +374,14 @@ behavior_tests:
     result: PASS
     evaluated_by: tests/test_influenza_killing.py::test_contact_kill_rate_matches_params_yaml_precomputed_coefficients
 
+visualizations:
+  - name: NK/CD8 localization + killing
+    address: local:InfluenzaCytotoxicKilling
+embed_visualizations:
+  - name: Cytotoxic killing
+    title: "NK/CD8 cytotoxic localization + killing — capability proven, clearance weak/PENDING"
+    url: /workspace/studies/cytotoxic-killing/viz/cytotoxic-killing.html
+
 findings:
   - id: F-01
     kind: computational
