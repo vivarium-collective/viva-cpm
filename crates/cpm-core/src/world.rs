@@ -1,6 +1,7 @@
 use crate::lattice::Lattice;
 use crate::{CellId, MEDIUM};
 use smallvec::SmallVec;
+use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct Cell {
@@ -380,6 +381,34 @@ impl World {
         }
         let v = cell.volume as f64;
         [cell.com_sum[0] / v, cell.com_sum[1] / v, cell.com_sum[2] / v]
+    }
+
+    /// Per-cell contact-area-by-type: for every pixel owned by `cell_id`, walk
+    /// its CPM-neighborhood neighbors (`lattice.neighbors`, the same
+    /// unlike-owner set `recompute_trackers` uses for `cell.surface` — NOT
+    /// the narrower axis-only `lattice.face_neighbors`) and, for each
+    /// neighbor pixel owned by a *different* cell, tally 1 under that
+    /// neighbor's `cell_type` (MEDIUM=0 included). Using the same neighbor
+    /// set as the surface tracker guarantees the invariant this query exists
+    /// to serve: `sum(map.values()) == cell.surface` for every cell, so
+    /// downstream per-type surface *fractions* (Allee death/recovery,
+    /// Task 4.3) partition the whole surface exactly. Pure read: does not
+    /// touch `self.cells` or `self.lattice` mutably, and adds no new state.
+    pub fn cell_contact_area_by_type(&self, cell_id: CellId) -> HashMap<u16, i64> {
+        let mut tally: HashMap<u16, i64> = HashMap::new();
+        for idx in 0..self.lattice.n_sites() {
+            if self.lattice.owner(idx) != cell_id {
+                continue;
+            }
+            for nidx in self.lattice.neighbors(idx) {
+                let owner = self.lattice.owner(nidx);
+                if owner != cell_id {
+                    let t = self.cells[owner as usize].cell_type;
+                    *tally.entry(t).or_insert(0) += 1;
+                }
+            }
+        }
+        tally
     }
 
     pub fn surface_deltas(&self, site: usize, new_owner: CellId) -> SmallVec<[(CellId, i64); 8]> {

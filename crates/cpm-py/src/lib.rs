@@ -182,6 +182,13 @@ impl World {
         self.world_ref().field_mean_at_cell(field_idx, cell_id)
     }
 
+    /// Per-cell contact-area-by-type: dict[cell_type -> face-area] of how much
+    /// of `cell_id`'s surface contacts each neighbor cell type (MEDIUM=0
+    /// included). Pure read; sum of values equals `cell_surfaces()[cell_id]`.
+    fn cell_contact_area_by_type(&self, cell_id: u32) -> HashMap<u16, i64> {
+        self.world_ref().cell_contact_area_by_type(cell_id)
+    }
+
     fn grow(&mut self, cell_type: u16, rate: f64) {
         self.world_mut().grow(cell_type, rate);
     }
