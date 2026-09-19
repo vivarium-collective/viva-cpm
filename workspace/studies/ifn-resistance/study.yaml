@@ -281,6 +281,14 @@ behavior_tests:
     status: passed
     result: PASS
 
+visualizations:
+  - name: IFN + per-cell resistance
+    address: local:InfluenzaIfnResistance
+embed_visualizations:
+  - name: IFN resistance
+    title: "IFN-driven resistance gates virus release — mechanism validated, reproduction PENDING"
+    url: /workspace/studies/ifn-resistance/viz/ifn-resistance.html
+
 findings:
   - id: F-01
     kind: computational

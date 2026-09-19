@@ -356,6 +356,14 @@ behavior_tests:
     result: PASS
     evaluated_by: tests/test_influenza_macrophage.py::test_macrophage_does_not_approach_source_without_chemotaxis
 
+visualizations:
+  - name: Macrophage localization
+    address: local:InfluenzaMacrophageResponse
+embed_visualizations:
+  - name: Macrophage localization
+    title: "Macrophages localize to the infection — chemotaxis on vs λ=0 (mechanism only)"
+    url: /workspace/studies/macrophage-response/viz/macrophage-response.html
+
 findings:
   - id: F-01
     kind: computational
@@ -534,7 +542,7 @@ key_assumptions:
     (field, type). The fidelity criterion tested here is the localization
     BEHAVIOR, not the exact functional form -- an Increment-9 calibration
     item, not fixed here.
-  - Geometry fix (Task 5.1 fix round 1, commit `4092d7c`): an earlier
+  - Geometry fix (Task 5.1 fix round 1, commit `4092d7c`) — an earlier
     version of this scenario placed the macrophage cluster in a domain
     CORNER, diagonally opposite the (centered) infection. A noflux wall is
     a hard reflector on two sides at once at a corner, so that control's
@@ -618,7 +626,7 @@ runs:
         measured_value: 5.0
         notes: "on < off in 5/5 seeds (paired, not just mean); control per-seed: -4.99 (5), +0.69 (17), +3.45 (23), -2.53 (42), -0.84 (100), mean -0.85."
         evaluated_by: tests/test_influenza_macrophage.py::test_macrophages_localize_to_infection_across_seeds
-      'Mean on/off gap exceeds the control's own seed-to-seed spread':
+      'Mean on/off gap exceeds the control''s own seed-to-seed spread':
         result: PASS
         measured_value: -12.54
         notes: "mean_on(-13.39) - mean_off(-0.85) = -12.54, exceeds control spread 8.44 (max +3.45 - min -4.99)."

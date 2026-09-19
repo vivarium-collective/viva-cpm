@@ -53,6 +53,9 @@ GOOD, WARNING, CRITICAL = "#0ca30c", "#fab219", "#d03b3b"
 _BADGE_TINT = {
     0: ("#eef2ff", "#4338ca"), 1: ("#ecfdf5", "#047857"),
     2: ("#fff7ed", "#c2410c"), 3: ("#eff6ff", "#1d4ed8"),
+    4: ("#f1f5f9", "#475569"), 5: ("#eff6ff", "#2563eb"),
+    6: ("#f5f3ff", "#6d28d9"), 7: ("#fdf2f8", "#be185d"),
+    8: ("#f0fdfa", "#0f766e"),
 }
 
 
