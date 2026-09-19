@@ -21,7 +21,7 @@ import math
 
 import numpy as np
 
-from . import allee, build, fields, immune, sheet, signaling, transitions, types
+from . import allee, build, fields, immune, killing, sheet, signaling, transitions, types
 from .params import load_params
 from .resistance import cell_resistance
 
@@ -742,22 +742,26 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
                             field_warmup: int = 0,
                             macrophage_chemotaxis_lambda: float | None = None,
                             nk_chemotaxis_lambda: float | None = None,
-                            cd8_chemotaxis_lambda: float | None = None) -> dict:
-    """Task 7.1 crux driver: extend `run_macrophage_signaling`'s macrophage +
-    chemokine/IL-10 scenario with a THIRD interior cluster of NK (`types.K`)
-    + CD8+ (`types.E`) cells (`immune.build_cytotoxic_scenario_spec` -- see
-    that function's docstring for the "epithelial/infection | macrophage
-    cluster | NK+CD8 cluster" interior layout), and wires NK/CD8 chemotaxis
-    UP THE CHEMOKINE FIELD (`immune.set_nk_cd8_chemotaxis` -- NOT the virus
-    field; that stays the macrophages' own chemotaxis target, unchanged from
-    `run_macrophage_response`/`run_macrophage_signaling`).
+                            cd8_chemotaxis_lambda: float | None = None,
+                            enable_killing: bool = True) -> dict:
+    """Task 7.1 crux driver (localization) + Task 7.2 (this task, contact
+    killing): extend `run_macrophage_signaling`'s macrophage + chemokine/
+    IL-10 scenario with a THIRD interior cluster of NK (`types.K`) + CD8+
+    (`types.E`) cells (`immune.build_cytotoxic_scenario_spec` -- see that
+    function's docstring for the "epithelial/infection | macrophage cluster |
+    NK+CD8 cluster" interior layout), wires NK/CD8 chemotaxis UP THE
+    CHEMOKINE FIELD (`immune.set_nk_cd8_chemotaxis` -- NOT the virus field;
+    that stays the macrophages' own chemotaxis target, unchanged from
+    `run_macrophage_response`/`run_macrophage_signaling`), and (Task 7.2,
+    ``enable_killing``) applies `killing.contact_kill_rate`'s LOCAL
+    (surface-contact) NK/CD8 contact-kill term to every currently-infected
+    cell each update.
 
     Field wiring/regulation (virus, IFN, chemokine, IL-10 fields; per-cell
     IL-10-Hill macrophage secretion scale gating chemokine+IL-10; uninfected
     `(1-resist)` IL-10 gate; macrophage chemotaxis up virus) is IDENTICAL to
     `run_macrophage_signaling` -- this driver only adds the NK/CD8 cells +
-    their own chemotaxis on top. Localization ONLY (Task 7.1 scope) -- no
-    contact-killing (Task 7.2).
+    their own chemotaxis, and now (Task 7.2) contact-killing, on top.
 
     ``nk_chemotaxis_lambda``/``cd8_chemotaxis_lambda``, when given explicitly
     (including ``0.0`` for the lambda=0 control), are passed to `immune.
@@ -783,19 +787,58 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
     every wall), same unbiased-control rigor as `immune.
     build_cytotoxic_scenario_spec`'s docstring.
 
+    Task 7.2 killing step (each update, AFTER the chemotaxis/secretion-scale
+    updates below, for every id still in the currently-infected set): local
+    IFN self-secreted by the infected cell itself (`ifn_fi`, wired the same
+    as every other driver in this module) gives `resist = resistance.
+    cell_resistance(f_bar, a_rf)`; `world.cell_contact_area_by_type(cid)`
+    (Increment 4's contact-geometry primitive, the same one `run_epithelial_
+    fate`'s Allee step uses) gives `srf_nk`/`srf_cd8` (contact area with
+    `types.K`/`types.E` neighbors); `killing.contact_kill_rate` gives
+    `kill_rate_nk`/`kill_rate_cd8` from `nk.g_ik`/`cd8.g_ie` and
+    `scaling.ode_epithelial_population` (`tot_ec_ODE`); `Pr = 1 -
+    exp(-kill_rate)`. Draw order matches the source (`ContactKillingSteppable.
+    step()`, see `killing.contact_kill_rate`'s module docstring): the NK draw
+    is checked FIRST, and if it kills the cell (-> `types.D`, removed from the
+    infected set), the CD8 draw is SKIPPED for that cell that update (matches
+    the source's `continue`-past-CD8-if-NK-already-killed ordering). A
+    dedicated RNG stream (`seed + 500`, unused by any other stream in this
+    module) keeps the kill draws independent of the Potts/field RNG (set at
+    `world.finalize`) and of every other driver's RNG offsets.
+
+    **DISCREPANCY #7 (source-faithful, NOT "fixed" here -- see `killing.
+    contact_kill_rate`'s module docstring and params.yaml's `nk.killing.
+    kill_rate_resist_direct`/`cd8.killing.kill_rate_resist_direct`):** the
+    kill rate multiplies by `cell_resist` DIRECTLY (not `1 - cell_resist`) --
+    unlike every other resistance consumer in this module. A cell with MORE
+    local (self-secreted) IFN is thus killed FASTER by contact NK/CD8 here,
+    the opposite of every other resist-gated mechanism in this codebase.
+    Implemented literally per the source; flagged again in task-7.2-report.md.
+
+    ``enable_killing=False`` builds the IDENTICAL scenario/chemotaxis (NK/CD8
+    cells present and still chemotaxing) but skips the killing step entirely
+    -- the brief's "NK/CD8 present but killing disabled" control, so a
+    same-seed on/off comparison isolates the killing step's own effect from
+    any of localization's own run-to-run variation.
+
     Returns per-update series (index 0 = the seeded initial state, before
     any Potts/field updates but AFTER `field_warmup`):
       - "steps"
       - "nk_mean_distance_to_infection", "cd8_mean_distance_to_infection":
         NK/CD8 cells' mean centre-of-mass distance to the infected-cell
-        centroid.
+        centroid (frozen at its last value once no infected cells remain).
       - "total_chemokine": lattice-wide chemokine sum (sanity: confirms the
         gradient actually builds over the run).
+      - "n_infected": count of currently `types.I` cells (Task 7.2; constant
+        at ``n_infected`` throughout when ``enable_killing=False``).
     plus "params" (the scenario/run knobs, for the report).
     """
     params = load_params()
     a_rf = float(params["resistance"]["a_rf"])
     sig_1, g_1, g_2, d_2 = fields.il10_hill_constants()
+    g_ik = float(params["nk"]["g_ik"])
+    g_ie = float(params["cd8"]["g_ie"])
+    tot_ec = float(params["scaling"]["ode_epithelial_population"])
     macro_lam = (float(params["macrophage"]["chemotaxis_v_macro"])
                  if macrophage_chemotaxis_lambda is None else float(macrophage_chemotaxis_lambda))
     # NK_CD8_CHEMOTAXIS_ENGINE_SCALE applies ONLY to the unspecified
@@ -813,7 +856,10 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
         margin_sites=margin_sites, separation_sites=separation_sites, seed=seed)
 
     cell_type_by_idx = [c["type"] for c in spec["cells"]]  # spec index i -> cell id i+1
-    infected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I]
+    # Mutable: Task 7.2's killing step removes ids as infected cells are
+    # killed (-> types.D). Every OTHER id list above is fixed for the run
+    # (macrophage/uninfected/NK/CD8 cell counts don't change in this driver).
+    infected_ids = set(i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I)
     macrophage_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.M]
     uninfected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.H]
     nk_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.K]
@@ -832,10 +878,24 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
     immune.set_macrophage_chemotaxis(world, virus_fi, chemotaxis_v_macro=macro_lam)
     immune.set_nk_cd8_chemotaxis(world, chemo_fi, chemotaxis_v_nk=nk_lam, chemotaxis_v_cd8=cd8_lam)
 
+    # Task 7.2 kill-draw RNG: a dedicated stream/offset (unused by any other
+    # RNG in this module -- this driver otherwise has none, since it has no
+    # H->I/I->D/Allee stochastic transitions, only movement, which draws from
+    # the Potts RNG set at `world.finalize` above) so kill draws don't share
+    # (or accidentally correlate with) any other source of randomness.
+    kill_rng = np.random.default_rng(seed + 500)
+
+    # Cache: once every infected cell has been killed, `infected_ids` is
+    # empty and the NK/CD8 distance-to-infection series has no live centroid
+    # to measure against -- freeze it at its last value rather than raising.
+    _last_centroid = [None]
+
     def _infection_centroid(coms):
-        xs = [coms[cid][0] for cid in infected_ids]
-        ys = [coms[cid][1] for cid in infected_ids]
-        return (sum(xs) / len(xs), sum(ys) / len(ys))
+        if infected_ids:
+            xs = [coms[cid][0] for cid in infected_ids]
+            ys = [coms[cid][1] for cid in infected_ids]
+            _last_centroid[0] = (sum(xs) / len(xs), sum(ys) / len(ys))
+        return _last_centroid[0]
 
     def _mean_distance(coms, ids, centroid):
         ds = [math.hypot(coms[cid][0] - centroid[0], coms[cid][1] - centroid[1]) for cid in ids]
@@ -856,9 +916,35 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
             scale = signaling.uninfected_il10_scale(resist)
             world.set_cell_secretion_scale(il10_fi, cid, scale)
 
+    def _apply_killing():
+        # Task 7.2: local (surface-contact) NK/CD8 kill term, see this
+        # function's docstring for the full derivation/source-ordering note
+        # and DISCREPANCY #7 (cell_resist applied DIRECT, not 1-resist).
+        if not enable_killing or not infected_ids:
+            return
+        cell_volumes = world.cell_volumes()
+        for cid in sorted(infected_ids):
+            contact = world.cell_contact_area_by_type(cid)
+            srf_nk = contact.get(types.K, 0)
+            srf_cd8 = contact.get(types.E, 0)
+            f_bar = world.field_mean_at_cell(ifn_fi, cid)
+            resist = cell_resistance(f_bar, a_rf)
+            cell_volume = cell_volumes[cid]
+
+            rate_nk = killing.contact_kill_rate(srf_nk, resist, g_ik, tot_ec, cell_volume)
+            if kill_rng.random() < 1.0 - math.exp(-rate_nk):
+                world.set_cell_type(cid, types.D)
+                infected_ids.discard(cid)
+                continue  # source: CD8 check is skipped once NK already killed the cell this MCS
+
+            rate_cd8 = killing.contact_kill_rate(srf_cd8, resist, g_ie, tot_ec, cell_volume)
+            if kill_rng.random() < 1.0 - math.exp(-rate_cd8):
+                world.set_cell_type(cid, types.D)
+                infected_ids.discard(cid)
+
     result = {
         "steps": [], "nk_mean_distance_to_infection": [],
-        "cd8_mean_distance_to_infection": [], "total_chemokine": [],
+        "cd8_mean_distance_to_infection": [], "total_chemokine": [], "n_infected": [],
     }
 
     def _record(step_idx):
@@ -870,15 +956,18 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
         result["cd8_mean_distance_to_infection"].append(
             round(_mean_distance(coms, cd8_ids, centroid), 3))
         result["total_chemokine"].append(float(sum(world.field_conc(chemo_fi))))
+        result["n_infected"].append(len(infected_ids))
 
     _record(0)
     for step_idx in range(1, steps + 1):
         world.step(mcs_per_update)
         _apply_secretion_scales()
+        _apply_killing()
         _record(step_idx)
 
     result["params"] = {
         "chemotaxis_v_macro": macro_lam, "chemotaxis_v_nk": nk_lam, "chemotaxis_v_cd8": cd8_lam,
+        "enable_killing": enable_killing, "g_ik": g_ik, "g_ie": g_ie, "tot_ec_ODE": tot_ec,
         "n_macrophages": n_macrophages, "n_nk": n_nk, "n_cd8": n_cd8,
         "n_infected": n_infected, "epithelial_cells_per_side": epithelial_cells_per_side,
         "margin_sites": margin_sites, "separation_sites": separation_sites,
