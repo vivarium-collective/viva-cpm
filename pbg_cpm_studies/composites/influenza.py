@@ -20,7 +20,7 @@ from __future__ import annotations
 import numpy as np
 from process_bigraph.composite_generator import composite_generator
 
-from ..influenza import fields, sheet
+from ..influenza import fields, immune, sheet
 from ..influenza import types as inf_types
 from ..influenza.params import load_params
 
@@ -164,3 +164,98 @@ def virus_infection(core=None, patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO
                     init_infected_frac: float = DEMO_INIT_INFECTED_FRAC) -> dict:
     return virus_infection_composite_document(patch_mm, seed=seed,
                                               init_infected_frac=init_infected_frac)
+
+
+# ---------------------------------------------------------------------------
+# Increment 5 (Task 5.2): macrophage-response live-demo composite. Wraps the
+# Task-5.1 non-confluent 2D-approximation scenario
+# (``immune.build_macrophage_scenario_spec``) + virus field, with macrophage
+# (``inf_types.M``) chemotaxis wired DECLARATIVELY via the field's
+# ``chemotaxis`` list (the same ``cpm.schema.load_world`` convention
+# ``pbg_cpm_studies.composites.chemotaxis.build_spec`` uses), rather than the
+# ``World.set_chemotaxis``/``immune.set_macrophage_chemotaxis`` post-hoc call
+# ``run.run_macrophage_response`` makes on a live ``cpm_core.World``.
+#
+# Dashboard/live-demo wrapper ONLY -- the measured localization numbers cited
+# by the macrophage-response study (mean distance to infection 26.3 -> 18.2
+# with chemotaxis on vs 26.3 -> 30.6 with the lambda=0 control, seed=17) come
+# directly from ``run.run_macrophage_response``, which ALSO warms the virus
+# field up via ``World.advance_fields`` before stepping and records
+# ``mean_distance_to_infection``/``macrophage_com`` each update -- a plain
+# CPMProcess has neither of those readouts, so this composite reproduces
+# neither the warmup nor the localization measurement, only the scenario
+# geometry + chemotaxis wiring. Not a Fig-2B/3A reproduction (Increment 9).
+# ---------------------------------------------------------------------------
+
+DEMO_MACROPHAGE_CELLS_PER_SIDE = 4
+DEMO_N_INFECTED = 1
+DEMO_N_MACROPHAGES = 6
+DEMO_MARGIN_SITES = 20
+DEMO_CHEMOTAXIS_V_MACRO = 5000.0  # params.yaml macrophage.chemotaxis_v_macro; pass 0.0 for the control
+
+
+def build_macrophage_response_spec(*, epithelial_cells_per_side: int = DEMO_MACROPHAGE_CELLS_PER_SIDE,
+                                   n_infected: int = DEMO_N_INFECTED,
+                                   n_macrophages: int = DEMO_N_MACROPHAGES,
+                                   margin_sites: int = DEMO_MARGIN_SITES, seed: int = DEMO_SEED,
+                                   chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO) -> dict:
+    """A ``load_world`` spec for the Task-5.1 macrophage scenario + virus
+    field, with macrophage (``inf_types.M``) chemotaxis on the virus field
+    wired via the field's ``chemotaxis`` list. ``chemotaxis_v_macro=0.0``
+    reproduces the lambda=0 control (no directed chemotaxis)."""
+    spec = immune.build_macrophage_scenario_spec(
+        epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, margin_sites=margin_sites, seed=seed)
+    field_entry = fields.virus_field_spec_entry()
+    field_entry["chemotaxis"] = [{"type": inf_types.M, "lambda": float(chemotaxis_v_macro)}]
+    spec["fields"] = [field_entry]
+    return spec
+
+
+def macrophage_response_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
+                                            n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
+                                            margin_sites=DEMO_MARGIN_SITES, seed=DEMO_SEED,
+                                            chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO) -> dict:
+    spec = build_macrophage_response_spec(
+        epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, margin_sites=margin_sites, seed=seed,
+        chemotaxis_v_macro=chemotaxis_v_macro)
+    return {
+        "cpm": {
+            "_type": "process",
+            "address": CPM_ADDR,
+            "config": {"spec": spec, "mcs_per_update": 10, "n_fields": 1,
+                       "secretory_types": [inf_types.I]},
+            "inputs": {"fates": ["fates"]},
+            "outputs": {
+                "volumes": ["volumes"],
+                "types": ["types"],
+                "positions": ["positions"],
+                "field_at_cell": ["field_at_cell"],
+                "neighbor_secretory": ["neighbor_secretory"],
+            },
+        },
+        "fates": {},
+    }
+
+
+@composite_generator(
+    name="macrophage_response", default_n_steps=30,
+    description=(
+        "Influenza-sego2022 Increment 5: macrophage (type M) chemotaxis up the "
+        "virus field toward the infection, over the Task-5.1 non-confluent "
+        "2D-approximation scenario. Live-demo/dashboard wrapper -- the measured "
+        "localization numbers (26.3 -> 18.2 sites, chemotaxis on, seed=17) come "
+        "from run.run_macrophage_response, not this composite. "
+        "chemotaxis_v_macro=0.0 reproduces the lambda=0 control."
+    ),
+    parameters={
+        "chemotaxis_v_macro": {"type": "float", "default": DEMO_CHEMOTAXIS_V_MACRO,
+                               "description": "macrophage chemotaxis strength on the virus field (0.0 = lambda=0 control)"},
+        "seed": {"type": "int", "default": DEMO_SEED,
+                 "description": "RNG seed for the scenario build"},
+    },
+)
+def macrophage_response(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
+                        seed: int = DEMO_SEED) -> dict:
+    return macrophage_response_composite_document(seed=seed, chemotaxis_v_macro=chemotaxis_v_macro)

@@ -44,7 +44,9 @@ executive:
     reproduction) so reproducibility accrues cumulatively and each step is
     independently reviewable.
   verdict: |
-    Increments 0-4 of 10 landed; reproduction fidelity NOT yet assessed. The
+    Increments 0-5 of 10 landed (5/6 RE-SCOPED — see biological_story;
+    Increment 5 is now macrophage response, Increment 6 is chemokine/IL-10
+    fields); reproduction fidelity NOT yet assessed. The
     parameter/spec authority is established (pbg_cpm_studies/influenza/params.yaml,
     cited to the CC3D source and the paper's Tables 1-4) and figure-target
     acceptance bands are digitized for Figs 3B, 5, 7 (Increment 0). The
@@ -123,9 +125,26 @@ executive:
     qualifying H-cell/update pairs at 500 steps, all correctly positive but
     tiny, mean ~1.2e-5, expected ~0.19 successes) — an OPEN Increment-9
     calibration question about the b_h/theta asymmetry and per-update (not
-    per-MCS) batching, recorded not resolved. No reproduction verdict
-    against Figs 3B/5/7 exists yet — that begins at Increment 9 (the
-    capstone).
+    per-MCS) batching, recorded not resolved. macrophage-response
+    (Increment 5, RE-SCOPED ahead of chemokine/IL-10 fields) validates the
+    macrophage chemotactic-LOCALIZATION MECHANISM (measured, same seed=17):
+    wiring macrophages (type M) to chemotax up the UNCHANGED Increment-2
+    virus field via the engine's existing linear-lambda `World.
+    set_chemotaxis` primitive, mean distance to the infection centroid falls
+    26.302 -> 18.198 sites (-30.8%) over 30 updates, while the identical
+    starting configuration with chemotaxis off (lambda=0 control) drifts
+    away instead (26.302 -> 30.585, +16.3%) — confirmed both by the full
+    scenario and a minimal 2-cell engine-sanity check. Localization only:
+    NO virus phagocytosis (the CC3D source itself has none — a paper-vs-
+    source discrepancy, honestly recorded, not a gap introduced here), NO
+    recruitment dynamics (a fixed 6-macrophage population is placed at
+    scenario build time; chemokine/APC-Hill-driven recruitment is
+    Increment 6/8), single-seed demonstration (a couple of other tried seeds
+    hold the same direction with a smaller margin, an OPEN Increment-9 item),
+    a non-confluent 2D approximation of the source's z=2 immune-layer
+    geometry, and the engine's LINEAR (not the source's saturating/COM-
+    scaled) chemotaxis form. No reproduction verdict against Figs 3B/5/7 or
+    Fig 2/3A exists yet — that begins at Increment 9 (the capstone).
   decisions_needed:
     - question: "Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?"
       context: |
@@ -177,9 +196,26 @@ biological_story: |
 
   Capability accrues on a 10-increment ladder: epithelial sheet at scale,
   virus field + infection, IFN + resistance, epithelial death/recovery,
-  chemokine + IL-10 fields, macrophage response, NK/CD8+ cytotoxic response,
+  macrophage response, chemokine + IL-10 fields, NK/CD8+ cytotoxic response,
   the global ODE coupling, and finally the full capstone reproduction against
   Figs 3B, 5, and 7 at paper scale with 50 replicas.
+
+  NOTE — Increments 5/6 RE-SCOPED (recorded at Task 5.2, macrophage-response
+  study): the ladder as originally scaffolded put "chemokine + IL-10 fields"
+  at position 5 and "macrophage response" at position 6. Actual build order
+  swapped them — Increment 5 is now macrophage response (this study) and
+  Increment 6 will be chemokine + IL-10 fields. Rationale: the core
+  macrophage chemotactic-LOCALIZATION mechanism (chemotax up the ALREADY-
+  EXISTING Increment-2 virus field toward the infection, via the engine's
+  existing `World.set_chemotaxis` primitive) needed no new field and no new
+  Rust code, so it was cheaper and more legible to validate FIRST, isolated
+  from recruitment dynamics. Increment 6 will build the chemokine C field and
+  Hill-driven macrophage recruitment (replacing this study's FIXED
+  macrophage population with actual inflow/outflow); the APC-driven (P)
+  recruitment/global-IFN-amplification piece stays part of Increment 8's
+  global ODE coupling, as originally scoped. This changes the ladder's build
+  ORDER only, not its content — all 10 mechanisms are still planned, and no
+  scope was dropped.
 
 how_to_read: |
   Read this top-down as a capability ladder, not a finished result:
@@ -190,8 +226,10 @@ how_to_read: |
      discrepancies. Study: parameter-provenance (documentation only).
   2. INCREMENTS 1-8 — one capability + one study + one paper target each,
      validated at reduced (0.3 mm) scale: epithelial sheet, virus field +
-     infection, IFN + resistance, death/recovery, chemokine/IL-10 fields,
-     macrophage response, NK/CD8+ cytotoxic killing, global ODE coupling.
+     infection, IFN + resistance, death/recovery, macrophage response,
+     chemokine/IL-10 fields, NK/CD8+ cytotoxic killing, global ODE coupling.
+     (Increments 5/6 were RE-SCOPED/swapped from the original ladder order —
+     see the note in biological_story below.)
   3. INCREMENT 9 — the capstone: full composite at 1 mm^2 paper scale, 50
      replicas, evaluated against the Increment-0 acceptance bands for Figs
      3B (time series vs ODE), 5 (viral-load sweep, lethal threshold), and 7
@@ -213,6 +251,7 @@ at_a_glance:
   - {study: virus-field-infection, role: "Increment 2: validates the virus field (diffusion/decay) + stochastic H->I infection MECHANISM (local spread, population conserved) over the Increment-1 sheet. Mechanism only — no resistance/IFN/immune cells yet, and no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
   - {study: ifn-resistance, role: "Increment 3: validates the type-I IFN field + per-cell resistance MECHANISM gating virus secretion by (1-resist) over the Increment-2 virus-field/infection path — PRIMARY evidence is total_virus roughly halved (~53% at step 20 through ~58% at step 40); n_I is a weaker, corroborating signal at the tested step (~4% at step 20, widening to ~23% by step 40). Mechanism only — death/recovery/Allee/IL-10/immune cells/APC-driven IFN amplification not yet modeled; resist plateaus ~0.55 (not ~1), an OPEN Increment-9 calibration question; no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
   - {study: epithelial-fate, role: "Increment 4: validates the full epithelial-fate lifecycle MECHANISM — infection (H->I) + infected death (I->D) + cellularized Allee death/recovery (H<->D) over the Increment-2/3 path. Dead lesion grows via H->I->D (n_D 0->14 at 200 updates, 0->77 at 500 updates); Allee recovery (D->H) confirmed bidirectionally correct (deterministic + organic evidence, 3-12 events/run). Mechanism only — direct Allee death (H->D) is honestly reported as essentially absent at 0.3mm scale (verified genuine, not a bug, via rate instrumentation), an OPEN Increment-9 calibration flag; NK/CD8+ contact-killing, chemokine/IL-10 fields, other immune cells, and APC-driven IFN amplification not yet modeled; no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
+  - {study: macrophage-response, role: "Increment 5 (RE-SCOPED ahead of chemokine/IL-10 fields — see the 5/6 re-scope note below): validates the macrophage (type M) chemotactic-LOCALIZATION MECHANISM — macrophages chemotax up the unchanged Increment-2 virus field via the engine's existing linear-lambda primitive and accumulate at the infection (mean distance to infection 26.3 -> 18.2 sites, -31%, seed=17, chemotaxis on, vs 26.3 -> 30.6 drifting away with the lambda=0 control). Localization only — NO virus phagocytosis (the CC3D source itself has none, a paper-vs-source discrepancy, honestly recorded), NO recruitment dynamics (a fixed population is placed at scenario build time; chemokine/APC-Hill-driven recruitment is Increment 6/8), single-seed demonstration, 2D-approximation geometry, and the engine's linear (not the source's saturating/COM) chemotaxis form; no Figs 2/3A reproduction claim (still PENDING, Increment 9)."}
 
 members:
 - parameter-provenance
@@ -220,6 +259,7 @@ members:
 - virus-field-infection
 - ifn-resistance
 - epithelial-fate
+- macrophage-response
 
 acceptance_criteria:
 - {study: parameter-provenance, behavior: "Parameter authority is established and cited"}
@@ -227,3 +267,4 @@ acceptance_criteria:
 - {study: virus-field-infection, behavior: "Virus field diffuses/decays and a seeded lesion spreads locally via stochastic H->I infection (new infections within a few diffusion lengths of prior-infected cells), with population conserved and no spontaneous infection absent a seed/field"}
 - {study: ifn-resistance, behavior: "Type-I IFN field drives a per-cell resistance scalar (resist = f_bar/(a_rf+f_bar)) that gates virus secretion by (1-resist), measurably reducing total virus vs the same-seed no-IFN run (primary evidence, roughly halved: ~53% at step 20 through ~58% at step 40), with a weaker, later-emerging reduction in infected-cell growth (n_I: ~4% at step 20, widening to ~23% by step 40) and mean_resist > 0 once IFN accumulates"}
 - {study: epithelial-fate, behavior: "Infected death (I->D) and the cellularized Allee effect (H->D death / D->H recovery, gated by local contact geometry and resistance) compose with infection into a coherent, population-conserving epithelial-fate lifecycle: a dead lesion grows via H->I->D (n_D 0->14 at 200 updates, 0->77 at 500 updates), a dead cell fully surrounded by healthy tissue recovers, a dead cell surrounded by dying tissue never recovers, and direct Allee death is honestly reported as rare at reduced scale (a recorded Increment-9 calibration flag, not a wiring bug)"}
+- {study: macrophage-response, behavior: "Macrophages (type M), wired to chemotax up the (unchanged) virus field via the engine's existing linear-lambda chemotaxis primitive, LOCALIZE to the infection over a 30-update run: mean distance to the infection centroid falls 26.302 -> 18.198 sites (-30.8%, seed=17, chemotaxis on), while the identical starting configuration with chemotaxis off (lambda=0 control) drifts away instead (26.302 -> 30.585, +16.3%); confirmed both by the full scenario and a minimal 2-cell engine-sanity check. Localization mechanism only — no phagocytosis (source has none), no recruitment dynamics (fixed population), single-seed demonstration"}
