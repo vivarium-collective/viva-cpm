@@ -66,7 +66,7 @@ executive:
     infection into a coherent epithelial-fate lifecycle: a dead lesion grows
     via H->I->D (n_D 0->14 at 200 updates, 0->77 at 500 updates), and Allee
     recovery is confirmed bidirectionally correct (a well-surrounded dead
-    cell recovers, deterministically and organically 3-10 events/run; a
+    cell recovers, deterministically and organically 3-12 events/run; a
     poorly-surrounded one provably never does) (Increment 4, mechanism-only
     — direct Allee death is honestly reported as essentially absent at this
     reduced scale, verified genuine rather than a wiring bug via rate
@@ -212,7 +212,7 @@ at_a_glance:
   - {study: epithelial-sheet-baseline, role: "Increment 1: validates the confluent epithelial-sheet substrate (geometry + 1mm^2 throughput) as a process-bigraph composite. Substrate only — no biology reproduction claim."}
   - {study: virus-field-infection, role: "Increment 2: validates the virus field (diffusion/decay) + stochastic H->I infection MECHANISM (local spread, population conserved) over the Increment-1 sheet. Mechanism only — no resistance/IFN/immune cells yet, and no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
   - {study: ifn-resistance, role: "Increment 3: validates the type-I IFN field + per-cell resistance MECHANISM gating virus secretion by (1-resist) over the Increment-2 virus-field/infection path — PRIMARY evidence is total_virus roughly halved (~53% at step 20 through ~58% at step 40); n_I is a weaker, corroborating signal at the tested step (~4% at step 20, widening to ~23% by step 40). Mechanism only — death/recovery/Allee/IL-10/immune cells/APC-driven IFN amplification not yet modeled; resist plateaus ~0.55 (not ~1), an OPEN Increment-9 calibration question; no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
-  - {study: epithelial-fate, role: "Increment 4: validates the full epithelial-fate lifecycle MECHANISM — infection (H->I) + infected death (I->D) + cellularized Allee death/recovery (H<->D) over the Increment-2/3 path. Dead lesion grows via H->I->D (n_D 0->14 at 200 updates, 0->77 at 500 updates); Allee recovery (D->H) confirmed bidirectionally correct (deterministic + organic evidence, 3-10 events/run). Mechanism only — direct Allee death (H->D) is honestly reported as essentially absent at 0.3mm scale (verified genuine, not a bug, via rate instrumentation), an OPEN Increment-9 calibration flag; NK/CD8+ contact-killing, chemokine/IL-10 fields, other immune cells, and APC-driven IFN amplification not yet modeled; no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
+  - {study: epithelial-fate, role: "Increment 4: validates the full epithelial-fate lifecycle MECHANISM — infection (H->I) + infected death (I->D) + cellularized Allee death/recovery (H<->D) over the Increment-2/3 path. Dead lesion grows via H->I->D (n_D 0->14 at 200 updates, 0->77 at 500 updates); Allee recovery (D->H) confirmed bidirectionally correct (deterministic + organic evidence, 3-12 events/run). Mechanism only — direct Allee death (H->D) is honestly reported as essentially absent at 0.3mm scale (verified genuine, not a bug, via rate instrumentation), an OPEN Increment-9 calibration flag; NK/CD8+ contact-killing, chemokine/IL-10 fields, other immune cells, and APC-driven IFN amplification not yet modeled; no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
 
 members:
 - parameter-provenance

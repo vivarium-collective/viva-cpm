@@ -109,7 +109,7 @@ report:
     - {name: n_D_growth_200_steps, value: "0 -> 14 (n_H 855->668, n_I 45->218)", note: "lesion forms via H->I->D, population conserved every update"}
     - {name: n_D_growth_500_steps, value: "0 -> 77 (n_H 855->77, n_I 45->746, max n_D=77)"}
     - {name: n_allee_recovery_200_steps, value: 3, note: "organic recovery events (no hand-made geometry), D->H"}
-    - {name: n_allee_recovery_500_steps, value: 10}
+    - {name: n_allee_recovery_500_steps, value: 12}
     - {name: n_allee_death_200_500_steps, value: 0, flag: "genuinely rare, not a wiring bug -- see calibration flag below"}
     - {name: allee_death_qualifying_encounters_500_steps, value: 15447, note: "H-cell/update pairs where the death rate is genuinely nonzero; mean rate ~1.2e-5, max ~1.8e-4, expected successes ~0.19 over the run"}
 
@@ -181,7 +181,7 @@ claim: |
   2/3), and the Allee branch responds correctly to local contact geometry
   in BOTH directions -- a dead cell fully surrounded by healthy tissue
   recovers (proven both deterministically in a hand-made frozen-geometry
-  world and organically in the full driver, 3-10 events/run), while a dead
+  world and organically in the full driver, 3-12 events/run), while a dead
   cell surrounded by dying tissue never does (rate is provably 0, not just
   empirically absent). This is a MECHANISM-validation claim (the fate
   lifecycle composes correctly and the Allee branch is bidirectionally
@@ -238,7 +238,7 @@ readouts:
       iteration -- not just empirically absent
       (`test_dead_cell_surrounded_by_dying_does_not_recover`); (2) the full
       driver fires recovery ORGANICALLY with no hand-made geometry: 3
-      events over 200 updates, 10 events over 500 updates (diagnostic
+      events over 200 updates, 12 events over 500 updates (diagnostic
       `n_allee_recovery` counter, task-4.3-report.md).
   - name: Direct Allee death (H->D) is rare at 0.3mm scale -- flagged, not a bug
     identifier: n_allee_death
@@ -492,7 +492,7 @@ key_assumptions:
 
 literature_anchors:
   - expectation: "Infected epithelial cells undergo virally-induced apoptosis (Sego 2022 Sec. 2.2/2.3, Table 2 'Infected death'); dying/dead cells can be replaced by neighboring healthy tissue via a cellularized Allee-effect recovery term (RecoverySteppable)."
-    model_observable: "n_D grows from 0 to 14 (200 updates) / 77 (500 updates) via H->I->D; D->H recovery fires both deterministically (frozen-geometry test) and organically (3-10 events/run) when a dead cell is well-surrounded by healthy tissue, and provably never fires when it is not."
+    model_observable: "n_D grows from 0 to 14 (200 updates) / 77 (500 updates) via H->I->D; D->H recovery fires both deterministically (frozen-geometry test) and organically (3-12 events/run) when a dead cell is well-surrounded by healthy tissue, and provably never fires when it is not."
     source: "CC3D ViralInfectionVTM source (ViralCellDeathSteppable, RecoverySteppable) via pbg_cpm_studies/influenza/params.yaml cell_death: and allee: blocks"
     status_in_workspace: "Wired and measured directly (infected death + bidirectional Allee response). Infected death uses the source's own SIMPLIFIED flat-rate form (no ROS/Hill term); NK/CD8 contact-killing (a second death pathway) is deferred to Increment 7. No acceptance-band comparison to a digitized figure yet."
     cites: [sego2022influenza]
