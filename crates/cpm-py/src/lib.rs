@@ -182,9 +182,11 @@ impl World {
         self.world_ref().field_mean_at_cell(field_idx, cell_id)
     }
 
-    /// Per-cell contact-area-by-type: dict[cell_type -> face-area] of how much
-    /// of `cell_id`'s surface contacts each neighbor cell type (MEDIUM=0
-    /// included). Pure read; sum of values equals `cell_surfaces()[cell_id]`.
+    /// Per-cell contact-area-by-type: dict[cell_type -> contact-area] of how
+    /// much of `cell_id`'s surface contacts each neighbor cell type (MEDIUM=0
+    /// included). Contact area uses the configured (Moore) neighborhood, the
+    /// same one `cell_surfaces()` uses -- not axis-faces only -- so the sum of
+    /// values equals `cell_surfaces()[cell_id]`. Pure read.
     fn cell_contact_area_by_type(&self, cell_id: u32) -> HashMap<u16, i64> {
         self.world_ref().cell_contact_area_by_type(cell_id)
     }

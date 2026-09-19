@@ -127,7 +127,7 @@ def epithelial_fate_figure(run_result: dict) -> Figure:
     (H -> D) event counts vs update index -- `run_epithelial_fate` records
     these as sparse PER-UPDATE counts (`n_allee_recovery`/`n_allee_death`,
     mostly 0, occasionally 1+), so the cumulative sum is what actually shows
-    the handful of organic events accruing over a run (Task 4.3: ~3-10
+    the handful of organic events accruing over a run (Task 4.3: ~3-12
     recovery events/run, ~0 death events at 0.3mm -- see the study's
     calibration-flag caveat; a bare per-update line would look almost empty).
 
