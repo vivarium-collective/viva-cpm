@@ -18,13 +18,16 @@ increments so far do not use for the epithelium).
 
 For this MECHANISM increment we approximate that geometry in 2D: a
 NON-CONFLUENT epithelial patch (a block of H cells, with some seeded I cells
-so the virus field has a source from MCS 0) sits inside a much larger domain
-with open Medium around it, and macrophage (`types.M`) cells are placed in
-that Medium, away from the patch. This gives macrophages literal lattice
-space to migrate through in-plane while chemotaxing up the virus gradient --
-the same shape as `pbg_cpm_studies/chemotaxis`'s secreting-source +
-chemotaxing-responder scenario, with the VIRUS field as the attractant and
-`types.I` epithelial cells as the (incidental) source.
+so the virus field has a source from MCS 0) and a cluster of macrophage
+(`types.M`) cells both sit in the INTERIOR of a much larger domain with open
+Medium around and between them -- neither cluster starts pinned against a
+noflux wall (see `build_macrophage_scenario_spec`'s docstring for why: a
+wall-pinned start biases the lambda=0 control's drift). This gives
+macrophages literal lattice space to migrate through in-plane while
+chemotaxing up the virus gradient -- the same shape as
+`pbg_cpm_studies/chemotaxis`'s secreting-source + chemotaxing-responder
+scenario, with the VIRUS field as the attractant and `types.I` epithelial
+cells as the (incidental) source.
 
 The faithful z=2 immune layer over a CONFLUENT z=1 epithelial sheet is
 deferred to Increment 9 (full reproduction increment) -- this increment only
@@ -32,6 +35,8 @@ needs to show the chemotaxis mechanism engages and localizes macrophages,
 not reproduce the source's exact lattice topology.
 """
 from __future__ import annotations
+
+import math
 
 from .params import load_params
 from .sheet import CELL_SIDE_SITES
@@ -55,14 +60,31 @@ def _epithelial_block_cells(cells_per_side, x_off, y_off, target_volume, lambda_
 
 def build_macrophage_scenario_spec(*, epithelial_cells_per_side: int = 4,
                                     n_infected: int = 1, n_macrophages: int = 6,
-                                    margin_sites: int = 30, seed: int = 17) -> dict:
+                                    margin_sites: int = 30, separation_sites: int = 25,
+                                    seed: int = 17) -> dict:
     """Non-confluent macrophage-response scenario (see module docstring for the
     2D-approximation rationale): a small epithelial patch (mostly H, with
-    ``n_infected`` cells nearest its center seeded as I) sits centered in a
-    much larger open-Medium domain; ``n_macrophages`` type-M cells are placed
-    in the Medium, in a far corner of the domain -- away from the infection --
-    so `run.run_macrophage_response` measures real migration, not a trivial
-    already-there start.
+    ``n_infected`` cells nearest its center seeded as I) and a cluster of
+    ``n_macrophages`` type-M cells both sit in the domain's INTERIOR, each at
+    least ``margin_sites`` from every noflux wall, separated horizontally by
+    ``separation_sites`` of open Medium.
+
+    Fix (Task 5.1 review finding #1 -- CONTROL-DRIFT CONFOUND): an earlier
+    version placed the macrophages in a domain CORNER (pinned against two
+    walls at once). A noflux wall is a hard reflector, so a corner-pinned
+    cluster's thermal/wall drift is NOT an isotropic random walk -- it is
+    biased to net-drift away from that corner, and because the corner was
+    chosen diagonally opposite the (centered) infection, that bias happened
+    to point roughly TOWARD the infection, inflating the apparent
+    chemotaxis-off "control" drift and hence overstating the on/off gap
+    attributable to chemotaxis. Placing BOTH clusters deep in the interior
+    (``margin_sites`` default large relative to a run's random-walk
+    displacement scale) removes that wall-proximity bias entirely: with no
+    wall nearby, the lambda=0 control's drift has no preferred direction with
+    respect to the infection, so it is a fair (isotropic) baseline for the
+    chemotaxis-on comparison. `run.run_macrophage_response` validates this
+    empirically across seeds (see its module docstring / task-5.1-report.md's
+    fix note) rather than asserting it analytically here.
 
     Adhesion (Table 3 / ``params.yaml`` ``macrophage.adhesion``) and volume
     (``params.yaml`` ``macrophage.volume_sites`` / ``lambda_volume``) are set
@@ -76,9 +98,27 @@ def build_macrophage_scenario_spec(*, epithelial_cells_per_side: int = 4,
     macro_adh = macro["adhesion"]
 
     epithelial_side_sites = epithelial_cells_per_side * CELL_SIDE_SITES
-    n = epithelial_side_sites + 2 * margin_sites  # square domain, patch centered
 
-    x_off = y_off = margin_sites
+    mv = int(macro["volume_sites"])
+    mlv = float(macro["lambda_volume"])
+    macro_side = int(round(mv ** 0.5))  # 5 for 25 sites
+    macro_gap = 2
+    macro_cols = max(1, int(math.ceil(math.sqrt(n_macrophages))))
+    macro_rows = max(1, int(math.ceil(n_macrophages / macro_cols)))
+    macro_cluster_w = macro_cols * macro_side + (macro_cols - 1) * macro_gap
+    macro_cluster_h = macro_rows * macro_side + (macro_rows - 1) * macro_gap
+
+    # Domain: both clusters interior, each >= margin_sites from every wall.
+    # Horizontally: margin | epithelial patch | separation | macrophage
+    # cluster | margin. Vertically: both clusters are centered on the same
+    # row, so each gets AT LEAST margin_sites of clearance above/below (more,
+    # for whichever cluster is shorter than the tallest one).
+    ny = margin_sites * 2 + max(epithelial_side_sites, macro_cluster_h)
+    nx = (margin_sites * 2 + epithelial_side_sites + separation_sites
+          + macro_cluster_w)
+
+    x_off = margin_sites
+    y_off = margin_sites + (max(epithelial_side_sites, macro_cluster_h) - epithelial_side_sites) // 2
     cells = _epithelial_block_cells(epithelial_cells_per_side, x_off, y_off,
                                      p["cell_sites"], p["lambda_volume"])
 
@@ -93,18 +133,15 @@ def build_macrophage_scenario_spec(*, epithelial_cells_per_side: int = 4,
     for i in order[:n_infected]:
         cells[i]["type"] = types.I
 
-    # Macrophages: placed in the Medium along the domain's near (low-x/low-y)
-    # edge -- as far from the centered epithelial patch/infection as the
-    # domain allows -- spaced out so their seed blocks don't overlap.
-    mv = int(macro["volume_sites"])
-    mlv = float(macro["lambda_volume"])
-    macro_side = int(round(mv ** 0.5))  # 5 for 25 sites
-    x0, y0, gap = 2, 2, macro_side + 2
-    per_row = max(1, (n - 4) // gap)
+    # Macrophages: a compact interior cluster, `separation_sites` of open
+    # Medium to the right of the epithelial patch -- away from the infection,
+    # but nowhere near a wall (see fix note above).
+    mac_x_off = margin_sites + epithelial_side_sites + separation_sites
+    mac_y_off = margin_sites + (max(epithelial_side_sites, macro_cluster_h) - macro_cluster_h) // 2
     for k in range(n_macrophages):
-        row, col = divmod(k, per_row)
-        cx = x0 + col * gap
-        cy = y0 + row * gap
+        row, col = divmod(k, macro_cols)
+        cx = mac_x_off + col * (macro_side + macro_gap)
+        cy = mac_y_off + row * (macro_side + macro_gap)
         cells.append({
             "type": types.M,
             "target_volume": float(mv),
@@ -127,7 +164,7 @@ def build_macrophage_scenario_spec(*, epithelial_cells_per_side: int = 4,
     ]
 
     return {
-        "potts": {"dims": [n, n, 1], "boundary": "noflux",
+        "potts": {"dims": [nx, ny, 1], "boundary": "noflux",
                   "neighbor_order": int(p["neighbor_order"]),
                   "temperature": float(p["temperature"]), "seed": seed},
         "cells": cells,

@@ -424,19 +424,23 @@ def run_epithelial_fate(patch_mm: float = 0.3, steps: int = 200, seed: int = 17,
 
 
 def run_macrophage_response(*, epithelial_cells_per_side: int = 4, n_infected: int = 1,
-                             n_macrophages: int = 6, margin_sites: int = 20,
-                             steps: int = 30, seed: int = 17, mcs_per_update: int = 10,
-                             field_warmup: int = 1500,
+                             n_macrophages: int = 6, margin_sites: int = 30,
+                             separation_sites: int = 25,
+                             steps: int = 40, seed: int = 17, mcs_per_update: int = 10,
+                             field_warmup: int = 3000,
                              chemotaxis_lambda: float | None = None) -> dict:
     """Task 5.1 crux driver: build the non-confluent macrophage scenario
-    (`immune.build_macrophage_scenario_spec`), wire the virus field
-    (`fields.add_virus_field` -- I cells secrete) + macrophage chemotaxis
-    (`immune.set_macrophage_chemotaxis`), warm the field up (`World.
-    advance_fields`, matching `pbg_cpm_studies.chemotaxis.run`'s WARMUP
-    convention -- builds an initial gradient reaching the macrophages'
-    starting corner before they start responding to it), then step the
-    coupled CPM + field world and record the macrophages' localization each
-    update.
+    (`immune.build_macrophage_scenario_spec` -- both the epithelial/infection
+    patch and the macrophage cluster sit in the domain's INTERIOR, each
+    ``margin_sites`` from every noflux wall; see that function's docstring
+    for why interior placement matters -- a wall-pinned control biases the
+    lambda=0 baseline's drift), wire the virus field (`fields.
+    add_virus_field` -- I cells secrete) + macrophage chemotaxis (`immune.
+    set_macrophage_chemotaxis`), warm the field up (`World.advance_fields`,
+    matching `pbg_cpm_studies.chemotaxis.run`'s WARMUP convention -- builds
+    an initial gradient reaching the macrophages' starting cluster before
+    they start responding to it), then step the coupled CPM + field world and
+    record the macrophages' localization each update.
 
     ``chemotaxis_lambda`` overrides ``params.yaml``'s ``macrophage.
     chemotaxis_v_macro`` (5000); pass ``0.0`` for the lambda=0 control (no
@@ -457,7 +461,8 @@ def run_macrophage_response(*, epithelial_cells_per_side: int = 4, n_infected: i
 
     spec = immune.build_macrophage_scenario_spec(
         epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
-        n_macrophages=n_macrophages, margin_sites=margin_sites, seed=seed)
+        n_macrophages=n_macrophages, margin_sites=margin_sites,
+        separation_sites=separation_sites, seed=seed)
 
     cell_type_by_idx = [c["type"] for c in spec["cells"]]  # spec index i -> cell id i+1
     infected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I]
@@ -506,7 +511,8 @@ def run_macrophage_response(*, epithelial_cells_per_side: int = 4, n_infected: i
     result["params"] = {
         "chemotaxis_v_macro": lam, "n_macrophages": n_macrophages,
         "n_infected": n_infected, "epithelial_cells_per_side": epithelial_cells_per_side,
-        "margin_sites": margin_sites, "seed": seed, "steps": steps,
+        "margin_sites": margin_sites, "separation_sites": separation_sites,
+        "seed": seed, "steps": steps,
         "mcs_per_update": mcs_per_update, "field_warmup": field_warmup,
     }
     return result
