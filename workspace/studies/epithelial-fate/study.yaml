@@ -72,7 +72,7 @@ report:
     not just the death side. But the TWO Allee branches are structurally
     asymmetric in how readily they fire at this reduced (0.3mm, ~900-cell)
     scale: recovery's deficit term is capped by `(1-theta) ~ 94.7%` and
-    fires readily (3-10 organic events per run), while death's deficit term
+    fires readily (3-12 organic events per run), while death's deficit term
     is capped by `srf_thresh ~ 5.3%` and additionally scales with contact
     to an ALREADY-substantial dead pocket, so it only engages for an H cell
     deeply embedded in dead tissue -- geometrically rare on a small patch
@@ -430,7 +430,7 @@ biological_summary: |
   `b_h` but have structurally different effective ceilings (`srf_thresh` ~
   5.3% for death's deficit term vs `1-srf_thresh` ~ 94.7% for recovery's),
   so recovery engages far more readily than death at reduced (0.3mm,
-  ~900-cell) scale: over 200-500 updates, recovery fires organically 3-10
+  ~900-cell) scale: over 200-500 updates, recovery fires organically 3-12
   times while direct death fires 0 times, though 15,447 genuinely-
   qualifying death encounters were found (500-step run) with correctly
   positive but tiny rates -- an expected ~0.19 total successes, so the zero
