@@ -262,15 +262,19 @@ def run_epithelial_fate(patch_mm: float = 0.3, steps: int = 200, seed: int = 17,
          + `cell_death.mu_i_per_mcs`).
       4. Allee death H -> D / recovery D -> H (`allee.allee_death_rate` /
          `allee.allee_recovery_rate`), evaluated per epithelial cell from
-         `world.cell_contact_area_by_type` (`_epithelial_contact_totals`)
-         -- on the types as of steps 2-3 this same update (so a cell that
-         just died of infection this update is immediately eligible to
-         recover if well-surrounded, and a cell that just got infected is
-         no longer eligible for Allee death this update).
-    All fate changes for the update are collected against a snapshot (the
-    world/fields are NOT mutated mid-update) and applied via
-    `world.set_cell_type` at the end, matching this module's existing
-    batched-per-update convention (see `run_virus_infection`).
+         `world.cell_contact_area_by_type` (`_epithelial_contact_totals`).
+    Steps 2-3's type changes are written to the world via `world.
+    set_cell_type` BEFORE step 4 reads neighbor contact -- matching the
+    source's within-MCS sequencing (`RecoverySteppable` runs after the
+    infection/death steppables in the same MCS, and CC3D applies
+    `cell.type` immediately, so `RecoverySteppable` sees THIS MCS's fresh
+    infection/death types when tallying neighbor contact, not last
+    update's stale types). Step 4's OWN death/recovery writes are still
+    batched and applied together at the very end of the update (a much
+    smaller residual approximation than the one just fixed -- see the
+    in-loop comment and task-4.3-report.md). This otherwise follows this
+    module's existing per-update-not-per-MCS driver convention (see
+    `run_virus_infection`).
 
     Returns per-update series: "steps", "n_H"/"n_I"/"n_D", "total_virus",
     plus "n_allee_death"/"n_allee_recovery" (count of Allee-driven
@@ -354,9 +358,37 @@ def run_epithelial_fate(patch_mm: float = 0.3, steps: int = 200, seed: int = 17,
         types_after_death = transitions.infected_death_step(
             types_after_infection, resist_at_cell, mu_i, death_rng)
 
+        # Apply the infection + infected-death writes to the world NOW,
+        # BEFORE the Allee step reads neighbor contact -- matching the
+        # source's within-MCS sequencing (RecoverySteppable runs AFTER the
+        # infection/death steppables in the same MCS, and CC3D applies
+        # cell.type changes immediately, so RecoverySteppable's
+        # `get_cell_neighbor_data_list` sees THIS MCS's fresh infection/
+        # death types, not last update's). Committing here (rather than
+        # batching these into the final write-back below) is the fix for
+        # a prior review finding: reading `cell_contact_area_by_type`
+        # against stale (pre-update) neighbor types systematically biased
+        # Allee death DOWN and recovery UP.
+        for cid in range(1, n_cells + 1):
+            if types_after_death[cid] != current_types[cid]:
+                world.set_cell_type(cid, types_after_death[cid])
+
         # (4) Allee death H -> D / recovery D -> H, from contact geometry
-        # as of the world's state BEFORE this update's writes (the
-        # world/fields haven't been mutated yet this update).
+        # as of the world's state AFTER this update's infection/death
+        # writes (just applied above) but BEFORE any Allee writes -- i.e.
+        # every cell's Allee rate this update is computed from the SAME
+        # neighbor snapshot (this update's post-infection/death types).
+        # Residual approximation (deliberately not fixed further, see
+        # task-4.3-report.md): the source applies each cell's death/revive
+        # write immediately within RecoverySteppable's own per-cell loop,
+        # so a cell processed later in the source's iteration order can see
+        # an EARLIER cell's Allee write this same MCS; here all Allee
+        # writes are collected and applied together at the end of this
+        # step, so within-Allee-pass neighbor propagation is one iteration
+        # behind the source. Much smaller effect than the infection/death
+        # staleness this fix addresses (Allee write density per update is
+        # far lower than the infection/death write density it now reads
+        # freshly).
         final_types = list(types_after_death)
         n_allee_death = 0
         n_allee_recovery = 0
@@ -382,7 +414,7 @@ def run_epithelial_fate(patch_mm: float = 0.3, steps: int = 200, seed: int = 17,
                     n_allee_recovery += 1
 
         for cid in range(1, n_cells + 1):
-            if final_types[cid] != current_types[cid]:
+            if final_types[cid] != types_after_death[cid]:
                 world.set_cell_type(cid, final_types[cid])
 
         current_types = final_types
