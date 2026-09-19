@@ -117,7 +117,7 @@ executive:
     deterministic frozen-geometry test proves a well-surrounded dead cell
     recovers and a poorly-surrounded one provably never does (recovery rate
     exactly 0.0), and the full driver fires recovery ORGANICALLY 3 times
-    over 200 updates / 10 times over 500 updates. Direct Allee death (H->D
+    over 200 updates / 12 times over 500 updates. Direct Allee death (H->D
     without infection) fires 0 times in both runs — honestly reported, and
     verified genuine (not a wiring bug) via rate instrumentation (15,447
     qualifying H-cell/update pairs at 500 steps, all correctly positive but

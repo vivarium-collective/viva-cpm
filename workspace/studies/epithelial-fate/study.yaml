@@ -379,7 +379,7 @@ conclusion: |
   updates, same seed=17/0.3mm/900-cell sheet as Increments 2/3), and the
   Allee recovery branch is confirmed bidirectionally correct -- a
   well-surrounded dead cell recovers (deterministically and organically, 3-
-  10 events/run), a poorly-surrounded one provably never does. Direct Allee
+  12 events/run), a poorly-surrounded one provably never does. Direct Allee
   death is honestly reported as essentially absent at this scale (0 events
   observed), verified genuine via rate instrumentation rather than a wiring
   bug, and flagged -- not tuned away -- as an open Increment-9 calibration
