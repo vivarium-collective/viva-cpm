@@ -380,5 +380,91 @@ _save_viz('virus-field-infection', 'Infection_dynamics_locality', _render_one('l
 # | New infections land closer to prior infection than random chance (locality) | kind=locality_null_ratio condition=virus-field-infection stat=mean | op lt value 0.75 |
 # | No seed, no initial virus -> no infection (null control) | kind=n_I condition=virus-field-infection-null stat=max | op eq value 0 |
 
+# ## Study: Increment 3: type-I IFN + per-cell resistance gates virus release — mechanism validated, reproduction still PENDING (`ifn-resistance`)
+#
+# **Question.** Does a diffusing type-I IFN field, converted per-cell into a resistance
+# scalar via the CC3D-source formula `resist = f_bar/(a_rf+f_bar)`, gate
+# infected cells' virus secretion by `(1-resist)` strongly enough to
+# measurably slow infection spread and reduce total virus versus the same
+# seed/parameters with no IFN (Increment 2's unmodified path)?
+#
+# **Objective.** Wire the type-I IFN field (Task 3.2, `pbg_cpm_studies/influenza/fields.py`
+# `add_ifn_field`) and the pure per-cell resistance function (Task 3.3,
+# `pbg_cpm_studies/influenza/resistance.py::cell_resistance`) into a new
+# driver, `run.run_virus_infection_with_ifn` (Task 3.3), alongside the
+# unmodified Increment-2 `run_virus_infection`, and compare their per-update
+# series (n_I, n_H, total_virus, plus `mean_resist` recorded only by the
+# with-IFN driver) at identical seed/parameters (Task 3.3's integration test
+# `tests/test_influenza_virus_infection.py::test_ifn_resistance_slows_spread_vs_no_ifn`
+# and the fuller with/without series in Task 3.3's report). A minimal
+# in-package figure (`pbg_cpm_studies/influenza/viz.py::ifn_resistance_figure`,
+# Task 3.4) renders both series side by side plus the mean_resist trajectory.
+#
+# **Hypothesis.** Layered on the Increment-2 virus field + infection transition: a type-I
+# IFN field secreted by infected cells diffuses and decays; each infected
+# cell's locally-sampled mean IFN drives a per-cell resistance scalar that
+# throttles ITS OWN virus secretion for the next update. This should leave
+# n_I lower and total_virus substantially lower than an identical no-IFN
+# run at the same steps, while mean_resist stays strictly positive once IFN
+# has had time to accumulate.
+#
+# **Purpose.** ifn_field_and_per_cell_resistance
+#
+# **Claim.** A type-I IFN field, sampled locally per infected cell into a resistance
+# scalar (source formula) that gates that cell's virus secretion by
+# `(1-resist)`, measurably reduces total virus versus an identical no-IFN
+# run (same seed, same 60-update driver) — roughly HALVED at every sampled
+# step (819.16 vs 1750.69 at step 20, ~53%; 1222.88 vs 2752.34 at step 30,
+# ~56%; 1624.58 vs 3905.38 at step 40, ~58%). This is the study's PRIMARY,
+# robust quantitative evidence. Infected-cell count (n_I) moves in the same
+# protective direction but is a WEAKER signal at the step Task 3.3's
+# integration test actually asserts: 48 vs 50 at step 20 is only a ~4%
+# reduction; the gap widens to ~15% at step 30 (51 vs 60) and ~23% at step
+# 40 (53 vs 69) as the virus-load reduction has more time to compound into
+# a visible count difference. So n_I is treated here as a corroborating
+# directional trend, not co-equal quantitative evidence with total_virus.
+# This is a MECHANISM-validation claim (the IFN->resistance->reduced-
+# secretion chain behaves in the protective direction and has a real,
+# non-trivial magnitude on virus load, with a smaller/slower-to-emerge
+# effect on cell counts), not a claim that any of Sego et al. 2022's
+# quantitative figure targets (Figs 3B/5/7) are met — that reproduction
+# verdict remains PENDING until Increment 9 (the capstone).
+
+# ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.influenza.virus_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.influenza.virus_infection`** — `spec_pbg_cpm_studies_composites_influenza_virus_infection` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.influenza.virus_infection` not found under `pbg_cpm_studies/composites/` — skipped._
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: ifn-resistance ===
+STUDY = 'ifn-resistance'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check) | kind=n_I_delta_vs_without_ifn condition=ifn-resistance stat=final | op le value 0 |
+# | IFN-gated virus release leaves strictly less total virus (primary quantitative gate) | kind=total_virus_delta_vs_without_ifn condition=ifn-resistance stat=final | op lt value 0 |
+# | Resistance gate actually engages (mean_resist > 0) | kind=mean_resist condition=ifn-resistance stat=final | op gt value 0.0 |
+
 # ## Open decisions
 # - Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?

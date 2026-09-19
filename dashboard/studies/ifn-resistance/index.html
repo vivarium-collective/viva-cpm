@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Study: checkerboard</title>
+<title>Study: ifn-resistance</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
 <!-- Inherit the workbench light/dark theme (this page loads in an iframe;
@@ -14,11 +14,11 @@
 <header class="study-header">
   <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
-    <span class="study-name" id="study-name" data-slug="checkerboard" title="checkerboard">Checkerboard (negative surface tension)</span>
+    <span class="study-name" id="study-name" data-slug="ifn-resistance" title="ifn-resistance">Increment 3: type-I IFN + per-cell resistance gates virus release — mechanism validated, reproduction still PENDING</span>
     
     <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
     
-    <span class="phase-pill phase-decide" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Decide</span>
+    <span class="phase-pill phase-simulate" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Simulate</span>
     
   </h1>
   <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0;">
@@ -36,7 +36,7 @@
     
 
     
-    <div id="readiness-panel" data-slug="checkerboard"></div>
+    <div id="readiness-panel" data-slug="ifn-resistance"></div>
 
     
     
@@ -58,7 +58,7 @@
             <span class="dot"></span>2&nbsp;·&nbsp;Execution
           </span>
           
-          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 3 · Evidence">
+          <span class="status-step gate-step axis-evaluation_status gate-state-passed-with-conditions set" title="Gate 3 · Evidence">
             <span class="dot"></span>3&nbsp;·&nbsp;Evidence
           </span>
           
@@ -96,13 +96,15 @@
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed">
+        <div class="status-detail-row gate-row gate-state-passed-with-conditions">
           <span class="status-detail-axis">3 · Evidence</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          <span class="gate-computed-chip gate-state-passed-with-conditions" title="completed run + recorded verdicts + visualization readiness gate (V4)">◆ computed: evaluated</span>
           
           
+          
+          <span class="gate-viz-gap-note" style="font-size:0.86em;color:#92400e">visualization gap: no figures</span>
           
         </div>
         
@@ -142,20 +144,37 @@
 
 
 
+<div class="composite-lint-banner" role="alert"
+     style="margin:8px 0 14px 0;padding:10px 14px;background:#fffbeb;border:1px solid #f59e0b;border-left-width:5px;border-radius:6px;color:#92400e;font-size:0.9em">
+  
+  <div>⚠ composite not found in registry: <code>pbg_cpm_studies.composites.influenza.virus_infection</code></div>
+  
+  <div style="margin-top:4px;font-size:0.86em;color:#a16207">
+    This study references a composite that doesn't resolve — it may not declare a
+    real, registered composite. Add a <code>.composite.yaml</code> and register it
+    in <code>core.py</code>, or fix the ref.
+  </div>
+</div>
 
 
 
 
 
 
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Does a negative light-dark surface tension (gamma_ld=-3) drive intermixing into a checkerboard instead of sorting?
+
+<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Layered on the validated Increment-2 virus field + infection transition:
+does a diffusing type-I IFN field, converted per-cell into a resistance
+scalar (source formula `resist = f_bar/(a_rf+f_bar)`), gate an infected
+cell&#39;s virus secretion by `(1-resist)` strongly enough to measurably
+REDUCE infection spread and total virus versus the same run with no IFN
+(Increment 2&#39;s path, unchanged)?
 </p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
   <div class="act-cluster" data-act="study">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="study" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="study" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">The Study</span>
     </div>
     <div class="act-tabs">
@@ -176,7 +195,7 @@
   </div>
   <div class="act-cluster" data-act="evidence">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">Evidence</span>
     </div>
     <div class="act-tabs">
@@ -560,25 +579,114 @@
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">gamma_ld&lt;0 yields a defect-ridden checkerboard with dominant light-dark contact and two transitions (~T=0 freeze, ~T=15 mixing), matching Figs 7-9 and Table I.</p>
+      <p class="ctr-text">A type-I IFN field, sampled locally per infected cell into a resistance
+scalar (source formula) that gates that cell&#39;s virus secretion by
+`(1-resist)`, measurably reduces total virus versus an identical no-IFN
+run (same seed, same 60-update driver) — roughly HALVED at every sampled
+step (819.16 vs 1750.69 at step 20, ~53%; 1222.88 vs 2752.34 at step 30,
+~56%; 1624.58 vs 3905.38 at step 40, ~58%). This is the study&#39;s PRIMARY,
+robust quantitative evidence. Infected-cell count (n_I) moves in the same
+protective direction but is a WEAKER signal at the step Task 3.3&#39;s
+integration test actually asserts: 48 vs 50 at step 20 is only a ~4%
+reduction; the gap widens to ~15% at step 30 (51 vs 60) and ~23% at step
+40 (53 vs 69) as the virus-load reduction has more time to compound into
+a visible count difference. So n_I is treated here as a corroborating
+directional trend, not co-equal quantitative evidence with total_virus.
+This is a MECHANISM-validation claim (the IFN-&gt;resistance-&gt;reduced-
+secretion chain behaves in the protective direction and has a real,
+non-trivial magnitude on virus load, with a smaller/slower-to-emerge
+effect on cell counts), not a claim that any of Sego et al. 2022&#39;s
+quantitative figure targets (Figs 3B/5/7) are met — that reproduction
+verdict remains PENDING until Increment 9 (the capstone).
+</p>
+      
+      <div class="ctr-context">Infected epithelial cells secrete type-I interferon (IFN) into a second
+diffusing, decaying extracellular field (source-cited diffusion
+coefficient, decay rate, and secretion constant, per
+`pbg_cpm_studies/influenza/params.yaml`&#39;s `ifn:` block), layered on the
+Increment-2 virus field. Each update, every currently-infected cell reads
+its own locally-diffused mean IFN concentration and converts it into a
+resistance scalar via the CC3D-source formula `resist =
+f_bar/(a_rf+f_bar)` (params.yaml `resistance:` block; NOT the paper&#39;s
+printed `1 - f_bar&#39;/(theta*a_f+f_bar&#39;)` form — every source consumer
+applies `(1-resist_source)` wherever the paper&#39;s rho appears
+protectively, matched here). That resistance throttles the SAME cell&#39;s
+own virus secretion for the next update by a factor of `(1-resist)`, so a
+cell that has accumulated more local IFN releases proportionally less
+virus. Measured against an identical no-IFN run (Increment 2&#39;s path,
+unchanged), this produces a substantial, sustained brake on VIRUS LOAD —
+total_virus is the study&#39;s primary, robust quantitative evidence, roughly
+halved already at step 20 (~53%) and staying in that ~53-58%-reduction
+regime through step 40. Infected-cell COUNT (n_I) moves in the same
+protective direction but only weakly at step 20 (~4%, 48 vs 50 cells);
+the reduction widens to a clearly meaningful ~23% by step 40 (53 vs 69)
+as the virus-load reduction has more time to compound into fewer new
+infections — a corroborating trend, not evidence as strong as
+total_virus&#39;s. mean_resist itself reaches a fast
+local steady state (~0.53-0.57) almost immediately rather than climbing
+toward saturation — because the IFN field&#39;s fast decay and diffusion
+drive each infected cell&#39;s local IFN to a quasi-steady concentration
+within about one update, and that concentration happens to sit close to
+(about 1.2x) the resistance formula&#39;s `a_rf` constant rather than far
+above it. There is no cell death/recovery, no Allee effect, no IL-10
+cross-talk, no immune cells (macrophages/NK/CD8+ T), and no APC-driven
+global IFN amplification feedback yet — all later increments.
+</div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Test</h2>
-      <p class="ctr-text">Simulate gamma_ld&lt;0 from a random IC and measure fractional interface lengths, &lt;n&gt;, moments vs T (0-40) to characterize the checkerboard and its phase transitions.
+      <p class="ctr-text">Wire the type-I IFN field (Task 3.2, `pbg_cpm_studies/influenza/fields.py`
+`add_ifn_field`) and the pure per-cell resistance function (Task 3.3,
+`pbg_cpm_studies/influenza/resistance.py::cell_resistance`) into a new
+driver, `run.run_virus_infection_with_ifn` (Task 3.3), alongside the
+unmodified Increment-2 `run_virus_infection`, and compare their per-update
+series (n_I, n_H, total_virus, plus `mean_resist` recorded only by the
+with-IFN driver) at identical seed/parameters (Task 3.3&#39;s integration test
+`tests/test_influenza_virus_infection.py::test_ifn_resistance_slows_spread_vs_no_ifn`
+and the fuller with/without series in Task 3.3&#39;s report). A minimal
+in-package figure (`pbg_cpm_studies/influenza/viz.py::ifn_resistance_figure`,
+Task 3.4) renders both series side by side plus the mean_resist trajectory.
 </p>
       
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>checkerboard</code></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">Paper: Fig 7-8 — negative γ_ld drives a light/dark checkerboard. Pass criterion: light-dark fraction &gt; 0.5 and larger than light-light &amp; dark-dark. Measured from the reproduced run: frac_ld=0.837 vs frac_ll=0.042, frac_dd=0.061.</span></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>ifn-resistance</code></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">WEAK, DIRECTIONAL check only, not the study&#39;s quantitative gate: `op:
+le, value: 0` passes on ANY reduction, however small, so a PASS here
+proves only that n_I did not get WORSE with the gate active — it does
+NOT by itself establish a meaningful effect size. Measured at the step
+Task 3.3&#39;s integration test actually asserts (step 20): with_ifn
+n_I[-1]=48 &lt;= without n_I[-1]=50, a reduction of only 2 cells (~4%) —
+a genuinely weak signal at that step. The gap does widen at later
+steps (51 vs 60 at step 30, ~15%; 53 vs 69 at step 40, ~23%, per Task
+3.3&#39;s fuller report series), so the directional trend strengthens over
+time, but the quantitative claim for THIS study rests on total_virus
+(next test), not on this loose n_I criterion.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">This is the study&#39;s PRIMARY quantitative evidence for the mechanism&#39;s
+effect. Pass criterion: total_virus at the run&#39;s final step with the
+gate active must be strictly less than the same-seed no-IFN run&#39;s
+total_virus at that step. Measured at step 20 (the step Task 3.3&#39;s
+integration test actually asserts): with_ifn total_virus[-1]=819.16 &lt;
+without total_virus[-1]=1750.69 — a ~53% reduction, already
+substantial at the earliest sampled step, not just a loose
+any-reduction pass like the n_I check above. The reduction stays in
+the ~53-58% regime through step 40 (1222.88 vs 2752.34 at step 30;
+1624.58 vs 3905.38 at step 40).
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Pass criterion: mean_resist over currently-infected cells must be &gt; 0
+by the run&#39;s final step (sanity that the gate is not a no-op).
+Measured: mean_resist[-1] &gt; 0 at step 20 (Task 3.3); the fuller series
+shows mean_resist reaches ~0.53 after just the first update and
+plateaus at ~0.55-0.57 through step 40 — well above 0, though it does
+NOT climb toward 1 (see the FLAG in report.caveat).
+</span></div>
       </div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">gamma_ld&lt;0 yields a defect-ridden checkerboard with dominant light-dark contact and two transitions (~T=0 freeze, ~T=15 mixing), matching Figs 7-9 and Table I.</p>
+      <p class="ctr-text">A per-cell resistance scalar computed purely from each infected cell&#39;s OWN locally-sampled IFN (no explicit cell-cell signaling beyond field diffusion) is sufficient to cut total virus roughly in half from the earliest sampled step onward — that virus-load reduction is the robust, well-supported effect. Infected-cell count responds to the same mechanism but more slowly: the n_I gap is small at step 20 (~4%) and only widens to a clearly meaningful ~23% by step 40, because fewer infections have had time to compound into a visible count difference even though virus release is already substantially throttled. The protective effect is real, but it comes from resistance hitting a fast local steady state (~0.55) almost immediately, not from resistance climbing toward saturation (~1) as more IFN mass nominally accumulates in the field over time.</p>
       
       
     <div class="overview-section findings-section">
@@ -591,19 +699,170 @@
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-partial">
         <details class="finding-details">
           <summary class="finding-row">
-            <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">gamma_ld&lt;0 yields a defect-ridden checkerboard with dominant light-dark contact and two transitions (~T=0 freeze, ~T=15 mixing), matching Figs 7-9 and Table I.</span>
+            <span class="finding-status-glyph">◐</span>
+            <span class="finding-claim finding-statement">With the IFN-&gt;resistance gate active, infected-cell growth is
+slightly slower than the identical no-IFN path, but the effect is
+WEAK at step 20 (only ~4% reduction, 2 cells) — not on its own strong
+evidence of slowed spread. The gap widens meaningfully by step 40
+(~23%) as the effect compounds, so this is a corroborating
+directional trend that strengthens over time, not the study&#39;s primary
+quantitative evidence (that&#39;s total_virus, F-02) and not a strong
+signal at the step the underlying integration test actually asserts.
+</span>
+            
+            <span class="finding-chip">via <code>IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)</code></span>
             
           </summary>
           <div class="finding-drawer">
             <div class="finding-header">
               <span class="finding-id">F-01</span>
               <span class="finding-kind">computational</span>
+              <span class="finding-status-text">partial literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> n_I with-IFN 48/51/53 vs without 50/60/69 at steps 20/30/40 (same seed=17, patch_mm=0.3, init_infected_frac=0.05); ratio 0.96 (step 20, ~4% reduction) -&gt; 0.85 (step 30, ~15%) -&gt; 0.77 (step 40, ~23%) · 
+              
+              via test <a href="#bt-IFN-gated" onclick="_gotoStudyTab('tests','bt-IFN-gated');return false;"><code>IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×0.96 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">This is the study&#39;s PRIMARY, robust quantitative evidence. Gating
+each infected cell&#39;s virus secretion by (1-resist) cuts total virus
+roughly in half already at step 20 (~53% reduction, the step the
+underlying integration test actually asserts) and stays in the
+~53-58%-reduction regime through step 40 — a substantial, sustained
+brake on virus load that is the direct, measurable output of the
+resistance mechanism, and a much stronger signal at the tested step
+than the n_I check (F-01).
+</span>
+            
+            <span class="finding-chip">via <code>IFN-gated virus release leaves strictly less total virus (primary quantitative gate)</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-02</span>
+              <span class="finding-kind">computational</span>
               <span class="finding-status-text">confirms literature</span>
             </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> total_virus with-IFN 819.16/1222.88/1624.58 vs without 1750.69/2752.34/3905.38 at steps 20/30/40; ratio 0.42-0.47 across the three sampled steps · 
+              
+              via test <a href="#bt-IFN-gated" onclick="_gotoStudyTab('tests','bt-IFN-gated');return false;"><code>IFN-gated virus release leaves strictly less total virus (primary quantitative gate)</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×0.42 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-partial">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">◐</span>
+            <span class="finding-claim finding-statement">The resistance gate engages immediately (not a no-op) and stays
+substantially positive throughout, confirming the mechanism&#39;s
+qualitative direction. It only PARTIALLY confirms the expected
+behavior, though: resistance reaches a fast local steady state near
+0.55 and stays essentially flat, rather than climbing toward
+saturation (~1) as the naive expectation of &#34;more IFN accumulates
+over time -&gt; more resistance&#34; would suggest. This is flagged, not
+hidden, as an Increment-9 calibration/convention open question (see
+report.caveat and the standalone caveat item below).
+</span>
+            
+            <span class="finding-chip">via <code>Resistance gate actually engages (mean_resist &gt; 0)</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-03</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">partial literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> mean_resist 0.0 (step 0) -&gt; 0.5290 (step 1) -&gt; 0.5543 (step 2) -&gt; plateau 0.5555-0.5697 through step 40; never approaches 1 · 
+              
+              via test <a href="#bt-Resistance" onclick="_gotoStudyTab('tests','bt-Resistance');return false;"><code>Resistance gate actually engages (mean_resist &gt; 0)</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×0.55 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
             
             
             
@@ -622,9 +881,9 @@
       <div class="ctr-meta ctr-assess">
         
         <div class="ctr-meta-row"><span class="ctr-meta-k">Confidence</span>
-          <span class="ctr-badge ctr-badge-accepted">Accepted</span>
-          
-          
+          <span class="ctr-badge ctr-badge-provisional">Provisional</span>
+          <span class="ctr-vch">biology&nbsp;PENDING</span>
+          <span class="ctr-vch">insight&nbsp;PENDING</span>
         </div>
         
         
@@ -643,12 +902,12 @@
   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
     <h2 class="overview-label" style="margin:0">Model composition</h2>
     
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'checkerboard', 'glazier-graner-1993')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'ifn-resistance', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
   </div>
 
   
   
-  <div id="model-composite-cards" class="model-composite-cards" data-study="checkerboard"
+  <div id="model-composite-cards" class="model-composite-cards" data-study="ifn-resistance"
        data-study-config="">
     <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
   </div>
@@ -667,29 +926,35 @@
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.gg1993.checkerboard" data-model-overrides='{}'>
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.virus_infection" data-model-overrides='{"init_infected_frac": 0.05, "patch_mm": 0.1, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <strong>checkerboard</strong>
+        <strong>ifn-resistance</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.gg1993.checkerboard</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.virus_infection</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.gg1993.checkerboard')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.virus_infection')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="checkerboard"
-               value="pbg_cpm_studies.composites.gg1993.checkerboard" placeholder="pkg.composites.name"
+        <input type="text" class="baseline-composite-input" data-baseline-name="ifn-resistance"
+               value="pbg_cpm_studies.composites.influenza.virus_infection" placeholder="pkg.composites.name"
                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
-                data-baseline-name="checkerboard">Set composite</button>
+                data-baseline-name="ifn-resistance">Set composite</button>
       </div>
-      <div class="baseline-composite-status muted" data-baseline-name="checkerboard" style="font-size:0.8em;margin-top:2px"></div>
+      <div class="baseline-composite-status muted" data-baseline-name="ifn-resistance" style="font-size:0.8em;margin-top:2px"></div>
       
       
       
       
       
+      
+        
+      
+        
+      
+        
       
       
       
@@ -715,6 +980,35 @@
   
   
 
+  
+  <div class="overview-section">
+    <h3>Model change</h3>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.virus_infection</code></p>
+    
+    
+    <p><strong>New state variables:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code>type-I IFN field (per-site concentration)</code></li><li><code>per-cell resistance (derived</code></li><li><code>not stored on the composite)</code></li>
+    </ul>
+    
+    
+    <p><strong>New parameters:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code></code></li>
+    </ul>
+    
+    
+    
+    <p class="muted" style="font-size:0.88em">No new process-bigraph composite is added this increment (see
+key_assumptions): the IFN field, resistance computation, and secretion
+gating are driven directly by `run.run_virus_infection_with_ifn` (a raw
+`cpm_core.World` loop, Task 3.3), not through a live-demo composite.
+`base_model` above points at the SAME Increment-2 composite reused as
+this study&#39;s dashboard-loadable baseline entry; it has no IFN/resistance
+wiring. A composite for the with-IFN driver, if wanted for a live demo,
+is deferred to a later task/increment.
+</p>
+  </div>
   
 
   
@@ -746,7 +1040,7 @@
 
   <h4>Latest run preview</h4>
   <p class="muted" style="font-size:0.9em">Per-store sparkline + first/last/min/max from the most recent run's emitted trajectory. This is a downsampled PREVIEW, not the full data — use the per-store or Download-all links for the complete arrays.</p>
-  <div id="results-preview" data-study="checkerboard">
+  <div id="results-preview" data-study="ifn-resistance">
     <p class="empty-message">Loading results preview…</p>
   </div>
 
@@ -770,9 +1064,9 @@
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
     <span class="muted" style="margin-right:auto;font-weight:600">Analysis result files</span>
     <a id="data-download-all" class="btn-mini" style="display:none"
-       href="/api/study-analysis-zip?study=checkerboard">Download all (.zip)</a>
+       href="/api/study-analysis-zip?study=ifn-resistance">Download all (.zip)</a>
   </div>
-  <div id="data-files" data-study="checkerboard">
+  <div id="data-files" data-study="ifn-resistance">
     <p class="empty-message">Loading result files…</p>
   </div>
 </div>
@@ -793,7 +1087,7 @@
     interval/buffer, output location, and emit scope — from
     <code>lib/emitters.py</code> and this study's (or the workspace's)
     <code>runtime.default_emitter</code>.</p>
-    <div id="readouts-emitter" data-study="checkerboard">
+    <div id="readouts-emitter" data-study="ifn-resistance">
       <p class="empty-message">Loading emitter configuration…</p>
     </div>
 
@@ -805,7 +1099,7 @@
     
     <div id="readouts-download" style="margin:0 0 16px 0"></div>
 
-    <div id="readouts-table" data-study="checkerboard">
+    <div id="readouts-table" data-study="ifn-resistance">
       <p class="empty-message">Loading readouts from the composite emit plan…</p>
     </div>
 
@@ -813,7 +1107,7 @@
     <p class="muted" style="font-size:0.9em">Store path, dtype, shape
     <code>(n_steps, …)</code>, units, and a best-effort byte estimate for each emitted
     leaf.</p>
-    <div id="readouts-shapes" data-study="checkerboard">
+    <div id="readouts-shapes" data-study="ifn-resistance">
       <p class="empty-message">Loading output shapes…</p>
     </div>
 
@@ -836,45 +1130,9 @@
 
     
     
-    <div class="viz-actions-row" style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'checkerboard')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
-    </div>
-    
 
     <div id="native-gallery-panel" class="figure-mount"><p class="empty-message">Loading figures…</p></div>
 
-    
-    
-    
-    <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/checkerboard/viz/interactive.html"
-              class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="Interactive figure"
-              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
-              ></iframe>
-      
-      <div class="figure-caption-row">
-        <span class="figure-source-chip">embed</span>
-        <span class="figure-title">Interactive figure</span>
-        
-        <a href="/viva-cpm/dashboard/workspace/studies/checkerboard/viz/interactive.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
-      </div>
-    </div>
-    
-    <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/checkerboard/viz/figures.html"
-              class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="All paper figures"
-              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
-              ></iframe>
-      
-      <div class="figure-caption-row">
-        <span class="figure-source-chip">embed</span>
-        <span class="figure-title">All paper figures</span>
-        
-        <a href="/viva-cpm/dashboard/workspace/studies/checkerboard/viz/figures.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
-      </div>
-    </div>
     
     
 
@@ -890,6 +1148,44 @@
   <p class="muted" style="margin:0 0 12px 0"><strong>The bar.</strong> What must be true for this model to count as correct — the acceptance criteria, their bands, and the report cards that grade them.</p>
 
   
+  
+  
+  <div class="overview-section expectations-band" id="expectations-band">
+    <h3 class="section-title">Expectations
+      <span class="muted" style="font-size:0.85em;font-weight:normal">— from literature, mapped to the model observable that measures each</span>
+    </h3>
+    <ul class="literature-anchor-list" style="list-style:none;padding-left:0">
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Type-I IFN secreted by infected cells confers a per-cell resistance that reduces virus release (Sego 2022 Sec. 2.2, cellular viral resistance rho).</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>mean_resist over currently-infected cells (this study&#39;s `resist` field, `resistance.cell_resistance`) rises from 0.0 to ~0.53 after the first update and plateaus at ~0.55-0.57 through step 40; total_virus with the resulting (1-resist) gate is roughly halved vs the no-IFN path at steps 20/30/40 (819.16/1222.88/1624.58 vs 1750.69/2752.34/3905.38).</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (Type1InterferonModelSteppable.update_resistance) via pbg_cpm_studies/influenza/params.yaml resistance: block</div>
+        
+      </li>
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Sego et al. 2022&#39;s reproduction (Figs 3B/5/7) implicitly requires the IFN-resistance mechanism to be strong enough to shape infected/uninfected epithelial-cell trajectories at paper scale.</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>This study&#39;s with/without comparison shows the mechanism moves trajectories in the correct (protective) direction, with a robust, non-trivial magnitude on total_virus (roughly halved at every sampled step) but only a WEAK effect on n_I at the tested step (48 vs 50 at step 20, ~4%), widening to a more meaningful ~23% by step 40 (53 vs 69) — at 0.3mm/900-cell reduced scale, using source-cited constants throughout.</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> Sego 2022 Figs 3B, 5, 7 (digitized acceptance bands, Increment 0)</div>
+        
+      </li>
+    
+    </ul>
+  </div>
   
 
   
@@ -933,10 +1229,69 @@
     
     
     
-    <li class="expected-behavior-item" id="bt-Heterotypic contacts dominate (checkerboard mixing)"
+    <li class="expected-behavior-item" id="bt-IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)"
         data-test-kind="behavioral"
         
-        data-pytest-node="Heterotypic contacts dominate (checkerboard mixing)"
+        data-pytest-node="IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)"
+        data-classification="diagnostic"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #f59e0b; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-diagnostic">diagnostic</span>
+        <strong style="font-size: 0.9em;">IFN-gated resistance does not let spread outrun the no-IFN path (weak directional check)</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">WEAK, DIRECTIONAL check only, not the study&#39;s quantitative gate: `op:
+le, value: 0` passes on ANY reduction, however small, so a PASS here
+proves only that n_I did not get WORSE with the gate active — it does
+NOT by itself establish a meaningful effect size. Measured at the step
+Task 3.3&#39;s integration test actually asserts (step 20): with_ifn
+n_I[-1]=48 &lt;= without n_I[-1]=50, a reduction of only 2 cells (~4%) —
+a genuinely weak signal at that step. The gap does widen at later
+steps (51 vs 60 at step 30, ~15%; 53 vs 69 at step 40, ~23%, per Task
+3.3&#39;s fuller report series), so the directional trend strengthens over
+time, but the quantitative claim for THIS study rests on total_virus
+(next test), not on this loose n_I criterion.
+</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 48.0</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: WEAK signal at the tested step: with_ifn n_I[-1]=48 &lt;= without n_I[-1]=50 at step 20 (Task 3.3, test_ifn_resistance_slows_spread_vs_no_ifn), only ~4% reduction; gap widens to 51 vs 60 (~15%, step 30) and 53 vs 69 (~23%, step 40) per Task 3.3&#39;s report series. Corroborating directional trend, not this study&#39;s primary quantitative evidence (see total_virus below).</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "ifn-resistance", "kind": "n_I_delta_vs_without_ifn", "stat": "final"}
+pass_if: {"op": "le", "value": 0}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-IFN-gated virus release leaves strictly less total virus (primary quantitative gate)"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="IFN-gated virus release leaves strictly less total virus (primary quantitative gate)"
         data-classification="primary"
         data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
@@ -945,19 +1300,29 @@
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">Heterotypic contacts dominate (checkerboard mixing)</strong>
+        <strong style="font-size: 0.9em;">IFN-gated virus release leaves strictly less total virus (primary quantitative gate)</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Paper: Fig 7-8 — negative γ_ld drives a light/dark checkerboard. Pass criterion: light-dark fraction &gt; 0.5 and larger than light-light &amp; dark-dark. Measured from the reproduced run: frac_ld=0.837 vs frac_ll=0.042, frac_dd=0.061.</div>
+      <div style="margin-top: 6px; font-size: 0.95em;">This is the study&#39;s PRIMARY quantitative evidence for the mechanism&#39;s
+effect. Pass criterion: total_virus at the run&#39;s final step with the
+gate active must be strictly less than the same-seed no-IFN run&#39;s
+total_virus at that step. Measured at step 20 (the step Task 3.3&#39;s
+integration test actually asserts): with_ifn total_virus[-1]=819.16 &lt;
+without total_virus[-1]=1750.69 — a ~53% reduction, already
+substantial at the earliest sampled step, not just a loose
+any-reduction pass like the n_I check above. The reduction stays in
+the ~53-58% regime through step 40 (1222.88 vs 2752.34 at step 30;
+1624.58 vs 3905.38 at step 40).
+</div>
       
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.837</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 819.16</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: frac_ld=0.837 vs frac_ll=0.042, frac_dd=0.061</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: PRIMARY quantitative evidence: with_ifn total_virus[-1]=819.16 &lt; without total_virus[-1]=1750.69 at step 20, a ~53% reduction already at the tested step; stays in the ~53-58%-reduction regime through step 40 (1624.58 vs 3905.38)</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: pbg_cpm_studies.gg1993.validate</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
         
       </div>
       
@@ -965,8 +1330,62 @@
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: "frac_ld"
-pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark-dark"</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "ifn-resistance", "kind": "total_virus_delta_vs_without_ifn", "stat": "final"}
+pass_if: {"op": "lt", "value": 0}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-Resistance gate actually engages (mean_resist &gt; 0)"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="Resistance gate actually engages (mean_resist &gt; 0)"
+        data-classification="primary"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">Resistance gate actually engages (mean_resist &gt; 0)</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: mean_resist over currently-infected cells must be &gt; 0
+by the run&#39;s final step (sanity that the gate is not a no-op).
+Measured: mean_resist[-1] &gt; 0 at step 20 (Task 3.3); the fuller series
+shows mean_resist reaches ~0.53 after just the first update and
+plateaus at ~0.55-0.57 through step 40 — well above 0, though it does
+NOT climb toward 1 (see the FLAG in report.caveat).
+</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.5555</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: mean_resist[-1] &gt; 0 at step 20 in the pytest assertion; the fuller report series shows 0.5290 at step 1, plateauing 0.5555-0.5697 through step 40 (does not ramp toward 1 — flagged as an Increment-9 calibration question)</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "ifn-resistance", "kind": "mean_resist", "stat": "final"}
+pass_if: {"op": "gt", "value": 0.0}</pre>
       </details>
       
       
@@ -1040,14 +1459,14 @@ pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark
           <span class="narrative-label">Regression compatibility</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="regression_compatibility"
                 title="Computed from run status (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
           <span class="muted small" style="margin-left:6px">computed from run status</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged."></textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces Task 3.3&#39;s measured integration-test result and report series exactly (same driver, same seed, same params.yaml constants).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
@@ -1060,7 +1479,7 @@ pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5]."></textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This increment validates the MECHANISM (IFN accumulates -&gt; per-cell resistance rises -&gt; virus secretion is gated -&gt; total virus load is substantially reduced, with a weaker, later-emerging reduction in infected-cell count) with a single seeded run, not a quantitative reproduction against any of Figs 3B/5/7. Death/recovery, the Allee effect, IL-10 cross-talk, immune cells, and APC-driven global IFN amplification don&#39;t exist yet. The resist plateau (~0.55, not ~1) is an OPEN magnitude/convention question for Increment 9 — do NOT read PENDING here as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
@@ -1073,7 +1492,7 @@ pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed."></textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No alternative mechanism is being compared at this increment; deferred to later increments / the capstone where a reproduction comparison against the paper&#39;s figures becomes meaningful.</textarea>
         </label>
       </div>
     </div>
@@ -1086,7 +1505,23 @@ pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>Reproduced the paper's Checkerboard (negative surface tension) example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 7, Fig 8, Fig 9, Table I.</p>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>MECHANISM VALIDATED, NOT REPRODUCED. The type-I IFN field drives a
+per-cell resistance scalar that gates virus secretion and measurably
+reduces total virus relative to the Increment-2 no-IFN path (same seed):
+total_virus is the PRIMARY, robust quantitative evidence, roughly halved
+at every sampled step (~53% at step 20, the step Task 3.3's integration
+test actually asserts, through ~58% at step 40). n_I moves in the same
+protective direction but is a WEAKER, corroborating signal at the tested
+step (48 vs 50, ~4% at step 20), widening to a more meaningful ~23% by
+step 40 (53 vs 69) as the effect compounds — n_I alone at step 20 is not
+strong evidence of slowed spread. mean_resist confirms the gate engages
+(&gt;0 from step 1 onward) but plateaus at ~0.55 rather than ramping toward
+1 — a flagged Increment-9 calibration/convention question, not resolved
+here. This increment has no death/recovery, no Allee effect, no IL-10
+cross-talk, no immune cells, and no APC-driven global IFN amplification,
+and makes NO claim about matching any of Sego et al. 2022's Figs 3B/5/7
+quantitative acceptance bands — that reproduction verdict is PENDING
+until Increment 9 (the capstone).</p>
 </div>
     </div>
     
@@ -1104,7 +1539,7 @@ pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">Second-nearest-neighbour (Moore-8) square lattice, order 2.</li><li style="margin:2px 0">1 paper-MCS = 16 lattice-site sweeps (paper convention).</li><li style="margin:2px 0">Statistics/displays after 2 MCS of T=0 annealing (unless noted).</li>
+        <li style="margin:2px 0">APC-driven IFN amplification is entirely omitted — in this study, IFN comes only from directly-infected cells&#39; own local secretion, not from the global ODE-compartment feedback loop the paper models (Increment 8). The measured protective effect here is therefore a LOWER bound on what a full model with amplification might show.</li><li style="margin:2px 0">Resistance in this study ONLY gates virus secretion (via `set_cell_secretion_scale`). The source also uses resistance to modulate infected-cell death probability and the model&#39;s Allee-effect term, and IL-10 secretion cross-talks with it — none of that exists yet (later increments).</li><li style="margin:2px 0">OPEN CALIBRATION QUESTION (flagged for Increment 9, not resolved here) -- mean_resist plateaus at ~0.55 (f_bar ≈ 1.2x a_rf), not climbing toward 1, because each infected cell&#39;s local IFN reaches a fast secretion/diffusion/decay steady state that happens to land close in magnitude to `a_rf` (8.5e-6) — a plausible but &#34;suspiciously just right&#34; coincidence between two independently-derived constants (Task 3.3&#39;s report). Worth cross-checking against the source&#39;s actual field magnitudes/resist trajectories before Increment 9 locks in a reproduction verdict.</li><li style="margin:2px 0">Single seed (17) for both drivers (same two-RNG-stream convention as Increment 2) — the with/without comparison is a single-run demonstration of the mechanism&#39;s qualitative and approximate quantitative behavior, not a statistically characterized effect size across a systematic replicate sweep.</li><li style="margin:2px 0">As in Increment 2, there is no live-demo process-bigraph composite for the WITH-IFN driver — `run_virus_infection_with_ifn` is a raw `cpm_core.World` loop (Task 3.3), not wrapped as a composite. The `conditions.baseline` entry below reuses the SAME Increment-2 live-demo composite (`pbg_cpm_studies.composites.influenza.virus_infection`, no IFN/resistance wiring) purely so this study has a dashboard-loadable baseline; it is NOT the composite this study&#39;s readouts are measured from, and it does not reproduce the IFN mechanism. All readouts above come directly from `run.run_virus_infection_with_ifn` / `run.run_virus_infection`.</li><li style="margin:2px 0">The with-IFN driver `run_virus_infection_with_ifn` is ~4-5x slower per step than `run_virus_infection` (two diffusing fields, IFN needing 40 vs virus&#39;s 5 stiff-diffusion substeps per MCS) — a performance note for Increment 9&#39;s longer/larger reproduction runs, not addressed here.</li>
       </ul>
     </div>
     
@@ -1133,8 +1568,8 @@ pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark
       
       
       <p class="muted" style="margin:0;font-size:0.9em">
-        <strong>1</strong> test outcome
-        — <span style="color:#065f46;font-weight:600">1 PASS</span> ·
+        <strong>3</strong> test outcomes
+        — <span style="color:#065f46;font-weight:600">3 PASS</span> ·
         <span style="color:#991b1b;font-weight:600">0 FAIL</span>.
         Per-test outcomes (measured value · evaluator · band) are canonical on the
         <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline">Tests tab →</a>.
@@ -1154,6 +1589,66 @@ pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark
 
     
     
+    
+    <div class="overview-section" id="discovery-implications-section" style="margin-top:18px">
+      <h3 class="overview-label">Discovery implications</h3>
+      <p class="muted" style="margin:0 0 10px 0;font-size:0.88em">Where this study's results leave the mechanism model — and what to investigate next.</p>
+
+      
+
+      
+
+      
+
+      
+      
+      
+      <div class="di-group">
+        <h3>Follow-up study proposals
+          <span class="muted" style="font-weight:normal;font-size:0.82em">(discovered)</span>
+          <span class="muted" style="font-weight:normal;font-size:0.85em">(2)</span></h3>
+        <p class="muted" style="margin:0 0 8px 0;font-size:0.85em">Click <strong>➕ Add to investigation</strong> to spawn a new study node in the investigation graph.</p>
+        <div class="followup-list">
+          
+          
+          <div class="di-card di-fup-card">
+            <div class="followup-header">
+              <strong class="followup-title">Increment 4: epithelial cell death and recovery</strong>
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="followup-actions" style="margin-top:8px">
+              <button class="btn-seed-followup"
+                      onclick="_seedFollowupProposal('ifn-resistance', "epithelial-death-recovery")">➕ Add to investigation</button>
+            </div>
+          </div>
+          
+          
+          <div class="di-card di-fup-card">
+            <div class="followup-header">
+              <strong class="followup-title">Increment 9 (or earlier spike): cross-check the resist ~0.55 plateau</strong>
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="followup-actions" style="margin-top:8px">
+              <button class="btn-seed-followup"
+                      onclick="_seedFollowupProposal('ifn-resistance', "ifn-resist-calibration")">➕ Add to investigation</button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+    
 
     
     
@@ -1171,7 +1666,7 @@ pass_if: "light-dark fraction \u003e 0.5 and larger than light-light \u0026 dark
 <script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "861422fe1327e5e3bf373cc5b87b0ad90fdead1b", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/861422fe1327e5e3bf373cc5b87b0ad90fdead1b", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 03:15 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
-window._studyName = "checkerboard";
+window._studyName = "ifn-resistance";
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.
