@@ -267,3 +267,67 @@ def signaling_fields_figure(run_result: dict) -> Figure:
 
     fig.tight_layout()
     return fig
+
+
+def cytotoxic_killing_figure(run_result: dict, control_result: dict | None = None,
+                              no_killing_result: dict | None = None) -> Figure:
+    """Render a two-panel MINIMAL mechanism figure (Increment 7, Task 7.3)
+    for a `run.run_cytotoxic_response(...)` result (Task 7.1 localization +
+    Task 7.2 contact-killing): (a) NK + CD8 mean centre-of-mass distance to
+    the infection centroid over time -- the localization claim (measured
+    across 5 seeds: NK mean change -20.37 sites vs a lambda=0 control's
+    -1.02, CD8 -35.99 vs -0.54, task-7.1-report.md); (b) infected-cell count
+    (`n_infected`) over time -- the killing claim. A small close-contact
+    scenario shows killing works (1 -> 0 at ~update 22, task-7.2-report.md),
+    but at the DEFAULT full-scale scenario NK/CD8 do not reach + contact the
+    infected cells within the run budget, so `n_infected` stays unchanged --
+    the killing CAPABILITY is proven, end-to-end clearance at this scale is
+    NOT (an Increment-9 field-magnitude-calibration gap, same root cause as
+    Task 7.1's 100x chemotaxis-scale flag). This figure does not itself
+    assert which regime `run_result` came from -- it renders whatever
+    `n_infected`/distance series are handed to it.
+
+    If `control_result` (a second `run_cytotoxic_response(...)` result, e.g.
+    the lambda=0 NK/CD8-chemotaxis control) is also passed, panel (a)
+    overlays both NK+CD8 distance trajectories so the localization on/off
+    contrast is visible in one figure. If `no_killing_result` (an
+    `enable_killing=False` result, same scenario/seed otherwise) is also
+    passed, panel (b) overlays both `n_infected` trajectories so the
+    with-vs-without-killing contrast is visible in one figure -- together
+    the study's two falsifiable claims, not two separate plots.
+
+    This is a minimal in-package stub, NOT the polished viz system under
+    `pbg_cpm_studies/visualizations/` (owned by a peer session). Returns a
+    `matplotlib.figure.Figure` (not shown/saved)."""
+    steps = run_result["steps"]
+
+    fig = Figure(figsize=(9, 4.2))
+    ax_dist, ax_infected = fig.subplots(1, 2)
+
+    ax_dist.plot(steps, run_result["nk_mean_distance_to_infection"],
+                 label="NK distance (chemotaxis on)", color="firebrick")
+    ax_dist.plot(steps, run_result["cd8_mean_distance_to_infection"],
+                 label="CD8 distance (chemotaxis on)", color="darkorange")
+    if control_result is not None:
+        ax_dist.plot(control_result["steps"], control_result["nk_mean_distance_to_infection"],
+                     label="NK distance (lambda=0 control)", color="firebrick", linestyle="--")
+        ax_dist.plot(control_result["steps"], control_result["cd8_mean_distance_to_infection"],
+                     label="CD8 distance (lambda=0 control)", color="darkorange", linestyle="--")
+    ax_dist.set_title("NK + CD8 mean distance to infection vs update")
+    ax_dist.set_xlabel("update index")
+    ax_dist.set_ylabel("mean distance to infection centroid (sites)")
+    ax_dist.legend(fontsize="small")
+
+    ax_infected.plot(steps, run_result["n_infected"], label="killing enabled",
+                      color="firebrick", marker="o", markersize=3)
+    if no_killing_result is not None:
+        ax_infected.plot(no_killing_result["steps"], no_killing_result["n_infected"],
+                          label="killing disabled (control)", color="dimgray",
+                          linestyle="--", marker="o", markersize=3)
+    ax_infected.set_title("Infected-cell count vs update")
+    ax_infected.set_xlabel("update index")
+    ax_infected.set_ylabel("n_infected")
+    ax_infected.legend()
+
+    fig.tight_layout()
+    return fig

@@ -283,3 +283,140 @@ def macrophage_response_composite_document(*, epithelial_cells_per_side=DEMO_MAC
 def macrophage_response(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
                         seed: int = DEMO_SEED) -> dict:
     return macrophage_response_composite_document(seed=seed, chemotaxis_v_macro=chemotaxis_v_macro)
+
+
+# ---------------------------------------------------------------------------
+# Increment 7 (Task 7.3): NK/CD8 cytotoxic-response live-demo composite.
+# Wraps the Task-7.1 three-cluster scenario (``immune.
+# build_cytotoxic_scenario_spec`` -- epithelial/infection patch | macrophage
+# cluster | NK+CD8 cluster, every cluster interior-placed) + virus field
+# (macrophage chemotaxis, unchanged from Increment 5) + chemokine field
+# (``fields.chemokine_field_spec_entry``, Task 7.3-new -- macrophage-secreted,
+# Increment 6) with NK (``inf_types.K``)/CD8+ (``inf_types.E``) chemotaxis
+# wired DECLARATIVELY via the chemokine field's ``chemotaxis`` list, the same
+# ``cpm.schema.load_world`` convention ``macrophage_response`` above uses.
+#
+# Dashboard/live-demo wrapper ONLY, same limitation as ``macrophage_response``
+# above (and now compounded): a plain declarative CPMProcess has no field
+# warmup, no per-cell IL-10-Hill secretion regulation, no NK/CD8 CONTACT-
+# KILLING step (``killing.contact_kill_rate`` is a custom per-update Python
+# calculation over ``world.cell_contact_area_by_type``, not expressible in
+# this declarative spec format), and none of ``run.run_cytotoxic_response``'s
+# distance/n_infected readouts. This composite reproduces ONLY the scenario
+# geometry + chemotaxis wiring (localization half); it does NOT reproduce or
+# claim the killing mechanism, and does NOT reproduce the measured numbers
+# cited by the cytotoxic-killing study (those come directly from
+# ``run.run_cytotoxic_response``, a raw ``cpm_core.World`` loop, across
+# multiple seeds/conditions -- see that study's ``model_change.notes``).
+# ``chemotaxis_v_nk``/``chemotaxis_v_cd8`` default to Task 7.1's chosen
+# ``run.NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x`` scale (params.yaml's literal
+# 5000/10000 would be statistically undetectable at this field's
+# concentration scale, see that constant's docstring); pass 0.0 for the
+# lambda=0 localization control.
+# ---------------------------------------------------------------------------
+
+DEMO_N_NK = 6
+DEMO_N_CD8 = 6
+DEMO_CYTOTOXIC_MARGIN_SITES = 20
+DEMO_CYTOTOXIC_SEPARATION_SITES = 20
+DEMO_CHEMOTAXIS_V_NK = 500000.0    # params.yaml nk.chemotaxis_v_nk (5000) x 100 (run.NK_CD8_CHEMOTAXIS_ENGINE_SCALE)
+DEMO_CHEMOTAXIS_V_CD8 = 1000000.0  # params.yaml cd8.chemotaxis_v_cd8 (10000) x 100 (same scale, preserves 2:1)
+
+
+def build_cytotoxic_response_spec(*, epithelial_cells_per_side: int = DEMO_MACROPHAGE_CELLS_PER_SIDE,
+                                  n_infected: int = DEMO_N_INFECTED,
+                                  n_macrophages: int = DEMO_N_MACROPHAGES,
+                                  n_nk: int = DEMO_N_NK, n_cd8: int = DEMO_N_CD8,
+                                  margin_sites: int = DEMO_CYTOTOXIC_MARGIN_SITES,
+                                  separation_sites: int = DEMO_CYTOTOXIC_SEPARATION_SITES,
+                                  seed: int = DEMO_SEED,
+                                  chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
+                                  chemotaxis_v_nk: float = DEMO_CHEMOTAXIS_V_NK,
+                                  chemotaxis_v_cd8: float = DEMO_CHEMOTAXIS_V_CD8) -> dict:
+    """A ``load_world`` spec for the Task-7.1 three-cluster cytotoxic
+    scenario + virus field (macrophage chemotaxis) + chemokine field (NK/CD8
+    chemotaxis) -- every cluster placed in the domain's INTERIOR (see
+    ``immune.build_cytotoxic_scenario_spec``'s docstring). ``chemotaxis_v_nk``/
+    ``chemotaxis_v_cd8=0.0`` reproduces the localization lambda=0 control (no
+    directed NK/CD8 chemotaxis); NO killing step exists in this declarative
+    composite (see module note above)."""
+    spec = immune.build_cytotoxic_scenario_spec(
+        epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
+        margin_sites=margin_sites, separation_sites=separation_sites, seed=seed)
+    virus_entry = fields.virus_field_spec_entry()
+    virus_entry["chemotaxis"] = [{"type": inf_types.M, "lambda": float(chemotaxis_v_macro)}]
+    chemo_entry = fields.chemokine_field_spec_entry()
+    chemo_entry["chemotaxis"] = [
+        {"type": inf_types.K, "lambda": float(chemotaxis_v_nk)},
+        {"type": inf_types.E, "lambda": float(chemotaxis_v_cd8)},
+    ]
+    spec["fields"] = [virus_entry, chemo_entry]
+    return spec
+
+
+def cytotoxic_response_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
+                                          n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
+                                          n_nk=DEMO_N_NK, n_cd8=DEMO_N_CD8,
+                                          margin_sites=DEMO_CYTOTOXIC_MARGIN_SITES,
+                                          separation_sites=DEMO_CYTOTOXIC_SEPARATION_SITES, seed=DEMO_SEED,
+                                          chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO,
+                                          chemotaxis_v_nk=DEMO_CHEMOTAXIS_V_NK,
+                                          chemotaxis_v_cd8=DEMO_CHEMOTAXIS_V_CD8) -> dict:
+    spec = build_cytotoxic_response_spec(
+        epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
+        margin_sites=margin_sites, separation_sites=separation_sites, seed=seed,
+        chemotaxis_v_macro=chemotaxis_v_macro, chemotaxis_v_nk=chemotaxis_v_nk,
+        chemotaxis_v_cd8=chemotaxis_v_cd8)
+    return {
+        "cpm": {
+            "_type": "process",
+            "address": CPM_ADDR,
+            "config": {"spec": spec, "mcs_per_update": 10, "n_fields": 2,
+                       "secretory_types": [inf_types.I, inf_types.M]},
+            "inputs": {"fates": ["fates"]},
+            "outputs": {
+                "volumes": ["volumes"],
+                "types": ["types"],
+                "positions": ["positions"],
+                "field_at_cell": ["field_at_cell"],
+                "neighbor_secretory": ["neighbor_secretory"],
+            },
+        },
+        "fates": {},
+    }
+
+
+@composite_generator(
+    name="cytotoxic_response", default_n_steps=60,
+    description=(
+        "Influenza-sego2022 Increment 7: NK (type K) + CD8+ (type E) chemotaxis "
+        "up the macrophage-released chemokine field, over the Task-7.1 "
+        "three-cluster non-confluent scenario (epithelial/infection patch | "
+        "macrophage cluster | NK+CD8 cluster, every cluster interior-placed). "
+        "Live-demo/dashboard wrapper -- LOCALIZATION geometry/chemotaxis only, "
+        "NO contact-killing step (not expressible in this declarative composite "
+        "format; see killing.contact_kill_rate / run.run_cytotoxic_response for "
+        "the actual killing mechanism and its measured numbers). "
+        "chemotaxis_v_nk=chemotaxis_v_cd8=0.0 reproduces the localization "
+        "lambda=0 control."
+    ),
+    parameters={
+        "chemotaxis_v_macro": {"type": "float", "default": DEMO_CHEMOTAXIS_V_MACRO,
+                               "description": "macrophage chemotaxis strength on the virus field"},
+        "chemotaxis_v_nk": {"type": "float", "default": DEMO_CHEMOTAXIS_V_NK,
+                            "description": "NK chemotaxis strength on the chemokine field (0.0 = lambda=0 control)"},
+        "chemotaxis_v_cd8": {"type": "float", "default": DEMO_CHEMOTAXIS_V_CD8,
+                             "description": "CD8+ chemotaxis strength on the chemokine field (0.0 = lambda=0 control)"},
+        "seed": {"type": "int", "default": DEMO_SEED,
+                 "description": "RNG seed for the scenario build"},
+    },
+)
+def cytotoxic_response(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
+                       chemotaxis_v_nk: float = DEMO_CHEMOTAXIS_V_NK,
+                       chemotaxis_v_cd8: float = DEMO_CHEMOTAXIS_V_CD8,
+                       seed: int = DEMO_SEED) -> dict:
+    return cytotoxic_response_composite_document(
+        seed=seed, chemotaxis_v_macro=chemotaxis_v_macro,
+        chemotaxis_v_nk=chemotaxis_v_nk, chemotaxis_v_cd8=chemotaxis_v_cd8)

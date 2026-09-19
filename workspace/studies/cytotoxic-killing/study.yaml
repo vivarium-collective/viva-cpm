@@ -1,0 +1,718 @@
+schema_version: 3
+name: cytotoxic-killing
+status: in-progress
+phase: Simulate
+title: "Increment 7: NK/CD8 chemotax up the chemokine field and localize robustly (5/5 seeds); contact-killing WORKS in a close-contact test (1->0) — but at the DEFAULT full-scale scenario NK/CD8 never reach the infected cell, so end-to-end cytotoxic CLEARANCE is WEAK — capability proven, clearance an Increment-9 calibration gap"
+confidence: Provisional
+investigation: influenza-sego2022
+
+purpose:
+  question: |
+    Introducing NK (`types.K`) and CD8+ T (`types.E`) cells, wired to
+    chemotax up the macrophage-released chemokine field (Increment 6) and to
+    contact-kill infected cells via the CC3D source's literal LOCAL
+    (surface-contact) kill-rate formula: do NK/CD8 genuinely LOCALIZE toward
+    the infection (robust across seeds), does the contact-killing MECHANISM
+    itself actually clear an infected cell once contact happens, and — the
+    honest question this study exists to surface — does that killing
+    mechanism actually engage end-to-end at the scenario's own DEFAULT
+    full scale, or do NK/CD8 simply never get close enough within a
+    feasible step budget?
+  mechanism: nk_cd8_chemotactic_localization_and_contact_killing
+
+report:
+  title: "Increment 7: NK/CD8 localization is robust (NK mean change -20.37 vs control -1.02; CD8 -35.99 vs -0.54, 5/5 seeds) and contact-killing works in a close-contact test (infected 1->0 at ~update 22) — but at DEFAULT full scale NK/CD8 never reach the infected cell within budget (n_infected unchanged), so end-to-end clearance is WEAK — capability proven, clearance PENDING Increment 9"
+  verdict: documented
+  confidence: medium
+  evidence_quality: measured
+  objective: >-
+    Drive `run.run_cytotoxic_response` (Task 7.1 localization + Task 7.2
+    contact-killing, commit `4f28eba`) — the Task-7.1 three-cluster
+    non-confluent scenario (`immune.build_cytotoxic_scenario_spec`:
+    epithelial/infection patch | macrophage cluster | NK+CD8 cluster, every
+    cluster INTERIOR, >= `margin_sites` from every noflux wall) over the
+    Increment-6 macrophage/chemokine/IL-10 field stack, with NK/CD8
+    chemotaxis wired up the CHEMOKINE field (`immune.
+    set_nk_cd8_chemotaxis`) and, each update, a contact-kill draw
+    (`killing.contact_kill_rate`, the CC3D source's literal LOCAL
+    surface-contact kill-rate form) for every still-infected cell against
+    its NK/CD8 neighbor contact area. Measure (a) NK/CD8 mean
+    distance-to-infection-centroid across 5 seeds (5, 17, 23, 42, 100),
+    chemotaxis on (params.yaml's `nk.chemotaxis_v_nk`/`cd8.chemotaxis_v_cd8`
+    x the documented `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100` engine-unit
+    correction, Task 7.1) vs a lambda=0 control, 60 updates each; (b) a
+    small, tight close-contact scenario (2 macrophages/2 NK/2 CD8,
+    `margin_sites=4`, `separation_sites=1`, `steps=45`, seed=17) with
+    killing enabled vs disabled, same seed; and (c) the DEFAULT full-scale
+    scenario (6 macrophages/6 NK/6 CD8, `margin_sites=20`,
+    `separation_sites=20`, `steps=60`, seed=17) with killing enabled, to
+    check whether the killing mechanism actually engages at the scale this
+    increment's own localization numbers were measured at.
+  conclusion: >-
+    TWO SEPARATE, HONESTLY-DISTINGUISHED FINDINGS. (1) LOCALIZATION is
+    robust: NK/CD8 mean distance to the infection centroid decreases in
+    5/5 tried seeds for both cell types (NK mean change -20.37, range -15.22
+    to -23.77; CD8 mean change -35.99, range -22.87 to -41.86), against a
+    lambda=0 control with no consistent direction (NK mean -1.02, spread
+    7.59; CD8 mean -0.54, spread 4.52) — both mean gaps comfortably exceed
+    their control's own seed-to-seed spread, and CD8 (2x NK's lambda)
+    localizes more strongly than NK in every seed and on average, matching
+    the paper's Sec. 2.3 "CD8+ sensitivity twice that of NK cells." (2)
+    CONTACT-KILLING is a proven, working MECHANISM, not an end-to-end
+    CLEARANCE result: a small close-contact scenario (2 macrophages/2 NK/2
+    CD8, `margin_sites=4`, `separation_sites=1`) kills the one infected cell
+    (n_infected 1 -> 0 at update 22 of 45) with killing enabled, vs steady at
+    1 with the identical seed/scenario and killing disabled — proving
+    `contact_kill_rate`'s contact-area lookup -> stochastic draw -> `types.D`
+    transition engages correctly once NK/CD8 are in actual lattice contact
+    with an infected cell. BUT at the scenario's own DEFAULT full scale (6
+    macrophages/6 NK/6 CD8, `margin_sites=20`, `separation_sites=20`, 60
+    updates, same seed=17 as the close-contact test), NK/CD8's mean distance
+    to the infection closes substantially (NK ~81.6 -> ~57.8, CD8 ~81.6 ->
+    ~39.8) but NEVER reaches actual contact within the run budget —
+    `n_infected` stays at 1 for all 61 recorded steps, no kill fires. The
+    killing CAPABILITY is proven; end-to-end cytotoxic CLEARANCE at
+    default/realistic scale is NOT demonstrated here, and this study does
+    NOT claim "NK/CD8 clear the infection" — only that the mechanism that
+    would clear it, once contact happens, is implemented and verified
+    correct.
+  main_insight: >-
+    The weak end-to-end result is NOT a separate bug — it is the SAME root
+    cause Task 7.1 already flagged for localization: the chemokine field's
+    raw concentration in this engine's units is ~2-3 orders of magnitude
+    smaller than the virus field's at comparable distances, so the source's
+    literal chemotaxis lambda (5000/10000) is statistically undetectable
+    against thermal/adhesion noise at this field's scale, requiring the
+    documented, non-per-seed-tuned `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100`
+    correction just to produce a MEASURABLE on/off localization gap — itself
+    still far short of closing the FULL distance to actual contact within a
+    feasible step budget. This compounds with `build_cytotoxic_scenario_spec`'s
+    three-cluster layout (epithelial/infection patch -> macrophage cluster ->
+    NK/CD8 cluster): NK/CD8 must close TWO cluster-separations' worth of
+    distance to physically reach an infected cell, not one. Both are
+    Increment-9 field-magnitude-calibration items, recorded not tuned away
+    (per the brief's explicit instruction not to smuggle a rescue via
+    re-tuning): if this study widened `NK_CD8_CHEMOTAXIS_ENGINE_SCALE` or
+    shrank `separation_sites` until the default scenario also cleared the
+    infection, that would hide the real finding (the source's literal
+    parameters don't calibrate against this engine's field-concentration
+    units) behind a number that looks better than the mechanism's honest
+    state.
+  caveat: >-
+    Kept fully visible, not resolved here: (1) 100x CHEMOTAXIS ENGINE-UNIT
+    SCALE — `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100.0` (Task 7.1), a single,
+    documented, non-per-seed-tuned correction; the literal source lambda
+    values (5000/10000) are statistically undetectable at this engine's
+    chemokine-field concentration scale. (2) DISCREPANCY #7 (resist-DIRECT)
+    — `ContactKillingSteppable.step()` multiplies `kill_rate` by
+    `cell_resist` DIRECTLY, not `(1 - cell_resist)`, unlike every other
+    resistance consumer in this codebase; implemented literally per the
+    source, not "fixed," flagged in `killing.py`, `run.py`, and
+    `params.yaml`'s `nk.killing.kill_rate_resist_direct`/
+    `cd8.killing.kill_rate_resist_direct`. (3) NEARBY-POPULATION killing
+    term deferred — `ContactKillingSteppable` also applies a well-mixed
+    "nearby" (non-spatial) kill term (`params.yaml`'s
+    `nk.killing.nearby_term_deferred`); only the LOCAL surface-contact term
+    is modeled here, the nearby term requires Increment 8's population-scale
+    ODE bookkeeping. (4) HAPTOTAXIS deferred — only field-gradient
+    chemotaxis (toward the chemokine field) is modeled for NK/CD8 movement
+    here; any adhesion/contact-gradient-driven (haptotactic) component of
+    the source's fuller migration model is not implemented, an open
+    Increment-9 item. (5) RECRUITMENT stubbed — a FIXED NK/CD8 population
+    (6 cells each) is placed at scenario build time; chemokine-driven
+    inflow/outflow (`params.yaml`'s `nk.recruitment`/`cd8.recruitment`) is
+    not modeled. (6) 2D-APPROXIMATION geometry — the same non-confluent
+    interior-placed 2D patch as Increments 5/6, not the source's z=2
+    immune-layer-over-confluent-z=1-sheet geometry. (7) CHEMOTAXIS
+    FUNCTIONAL-FORM gap — the engine's fixed linear-lambda
+    `World.set_chemotaxis` primitive, not the source's saturating,
+    per-cell-COM-scaled `chemotaxis_v_nk / (1 + concentration)` form. (8) NO
+    Figs 2/3A/3B/5/7 reproduction claim is made — verdict stays
+    `documented`, NOT `passing`; the full reproduction verdict is PENDING
+    until Increment 9 (the capstone).
+  key_metrics:
+    - {name: nk_mean_distance_change_on, value: -20.37, note: "sites; mean over 5 seeds (5,17,23,42,100), NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x; negative (net approach) in 5/5 seeds"}
+    - {name: nk_mean_distance_change_control, value: -1.02, note: "sites; mean over the same 5 seeds, lambda=0 control; spread 7.59, no consistent sign"}
+    - {name: cd8_mean_distance_change_on, value: -35.99, note: "sites; mean over the same 5 seeds; CD8's lambda is 2x NK's, matching paper Sec. 2.3's 'CD8+ sensitivity twice that of NK cells'"}
+    - {name: cd8_mean_distance_change_control, value: -0.54, note: "sites; mean over the same 5 seeds, lambda=0 control; spread 4.52, no consistent sign"}
+    - {name: cd8_localizes_more_strongly_than_nk, value: "35.45 vs 19.35", note: "CD8's mean on/off gap exceeds NK's in every seed and on average"}
+    - {name: close_contact_killing_infected_count, value: "1 -> 0", note: "small scenario (2 macrophages/2 NK/2 CD8, margin_sites=4, separation_sites=1, steps=45, seed=17); killed at update 22; steady at 1 with killing disabled, same seed"}
+    - {name: default_scale_killing_n_infected, value: 1, note: "6/6/6 default scenario, margin_sites=20, separation_sites=20, steps=60, seed=17: n_infected stays 1 for all 61 recorded steps -- NO kill fires (ad hoc measurement, not part of the fast pytest suite; see task-7.2-report.md)"}
+    - {name: default_scale_nk_distance_close, value: "81.6 -> 57.8", note: "sites; NK mean distance to infection over 60 updates at default scale -- closes substantially but never reaches contact"}
+    - {name: default_scale_cd8_distance_close, value: "81.6 -> 39.8", note: "sites; CD8 mean distance to infection over 60 updates at default scale -- closer than NK but still never reaches contact"}
+
+study_card:
+  goal: Validate that NK (type K) and CD8+ T (type E) cells, wired to chemotax up the macrophage-released chemokine field and to contact-kill infected cells via the CC3D source's literal LOCAL surface-contact kill-rate formula, actually (a) LOCALIZE toward the infection robustly across seeds, and (b) actually CLEAR an infected cell once genuine lattice contact happens -- while honestly reporting whether that killing mechanism engages at the scenario's own DEFAULT full scale, rather than only in an artificially close-contact test.
+  mechanism: >-
+    The Task-7.1 three-cluster scenario (`immune.build_cytotoxic_scenario_spec`,
+    every cluster interior-placed) extends the Increment-6
+    macrophage/chemokine/IL-10 field stack with NK+CD8 cells chemotaxing up
+    the chemokine field (`immune.set_nk_cd8_chemotaxis`); each update,
+    `killing.contact_kill_rate` (literal `ContactKillingSteppable` LOCAL
+    form, resist-DIRECT per discrepancy #7) draws a stochastic kill for
+    every currently-infected cell from its NK/CD8 contact-area neighbors
+    (`world.cell_contact_area_by_type`), NK checked first, CD8 skipped if
+    NK already killed that update (source ordering).
+  why_before_next: Increment 8 (global ODE coupling, APC-driven recruitment, the nearby-population killing term) and Increment 9 (the capstone reproduction) both assume the core NK/CD8 localization AND contact-killing mechanisms already work correctly in isolation before adding population-scale/ODE-coupled dynamics on top; this study establishes that both mechanisms are individually correct, while being explicit that they do not yet compose into end-to-end clearance at realistic scale -- a finding Increment 9's field-magnitude calibration needs to know about before it can be addressed, not hidden by tuning this study's own knobs.
+  expected_result: NK/CD8 mean distance to the infection centroid decreases substantially and consistently across seeds when chemotaxis is on, vs a near-isotropic lambda=0 control. A small, deliberately close-contact scenario shows the contact-kill mechanism actually removes an infected cell once NK/CD8 reach it. At the scenario's own default full scale, NK/CD8 close much of the distance but do not reach actual contact within a feasible step budget, so the infected count is unchanged -- reported honestly as a gap, not tuned away.
+  main_expert_question: The weak end-to-end result at default scale is the same chemokine-field-magnitude root cause Task 7.1 already flagged for localization alone (a single 100x engine-unit correction, not per-seed-tuned) -- should Increment 9's field-magnitude calibration treat chemotaxis lambda and contact-killing distance as one combined calibration target, or should the scenario geometry itself (cluster separation) also be recalibrated toward the source's true (non-2D-approximated) z=2 immune-layer placement, which may put NK/CD8 much closer to the infection than this study's 2D three-cluster layout does?
+
+question: |
+  Do NK (type K) and CD8+ T (type E) cells, chemotaxing up the macrophage-
+  released chemokine field and contact-killing infected cells via the CC3D
+  source's literal LOCAL surface-contact kill-rate formula, genuinely
+  LOCALIZE to the infection (robust across seeds) and genuinely CLEAR an
+  infected cell once contact happens -- and does that killing mechanism
+  actually engage end-to-end within a feasible step budget at the
+  scenario's own DEFAULT full scale, or only in an artificially
+  close-contact test?
+
+hypothesis: |
+  NK/CD8 cells placed in the domain interior, chemotaxing toward the
+  macrophage-released chemokine field via the engine's linear-lambda
+  `World.set_chemotaxis` primitive, will move up the gradient and
+  accumulate near the infection, robustly across seeds, with CD8 (2x NK's
+  literal lambda) localizing more strongly. Once NK/CD8 are in actual
+  lattice contact with an infected cell, `killing.contact_kill_rate`'s
+  stochastic draw will remove it (`types.I` -> `types.D`). At the
+  scenario's own default full scale, however, NK/CD8 may not close the full
+  distance to the infected cell within a feasible step budget -- if so,
+  that should be reported honestly as a weak end-to-end result, not
+  concealed by re-tuning the scenario/lambda until it "works."
+
+objective: |
+  Wire NK (`types.K`)/CD8+ (`types.E`) chemotaxis (`immune.
+  set_nk_cd8_chemotaxis`, Task 7.1) up the chemokine field (Increment 6)
+  and contact-killing (`killing.contact_kill_rate`, Task 7.2, the literal
+  `ContactKillingSteppable` LOCAL form) into the Task-7.1 three-cluster
+  scenario (`immune.build_cytotoxic_scenario_spec`) and driver (`run.
+  run_cytotoxic_response`), and measure: (a) NK/CD8 `mean_distance_to_
+  infection` across 5 seeds (5, 17, 23, 42, 100), chemotaxis on (lambda x
+  `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100`) vs a lambda=0 control (`tests/
+  test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds`,
+  task-7.1-report.md); (b) `n_infected` in a small close-contact scenario,
+  killing enabled vs disabled, same seed (`tests/test_influenza_killing.py::
+  test_infected_count_lower_with_nk_cd8_killing_than_without`,
+  task-7.2-report.md); (c) `n_infected` at the scenario's own DEFAULT full
+  scale with killing enabled, an ad hoc (not fast-pytest-suite) measurement
+  recorded honestly in task-7.2-report.md's "Honest assessment" section. A
+  minimal in-package figure (`pbg_cpm_studies/influenza/viz.py::
+  cytotoxic_killing_figure`, Task 7.3) renders the NK+CD8 distance
+  trajectory (on vs control overlay) plus the infected-count trajectory
+  (killing enabled vs disabled overlay).
+
+description: |
+  Increment 7 of the influenza-sego2022 capability ladder: introduces NK
+  (`types.K`) and CD8+ T (`types.E`) cell types, chemotaxing up the
+  Increment-6 chemokine field (NOT the virus field -- that stays the
+  macrophages' own chemotaxis target) and contact-killing infected cells via
+  the CC3D source's literal LOCAL surface-contact kill-rate term
+  (`ContactKillingSteppable`). Localization (Task 7.1) is validated across 5
+  seeds against an unbiased interior-placed lambda=0 control, following the
+  same fix-round-1 rigor Increment 5's macrophage-response study
+  established. Contact-killing (Task 7.2) is validated as a working
+  mechanism via a small, deliberately close-contact scenario -- and this
+  study's central honest contribution is reporting, rather than concealing,
+  that the SAME mechanism does not engage end-to-end at the scenario's own
+  default full scale within a feasible step budget: NK/CD8 localize but
+  don't reach actual contact, so no infected cell is cleared there. No
+  nearby-population killing term (Increment 8), no haptotaxis, no
+  chemokine/APC-driven recruitment dynamics (a fixed population is placed
+  at scenario build time), and no Figs 2/3A/3B/5/7 reproduction claim --
+  those are recorded in the caveats above, not modeled here.
+
+claim: |
+  NK/CD8 chemotaxis up the (unchanged, Increment-6) chemokine field
+  produces genuine spatial LOCALIZATION, robust across 5 tried seeds (NK
+  mean distance change -20.37, CD8 -35.99, both negative in 5/5 seeds,
+  against a near-isotropic lambda=0 control, NK -1.02/CD8 -0.54) with CD8
+  (2x NK's lambda) localizing more strongly than NK in every seed and on
+  average -- matching the paper's Sec. 2.3 "CD8+ sensitivity twice that of
+  NK cells." Separately, the contact-killing MECHANISM itself
+  (`killing.contact_kill_rate`, the source's literal LOCAL surface-contact
+  form, resist-DIRECT per discrepancy #7) is proven correct: a small
+  close-contact scenario kills the one infected cell (1 -> 0 at update 22
+  of 45) with killing enabled vs steady at 1 with the identical seed and
+  killing disabled. THIS STUDY DOES NOT CLAIM "NK/CD8 CLEAR THE INFECTION"
+  AT REALISTIC SCALE -- at the scenario's own DEFAULT full scale (same
+  6-macrophage/6-NK/6-CD8, 60-update scenario the localization numbers
+  above come from), NK/CD8 close much of the distance to the infection
+  (NK ~81.6 -> ~57.8, CD8 ~81.6 -> ~39.8) but NEVER reach actual contact
+  within the run budget, so `n_infected` is unchanged (stays at 1 for all
+  61 recorded steps, no kill fires). The killing CAPABILITY is
+  demonstrated; end-to-end cytotoxic CLEARANCE at default/realistic scale
+  is an OPEN Increment-9 field-magnitude-calibration item, the same root
+  cause as the localization mechanism's own 100x engine-unit-scale
+  correction, deliberately NOT tuned away here.
+
+expected_behavior:
+  - NK and CD8 cells' mean centre-of-mass distance to the infected-cell
+    centroid decreases when chemotaxis is switched on, consistently across
+    multiple seeds, with CD8 (2x NK's lambda) showing a larger effect.
+  - The same starting configuration, with chemotaxis switched off (an
+    interior-placed, geometrically unbiased lambda=0 control), shows a
+    small change with no consistent sign across seeds.
+  - A small, deliberately close-contact scenario shows the infected-cell
+    count drop to zero with killing enabled, vs remaining unchanged with
+    killing disabled, same seed.
+  - At the scenario's own DEFAULT full scale, the infected-cell count is
+    NOT expected to drop within a feasible step budget -- NK/CD8 do not
+    close the full distance to the infected cell in this run's step count,
+    a result to be reported honestly, not tuned away.
+
+readouts:
+  - name: NK localization to infection (chemotaxis on), across seeds
+    identifier: nk_mean_distance_to_infection
+    units: sites
+    status: measured
+    description: >-
+      `nk_mean_distance_to_infection` change (final - initial) from
+      `run.run_cytotoxic_response` across 5 seeds (5, 17, 23, 42, 100):
+      -18.59 (5), -23.39 (17), -15.22 (23), -23.77 (42), -20.86 (100);
+      mean -20.37, negative in 5/5 seeds.
+  - name: CD8 localization to infection (chemotaxis on), across seeds
+    identifier: cd8_mean_distance_to_infection
+    units: sites
+    status: measured
+    description: >-
+      Same 5 seeds: -22.87 (5), -41.86 (17), -39.81 (23), -35.48 (42),
+      -39.94 (100); mean -35.99, negative in 5/5 seeds, and more negative
+      than NK's own change in every seed (CD8's lambda is 2x NK's).
+  - name: Lambda=0 control is near-isotropic for both NK and CD8
+    identifier: nk_cd8_distance_control
+    units: sites
+    status: measured
+    description: >-
+      Same 5 seeds, chemotaxis_lambda=0.0 for both types: NK +2.86, -0.66,
+      -4.73, +1.01, -3.56 (mean -1.02, spread 7.59); CD8 +0.80, -3.72,
+      +0.80, -0.34, -0.24 (mean -0.54, spread 4.52) -- no consistent sign
+      in either type.
+  - name: Contact-killing clears the infected cell in a close-contact scenario
+    identifier: close_contact_n_infected
+    units: cell count
+    status: measured
+    description: >-
+      A small, tight-margin/separation variant (2 macrophages/2 NK/2 CD8,
+      `margin_sites=4`, `separation_sites=1`, `steps=45`, seed=17): n_infected
+      goes 1 -> 0 (killed at update 22) with killing enabled, vs steady at 1
+      with killing disabled, identical seed/scenario otherwise.
+  - name: End-to-end killing does NOT engage at the default full-scale scenario
+    identifier: default_scale_n_infected
+    units: cell count
+    status: measured
+    description: >-
+      The scenario's own DEFAULT scale (6 macrophages/6 NK/6 CD8,
+      `margin_sites=20`, `separation_sites=20`, `steps=60`, seed=17,
+      `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100`) -- the same scenario the
+      localization numbers above come from -- shows n_infected UNCHANGED
+      at 1 for all 61 recorded steps: NK/CD8 close much of the distance
+      (NK ~81.6 -> ~57.8, CD8 ~81.6 -> ~39.8) but never reach actual
+      lattice contact with the infected cell within the run budget. This is
+      the study's central honest finding: the killing mechanism itself is
+      correct (see close_contact_n_infected above), but does not engage
+      end-to-end at realistic scale. Ad hoc measurement (task-7.2-report.md),
+      not part of the fast pytest suite (would be as slow as Task 7.1's own
+      multi-seed test).
+
+behavior_tests:
+  - name: NK localization -- distance to infection decreases in every tried seed
+    classification: primary
+    description: |
+      The full interior-placed cytotoxic scenario, chemotaxis on
+      (NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x params.yaml default), across 5
+      seeds (5, 17, 23, 42, 100): NK mean distance to the infection centroid
+      must decrease (final < initial) in EVERY seed.
+    measure: {kind: all_seeds_nk_on_distance_change_negative, condition: cytotoxic-nk-on-multiseed, stat: final}
+    pass_if: {op: eq, value: true}
+    status: passed
+    result: PASS
+    evaluated_by: tests/test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds
+  - name: CD8 localization -- distance to infection decreases in every tried seed
+    classification: primary
+    description: |
+      Same scenario/seeds: CD8 mean distance to the infection centroid must
+      decrease in EVERY seed, and CD8's gap over the lambda=0 control must
+      exceed NK's (matching the paper's Sec. 2.3 2x-sensitivity claim).
+    measure: {kind: all_seeds_cd8_on_distance_change_negative, condition: cytotoxic-cd8-on-multiseed, stat: final}
+    pass_if: {op: eq, value: true}
+    status: passed
+    result: PASS
+    evaluated_by: tests/test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds
+  - name: Contact-killing reduces infected count vs. killing-disabled control
+    classification: primary
+    description: |
+      A small close-contact scenario (2 macrophages/2 NK/2 CD8,
+      margin_sites=4, separation_sites=1, steps=45, seed=17): n_infected at
+      the final step must be lower WITH killing enabled than WITHOUT,
+      same-seed/scenario otherwise.
+    measure: {kind: n_infected_final_with_killing_lt_without, condition: close-contact-killing-on-vs-off, stat: final}
+    pass_if: {op: lt, value: "n_infected_without_killing[final]"}
+    status: passed
+    result: PASS
+    evaluated_by: tests/test_influenza_killing.py::test_infected_count_lower_with_nk_cd8_killing_than_without
+  - name: Killing-disabled control holds an identical scenario
+    classification: secondary
+    description: |
+      `enable_killing=False` must build the SAME scenario/chemotaxis (NK/CD8
+      present, still chemotaxing) as `enable_killing=True`, isolating the
+      killing step's own effect from any localization run-to-run variation.
+    measure: {kind: scenario_params_match_across_killing_flag, condition: killing-control-scenario-identity, stat: final}
+    pass_if: {op: eq, value: true}
+    status: passed
+    result: PASS
+    evaluated_by: tests/test_influenza_killing.py::test_killing_disabled_control_holds_identical_scenario
+  - name: contact_kill_rate matches params.yaml's precomputed coefficients
+    classification: secondary
+    description: |
+      `killing.contact_kill_rate`'s LOCAL kill-rate formula must reproduce
+      params.yaml's precomputed `pr_cf_nk_loc`/`pr_cf_cd8_loc` (= g_i *
+      tot_ec_ODE) to 1e-9 relative tolerance, and must apply `cell_resist`
+      DIRECTLY (discrepancy #7), not `(1 - cell_resist)`.
+    measure: {kind: contact_kill_rate_matches_precomputed_coefficients, condition: contact-kill-rate-unit, stat: final}
+    pass_if: {op: eq, value: true}
+    status: passed
+    result: PASS
+    evaluated_by: tests/test_influenza_killing.py::test_contact_kill_rate_matches_params_yaml_precomputed_coefficients
+
+findings:
+  - id: F-01
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: NK localization -- distance to infection decreases in every tried seed
+      divergence_factor: null
+      observed: "NK distance change -18.59 (seed 5), -23.39 (17), -15.22 (23), -23.77 (42), -20.86 (100); mean -20.37, negative in 5/5 seeds; lambda=0 control mean -1.02, spread 7.59"
+    statement: |
+      NK cells chemotaxing up the (Increment-6, unchanged) chemokine field
+      via the engine's linear-lambda `World.set_chemotaxis` primitive
+      genuinely and consistently localize to the infection, at the
+      documented `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` engine-unit
+      correction -- robust across every one of 5 tried seeds, comfortably
+      beyond the lambda=0 control's own noise floor.
+  - id: F-02
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: CD8 localization -- distance to infection decreases in every tried seed
+      divergence_factor: 1.86
+      observed: "CD8 distance change -22.87 (seed 5), -41.86 (17), -39.81 (23), -35.48 (42), -39.94 (100); mean -35.99, negative in 5/5 seeds; on/off gap 35.45 vs NK's 19.35 (ratio ~1.86)"
+    statement: |
+      CD8+ T cells localize even more strongly than NK cells in every seed
+      and on average (mean on/off gap 35.45 vs NK's 19.35), consistent with
+      CD8's 2x-larger literal chemotaxis lambda (10000 vs 5000) and matching
+      the paper's Sec. 2.3 qualitative claim ("CD8+ sensitivity twice that
+      of NK cells").
+  - id: F-03
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: Contact-killing reduces infected count vs. killing-disabled control
+      divergence_factor: null
+      observed: "n_infected: 1 -> 0 at update 22 of 45 with killing enabled; steady at 1 (unchanged) with killing disabled, same seed=17 and scenario"
+    statement: |
+      The contact-killing mechanism (`killing.contact_kill_rate`'s literal
+      LOCAL surface-contact form, applied via a per-update stochastic draw,
+      NK checked before CD8 per the source's ordering) is implemented and
+      verified CORRECT: once NK/CD8 cells are in actual lattice contact with
+      an infected cell, the kill draw engages and removes it. This confirms
+      the killing MECHANISM works, isolated from whether NK/CD8 can reach an
+      infected cell at any particular scenario scale (see F-04).
+  - id: F-04
+    kind: computational
+    status: partial
+    mechanism_origin: engineered
+    evidence:
+      from_test: null
+      divergence_factor: null
+      observed: "n_infected constant at 1 for all 61 recorded steps at the DEFAULT full-scale scenario (6 macrophages/6 NK/6 CD8, margin_sites=20, separation_sites=20, steps=60, seed=17); NK mean distance to infection closes ~81.6 -> ~57.8, CD8 ~81.6 -> ~39.8 over the same run -- substantial closing, but contact is never reached"
+    statement: |
+      This is the study's central honest finding, reported as a GAP, not
+      hidden as a clean pass (status: partial): the SAME contact-killing
+      mechanism verified correct in F-03 does NOT engage end-to-end at the
+      scenario's own default/realistic scale within a feasible step budget
+      -- NK/CD8 localize (closing much of the distance, per F-01/F-02) but
+      never reach actual lattice contact with the infected cell, so no kill
+      draw ever fires. This is the SAME root cause as F-01/F-02's own
+      `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` engine-unit correction (the
+      chemokine field's raw concentration is far below what the source's
+      literal chemotaxis lambda was calibrated for), compounded by the
+      three-cluster scenario's extra cluster-separation distance. NOT tuned
+      away here, per the brief's explicit instruction -- an open
+      Increment-9 field-magnitude-calibration item.
+
+conclusion: |
+  LOCALIZATION MECHANISM VALIDATED (robust, 5/5 seeds, both NK and CD8,
+  CD8 stronger per its 2x lambda); CONTACT-KILLING MECHANISM VALIDATED as a
+  working, correctly-implemented primitive (close-contact test, 1 -> 0);
+  END-TO-END CYTOTOXIC CLEARANCE AT DEFAULT/REALISTIC SCALE IS WEAK -- NOT
+  DEMONSTRATED. NK/CD8 chemotaxing up the (Increment-6, unchanged) chemokine
+  field genuinely localize to the infection, robustly across 5 seeds for
+  both cell types, with CD8 localizing more strongly than NK (matching the
+  paper's stated 2x sensitivity ratio). Separately, `killing.
+  contact_kill_rate` (the CC3D source's literal LOCAL surface-contact
+  kill-rate form, resist-DIRECT per discrepancy #7) is implemented and
+  proven correct: a small close-contact scenario shows it removes an
+  infected cell once NK/CD8 reach it. But at the SAME scenario's own default
+  full scale (6 macrophages/6 NK/6 CD8, 60 updates, same seed as the
+  close-contact test) NK/CD8 never reach actual contact within the run
+  budget -- the infected count is unchanged. This study does NOT claim
+  "NK/CD8 clear the infection": the killing CAPABILITY is demonstrated, but
+  end-to-end clearance at realistic scale is an OPEN Increment-9
+  field-magnitude-calibration item, the same root cause as the localization
+  mechanism's own 100x engine-unit-scale correction, deliberately reported
+  as a gap rather than tuned away. Other open items, all recorded not
+  resolved: discrepancy #7 (resist-DIRECT kill rate), the deferred
+  nearby-population killing term (Increment 8), haptotaxis (not modeled),
+  stubbed recruitment (a fixed population), 2D-approximation geometry, and
+  the engine's linear (not the source's saturating/COM-scaled) chemotaxis
+  form. No Figs 2/3A/3B/5/7 reproduction claim is made -- that verdict stays
+  PENDING until Increment 9 (the capstone).
+
+conclusion_verdicts:
+  regression_compatibility:
+    result: PASS
+    basis: Reproduces Task 7.1's (commit e5c9e50) and Task 7.2's (commit 4f28eba) measured integration-test results and report tables exactly (same driver, same seeds, same params.yaml constants); Increments 0-6 unchanged (48 influenza tests pass at Task 7.2, no regressions; this task's viz addition adds tests without touching any driver).
+  biological_validation:
+    result: PENDING
+    basis: >-
+      This study validates the NK/CD8 LOCALIZATION mechanism (5-seed
+      on/off comparison against an unbiased interior-placed control) and the
+      CONTACT-KILLING mechanism (a small close-contact scenario) as
+      independently correct, but explicitly does NOT demonstrate end-to-end
+      cytotoxic clearance at the scenario's own default/realistic scale
+      (n_infected unchanged there) -- an honestly-reported gap, not a
+      quantitative reproduction against any figure's acceptance band. Do
+      NOT read PENDING here as a passing or failing reproduction verdict;
+      no reproduction claim is made until Increment 9.
+  explanatory_gain:
+    result: PENDING
+    basis: >-
+      No alternative mechanism is being compared at this increment; deferred
+      to later increments / the capstone where a reproduction comparison
+      against the paper's figures becomes meaningful.
+
+biological_summary: |
+  NK (`types.K`) and CD8+ T (`types.E`) cells are placed in the domain
+  interior (the Task-7.1 three-cluster scenario: epithelial/infection patch
+  | macrophage cluster | NK+CD8 cluster, every cluster >= `margin_sites`
+  from every noflux wall) and wired to chemotax up the macrophage-released
+  chemokine field (Increment 6, unchanged) via the engine's linear-lambda
+  `World.set_chemotaxis` primitive, at the documented, non-per-seed-tuned
+  `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` correction (Task 7.1 -- the literal
+  source lambda is statistically undetectable at this engine's
+  chemokine-field concentration scale). Over a 60-update run, tested across
+  5 seeds (5, 17, 23, 42, 100), both NK and CD8's mean distance to the
+  infection centroid falls consistently when chemotaxis is on (NK mean
+  change -20.37, CD8 -35.99, negative in 5/5 seeds each), against a
+  near-isotropic lambda=0 control (NK -1.02, CD8 -0.54, no consistent sign)
+  -- CD8 (2x NK's literal lambda) localizes more strongly than NK in every
+  seed, matching the paper's Sec. 2.3 stated 2x-sensitivity ratio. Each
+  update, `killing.contact_kill_rate` (the CC3D source's literal LOCAL
+  surface-contact kill-rate form, applying `cell_resist` DIRECTLY per
+  discrepancy #7, NK checked before CD8 per the source's ordering) draws a
+  stochastic kill for every currently-infected cell from its NK/CD8 contact
+  area; a small, deliberately close-contact scenario (2 macrophages/2 NK/2
+  CD8, tight margin/separation) confirms this mechanism actually clears the
+  infected cell (1 -> 0 at update 22 of 45) once genuine lattice contact
+  happens, vs steady at 1 with killing disabled, same seed. This study's
+  central, deliberately UN-hidden finding: at the SAME scenario's own
+  DEFAULT full scale (6 macrophages/6 NK/6 CD8, the scale the localization
+  numbers above are measured at), NK/CD8 close much of the distance to the
+  infection (NK ~81.6 -> ~57.8, CD8 ~81.6 -> ~39.8 over 60 updates) but
+  NEVER reach actual contact within the run budget -- n_infected stays
+  unchanged at 1 for all 61 recorded steps, no kill fires. The killing
+  CAPABILITY is demonstrated and verified correct; end-to-end cytotoxic
+  CLEARANCE at default/realistic scale is NOT -- this is the same root
+  cause as the localization mechanism's own 100x engine-unit-scale
+  correction (the chemokine field's raw concentration is far below what the
+  source's literal parameters were calibrated for), compounded by the
+  three-cluster scenario's extra cluster-separation distance, and is
+  recorded as an open Increment-9 field-magnitude-calibration item rather
+  than tuned away. Discrepancy #7 (resist-DIRECT), the deferred
+  nearby-population killing term, haptotaxis, stubbed recruitment, and
+  2D-approximation geometry are all additional open items, not resolved
+  here.
+
+key_assumptions:
+  - 100x CHEMOTAXIS ENGINE-UNIT SCALE — `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100.0`
+    (Task 7.1), applied identically to NK and CD8's literal params.yaml
+    lambda (preserving CD8's exact 2:1 ratio over NK), chosen from a
+    one-time grid scan (50/200/500x) at a single seed then CONFIRMED (not
+    re-tuned) across all 5 required seeds. The chemokine field's raw
+    concentration is ~2-3 orders of magnitude smaller than the virus
+    field's at comparable distances (chemokine diffuses ~87x faster, the
+    same secreted mass spreads far more thinly), so the literal source
+    lambda (5000/10000) is statistically undetectable against
+    thermal/adhesion noise at this concentration scale -- a documented,
+    non-per-seed-tuned engine-unit correction, an open Increment-9
+    calibration item.
+  - >-
+    DISCREPANCY #7 (resist-DIRECT) — `ContactKillingSteppable.step()`
+    multiplies `kill_rate` by `cell_resist` DIRECTLY, not `(1 -
+    cell_resist)`, unlike every other resistance consumer in this codebase
+    (`transitions.infected_death_step`, `allee.*`, the secretion-scale
+    gates). Implemented literally per the source, not "fixed" -- a cell
+    with MORE local IFN is killed FASTER by contact NK/CD8, the opposite of
+    every other resist-gated protective mechanism here. Left unresolved as
+    recorded (possible intentional antigen-presentation effect, or a
+    source inconsistency -- not adjudicated).
+  - NEARBY-POPULATION killing term deferred — `ContactKillingSteppable`
+    also applies a well-mixed, non-spatial "nearby" kill term
+    (`params.yaml`'s `nk.killing.nearby_term_deferred`/
+    `cd8.killing.nearby_term_deferred`), independent of the LOCAL
+    surface-contact term modeled here; requires Increment 8's
+    population-scale ODE bookkeeping.
+  - HAPTOTAXIS not modeled — only field-gradient chemotaxis (toward the
+    chemokine field) drives NK/CD8 movement here; any
+    adhesion/contact-gradient-driven directed-migration component is not
+    implemented, an open Increment-9 item.
+  - RECRUITMENT is stubbed — a FIXED NK/CD8 population (6 cells each) is
+    placed at scenario build time; chemokine-driven inflow/outflow
+    (`params.yaml`'s `nk.recruitment`/`cd8.recruitment`) is not modeled
+    (requires the live immune-model ODE/SBML solver, Increment 8).
+  - 2D-APPROXIMATION geometry — the same non-confluent, interior-placed 2D
+    three-cluster patch as Increments 5/6, not the source's z=2
+    immune-layer-over-confluent-z=1-sheet geometry. Faithful z=2 geometry
+    is deferred to Increment 9, and may place NK/CD8 closer to the
+    infection than this study's layout does (see report.main_expert_question).
+  - CHEMOTAXIS FUNCTIONAL-FORM gap — the source uses a saturating,
+    per-cell-COM-scaled lambda (`chemotaxis_v_nk / (1 + concentration)`);
+    the engine primitive used here (`World.set_chemotaxis`) is a fixed
+    LINEAR-regime lambda per (field, type). The fidelity criterion tested
+    here is the localization/killing BEHAVIOR, not the exact functional
+    form -- an Increment-9 calibration item.
+  - END-TO-END CLEARANCE not demonstrated at default scale — reported
+    honestly as this study's central gap (finding F-04), not tuned away by
+    widening `NK_CD8_CHEMOTAXIS_ENGINE_SCALE` further or shrinking
+    `separation_sites` until the default scenario also clears the
+    infection; doing so would hide the real finding (the source's literal
+    parameters don't calibrate against this engine's field-concentration
+    units at any scale tried so far) behind a number that looks better than
+    the mechanism's honest state.
+  - No chemokine-driven APC/global-ODE-coupled recruitment amplification,
+    no global ODE compartment, and no Figs 2/3A/3B/5/7 reproduction claim
+    exist yet -- all later increments.
+
+literature_anchors:
+  - expectation: "NK and CD8+ T cells are chemotactically recruited to and localize at the infection site, with CD8+ cells having roughly twice NK cells' chemotactic sensitivity (Sego 2022 Sec. 2.3); Table 3/ImmuneModelInputs.py give chemotaxis_v_nk=5E3/chemotaxis_v_cd8=10E3."
+    model_observable: "NK/CD8 mean distance to the infection centroid falls in 5/5 tried seeds for both types (NK mean -20.37, CD8 -35.99) with chemotaxis on, vs a near-isotropic lambda=0 control (NK -1.02, CD8 -0.54); CD8's on/off gap (35.45) exceeds NK's (19.35) in every seed and on average, matching the paper's 2x-sensitivity claim -- at a documented, non-per-seed-tuned 100x chemotaxis engine-unit scale."
+    source: "CC3D ViralInfectionVTM source (ChemotaxisSteppable, ImmuneModelInputs.py chemotaxis_v_nk/chemotaxis_v_cd8) via pbg_cpm_studies/influenza/params.yaml nk: and cd8: blocks"
+    status_in_workspace: "Wired and measured directly (localization mechanism, on vs off, robust across 5 seeds with an unbiased control). Engine's linear chemotaxis form (not the source's saturating/COM form), 100x engine-unit scale, and 2D-approximation geometry are open Increment-9 items."
+    cites: [sego2022influenza]
+  - expectation: "NK/CD8 cells contact-kill infected epithelial cells (ContactKillingSteppable), clearing the infection over the course of the immune response (Sego 2022's overall model narrative, and the source's ContactKillingSteppable LOCAL surface-contact kill-rate term)."
+    model_observable: "The contact-killing MECHANISM is implemented (killing.contact_kill_rate, the literal LOCAL kill-rate form, resist-DIRECT per discrepancy #7) and verified correct in a small close-contact scenario (n_infected 1 -> 0 at update 22 of 45 with killing enabled, vs steady at 1 disabled). BUT at the scenario's own default full scale, NK/CD8 never reach actual contact within the run budget, so n_infected is UNCHANGED there -- end-to-end cytotoxic clearance is NOT demonstrated at this scale, honestly reported as a gap rather than tuned away."
+    source: "Sego 2022 (paper narrative) vs CC3D ViralInfectionVTM source (ContactKillingSteppable, ~lines 212-319)"
+    status_in_workspace: "Mechanism implemented and verified correct in isolation (close-contact test); end-to-end engagement at default/realistic scale is an open Increment-9 field-magnitude-calibration item, the same root cause as the localization mechanism's own 100x scale correction."
+    cites: [sego2022influenza]
+
+gate_status: passed
+
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+
+model_change:
+  base_model: pbg_cpm_studies.composites.influenza.cytotoxic_response
+  new_processes: []
+  new_state_variables: [per-cell types K (NK) and E (CD8+ T), NK/CD8 centre-of-mass localization diagnostic, per-infected-cell n_infected series]
+  new_parameters: [chemotaxis_v_nk, chemotaxis_v_cd8, g_ik, g_ie, tot_ec_ODE, NK_CD8_CHEMOTAXIS_ENGINE_SCALE]
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    A new dashboard-loadable composite IS added this increment:
+    `pbg_cpm_studies.composites.influenza.cytotoxic_response` (Task 7.3) --
+    wraps the Task-7.1 three-cluster scenario + virus field (macrophage
+    chemotaxis, unchanged) + chemokine field (a NEW declarative spec entry,
+    `fields.chemokine_field_spec_entry`, Task 7.3), with NK/CD8 chemotaxis
+    wired declaratively via the chemokine field's `chemotaxis` list (the
+    same `cpm.schema.load_world` convention `macrophage_response` uses).
+    This is a LIVE-DEMO wrapper for the LOCALIZATION half ONLY -- it does
+    NOT implement the contact-killing step (`killing.contact_kill_rate` is
+    a custom per-update Python calculation over `world.
+    cell_contact_area_by_type`, not expressible in this declarative spec
+    format), and does not reproduce the field warmup or the
+    distance/n_infected readouts this study's measured numbers come from.
+    Those numbers (both the 5-seed localization table and the
+    close-contact/default-scale killing numbers) come directly from
+    `run.run_cytotoxic_response` (Tasks 7.1/7.2, a raw `cpm_core.World`
+    loop), not from this composite. `chemotaxis_v_nk=chemotaxis_v_cd8=0.0`
+    reproduces the localization lambda=0 control on the composite side too.
+
+runs:
+  - run_id: cytotoxic-nk-cd8-interior-5seed-on-off
+    name: NK/CD8 localization, chemotaxis on vs lambda=0 control, interior placement, 5 seeds (60 updates each)
+    status: completed
+    canonical: true
+    timestamp: '2026-09-19'
+    seeds: [5, 17, 23, 42, 100]
+    emitter: "n/a (direct pytest measurement)"
+    outcomes:
+      'NK localization -- distance to infection decreases in every tried seed':
+        result: PASS
+        measured_value: -20.37
+        notes: "mean NK distance change over 5 seeds; per-seed: -18.59 (5), -23.39 (17), -15.22 (23), -23.77 (42), -20.86 (100); negative in 5/5 seeds; control mean -1.02, spread 7.59 (task-7.1-report.md)."
+        evaluated_by: tests/test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds
+      'CD8 localization -- distance to infection decreases in every tried seed':
+        result: PASS
+        measured_value: -35.99
+        notes: "mean CD8 distance change over 5 seeds; per-seed: -22.87 (5), -41.86 (17), -39.81 (23), -35.48 (42), -39.94 (100); negative in 5/5 seeds; on/off gap 35.45 exceeds NK's 19.35, matching paper Sec. 2.3's 2x-sensitivity claim."
+        evaluated_by: tests/test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds
+  - run_id: cytotoxic-killing-close-contact-on-off
+    name: Contact-killing, close-contact scenario, killing enabled vs disabled (same seed)
+    status: completed
+    canonical: true
+    timestamp: '2026-09-19'
+    seeds: [17]
+    emitter: "n/a (direct pytest measurement)"
+    outcomes:
+      'Contact-killing reduces infected count vs. killing-disabled control':
+        result: PASS
+        measured_value: 0.0
+        notes: "n_infected at final step (update 45), killing enabled: 0 (killed at update 22); killing disabled control: 1 (unchanged); 2 macrophages/2 NK/2 CD8, margin_sites=4, separation_sites=1, seed=17 (task-7.2-report.md)."
+        evaluated_by: tests/test_influenza_killing.py::test_infected_count_lower_with_nk_cd8_killing_than_without
+  - run_id: cytotoxic-killing-default-scale-ad-hoc
+    name: Default full-scale scenario, killing enabled -- weak end-to-end clearance (ad hoc, not fast pytest suite)
+    status: completed
+    canonical: false
+    timestamp: '2026-09-19'
+    seeds: [17]
+    emitter: "n/a (ad hoc script measurement, not asserted by any pytest test -- see task-7.2-report.md's Honest-assessment section)"
+    outcomes:
+      'End-to-end killing does NOT engage at the default full-scale scenario':
+        result: DOCUMENTED
+        measured_value: 1.0
+        notes: "n_infected unchanged at 1 for all 61 recorded steps; NK mean distance closes 81.6 -> 57.8, CD8 81.6 -> 39.8 over 60 updates, but neither reaches actual contact. 6 macrophages/6 NK/6 CD8, margin_sites=20, separation_sites=20, seed=17, NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100 (task-7.2-report.md). Reported honestly as a gap, not a passing behavior_test -- this run is NOT part of the fast pytest suite."
+        evaluated_by: "n/a -- ad hoc measurement, task-7.2-report.md"
+
+discovery_implications:
+  followup_study_proposals:
+    - id: incr9-field-magnitude-calibration
+      title: "Increment 9: chemokine field magnitude / chemotaxis lambda joint calibration"
+      motivation: "This study's F-04 (end-to-end clearance does not engage at default scale) is the same root cause as Task 7.1's NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x correction. Increment 9's capstone reproduction needs a principled calibration of chemokine field magnitude and/or chemotaxis lambda against this engine's units, not another ad hoc scale factor -- and should consider whether NK/CD8-to-infection distance (this study's cluster-separation scenario choice) also needs recalibrating toward the source's true z=2 immune-layer geometry."
+    - id: incr8-nearby-killing-and-recruitment
+      title: "Increment 8: nearby-population killing term + chemokine-driven NK/CD8/macrophage recruitment"
+      motivation: "params.yaml's nk.killing.nearby_term_deferred/cd8.killing.nearby_term_deferred and nk.recruitment/cd8.recruitment are both recorded but stubbed here, requiring the well-mixed 'nearby' population bookkeeping and the live immune-model ODE/SBML solver -- both explicitly scoped to Increment 8."
+    - id: cytotoxic-larger-ensemble
+      title: "Increment 9 (or earlier spike): larger-ensemble statistical characterization of NK/CD8 localization"
+      motivation: "Same modest-ensemble caveat as macrophage-response (Increment 5): this study's 5-seed ensemble (5, 17, 23, 42, 100) shows the localization effect replicates but is not a systematic statistical power analysis or a source-scale replicate count."
+
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.influenza.cytotoxic_response
+    params: {chemotaxis_v_macro: 5000.0, chemotaxis_v_nk: 500000.0, chemotaxis_v_cd8: 1000000.0, seed: 17}  # live-demo composite (Task 7.3, LOCALIZATION geometry/chemotaxis only, NO killing step -- see model_change.notes); the measured localization AND killing readouts above come from run.run_cytotoxic_response (Tasks 7.1/7.2), not this composite directly
+
+  model_settings: []
+
+narrative_spine_skip: [implementation_requirements]
+narrative_spine_skip_reason: >-
+  Increment 7's mechanisms are built and measured (Task 7.1/7.2's
+  integration tests plus the honest default-scale ad hoc measurement);
+  implementation_requirements is a forward-looking build checklist with no
+  authored content for a study whose scope (NK/CD8 type + chemotaxis-driven
+  localization + LOCAL contact-killing, no nearby term/recruitment/global
+  ODE) is complete for this increment.

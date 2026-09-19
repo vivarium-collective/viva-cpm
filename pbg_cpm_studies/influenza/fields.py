@@ -324,3 +324,22 @@ def virus_field_spec_entry() -> dict:
         "secretion": [{"type": types.I, "rate": secretion_rate}],
         "dynamics": {"dt": dt, "substeps": substeps},
     }
+
+
+def chemokine_field_spec_entry() -> dict:
+    """Declarative `load_world` spec `fields:` entry for the chemokine field
+    -- equivalent to `add_chemokine_field`, for composites/drivers that
+    build the world from a plain spec dict (`cpm.schema.load_world`) rather
+    than driving `cpm_core.World` directly (see `pbg_cpm_studies.composites.
+    influenza.cytotoxic_response`, Task 7.3's live-demo wrapper). This is
+    the UNREGULATED (IL-10-Hill scale=1.0) base macrophage secretion rate,
+    same caveat as `add_chemokine_field` -- a caller that wants the
+    Increment-6 per-cell regulation must still apply it via
+    `set_cell_secretion_scale` after world construction (not available
+    declaratively in the `load_world` spec format)."""
+    diffusion, decay, dt, substeps, secretion_rate = _chemokine_field_params()
+    return {
+        "name": "chemokine", "d": diffusion, "decay": decay,
+        "secretion": [{"type": types.M, "rate": secretion_rate}],
+        "dynamics": {"dt": dt, "substeps": substeps},
+    }
