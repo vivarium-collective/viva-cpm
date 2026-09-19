@@ -1654,7 +1654,8 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
     Returns (index 0 = the seeded INITIAL state, before any transition --
     matching `run_virus_infection`'s convention, so ``infected[0]`` reflects the
     scenario's initial seeding; indices 1..steps-1 are after each stepped MCS,
-    for ``steps`` records total; ``t_days[i] = i*s_per_mcs/86400``)::
+    for ``steps`` records total; ``t_days[i] = i*mcs_per_step*s_per_mcs/86400``
+    -- each record advances ``mcs_per_step`` MCS)::
 
         {
           "mcs":    [0, 1, ..., steps-1],
