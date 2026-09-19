@@ -506,6 +506,28 @@ il10:                     # IL-10 field + macrophage/uninfected-cell secretion (
     a_11/a_12 coefficients below) rather than a fabricated scalar, per the brief's 'do not fabricate
     constants' instruction; the key is present (satisfies the required-keys contract) but is NOT an
     engine-usable numeric constant until the ODE solver is wired in a later increment."
+  sig_1_stub: 2.4412677181638998    # Task 6.1 ENGINE STUB for sig_1 (Sigma1), per the Task-6.1 brief's
+  # explicit ruling: "the source's sig_1:=a_11*T+a_12*D is a dynamic ODE quantity -> deferred to
+  # Increment 8; use a STUBBED CONSTANT... document that this fixes the TNF-dependence pending
+  # Increment 8 -- the L-dependent Hill self-regulation is preserved, and the chemokine GRADIENT
+  # SHAPE (set by diffusion from macrophage locations) is robust to sig_1's exact value." This key is
+  # SEPARATE from `sig_1` above (which stays the honest non-numeric documentation of the true dynamic
+  # quantity) so neither Task 6.0's "do not fabricate a scalar" finding nor Task 6.1's need for an
+  # engine-usable number is compromised.
+  # VALUE CHOICE (order-of-magnitude, not a fabricated "true" value): set equal to the CELLULARIZED
+  # `g_1` at the 0.3mm-patch scaling (`g_1_raw(498.217901666102) * scaling.eta_0p3mm(0.0049)` =
+  # 2.4412677181638998 -- same number as the `g_1` comment above's 0.3mm cellularization, and the same
+  # "default to the 0.3mm scenario" convention every other driver in this package already uses, e.g.
+  # `run.run_virus_infection`'s `patch_mm: float = 0.3` default). Reasoning: with L_loc small (as it
+  # is through most of a short integration run, since IL-10 starts at 0 and only slowly accumulates),
+  # the Hill ratio term `(g_1*L+g_2)/(L+d_2)` is DOMINATED by `g_2/d_2` near L=0 (~0.0625, both
+  # cellularized) and asymptotes toward `g_1` (~2.44, cellularized) as L grows past `d_2` (~6.85e-5,
+  # tiny) -- so any sig_1 far from this ~[0.06, 2.44] range would make Hill(L) trivially saturate near
+  # 0 or 1 for the entire reachable L range, defeating the "L-dependent self-regulation is preserved"
+  # part of the ruling above. sig_1_stub = g_1(cellularized) puts Hill(0) ~ 0.975 (near-max secretion
+  # at low local IL-10) sliding down to Hill(L->large) ~ 0.5 (half-max, self-limiting) as local IL-10
+  # accumulates -- a genuine, non-degenerate self-regulation range, not a precision claim about the
+  # true (unimplementable without the ODE solver) Sigma1.
   sig_1_a_11: 0.00061091213762049      # raw Antimony coefficient of T in `Sigma1 := a_11*T + a_12*D`
   # (ImmuneModelLib.py `immune_model_string()` line ~68; flat literal, no s_t/s_v/s_l scaling).
   sig_1_a_12: 0.0000192792875130612    # raw Antimony coefficient of D in `Sigma1 := a_11*T + a_12*D`
