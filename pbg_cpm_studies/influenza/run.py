@@ -21,8 +21,8 @@ import math
 
 import numpy as np
 
-from . import (allee, build, fields, immune, killing, price_ode, sheet,
-               signaling, transitions, types)
+from . import (allee, build, fields, immune, killing, price_ode, recruitment,
+               sheet, signaling, transitions, types)
 from .params import load_params
 from .resistance import cell_resistance
 
@@ -32,6 +32,71 @@ from .resistance import cell_resistance
 # immune-cell contact must be excluded from `srf_total`/`srf_uninfected`,
 # not just tallied by `world.cell_contact_area_by_type`'s raw dict.
 _EPITHELIAL_TYPES = (types.H, types.I, types.D)
+
+# Task 8.4 recruitment reserve pool: the engine can only create cells
+# PRE-finalize (`World.add_cell`/`seed_block` error after finalize -- see
+# `crates/cpm-py/src/lib.rs`), so ODE-driven inflow cannot mint brand-new CPM
+# cells mid-run the way the source's `new_immune_cell_by_type` does. Instead we
+# pre-seed a pool of DORMANT reserve cells (this distinct type, which secretes
+# nothing and is never counted as M/K/E) parked in the domain's Medium margins;
+# an inflow event ACTIVATES one via `set_cell_type(id, target_type)` (it then
+# counts + secretes like any recruited cell), and an outflow event `remove_cells`
+# an active cell. Reserve cells are parked in an interior reservoir rather than
+# placed at the lesion (the source seeds onto Medium near the target field's
+# peak) -- an engine-imposed geometry approximation, documented in
+# task-8.4-report.md; this task's observable is the POPULATION COUNT (no killing
+# consumes placement until Task 8.5), for which reservoir vs lesion placement is
+# immaterial.
+RECRUIT_RESERVE_TYPE = 7
+
+
+def _seed_recruit_pool(world, spec, *, pool_per_type, targets, target_volume,
+                       lambda_volume):
+    """Pre-seed (BEFORE `world.finalize`) `pool_per_type` dormant reserve cells
+    (`RECRUIT_RESERVE_TYPE`) per target immune type, packed into the Medium
+    strips above and below the scenario's occupied bounding box. Returns
+    ``{target_type: [reserve_cell_id, ...]}`` -- FIFO queues an inflow event pops
+    from to activate a cell of that type. Raises if the strips can't hold the
+    requested pool (caller keeps `pool_per_type` small enough to fit)."""
+    nx, ny, _nz = spec["potts"]["dims"]
+    blocks = [c["seed_block"] for c in spec["cells"]]
+    content_y0 = min(b[1] for b in blocks)
+    content_y1 = max(b[4] for b in blocks)
+
+    side = int(round(target_volume ** 0.5))
+    pitch = side + 2  # 2-site Medium gap between reserves (matches cluster gap)
+
+    # Candidate (x0, y0) block origins in the top strip [1, content_y0) and the
+    # bottom strip (content_y1, ny), left-to-right then top-to-bottom.
+    def _strip_origins(y_lo, y_hi):
+        origins = []
+        y = y_lo
+        while y + side <= y_hi:
+            x = 1
+            while x + side <= nx - 1:
+                origins.append((x, y))
+                x += pitch
+            y += pitch
+        return origins
+
+    origins = _strip_origins(1, content_y0 - 1) + _strip_origins(content_y1 + 1, ny - 1)
+    need = pool_per_type * len(targets)
+    if len(origins) < need:
+        raise ValueError(
+            f"recruit reserve pool needs {need} slots but only {len(origins)} fit "
+            f"in the {nx}x{ny} domain's Medium margins; reduce recruit_pool_per_type")
+
+    pool: dict[int, list[int]] = {t: [] for t in targets}
+    slot = 0
+    for t in targets:
+        for _ in range(pool_per_type):
+            x0, y0 = origins[slot]
+            slot += 1
+            cid = world.add_cell(RECRUIT_RESERVE_TYPE, float(target_volume),
+                                 float(lambda_volume), 0.0, 0.0)
+            world.seed_block(cid, x0, y0, 0, x0 + side, y0 + side, 1)
+            pool[t].append(cid)
+    return pool
 
 
 def _epithelial_contact_totals(world, cid):
@@ -981,6 +1046,9 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
 def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
                         steps: int = 20, seed: int = 17, with_immune: bool = True,
                         seed_infection_frac: float = 0.05, mcs_per_step: int = 1,
+                        with_recruitment: bool = True,
+                        recruit_pool_per_type: int = 40,
+                        recruit_zero_signal: bool = False,
                         **scenario_kw) -> dict:
     """Task 8.2 crux driver: wire the SPATIAL->ODE direction of the Sego-2022
     hybrid coupling (dossier Sec.4a). Each MCS, advance the CPM world one step,
@@ -1079,6 +1147,26 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     ifn_fi = fields.add_ifn_field(world)
     chemo_fi = fields.add_chemokine_field(world)
     il10_fi = fields.add_il10_field(world)
+
+    # Task 8.4: pre-seed the dormant recruitment reserve pool BEFORE finalize
+    # (the only time the engine allows new cells -- see RECRUIT_RESERVE_TYPE).
+    # Targets = the immune types the scenario actually builds (macrophage-only
+    # scenario has no NK/CD8 clusters, so it pools only macrophages).
+    recruit_targets = [types.M, types.K, types.E] if with_immune else [types.M]
+    reserve_pool: dict[int, list[int]] = {}
+    if with_recruitment:
+        mv = int(params["macrophage"]["volume_sites"])
+        mlv = float(params["macrophage"]["lambda_volume"])
+        # Reserve cells are inert loners: give them a modest Medium adhesion so
+        # they hold shape and stay parked (they never chemotax/secrete while
+        # dormant). One J vs each existing type + self is enough.
+        for t in range(0, RECRUIT_RESERVE_TYPE):
+            world.set_contact(RECRUIT_RESERVE_TYPE, t, 10.0)
+        world.set_contact(RECRUIT_RESERVE_TYPE, RECRUIT_RESERVE_TYPE, 25.0)
+        reserve_pool = _seed_recruit_pool(
+            world, spec, pool_per_type=recruit_pool_per_type, targets=recruit_targets,
+            target_volume=mv, lambda_volume=mlv)
+
     world.finalize(int(spec["potts"]["seed"]))
 
     dim_z = world.dims()[2]  # z=1 in this reproduction; §4a divides integrals by dim.z
@@ -1090,6 +1178,77 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     b_ei = consts["b_ei"]
     g_ki = consts["g_ki"]
     a_11, a_12 = consts["a_11"], consts["a_12"]
+
+    # Task 8.4 recruitment: a dedicated seeded RNG stream (offset unused by any
+    # other stream in this module) keeps the inflow Poisson draws + outflow
+    # Bernoulli draws deterministic and independent of the Potts RNG.
+    recruit_rng = np.random.default_rng(seed + 900)
+    _lr = params["coupling"]["recruitment"]["local_ratios"]
+    local_ratio = {types.M: float(_lr["macro"]), types.K: float(_lr["nk"]),
+                   types.E: float(_lr["cd8"])}
+    # (target_type, inflow_fn(driver, consts), outflow_fn(load, consts),
+    #  driver-picker, load-picker, nearby-surrogate key) -- discrepancy #12:
+    # macrophage/NK are chemokine(C)-driven, CD8 is APC(P)-driven; CD8 inflow
+    # has NO homeostatic baseline. Drivers are read fresh each MCS below.
+    def _recruit_step(C_field, P_ode, G_ki_now, B_ei_now):
+        """Run one MCS of ODE-driven recruitment (AFTER the ODE step, per the
+        source's post-`rr.timestep()` `update_populations`). Mutates the world
+        (activate reserves / remove cells) and the ODE nearby surrogates in
+        `state`; returns the six per-type inflow/outflow rates for recording.
+
+        `recruit_zero_signal` forces the Hill DRIVER fields (C, P) to 0 -- the
+        no-signal control that isolates each law's signal-driven Hill term from
+        its (signal-independent) homeostatic baseline. G_ki/B_ei (infected-load
+        outflow terms) are spatial state, not the recruitment signal, so they
+        are NOT zeroed."""
+        C_sig = 0.0 if recruit_zero_signal else C_field
+        P_sig = 0.0 if recruit_zero_signal else P_ode
+
+        rates = {
+            "macro_inflow": recruitment.macrophage_inflow(C_sig, consts),
+            "nk_inflow": recruitment.nk_inflow(C_sig, consts),
+            "cd8_inflow": recruitment.cd8_inflow(P_sig, consts),
+            "macro_outflow": recruitment.macrophage_outflow(consts),
+            "nk_outflow": recruitment.nk_outflow(G_ki_now, consts),
+            "cd8_outflow": recruitment.cd8_outflow(B_ei_now, consts),
+        }
+        by_type = {
+            types.M: (rates["macro_inflow"], rates["macro_outflow"], "M_nb"),
+            types.K: (rates["nk_inflow"], rates["nk_outflow"], "K_nb"),
+            types.E: (rates["cd8_inflow"], rates["cd8_outflow"], "E_nb"),
+        }
+        for t, (inflow, outflow, nb_key) in by_type.items():
+            lr = local_ratio[t]
+            # --- LOCAL fraction -> CPM cells --------------------------------
+            # Outflow: remove each active cell with prob ul_rate_to_prob(lr*out)
+            # (source `outflow_by_type`). Removed cells' voxels go to Medium AND
+            # are relabelled to the reserve type so they stop counting/secreting.
+            pr_out = recruitment.ul_rate_to_prob(lr * outflow)
+            if pr_out > 0.0:
+                active = [cid for cid, ct in enumerate(world.cell_types())
+                          if ct == t and cid != 0]
+                to_remove = [cid for cid in active if recruit_rng.random() < pr_out]
+                if to_remove:
+                    world.remove_cells(to_remove)
+                    for cid in to_remove:
+                        world.set_cell_type(cid, RECRUIT_RESERVE_TYPE)
+            # Inflow: Poisson draw at lr*inflow, activate that many reserves
+            # (capped by the pool; extra draws fail, matching the source's
+            # `try_add` failure when no Medium/cell is available).
+            n_local = recruitment.poisson_inflow_count(lr * inflow, recruit_rng)
+            pool_t = reserve_pool.get(t, [])
+            for _ in range(n_local):
+                if not pool_t:
+                    break
+                world.set_cell_type(pool_t.pop(0), t)
+            # --- NEARBY fraction -> ODE surrogate (M_nb/K_nb/E_nb) ----------
+            # (1-lr) of the inflow accrues into the well-mixed nearby surrogate
+            # rather than placing a CPM cell (dossier Sec.4b(ii) / brief); it
+            # attrits at the full outflow rate. Continuous (these are ODE
+            # populations). Macrophage lr=1.0 -> no nearby accrual.
+            nearby_in = (1.0 - lr) * inflow
+            state[nb_key] = state[nb_key] * (1.0 - recruitment.ul_rate_to_prob(outflow)) + nearby_in
+        return rates
 
     def _apply_secretion_scales(sig_1_dynamic):
         # Increment-6 IL-10-Hill macrophage secretion regulation (existing
@@ -1113,6 +1272,13 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         "ode": {sp: [] for sp in price_ode.INTEGRATED_STATES},
         "spatial": {k: [] for k in ("H", "I", "M", "K", "E", "DH", "V", "F", "C", "L")},
         "sigma1": [],
+        # Task 8.4: per-MCS recruited populations (LOCAL CPM counts M/K/E, NEARBY
+        # ODE surrogates M_nb/K_nb/E_nb) + the driving inflow rates, for the
+        # report/trajectory. Absent when with_recruitment=False.
+        "recruit": ({"M": [], "K": [], "E": [], "M_nb": [], "K_nb": [], "E_nb": [],
+                     "macro_inflow_rate": [], "nk_inflow_rate": [], "cd8_inflow_rate": [],
+                     "macro_outflow_rate": [], "nk_outflow_rate": [], "cd8_outflow_rate": []}
+                    if with_recruitment else None),
     }
 
     # Task-8.3: sig_1 seed BEFORE MCS 1 -- D = tot_cell - H - I = 0 at MCS 0
@@ -1158,6 +1324,28 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         # --- integrate one MCS (dt = 60 s) ---
         state = ode.step(state, inputs, dt_seconds=60.0)
 
+        # --- Task 8.4: ODE-driven recruitment (AFTER the ODE step, using the
+        # freshly-integrated APC P + this MCS's chemokine field C and infected-
+        # load terms) -- seeds/removes CPM immune cells + updates nearby
+        # surrogates. Its effect on the M/K/E counts is seen by the NEXT MCS's
+        # spatial->ODE push (source ordering: update_populations follows
+        # rr.timestep()). ---
+        if with_recruitment:
+            rates = _recruit_step(C, state["P"], G_ki, B_ei)
+            types_after = world.cell_types()
+            result["recruit"]["M"].append(sum(1 for t in types_after[1:] if t == types.M))
+            result["recruit"]["K"].append(sum(1 for t in types_after[1:] if t == types.K))
+            result["recruit"]["E"].append(sum(1 for t in types_after[1:] if t == types.E))
+            result["recruit"]["M_nb"].append(state["M_nb"])
+            result["recruit"]["K_nb"].append(state["K_nb"])
+            result["recruit"]["E_nb"].append(state["E_nb"])
+            result["recruit"]["macro_inflow_rate"].append(rates["macro_inflow"])
+            result["recruit"]["nk_inflow_rate"].append(rates["nk_inflow"])
+            result["recruit"]["cd8_inflow_rate"].append(rates["cd8_inflow"])
+            result["recruit"]["macro_outflow_rate"].append(rates["macro_outflow"])
+            result["recruit"]["nk_outflow_rate"].append(rates["nk_outflow"])
+            result["recruit"]["cd8_outflow_rate"].append(rates["cd8_outflow"])
+
         # Task 8.3: sig_1 = a_11*T + a_12*D (D from spatial counts, T from the
         # ODE state just integrated) -- recorded AND carried into next MCS's
         # `_apply_secretion_scales` call above, replacing the static
@@ -1181,5 +1369,10 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         "with_immune": with_immune, "steps": steps, "seed": seed,
         "mcs_per_step": mcs_per_step, "eta": tot_cell / price_ode.ODE_EPITHELIAL_POPULATION,
         "b_m": consts["b_m"], "b_k": consts["b_k"], "b_p": consts["b_p"],
+        "with_recruitment": with_recruitment,
+        "recruit_pool_per_type": recruit_pool_per_type if with_recruitment else 0,
+        "recruit_zero_signal": recruit_zero_signal,
+        "recruit_local_ratios": {"macro": local_ratio[types.M], "nk": local_ratio[types.K],
+                                 "cd8": local_ratio[types.E]},
     }
     return result
