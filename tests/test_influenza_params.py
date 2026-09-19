@@ -103,3 +103,21 @@ def test_params_carry_nk_and_cd8_sections():
     assert "nearby_term_deferred" in nk["killing"] and "nearby_term_deferred" in cd8["killing"]
     assert nk["recruitment"]["chemokine_driven"] is True
     assert cd8["recruitment"]["chemokine_driven"] is False   # CD8 inflow is APC(P)-driven, not chemokine(C)-driven
+
+
+def test_params_carry_price_ode_and_coupling():
+    p = params.load_params()
+    po = p["price_ode"]
+    assert po["integrated_states"] == ["NB", "N", "T", "X", "A", "B", "P", "W", "G", "O"]
+    assert set(po["spatialized_states"]) == {"H","I","M","E","K","L","C","F","V","DH"}
+    assert po["hill_exponents"] == {"h_m":3,"h_x":2,"h_k":2,"h_e":3,"h_o":2}
+    assert po["integrator"]["seconds_per_mcs"] == 60
+    assert po["scaling"]["ode_epithelial_population"] == 250000
+    # a handful of load-bearing constants carried as {base, scale}
+    c = po["constants"]
+    assert c["a_11"]["base"] == 0.00061091213762049 and c["a_11"]["scale"] is None
+    assert c["g_ik"]["base"] == 0.0000308183563969158 and c["g_ik"]["scale"] == "s_t"
+    cp = p["coupling"]
+    assert cp["sig_1"]["definition"].startswith("Sigma1 = a_11*T + a_12*D")
+    assert cp["recruitment"]["cd8"]["field"] == "apc_P"          # discrepancy #12
+    assert "1-resist" not in cp["nearby_killing"]["note"].lower().replace(" ", "")  # resist DIRECT (#7)
