@@ -25,6 +25,10 @@ STUDIES = {
     "signaling-fields": ("signaling-fields.html", V.InfluenzaSignalingFields),
     "cytotoxic-killing": ("cytotoxic-killing.html", V.InfluenzaCytotoxicKilling),
     "global-coupling": ("global-coupling.html", V.InfluenzaGlobalCoupling),
+    # Increment 9 (CAPSTONE, Task 9.5): the three repro-fig* studies.
+    "repro-fig3b": ("repro-fig3b.html", V.InfluenzaReproFig3B),
+    "repro-fig5-viral-load": ("repro-fig5.html", V.InfluenzaReproFig5),
+    "repro-fig7-infection-fraction": ("repro-fig7.html", V.InfluenzaReproFig7),
 }
 
 

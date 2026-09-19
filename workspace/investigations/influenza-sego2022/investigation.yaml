@@ -99,8 +99,31 @@ executive:
     calibration gap, the same root cause as the localization mechanism's
     own 100x chemotaxis engine-unit-scale correction. Eight source-vs-paper
     discrepancies remain recorded, not resolved. No Figs 3B/5/7
-    reproduction claim is made — that verdict stays PENDING until
-    Increment 9 (the capstone).
+    reproduction claim is made — that verdict stays PENDING.
+
+    INCREMENT 9 (the CAPSTONE, Tasks 9.1-9.5) is now BUILT, not yet PASSED:
+    `run_full_model` assembles every mechanism from Increments 0-8 (fields,
+    resistance, epithelial-fate transitions, immune-cell chemotaxis,
+    contact-killing, and the Price-2015 global ODE coupling) into ONE
+    per-MCS loop, and three reproduction studies wire it into ensemble/sweep
+    drivers evaluated against the Increment-0 digitized acceptance bands via
+    `bands.evaluate_study`: repro-fig3b (a seeded ensemble vs Fig-3B's
+    time-series bands), repro-fig5-viral-load (a viral-load sweep vs Fig-5's
+    per-load bands, scenario-grouping guard), and
+    repro-fig7-infection-fraction (an initial-infection-fraction sweep vs
+    Fig-7's per-fraction bands, the same guard). At REDUCED scale (a
+    handful of replicas, small patches, short windows — the only scale a
+    fast CI test can afford) every `band_eval` FAILS, expected at this
+    population/duration scale and not a mechanism failure: repro-fig3b
+    lands 0/12 observables in-band at every digitized checkpoint;
+    repro-fig5/repro-fig7's monotone dose-response DIRECTION holds (higher
+    dose → not-more-surviving uninfected fraction) but no individual
+    dose's band is contained. The paper-scale ensembles (repro-fig3b:
+    50 replicas/35×35 cells/~3.5 days; repro-fig5: 50 replicas/35×35
+    cells/~15 days; repro-fig7: 20 replicas/35×35 cells/~15 days — the
+    Mac-mini Phase-B follow-up) are the outstanding step before any
+    `reproduced` verdict for Figs 3B/5/7. This investigation does NOT
+    claim reproduction achieved.
   verdict_status: in-progress
   verdict_detail: |
     Member study parameter-provenance (Design phase, documentation-only)
@@ -259,11 +282,15 @@ how_to_read: |
      chemokine/IL-10 fields, NK/CD8+ cytotoxic killing, global ODE coupling.
      (Increments 5/6 were RE-SCOPED/swapped from the original ladder order —
      see the note in biological_story below.)
-  3. INCREMENT 9 — the capstone: full composite at 1 mm^2 paper scale, 50
-     replicas, evaluated against the Increment-0 acceptance bands for Figs
-     3B (time series vs ODE), 5 (viral-load sweep, lethal threshold), and 7
-     (infection-fraction sweep). This is the "reproducibility achieved"
-     deliverable — not yet reached.
+  3. INCREMENT 9 — the capstone: full composite (`run_full_model`) plus
+     three reproduction studies (repro-fig3b, repro-fig5-viral-load,
+     repro-fig7-infection-fraction) that evaluate it against the Increment-0
+     acceptance bands for Figs 3B (time series vs ODE), 5 (viral-load sweep,
+     lethal threshold), and 7 (infection-fraction sweep). The harness and
+     studies are BUILT and run at reduced scale in CI (every band_eval
+     fails there, expected); the paper-scale 1 mm^2, 50-replica (20 for
+     fig7) ensembles are the Mac-mini Phase-B follow-up. This is the
+     "reproducibility achieved" deliverable — not yet reached.
 
   Full ladder detail: docs/superpowers/specs/2026-09-18-influenza-sego2022-reproduction-design.md §5.
 
@@ -284,6 +311,9 @@ at_a_glance:
   - {study: signaling-fields, role: "Increment 6: validates the chemokine + IL-10 diffusible-FIELD MECHANISM over the Increment-5 macrophage scenario (Task 6.1, commit 48c96c1) — macrophage-released chemokine (Hill-self-regulated) forms a spatial gradient CENTERED ON THE MACROPHAGE CLUSTER, confirmed two independent ways: per-cell 0.00261 at macrophages vs 0.00062 far (4.2x), and a raw-lattice radial profile decaying monotonically 0.00195 -> 0.00033 across 6 distance bins (5.9x). IL-10 is positive and increasing from BOTH regulated sources (macrophages 2.97e-4 Hill-self-regulated, uninfected cells 3.71e-5 1-resist-gated). Field mechanism only — sig_1 is a documented constant STUB (the source's true value is TNF/global-ODE-dependent, Increment 8), g_1/g_2 use the 0.3mm-scenario eta approximation (Increment 8/9), global boundary secretion terms and IL-10's uniform initial condition are deferred (Increment 8/9), and NO chemotaxis toward the new chemokine gradient is wired yet (Increment 7's scope); no Figs 2/3A-adjacent reproduction claim (still PENDING, Increment 9)."}
   - {study: cytotoxic-killing, role: "Increment 7: validates NK/CD8 chemotactic-LOCALIZATION (robust across 5 seeds — NK mean distance change -20.37 vs a lambda=0 control's -1.02, CD8 -35.99 vs -0.54, CD8 localizing more strongly matching the paper's 2x-sensitivity claim) AND the contact-killing MECHANISM (a small close-contact scenario clears an infected cell, 1 -> 0) as two independently-correct mechanisms — but HONESTLY reports that at the scenario's own DEFAULT full scale NK/CD8 never reach actual contact with the infected cell within the run budget, so end-to-end cytotoxic CLEARANCE is WEAK/not demonstrated there (n_infected unchanged): killing CAPABILITY proven, end-to-end clearance an Increment-9 field-magnitude-calibration gap, the same root cause as the localization mechanism's own 100x chemotaxis engine-unit-scale correction. Also flags discrepancy #7 (resist-DIRECT kill-rate multiplier), deferred nearby-population killing term (Increment 8), and unmodeled haptotaxis; no Figs 2/3A-adjacent reproduction claim (still PENDING, Increment 9)."}
   - {study: global-coupling, role: "Increment 8: adds the Price (2015)-derived global (whole-organ) immune ODE — 10 systemic species, integrated once/MCS, coupled bidirectionally to the spatial CPM patch — and RESOLVES the three stubs carried since Increments 5-7 into dynamic, source-faithful mechanisms: sig_1 is now DYNAMIC (ODE TNF + spatial dead count, the unchanged Increment-6 Michaelis form), recruitment is ODE-driven (chemokine/APC Hill inflows, CD8's no-baseline asymmetry preserved), and NK/CD8 killing gains a well-mixed NEARBY-population term alongside the Increment-7 LOCAL term. HONESTLY reports that at this reduced-scale patch (eta ~1.4e-4) none of the three mechanisms' MAGNITUDES yet reconcile with the values they replaced or need to matter within a feasible run — dynamic sig_1 collapses ~6 orders of magnitude below the retired static stub (2.44), recruitment stays sub-0.01/MCS (baseline-dominated only, no signal-driven integer growth), and nearby-killing is too weak to fire via natural recruitment buildup (verified via a documented test seam instead): mechanism-resolved, calibration PENDING Increment 9. No Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
+  - {study: repro-fig3b, role: "Increment 9 (CAPSTONE, Task 9.2): wires run_full_model (every Increment 0-8 mechanism, one per-MCS loop) into a seeded ensemble driver over the Fig-3B scenario (5% initial infection, 0.3mm/1225-cell patch) and evaluates it against the digitized Fig-3B acceptance bands via bands.evaluate_study. At REDUCED scale (2 replicas, 15x15 cells, 20 records, ~0.09 sim. days) 0/12 observables land in-band at every checkpoint (band_eval.passed=False) — expected at this population/duration scale, NOT a mechanism failure. The paper-scale 50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict."}
+  - {study: repro-fig5-viral-load, role: "Increment 9 (CAPSTONE, Task 9.3): sweeps run_full_model over Fig-5's initial-viral-load scenarios and evaluates EACH load against only that load's fig5.json band subset (the scenario-grouping guard, _fig5_target_subset). At REDUCED scale (loads=(1,10000), 1 replica, 12x12 cells, 15 records, ~0.068 sim. days) the monotone dose-response DIRECTION holds (uninfected_final_frac: load=1 -> 0.611, load=10000 -> 0.0; model-side lethal_threshold=10000) but band_eval.passed is False for both loads. The paper-scale 50-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict."}
+  - {study: repro-fig7-infection-fraction, role: "Increment 9 (CAPSTONE, Task 9.4): sweeps run_full_model over Fig-7's initial-infection-fraction scenarios and evaluates EACH fraction against only that fraction's fig7.json band subset (the shared scenario-grouping guard, generalized into _scenario_target_subset). At REDUCED scale (fracs=(0.001,0.05), 1 replica, 12x12 cells, 15 records, ~0.068 sim. days) the monotone dose-response DIRECTION holds (uninfected_final_frac: frac=0.001 -> 1.0, frac=0.05 -> 0.9444) but band_eval.passed is False for both fractions. The paper-scale 20-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict."}
 
 members:
 - parameter-provenance
@@ -295,6 +325,9 @@ members:
 - signaling-fields
 - cytotoxic-killing
 - global-coupling
+- repro-fig3b
+- repro-fig5-viral-load
+- repro-fig7-infection-fraction
 
 acceptance_criteria:
 - {study: parameter-provenance, behavior: "Parameter authority is established and cited"}
@@ -306,3 +339,6 @@ acceptance_criteria:
 - {study: signaling-fields, behavior: "Macrophage-released chemokine (Hill-self-regulated) forms a spatial gradient CENTERED ON THE MACROPHAGE CLUSTER over a 15-update run (seed=17): per-cell 4.2x higher at macrophages than a far uninfected epithelial patch (0.00261 vs 0.00062), and a raw-lattice radial profile decays monotonically 5.9x across 6 distance bins from the macrophage-cluster centroid (0.00195 -> 0.00033). IL-10 is positive and increasing from BOTH its regulated sources (macrophages 2.97e-4 Hill-self-regulated, uninfected cells 3.71e-5 1-resist-gated). Field mechanism only — sig_1 is a documented constant stub (TNF-dependent true value deferred to Increment 8), g_1/g_2 use the 0.3mm-scenario eta approximation, global boundary terms and IL-10's uniform IC are deferred, and no chemotaxis toward the field is wired yet (Increment 7)"}
 - {study: cytotoxic-killing, behavior: "NK (type K) and CD8+ T (type E) cells, chemotaxing up the (unchanged) chemokine field, LOCALIZE to the infection robustly across 5 seeds (NK mean distance change -20.37 vs a lambda=0 control's -1.02; CD8 -35.99 vs -0.54, negative in 5/5 seeds each, CD8 localizing more strongly per its 2x lambda). Contact-killing (killing.contact_kill_rate, the source's literal LOCAL surface-contact form) is a verified-correct mechanism: a small close-contact scenario clears the one infected cell (1 -> 0) with killing enabled vs steady at 1 disabled, same seed. HONEST GAP: at the scenario's own DEFAULT full scale (same 6-macrophage/6-NK/6-CD8 scenario the localization numbers come from), NK/CD8 close much of the distance but never reach actual contact within the run budget, so n_infected stays unchanged — end-to-end cytotoxic clearance is NOT demonstrated at this scale, reported honestly rather than tuned away (an Increment-9 field-magnitude-calibration item, same root cause as the 100x chemotaxis engine-unit-scale correction)"}
 - {study: global-coupling, behavior: "The 10-systemic-species Price-2015 global ODE (NB/N/T/X/A/B/P/W/G/O) integrates stably once/MCS, coupled bidirectionally to the spatial CPM patch — spatial aggregates feed the ODE, the freshly-integrated TNF + spatial dead count feeds a DYNAMIC sig_1 (replacing the Increment-6 static stub), ODE-driven recruitment activates/removes CPM immune cells (CD8's no-baseline APC-driven asymmetry preserved exactly, inflow==0.0 with the signal zeroed), and NK/CD8 killing gains a well-mixed NEARBY-population term (verified via a documented test seam: both seeded infected cells cleared within 2 MCS given a large synthetic nearby population) alongside the unchanged Increment-7 LOCAL term. HONEST GAP: at this reduced-scale patch (eta ~1.4e-4), none of the three mechanisms' MAGNITUDES yet reconcile — dynamic sig_1 (~6.04e-7 to ~2.82e-6) is ~6 orders of magnitude below the retired static stub (2.4412677); ODE-driven recruitment produces sub-0.01/MCS chemokine/APC-signal-driven rates (no observable integer growth there; a boosted eta seeds cells but from the homeostatic baseline, not the signal); and the nearby-killing term, grown via natural recruitment alone over 300 MCS, stays orders of magnitude too weak to fire (K_nb~0.16-0.17, E_nb~0.011) — a field-vs-ODE unit-scale calibration gap, the same root-cause category as the cytotoxic-killing study's chemotaxis-engine-scale correction, reported honestly rather than tuned away (an Increment-9 item)"}
+- {study: repro-fig3b, behavior: "run_full_model (every Increment 0-8 mechanism assembled into one per-MCS loop, Task 9.1) runs as a seeded ensemble over the Fig-3B scenario and is evaluated via bands.evaluate_study against the digitized Fig-3B acceptance bands (targets/fig3b.json), returning a well-formed {ensemble, band_eval} at any scale, with the ensemble-mean uninfected-cell count non-increasing under infection. At the reduced scale this task's fast test/dashboard card uses (replicas=2, cells_per_side=15, steps=20, seed0=0) 0 of 12 observables land in-band at every digitized checkpoint (band_eval['passed']=False), honestly expected at this population/duration scale — NOT a reproduced verdict. The paper-scale 50-replica/35x35-cell/~3.5-day ensemble (Mac-mini Phase-B follow-up) is the outstanding step before any reproduced verdict for Fig-3B."}
+- {study: repro-fig5-viral-load, behavior: "run_full_model, run at each of Fig-5's initial-viral-load scenarios and evaluated against ONLY that load's fig5.json band subset (the Task-9.0-review scenario-grouping guard, _fig5_target_subset/_evaluate_fig5_subset), returns a well-formed {by_load, lethal_threshold, band_eval} with a MONOTONE dose-response direction (higher initial viral load -> not-more-surviving uninfected fraction) at any scale. At the reduced scale this task's fast test/dashboard card uses (loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0) the direction holds (uninfected_final_frac: load=1 -> 0.611, load=10000 -> 0.0; this driver's own model-side lethal_threshold=10000, distinct from the paper's ODE-model threshold) but band_eval['passed'] is False for both loads — honestly expected at this scale, NOT a reproduced verdict. The paper-scale 50-replica/35x35-cell/~15-day ensemble (Mac-mini Phase-B follow-up) is the outstanding step before any reproduced verdict for Fig-5."}
+- {study: repro-fig7-infection-fraction, behavior: "run_full_model, run at each of Fig-7's initial-infection-fraction scenarios and evaluated against ONLY that fraction's fig7.json band subset (the shared scenario-grouping guard, generalized into _scenario_target_subset/_evaluate_fig7_subset), returns a well-formed {by_frac, lethal_threshold, band_eval} with a MONOTONE dose-response direction (higher initial infection fraction -> not-more-surviving uninfected fraction) at any scale. At the reduced scale this task's fast test/dashboard card uses (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, seed0=0) the direction holds (uninfected_final_frac: frac=0.001 -> 1.0, frac=0.05 -> 0.9444) but band_eval['passed'] is False for both fractions — honestly expected at this scale, NOT a reproduced verdict. The paper-scale 20-replica/35x35-cell/~15-day ensemble (Mac-mini Phase-B follow-up) is the outstanding step before any reproduced verdict for Fig-7."}

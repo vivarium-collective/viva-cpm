@@ -403,6 +403,14 @@ behavior_tests:
     result: PASS
     evaluated_by: tests/test_influenza_full_model.py::test_repro_fig5_viral_load_sweep
 
+visualizations:
+  - name: Fig-5 reproduction — dose-response vs acceptance band
+    address: local:InfluenzaReproFig5
+embed_visualizations:
+  - name: Fig-5 repro
+    title: "Fig-5 reproduction — viral-load dose-response vs acceptance band (band_eval.passed=False at every tested dose, expected at this scale)"
+    url: /workspace/studies/repro-fig5-viral-load/viz/repro-fig5.html
+
 findings:
   - id: F-01
     kind: computational

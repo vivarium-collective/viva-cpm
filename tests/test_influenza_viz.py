@@ -7,6 +7,7 @@ from cpm.schema import load_world
 from pbg_cpm_studies.influenza import sheet, viz
 from pbg_cpm_studies.influenza.run import (
     run_virus_infection, run_virus_infection_with_ifn, run_global_coupling,
+    repro_fig3b, repro_fig5, repro_fig7,
 )
 
 
@@ -406,3 +407,41 @@ def test_global_coupling_figure_returns_figure_with_two_axes():
     # figure too (e.g. a twin axis on the spatial panel) -- non-vacuous.
     all_ydata = [list(line.get_data()[1]) for ax in fig.axes for line in ax.lines]
     assert result["sigma1"] in all_ydata
+
+
+def test_repro_fig3b_figure_returns_figure_with_axes():
+    """Task 9.5: CAPSTONE viz -- `run.repro_fig3b(...)`'s ensemble overlaid
+    on the digitized Fig-3B acceptance band. A tiny, fast real ensemble
+    (replicas=1, cells_per_side=12, steps=8) -- non-vacuous: at least 2 axes
+    (cell-count panel + virus panel), each with a plotted model line AND a
+    plotted/filled band from the target."""
+    result = repro_fig3b(replicas=1, cells_per_side=12, steps=8)
+
+    fig = viz.repro_fig3b_figure(result)
+
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) >= 2
+    for ax in fig.axes:
+        assert len(ax.lines) >= 1          # ensemble-mean model line(s)
+        assert len(ax.collections) >= 1    # the fill_between acceptance band
+
+
+def test_repro_sweep_figure_returns_figure_with_axes_for_fig5_and_fig7():
+    """Task 9.5: CAPSTONE viz -- `run.repro_fig5`/`run.repro_fig7`'s
+    per-dose sweep overlaid on the highest-dose Fig-5/Fig-7 acceptance band.
+    Tiny, fast real sweeps (2 doses, replicas=1, cells_per_side=12, steps=8)
+    -- non-vacuous: 2 axes (dose-response curve + band overlay), each with
+    at least one plotted line."""
+    fig5_result = repro_fig5(loads=(1, 10), replicas=1, cells_per_side=12, steps=8)
+    fig5 = viz.repro_sweep_figure(fig5_result, "fig5")
+    assert isinstance(fig5, Figure)
+    assert len(fig5.axes) >= 2
+    for ax in fig5.axes:
+        assert len(ax.lines) >= 1
+
+    fig7_result = repro_fig7(fracs=(0.001, 0.05), replicas=1, cells_per_side=12, steps=8)
+    fig7 = viz.repro_sweep_figure(fig7_result, "fig7")
+    assert isinstance(fig7, Figure)
+    assert len(fig7.axes) >= 2
+    for ax in fig7.axes:
+        assert len(ax.lines) >= 1

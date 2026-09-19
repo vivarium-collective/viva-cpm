@@ -316,6 +316,14 @@ behavior_tests:
     result: PASS
     evaluated_by: tests/test_influenza_full_model.py::test_repro_fig3b_runs_and_evaluates_bands
 
+visualizations:
+  - name: Fig-3B reproduction — ensemble vs acceptance band
+    address: local:InfluenzaReproFig3B
+embed_visualizations:
+  - name: Fig-3B repro
+    title: "Fig-3B reproduction — reduced-scale ensemble vs acceptance band (band_eval.passed=False, expected at this scale)"
+    url: /workspace/studies/repro-fig3b/viz/repro-fig3b.html
+
 findings:
   - id: F-01
     kind: computational

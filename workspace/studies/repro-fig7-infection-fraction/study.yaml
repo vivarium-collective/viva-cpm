@@ -488,6 +488,14 @@ behavior_tests:
     result: PASS
     evaluated_by: tests/test_influenza_full_model.py::test_fig7_target_subset_scenario_grouping_guard
 
+visualizations:
+  - name: Fig-7 reproduction — dose-response vs acceptance band
+    address: local:InfluenzaReproFig7
+embed_visualizations:
+  - name: Fig-7 repro
+    title: "Fig-7 reproduction — infection-fraction dose-response vs acceptance band (band_eval.passed=False at every tested fraction, expected at this scale)"
+    url: /workspace/studies/repro-fig7-infection-fraction/viz/repro-fig7.html
+
 findings:
   - id: F-01
     kind: computational
