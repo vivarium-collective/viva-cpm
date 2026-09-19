@@ -1049,6 +1049,8 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
                         with_recruitment: bool = True,
                         recruit_pool_per_type: int = 40,
                         recruit_zero_signal: bool = False,
+                        enable_nearby_killing: bool = True,
+                        initial_K_nb: float = 0.0, initial_E_nb: float = 0.0,
                         **scenario_kw) -> dict:
     """Task 8.2 crux driver: wire the SPATIAL->ODE direction of the Sego-2022
     hybrid coupling (dossier Sec.4a). Each MCS, advance the CPM world one step,
@@ -1063,15 +1065,64 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     type-I IFN sources) and a macrophage cluster secreting chemokine + IL-10
     (`immune.build_macrophage_scenario_spec` when ``with_immune=False``);
     ``with_immune=True`` adds the Increment-7 NK + CD8 cytotoxic cluster
-    (`immune.build_cytotoxic_scenario_spec`). No infection transitions,
-    recruitment (Task 8.4) or contact killing (Task 8.5) are wired here --
-    this task establishes the loop, the spatial->ODE push, AND (Task 8.3) the
+    (`immune.build_cytotoxic_scenario_spec`). No infection transitions (H->I)
+    are wired here; Task 8.4 wires ODE-driven recruitment (inflow/outflow of
+    M/K/E, see ``with_recruitment``) and Task 8.5 (this task) wires NK/CD8
+    cytotoxic killing of infected cells (LOCAL contact term, reused from
+    Increment 7, PLUS the well-mixed NEARBY-population term, see
+    ``enable_nearby_killing`` and `_apply_cytotoxic_killing` below) on top of
+    the loop this task establishes: the spatial->ODE push, AND (Task 8.3) the
     ODE->spatial sig_1 secretion feedback. The base field secretion
     (virus/IFN from I cells, chemokine/IL-10 from M/H cells) and the
     Increment-6 IL-10-Hill macrophage secretion regulation are the existing
     physics; this driver only READS the resulting aggregates and feeds in the
     dynamic ``sig_1`` (it does not reimplement field/secretion physics or the
     Michaelis functional form -- dossier §4b(i)).
+
+    Task 8.5 killing (each MCS, AFTER ``_apply_secretion_scales``, for every
+    id still in ``infected_ids``): total cytotoxic death rate = the Task-7.2
+    LOCAL contact term (`killing.contact_kill_rate`, via `world.
+    cell_contact_area_by_type`, summed over NK + CD8+ contact, reused exactly
+    as `run_cytotoxic_response`'s killing step) PLUS the well-mixed NEARBY
+    term (`killing.nearby_kill_rate`, this task) for NK and CD8+, driven by
+    the Task-8.4 nearby ODE surrogates ``state["K_nb"]``/``state["E_nb"]`` (as
+    of the end of the PRECEDING MCS's recruitment step -- this MCS's own
+    recruitment runs later, after the ODE step, same causal-ordering
+    convention as ``sig_1_dynamic``). ``Pr = 1 - exp(-total_rate)``
+    (`recruitment.ul_rate_to_prob`), ONE combined draw per infected cell (a
+    documented simplification of the source's four separate per-term
+    Bernoulli draws -- `ContactKillingSteppable.step()`, dossier §4b(iii) --
+    adopted per the brief's exact wiring spec: summing all four rates before
+    a single ``1 - exp(-total_rate)`` draw). A kill sets the cell -> ``types.
+    D`` and removes it from ``infected_ids``. ``enable_nearby_killing=False``
+    keeps the LOCAL term only (Increment-7 behavior) -- an on/off control
+    used to isolate the NEARBY term's own contribution to clearance
+    (task-8.5-report.md).
+
+    ``initial_K_nb``/``initial_E_nb`` (both default ``0.0``, a no-op):
+    override the Task-8.4 nearby-surrogate ODE state's INITIAL CONDITION
+    (``state["K_nb"]``/``state["E_nb"]``, ``0.0`` at the healthy IC) --
+    a documented TEST SEAM, not a source parameter. At this engine's default
+    small-patch scale (``eta`` tiny), the NEARBY term is empirically too weak
+    to produce an observable effect within any FAST step budget via the
+    natural Task-8.4 recruitment buildup alone (mirrors the already-flagged
+    ``NK_CD8_CHEMOTAXIS_ENGINE_SCALE`` weak-effect-at-default-scale finding,
+    task-7.1-report.md) -- this override lets a test set a large synthetic
+    nearby population directly to exercise the `killing.nearby_kill_rate`
+    wiring itself (task-8.5-report.md), without tuning the rate formula or
+    any recruitment constant.
+
+    **DH-input fix (load-bearing, from the Task-8.2 review):** a cell killed
+    by this step is an infected cell (I -> D), i.e. dead-from-INFECTED (the
+    source's ``DI``, see `price_ode.derived_inputs`'s ``DI = tot - H - I -
+    DH``) -- NOT dead-from-HEALTHY (``DH``). This driver has no H -> D
+    mechanism (no ROS/Allee death wired here), so every ``types.D`` cell in
+    this driver is dead-from-infected; the spatial->ODE ``DH`` input is
+    therefore the raw ``types.D`` count MINUS the ids this step has killed
+    (tracked in ``dead_from_infected_ids``, persists across MCS), not the raw
+    count itself -- else ``DH`` would over-count and (via `price_ode.
+    derived_inputs`'s ``DI = tot - H - I - DH``) ``DI`` would under-count,
+    suppressing the APC-production term ``dP/dt``'s ``g_pi*DI`` driver.
 
     ``side`` is the nominal square epithelial-patch edge in lattice sites; the
     scenario's ``epithelial_cells_per_side`` is ``round(side/CELL_SIDE_SITES)``
@@ -1117,6 +1168,15 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     # `_apply_secretion_scales` below is fed the DYNAMIC sig_1 instead
     # (a_11*T + a_12*D, computed each MCS).
     _, g_1, g_2, d_2 = fields.il10_hill_constants()
+    # Task 8.5 killing coefficients: the SAME population-independent per-MCS
+    # coefficients `run_cytotoxic_response` uses for the LOCAL term (`nk.
+    # g_ik`/`cd8.g_ie`), also the `g_i` the NEARBY term's `killing.
+    # nearby_kill_rate` divides by `eta` (dossier §4b(iii)) -- NOT `consts
+    # ["g_ki"]`/`consts["b_ei"]` below, which are the DIFFERENT eta-scaled
+    # coefficients driving the Task-8.4 recruitment outflow terms G_ki/B_ei.
+    g_ik = float(params["nk"]["g_ik"])
+    g_ie = float(params["cd8"]["g_ie"])
+    tot_ec = float(params["scaling"]["ode_epithelial_population"])
 
     eps = max(1, int(round(side / sheet.CELL_SIDE_SITES)))
     n_epi_cells = eps * eps
@@ -1141,6 +1201,11 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     # ODE reference population (tot_cell). Default: the ACTUAL epithelial count,
     # so D = tot - H - I = 0 at MCS 0 (no spurious dead epithelium in Sigma1).
     tot_cell = int(num_epithelial) if num_epithelial is not None else n_epithelial_actual
+    # eta = num_epithelial / tot_ec_ODE (`scaling.eta_0p3mm`/`eta_1p0mm`'s
+    # general form, dossier §4b(iii)) -- the Task-8.5 NEARBY killing term's
+    # population-scale divisor; also recorded in "params" below (unchanged
+    # value/definition from before this task).
+    eta = tot_cell / price_ode.ODE_EPITHELIAL_POPULATION
 
     world = build.world_from_spec(spec, finalize=False)
     virus_fi = fields.add_virus_field(world)
@@ -1175,6 +1240,13 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     consts = price_ode.resolve_constants(params["price_ode"], num_epithelial=tot_cell)
     ode = price_ode.GlobalODE(consts, num_epithelial=tot_cell)
     state = price_ode.initial_state(consts, num_epithelial=tot_cell, v0=0.0)
+    # Task 8.5 test seam (see docstring, "initial_K_nb/initial_E_nb"
+    # paragraph): both default 0.0 (== `price_ode.initial_state`'s own
+    # healthy-IC value, a no-op).
+    if initial_K_nb:
+        state["K_nb"] = float(initial_K_nb)
+    if initial_E_nb:
+        state["E_nb"] = float(initial_E_nb)
     b_ei = consts["b_ei"]
     g_ki = consts["g_ki"]
     a_11, a_12 = consts["a_11"], consts["a_12"]
@@ -1267,6 +1339,56 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
             resist = cell_resistance(f_bar, a_rf)
             world.set_cell_secretion_scale(il10_fi, cid, signaling.uninfected_il10_scale(resist))
 
+    # Task 8.5 kill-draw RNG: a dedicated stream/offset (unused by any other
+    # RNG in this function -- `recruit_rng` above uses seed+900) so kill
+    # draws don't correlate with the recruitment inflow/outflow draws or the
+    # Potts RNG (set at `world.finalize`).
+    kill_rng = np.random.default_rng(seed + 800)
+    # DH-input fix (see this function's docstring, "DH-input fix" paragraph):
+    # ids of cells killed BY THIS STEP (dead-from-INFECTED, source `DI`), kept
+    # so the spatial->ODE `DH` (dead-from-HEALTHY) input below can exclude
+    # them -- this driver has no other death mechanism, so every `types.D`
+    # cell is one of these.
+    dead_from_infected_ids: set[int] = set()
+
+    def _apply_cytotoxic_killing():
+        """Task 8.5: for every id still in `infected_ids`, combine the
+        Task-7.2 LOCAL contact term (`killing.contact_kill_rate`, NK + CD8+,
+        via `world.cell_contact_area_by_type` -- reused exactly as
+        `run_cytotoxic_response`'s killing step) with the well-mixed NEARBY
+        term (`killing.nearby_kill_rate`, this task, using `state["K_nb"]`/
+        `state["E_nb"]`, gated by `enable_nearby_killing`) into ONE total
+        rate, draw death with `Pr = 1 - exp(-total_rate)`
+        (`recruitment.ul_rate_to_prob`), and on a kill: `world.set_cell_type
+        (cid, types.D)`, drop `cid` from `infected_ids`, record it in
+        `dead_from_infected_ids`. See this function's module-level docstring
+        for the full derivation/causal-ordering note."""
+        if not infected_ids:
+            return
+        cell_volumes = world.cell_volumes()
+        for cid in list(infected_ids):
+            contact = world.cell_contact_area_by_type(cid)
+            srf_nk = contact.get(types.K, 0)
+            srf_cd8 = contact.get(types.E, 0)
+            f_bar = world.field_mean_at_cell(ifn_fi, cid)
+            resist = cell_resistance(f_bar, a_rf)
+            cell_volume = cell_volumes[cid]
+
+            total_rate = (
+                killing.contact_kill_rate(srf_nk, resist, g_ik, tot_ec, cell_volume)
+                + killing.contact_kill_rate(srf_cd8, resist, g_ie, tot_ec, cell_volume)
+            )
+            if enable_nearby_killing:
+                total_rate += (
+                    killing.nearby_kill_rate(g_ik, eta, state["K_nb"], resist)
+                    + killing.nearby_kill_rate(g_ie, eta, state["E_nb"], resist)
+                )
+
+            if kill_rng.random() < 1.0 - math.exp(-total_rate):
+                world.set_cell_type(cid, types.D)
+                infected_ids.remove(cid)
+                dead_from_infected_ids.add(cid)
+
     result = {
         "mcs": [],
         "ode": {sp: [] for sp in price_ode.INTEGRATED_STATES},
@@ -1294,6 +1416,10 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
     for mcs in range(1, steps + 1):
         world.step(mcs_per_step)
         _apply_secretion_scales(sig_1_dynamic)
+        # Task 8.5: NK/CD8 cytotoxic killing (LOCAL + NEARBY), BEFORE reading
+        # this MCS's spatial aggregates below, so I/DH reflect any kills that
+        # just happened this MCS (see this function's docstring).
+        _apply_cytotoxic_killing()
 
         # --- read spatial aggregates (§4a) ---
         types_now = world.cell_types()
@@ -1302,7 +1428,13 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         M = sum(1 for t in types_now[1:] if t == types.M)
         K = sum(1 for t in types_now[1:] if t == types.K)
         E = sum(1 for t in types_now[1:] if t == types.E)
-        DH = sum(1 for t in types_now[1:] if t == types.D)  # dead-uninfected proxy (0 here)
+        # Task 8.5 DH-input fix: raw `types.D` count MINUS the ids Task 8.5's
+        # killing has itself killed (dead-from-INFECTED, source `DI`) -- this
+        # driver has no other death mechanism, so every `types.D` cell here IS
+        # one of `dead_from_infected_ids`, and DH (dead-from-HEALTHY) stays 0.
+        # See this function's docstring, "DH-input fix" paragraph.
+        D_total = sum(1 for t in types_now[1:] if t == types.D)
+        DH = D_total - len(dead_from_infected_ids)
 
         V = float(sum(world.field_conc(virus_fi))) / dim_z
         F = float(sum(world.field_conc(ifn_fi))) / dim_z
@@ -1367,12 +1499,15 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         "num_epithelial": tot_cell, "n_epithelial_actual": n_epithelial_actual,
         "n_infected": n_infected, "seed_infection_frac": seed_infection_frac,
         "with_immune": with_immune, "steps": steps, "seed": seed,
-        "mcs_per_step": mcs_per_step, "eta": tot_cell / price_ode.ODE_EPITHELIAL_POPULATION,
+        "mcs_per_step": mcs_per_step, "eta": eta,
         "b_m": consts["b_m"], "b_k": consts["b_k"], "b_p": consts["b_p"],
         "with_recruitment": with_recruitment,
         "recruit_pool_per_type": recruit_pool_per_type if with_recruitment else 0,
         "recruit_zero_signal": recruit_zero_signal,
         "recruit_local_ratios": {"macro": local_ratio[types.M], "nk": local_ratio[types.K],
                                  "cd8": local_ratio[types.E]},
+        "enable_nearby_killing": enable_nearby_killing,
+        "n_infected_final": len(infected_ids),
+        "dead_from_infected": len(dead_from_infected_ids),
     }
     return result

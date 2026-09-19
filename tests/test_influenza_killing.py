@@ -25,6 +25,23 @@ of the identical scenario/driver (fewer cells, smaller domain) so the NK/CD8
 cluster can physically reach the infected cell within a fast step budget --
 this exercises the contact-kill MECHANISM itself (this task's scope), not the
 separately-flagged chemotaxis-reach question (deferred to Incr 9 calibration).
+
+Task 8.5 adds two more groups, exercising `run.run_global_coupling` instead
+(the Increment-8 hybrid-coupling driver):
+  (c) pure: `killing.nearby_kill_rate`'s algebraic properties (DIRECT in
+      cell_resist -- discrepancy #7 -- and 0 at `num_nearby<=0`/`eta<=0`).
+  (d) INTEGRATION (kept FAST -- a single small, deterministic
+      `run_global_coupling` run, NOT a multi-seed/paper-scale run):
+      `run_global_coupling`'s NEARBY-population term is empirically too weak
+      at this engine's default small-patch scale (`eta` tiny) to fire within
+      any FAST step budget via the natural Task-8.4 recruitment buildup alone
+      -- the SAME "weak effect at default scale" category as (b)'s note
+      above and task-7.1-report.md's NK_CD8_CHEMOTAXIS_ENGINE_SCALE finding
+      (see task-8.5-report.md). `run_global_coupling`'s `initial_K_nb`/
+      `initial_E_nb` (a documented TEST SEAM, NOT a source parameter or a
+      tuned rate -- see that function's docstring) instead seed a large
+      synthetic nearby population directly, so this test exercises the
+      `nearby_kill_rate` WIRING itself within a fast budget.
 """
 from __future__ import annotations
 
@@ -136,6 +153,21 @@ def test_infected_count_never_increases_with_killing_enabled():
     assert all(counts[i] >= counts[i + 1] for i in range(len(counts) - 1))
 
 
+# --- (c) pure nearby_kill_rate (Task 8.5) -----------------------------------
+
+def test_nearby_kill_rate_form():
+    r = killing.nearby_kill_rate(g_i=1e-3, eta=0.0049, num_nearby=4.0, cell_resist=0.5)
+    assert math.isclose(r, (1e-3/0.0049)*4.0*0.5)
+    assert killing.nearby_kill_rate(1e-3, 0.0049, 0.0, 0.5) == 0.0   # no nearby -> 0
+    assert killing.nearby_kill_rate(1e-3, 0.0, 4.0, 0.5) == 0.0      # eta<=0 -> 0
+
+
+def test_nearby_kill_rate_resist_direct_discrepancy7():
+    # DIRECT in resist (NOT 1-resist): rate rises with resist
+    assert killing.nearby_kill_rate(1e-3,0.0049,4.0,0.9) > killing.nearby_kill_rate(1e-3,0.0049,4.0,0.1)
+    assert killing.nearby_kill_rate(1e-3,0.0049,4.0,0.0) == 0.0
+
+
 def test_killing_disabled_control_holds_identical_scenario():
     """`enable_killing=False` keeps NK/CD8 cells present and still
     chemotaxing (same `params` scenario knobs) -- only the killing step
@@ -148,3 +180,54 @@ def test_killing_disabled_control_holds_identical_scenario():
         assert with_killing["params"][key] == without_killing["params"][key]
     assert with_killing["params"]["enable_killing"] is True
     assert without_killing["params"]["enable_killing"] is False
+
+
+# --- (d) INTEGRATION: run_global_coupling NEARBY term + DH-input fix -------
+
+# Task 8.5 test-seam scenario knobs (module docstring, group (d)): a large
+# synthetic nearby NK/CD8 surrogate population (`initial_K_nb`/`initial_E_nb`
+# -- NOT a tuned rate constant, see `run.run_global_coupling`'s docstring)
+# large enough to make `killing.nearby_kill_rate`'s contribution dominate
+# within a few MCS, at this driver's small default `side=30` patch scale.
+_NEARBY_SCENARIO = dict(side=30, steps=10, seed=1, with_immune=True,
+                         with_recruitment=True)
+
+
+def test_global_coupling_nearby_killing_strengthens_infected_clearance():
+    """Core Task 8.5 integration assertion: from the SAME seed/scenario, a
+    large nearby NK/CD8 surrogate population (K_nb, E_nb > 0, via the
+    `initial_K_nb`/`initial_E_nb` test seam) clears infected cells FASTER
+    than the K_nb=E_nb=0 control -- the nearby term
+    (`killing.nearby_kill_rate`) actually does work once wired into
+    `run.run_global_coupling`."""
+    with_nearby = run.run_global_coupling(**_NEARBY_SCENARIO,
+                                           initial_K_nb=2000.0, initial_E_nb=100.0)
+    without_nearby = run.run_global_coupling(**_NEARBY_SCENARIO,
+                                              initial_K_nb=0.0, initial_E_nb=0.0)
+
+    # Same seeded scenario -> identical seeded infected count.
+    assert with_nearby["params"]["n_infected"] == without_nearby["params"]["n_infected"] > 0
+
+    # Without a nearby population, the (already-weak-at-this-scale) LOCAL
+    # term alone does not clear the infected cells within this fast budget.
+    assert without_nearby["params"]["n_infected_final"] == without_nearby["params"]["n_infected"]
+    assert without_nearby["params"]["dead_from_infected"] == 0
+
+    # With a nearby population present, clearance is strictly stronger.
+    assert with_nearby["params"]["n_infected_final"] < without_nearby["params"]["n_infected_final"]
+    assert with_nearby["spatial"]["I"][-1] < without_nearby["spatial"]["I"][-1]
+    assert with_nearby["params"]["dead_from_infected"] > 0
+
+
+def test_global_coupling_dh_input_does_not_rise_when_infected_cells_are_killed():
+    """Task-8.2-review DH-fix (this function's docstring, "DH-input fix"
+    paragraph): a cell killed by Task 8.5 (I -> D) is dead-from-INFECTED, NOT
+    dead-from-HEALTHY -- the spatial->ODE `DH` input must NOT rise as a
+    result. This driver has no H -> D (ROS/Allee) mechanism, so DH must stay
+    at its pre-kill value (0) throughout, even while killing is actively
+    firing (`dead_from_infected > 0`, i.e. this assertion is not vacuous)."""
+    result = run.run_global_coupling(**_NEARBY_SCENARIO,
+                                      initial_K_nb=2000.0, initial_E_nb=100.0)
+    assert result["params"]["dead_from_infected"] > 0
+    assert result["params"]["n_infected_final"] < result["params"]["n_infected"]
+    assert all(dh == 0 for dh in result["spatial"]["DH"])

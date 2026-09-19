@@ -34,6 +34,10 @@ source inconsistency. This function implements the literal source form
 (`cell_resist` direct) per the brief -- it is NOT silently "fixed" to
 `(1 - cell_resist)`. Flagged again in `run.run_cytotoxic_response`'s docstring
 and in task-7.2-report.md.
+
+Task 8.5 adds `nearby_kill_rate` below: the well-mixed NEARBY-POPULATION
+complement to this LOCAL term (see that function's docstring), wired
+alongside `contact_kill_rate` in `run.run_global_coupling`.
 """
 from __future__ import annotations
 
@@ -67,3 +71,40 @@ def contact_kill_rate(srf_immune: float, cell_resist: float, g_i: float,
     if srf_immune <= 0 or cell_volume <= 0:
         return 0.0
     return g_i * tot_ec * srf_immune * cell_resist / cell_volume
+
+
+def nearby_kill_rate(g_i: float, eta: float, num_nearby: float,
+                      cell_resist: float) -> float:
+    """Task 8.5: well-mixed NEARBY-POPULATION contact-kill rate for one
+    infected cell against one immune type (NK or CD8+) -- the population-
+    scaled complement to `contact_kill_rate`'s LOCAL (spatial-contact) term
+    (see `params.yaml`'s `nk.killing.nearby_term_deferred`/`cd8.killing.
+    nearby_term_deferred` and docs/cc3d-reference/sego2022-global-ode.md
+    Sec.4b(iii)): `(g_i/eta) * num_nearby * cell_resist`.
+
+    `g_i`: the same per-MCS killing-rate coefficient as `contact_kill_rate`
+    (`params.yaml`'s `nk.g_ik` or `cd8.g_ie`).
+    `eta`: the patch-scaling constant `num_epithelial / tot_ec_ODE`
+    (`price_ode.ODE_EPITHELIAL_POPULATION`, 250000) -- the source's
+    `pop_scale_factor` (`ImmuneModelLib.py`'s `s_v`), NOT `tot_ec` itself
+    (unlike the LOCAL term, which multiplies by `tot_ec` directly): the
+    NEARBY term instead DIVIDES by `eta`, matching the source's
+    `g_i / pop_scale_factor` form (`ContactKillingSteppable.start()`).
+    `num_nearby`: the well-mixed "nearby" (not locally-CPM-placed) immune
+    population of that type -- `K_nb`/`E_nb`, the Task-8.4 ODE nearby
+    surrogates (`price_ode.NEARBY_SURROGATES`), NOT a spatial CPM neighbor
+    count.
+    `cell_resist`: this cell's local resistance (`resistance.cell_resistance`),
+    applied DIRECTLY -- see this module's docstring, DISCREPANCY #7 (SAME
+    resist-direct convention as `contact_kill_rate`, NOT `(1 - cell_resist)`).
+
+    Always >= 0. Returns 0.0 when `num_nearby <= 0` (no nearby population of
+    that immune type to kill with) OR `eta <= 0` (degenerate/zero-population
+    patch -- division guarded rather than raising, matching `contact_kill_
+    rate`'s `cell_volume == 0` convention). Monotonically non-decreasing in
+    both `num_nearby` and `cell_resist` (all other factors held fixed and
+    non-negative).
+    """
+    if num_nearby <= 0 or eta <= 0:
+        return 0.0
+    return (g_i / eta) * num_nearby * cell_resist
