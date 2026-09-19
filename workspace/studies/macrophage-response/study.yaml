@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 5: macrophages chemotax up the virus field and LOCALIZE to the infection, robust across 5 seeds with an unbiased interior control — LOCALIZATION mechanism validated, reproduction still PENDING"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: epithelial-fate
+    condition: tests-passed
 
 purpose:
   question: |

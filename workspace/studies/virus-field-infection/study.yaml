@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 2: virus field diffusion/decay + stochastic local infection spread"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: epithelial-sheet-baseline
+    condition: tests-passed
 
 purpose:
   question: |

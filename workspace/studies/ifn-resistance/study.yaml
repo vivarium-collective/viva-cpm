@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 3: type-I IFN + per-cell resistance gates virus release — mechanism validated, reproduction still PENDING"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: virus-field-infection
+    condition: tests-passed
 
 purpose:
   question: |

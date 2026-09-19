@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 4: cellularized epithelial-fate lifecycle (H->I->D, D->H Allee recovery) — mechanism validated, reproduction still PENDING"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: ifn-resistance
+    condition: tests-passed
 
 purpose:
   question: |

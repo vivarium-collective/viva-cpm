@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 1: confluent epithelial sheet (substrate only)"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: parameter-provenance
+    condition: tests-passed
 
 purpose:
   question: |
