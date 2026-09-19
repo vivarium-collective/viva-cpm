@@ -106,23 +106,24 @@ def _small_macrophage_result(chemotaxis_v_macro=5000.0):
     without paying for a real CPM+field run in this test."""
     return {
         "steps": [0, 1, 2, 3],
-        "mean_distance_to_infection": [26.302, 24.1, 21.0, 18.198],
-        "macrophage_com": [(5.0, 5.0), (7.2, 6.8), (9.5, 8.9), (11.8, 10.5)],
+        "mean_distance_to_infection": [47.20, 43.0, 38.5, 33.8],
+        "macrophage_com": [(25.0, 25.0), (27.2, 26.8), (29.5, 28.9), (31.8, 30.5)],
         "params": {
             "chemotaxis_v_macro": chemotaxis_v_macro, "n_macrophages": 6,
             "n_infected": 1, "epithelial_cells_per_side": 4,
-            "margin_sites": 20, "seed": 17, "steps": 3,
-            "mcs_per_update": 10, "field_warmup": 1500,
+            "margin_sites": 30, "separation_sites": 25, "seed": 17, "steps": 3,
+            "mcs_per_update": 10, "field_warmup": 3000,
         },
     }
 
 
 def _small_macrophage_control_result():
-    """Same shape, lambda=0 control -- distance drifts away instead of closing
-    (matches task-5.1-report.md's qualitative on/off contrast)."""
+    """Same shape, lambda=0 interior control -- distance stays roughly flat
+    (near-isotropic) instead of closing. Illustrative synthetic values only
+    (not tied to a specific run), exercising the plotting code."""
     result = _small_macrophage_result(chemotaxis_v_macro=0.0)
-    result["mean_distance_to_infection"] = [26.302, 27.5, 29.0, 30.585]
-    result["macrophage_com"] = [(5.0, 5.0), (4.5, 5.6), (4.0, 6.5), (3.2, 7.8)]
+    result["mean_distance_to_infection"] = [47.20, 47.5, 46.8, 47.0]
+    result["macrophage_com"] = [(25.0, 25.0), (24.6, 25.4), (25.3, 24.7), (24.9, 25.2)]
     return result
 
 
