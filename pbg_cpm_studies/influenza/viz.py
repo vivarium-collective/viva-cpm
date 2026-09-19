@@ -215,3 +215,55 @@ def macrophage_response_figure(run_result: dict, control_result: dict | None = N
 
     fig.tight_layout()
     return fig
+
+
+def signaling_fields_figure(run_result: dict) -> Figure:
+    """Render a two-panel MINIMAL mechanism figure (Increment 6, Task 6.2)
+    for a `run.run_macrophage_signaling(...)` result (Task 6.1): (a) the
+    chemokine field's radial profile around the macrophage-cluster centroid
+    (`run_result["chemo_radial_profile"]` -- bar chart over the bin centers,
+    peak in the innermost/macrophage-centered bin, decaying outward: Task
+    6.1 measured 0.00195 -> 0.00033 across 6 bins, a 5.9x monotonic drop);
+    (b) IL-10 level over time at the macrophage vs uninfected source
+    populations (`il10_at_macrophages`/`il10_at_uninfected`, both positive
+    and increasing -- Task 6.1 measured 2.97e-4 / 3.71e-5 at the final step).
+
+    This validates the chemokine/IL-10 FIELD mechanism (macrophage-released,
+    gradient centered on the infection) -- NOT a Figs 2/3A-style
+    reproduction (verdict stays `documented`/PENDING, Increment 9): `sig_1`
+    is a documented STUB (TNF-dependent dynamic value deferred to Increment
+    8), `g_1`/`g_2` use the 0.3mm-scenario `eta` approximation, and global
+    boundary secretion + the IL-10 uniform initial condition are deferred
+    (see `signaling.py`'s and `fields.il10_hill_constants`'s docstrings, and
+    task-6.1-report.md).
+
+    This is a minimal in-package stub, NOT the polished viz system under
+    `pbg_cpm_studies/visualizations/` (owned by a peer session). Returns a
+    `matplotlib.figure.Figure` (not shown/saved)."""
+    radial = run_result["chemo_radial_profile"]
+    bin_edges = radial["bin_edges"]
+    bin_means = radial["bin_means"]
+    bin_centers = [(bin_edges[i] + bin_edges[i + 1]) / 2.0 for i in range(len(bin_means))]
+    bin_width = (bin_edges[1] - bin_edges[0]) if len(bin_edges) > 1 else 1.0
+
+    steps = run_result["steps"]
+
+    fig = Figure(figsize=(9, 4.2))
+    ax_radial, ax_il10 = fig.subplots(1, 2)
+
+    ax_radial.bar(bin_centers, bin_means, width=bin_width * 0.9, color="darkorchid")
+    ax_radial.set_title("Chemokine radial profile (from macrophage-cluster centroid)")
+    ax_radial.set_xlabel("distance from macrophage centroid (sites)")
+    ax_radial.set_ylabel("mean chemokine concentration")
+
+    ax_il10.plot(steps, run_result["il10_at_macrophages"], label="IL-10 at macrophages",
+                 color="teal")
+    ax_il10.plot(steps, run_result["il10_at_uninfected"], label="IL-10 at uninfected (H)",
+                 color="goldenrod")
+    ax_il10.set_title("IL-10 level over time, by source population")
+    ax_il10.set_xlabel("update index")
+    ax_il10.set_ylabel("mean IL-10 concentration at cell")
+    ax_il10.legend()
+
+    fig.tight_layout()
+    return fig
