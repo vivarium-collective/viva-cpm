@@ -1,6 +1,7 @@
 """Minimal in-package visualizations for the influenza-sego2022 capability
-ladder (Increments 1-3): the epithelial-sheet baseline, the virus-field
-infection mechanism, and the IFN/resistance mechanism.
+ladder (Increments 1-4): the epithelial-sheet baseline, the virus-field
+infection mechanism, the IFN/resistance mechanism, and the cellularized
+epithelial-fate (infection/death/Allee recovery) mechanism.
 
 The dashboard workbench isn't the delivery path for these increments (no
 server running in this worktree), so these are plain matplotlib functions
@@ -113,6 +114,52 @@ def ifn_resistance_figure(with_result: dict, without_result: dict) -> Figure:
     ax_resist.set_title("Mean per-cell resistance (with-IFN run)")
     ax_resist.set_xlabel("update index")
     ax_resist.set_ylabel("mean resist (infected cells)")
+
+    fig.tight_layout()
+    return fig
+
+
+def epithelial_fate_figure(run_result: dict) -> Figure:
+    """Render a two-panel MINIMAL mechanism figure (Increment 4, Task 4.4)
+    for a `run.run_epithelial_fate(...)` result: (a) cell-type composition
+    n_H/n_I/n_D vs update index (the H -> I -> D lifecycle + the growing
+    dead lesion), (b) cumulative Allee-driven recovery (D -> H) and death
+    (H -> D) event counts vs update index -- `run_epithelial_fate` records
+    these as sparse PER-UPDATE counts (`n_allee_recovery`/`n_allee_death`,
+    mostly 0, occasionally 1+), so the cumulative sum is what actually shows
+    the handful of organic events accruing over a run (Task 4.3: ~3-12
+    recovery events/run, ~0 death events at 0.3mm -- see the study's
+    calibration-flag caveat; a bare per-update line would look almost empty).
+
+    This is a minimal in-package stub, NOT the polished viz system under
+    `pbg_cpm_studies/visualizations/` (owned by a peer session). Returns a
+    `matplotlib.figure.Figure` (not shown/saved)."""
+    steps = run_result["steps"]
+    n_allee_death = run_result["n_allee_death"]
+    n_allee_recovery = run_result["n_allee_recovery"]
+
+    death_cum = [sum(n_allee_death[: i + 1]) for i in range(len(steps))]
+    recovery_cum = [sum(n_allee_recovery[: i + 1]) for i in range(len(steps))]
+
+    fig = Figure(figsize=(9, 4.2))
+    ax_counts, ax_events = fig.subplots(1, 2)
+
+    ax_counts.plot(steps, run_result["n_H"], label="n_H (uninfected)", color="steelblue")
+    ax_counts.plot(steps, run_result["n_I"], label="n_I (infected)", color="firebrick")
+    ax_counts.plot(steps, run_result["n_D"], label="n_D (dead)", color="dimgray")
+    ax_counts.set_title("Epithelial-fate composition vs update")
+    ax_counts.set_xlabel("update index")
+    ax_counts.set_ylabel("cell count")
+    ax_counts.legend()
+
+    ax_events.plot(steps, recovery_cum, label="cumulative Allee recovery (D->H)",
+                    color="seagreen")
+    ax_events.plot(steps, death_cum, label="cumulative Allee death (H->D)",
+                    color="darkorange")
+    ax_events.set_title("Cumulative Allee-driven events vs update")
+    ax_events.set_xlabel("update index")
+    ax_events.set_ylabel("cumulative event count")
+    ax_events.legend()
 
     fig.tight_layout()
     return fig

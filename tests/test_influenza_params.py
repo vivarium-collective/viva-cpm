@@ -52,3 +52,12 @@ def test_params_carry_ifn_and_resistance_sections():
     assert ifn["diffusion_length_cell_diam"] == 2
     assert ifn["secretion_g_fp"] > 0
     assert "a_rf" in res and res["a_rf"] > 0 and "source" in res
+
+
+def test_params_carry_death_and_allee_sections():
+    p = params.load_params()
+    cd = p["cell_death"]; al = p["allee"]
+    assert cd.get("mu_i_per_mcs", 0) > 0 and "source" in cd
+    for k in ("b_h", "srf_threshold", "source"):
+        assert k in al, f"allee missing {k}"
+    assert al["b_h"] > 0

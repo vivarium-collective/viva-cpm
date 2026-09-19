@@ -276,6 +276,11 @@ paper's transition names/symbols preserved:
 | Infected death Î→D̂ (CD8+ contact-killing, γ term) | γ(s; g_ie, Ê, H₀A_s) | Same structure as NK, with `g_ie` and CD8+ population/surface | `ContactKillingSteppable` |
 | Recovery D̂→Ĥ (Allee, `a_H`) | a_H | Cellularized Allee-effect recovery, structurally symmetric to `a_D` above (swap uninfected↔dying roles in the surface-fraction calculation) | `RecoverySteppable` |
 
+**Exact numeric literals for the Allee death/recovery and infected-death rows above** (`μ_i`,
+`b_h`, the surface threshold `θ_local`, and the confirmed recovery-branch form/coefficient) are
+in the "Increment 4" subsection below, after the `g_hv`/`g_vi`/`g_fp`/`g_fi`/`a_rf` derivations
+for the other rows in this table.
+
 **Increment 2 — exact `g_hv`/`g_vi` literals confirmed against source.** Both are ODE-calibrated
 rate constants defined in `ImmuneModel/ImmuneModelLib.py`'s `immune_model_string()` (the
 **cellularized**, per-cell Antimony model generator instantiated with real `scale_time`/
@@ -323,6 +328,80 @@ is seeded **uniformly** at every lattice site to `v0_sites = v0 * num_epithelial
 (`FieldInitializerSteppable`, `Simulation/ViralInfectionVTMSteppables.py`) — i.e. "initial viral
 load" is a total-virus quantity converted to a per-site field concentration by the actual seeded
 cell count and domain area, not a literal field value itself.
+
+**Increment 4 — exact `mu_i`/`b_h`/Allee-surface-threshold/recovery literals confirmed against
+source** (re-fetched per `sego2022-source-notes.md`; `ImmuneModel/ImmuneModelLib.py`
+`immune_model_string()`, `Simulation/ViralInfectionVTMSteppables.py`
+`ViralCellDeathSteppable`/`RecoverySteppable`):
+
+```
+s_t (day/MCS) = s_to_mcs / 86400 = 6.944444e-4          (as in Increments 2-3)
+tot_ec_ODE     = 250,000                                  (ImmuneModelInputs.py, as in §6/Cellularization)
+
+mu_i (raw, ODE-calibrated)  = 4.05042485998488 /day
+  (ImmuneModelLib.py immune_model_string(): "mu_i = 4.05042485998488 * s_t")
+mu_i_per_mcs = mu_i_raw * s_t = 0.002812795041656167     (population-independent; no s_l/s_v factor)
+  -> ViralCellDeathSteppable.step: `mu_i = get_model_val('mu_i')`,
+     `pr_death = ul_rate_to_prob(mu_i * (1 - cell_resist))` for cell in
+     cell_list_by_type(INFECTED, INFECTEDRELEASING). No dim.z factor.
+
+b_h (raw, ODE-calibrated) = 0.0000851174198534486 /day
+  (ImmuneModelLib.py immune_model_string(): "b_h = 0.0000851174198534486 * s_t")
+b_h_model_val (cellularized) = b_h_raw * s_t = 5.910931934267264e-08
+b_h (as literally applied)   = b_h_model_val * tot_ec_ODE = 0.01477732983566816
+  -> RecoverySteppable.step: `b_h = self.im_steppable.get_model_val('b_h') * tot_ec_ODE`
+     (population-independent: the *only* population-dependent factor cancels, see below).
+
+theta_ODE_raw = 13217.8105366859   (ImmuneModelLib.py immune_model_string(): "theta = 13217.8105366859 * s_v")
+theta_local (srf_threshold) = get_model_val('theta') / num_epithelial
+                             = (theta_ODE_raw * s_v) / num_epithelial,  s_v = eta = num_epithelial/tot_ec_ODE
+                             = theta_ODE_raw / tot_ec_ODE               (num_epithelial cancels algebraically)
+                             = 13217.8105366859 / 250000 = 0.0528712421467436
+  -> SCENARIO-INDEPENDENT: identical for the 0.3mm patch (eta=0.0049, num_epithelial=1225) and the
+     1.0mm patch (eta=0.04, num_epithelial=10000) — verified numerically, both reduce to
+     0.0528712421467436. `srf_thresh` (the per-cell absolute cutoff each step) = theta_local *
+     srf_area_total (the cell's total epithelial-neighbor interface area that step).
+```
+
+**RecoverySteppable — EXACT death and recovery branches** (literal, from
+`Simulation/ViralInfectionVTMSteppables.py`, class `RecoverySteppable.step`, ~lines 1594-1636):
+
+```python
+b_h = self.im_steppable.get_model_val('b_h') * tot_ec_ODE
+theta = self.im_steppable.get_model_val('theta') / self.num_epithelial
+for cell in self.cell_list_by_type(self.UNINFECTED, self.DYING):
+    # ... accumulate srf_area_total, srf_area_oi, srf_uninfected over epithelial neighbors ...
+    # (type_oi = DYING if cell.type == UNINFECTED else UNINFECTED)
+    srf_thresh = theta * srf_area_total
+    resist = cell.dict[ImmuneModelLib.im_resist_key]
+
+    if cell.type == self.UNINFECTED and srf_uninfected < srf_thresh:
+        death_rate = b_h * (1 - resist) * srf_area_oi * (srf_thresh - srf_uninfected) / srf_area_total ** 2.0
+        pr_death = ImmuneModelLib.ul_rate_to_prob(death_rate)
+        if random.random() < pr_death:
+            cell.dict[ImmuneModelLib.im_dead_healthy_key] = True
+            cell.type = self.DYING
+    elif cell.type == self.DYING and srf_uninfected > srf_thresh:
+        revive_rate = b_h * (1 - resist) * srf_area_oi * (srf_uninfected - srf_thresh) / srf_area_total ** 2.0
+        pr_revive = ImmuneModelLib.ul_rate_to_prob(revive_rate)
+        if random.random() < pr_revive:
+            cell.type = self.UNINFECTED
+```
+
+**IMPORTANT — no separate `a_H` symbol exists in the source.** `grep -rn "a_H\|a_h\b"` over the
+full re-fetched source tree finds nothing besides `b_h`/`a_hx` (an unrelated ODE Hill-threshold
+constant used only inside the *non-cellularized* ODE H-dynamics, never referenced by
+`RecoverySteppable`). Both the death branch (`UNINFECTED`→`DYING`) and the recovery branch
+(`DYING`→`UNINFECTED`) read the **same** local variable `b_h`, computed once at the top of
+`step()`. The paper's printed Table 2 uses `a_D`/`a_H` as two distinct symbol names for the
+death/recovery Allee terms, but the source implements both with one shared coefficient — this
+transcription doc's own §6 table (row: "Recovery D̂→Ĥ (Allee, `a_H`)... structurally symmetric to
+`a_D`") anticipated the symmetry; this increment confirms the coefficient itself is literally
+identical (`b_h`), not merely structurally analogous. `params.yaml`'s `allee:` section records
+`b_h` once and an explicit `a_H_equals_b_h: true` flag rather than inventing a distinct `a_H`
+numeric value.
+
+Recorded verbatim in `params.yaml`'s new `cell_death:` and `allee:` sections.
 
 Local immune-type inflow/outflow (macrophage, NK, CD8+ recruitment — Table 2's "local immune type"
 rows) use Hill-equation recruitment (`nCoVUtils.hill_equation`) driven by chemokines C / APCs P,

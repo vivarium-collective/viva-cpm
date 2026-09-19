@@ -186,6 +186,94 @@ resistance:               # cellular viral resistance rho (Increment 3)
   # directly with NO dim.z factor (Type1InterferonModelSteppable.update_resistance: `a_rf =
   # self.im_steppable.get_model_val('a_rf')`, used as-is), unlike ifn.secretion_g_fp/uptake_g_fi
   # above which both get multiplied by dim.z=2.
+cell_death:               # infected-cell death (simplified viral apoptosis) (Increment 4)
+  source: "CC3D source (ImmuneModel/ImmuneModelLib.py `immune_model_string()`,
+            Simulation/ViralInfectionVTMSteppables.py `ViralCellDeathSteppable`) via
+            docs/cc3d-reference/sego2022-parameters.md §6 'Infected death (viral-load term)'"
+  mu_i_per_mcs: 0.002812795041656167   # per-MCS rate coefficient, rate = mu_i_per_mcs * (1 - resist)
+  # SIMPLIFIED FORM: ViralCellDeathSteppable docstring reads "Virally-induced apoptosis, simpified
+  # [sic] version" -- it implements only a flat mu_i*(1-resist) rate with NO viral-load/ROS Hill
+  # saturation term, unlike the paper's fuller printed Table 2 "Infected death" row (which the
+  # transcription doc's §7.6 discrepancy note flags as the conceptual target, not what the source
+  # actually runs). params.yaml mirrors the source's simplified behavior per that note.
+  # Derivation: ODE-calibrated mu_i = 4.05042485998488 /day (source ImmuneModelLib.py
+  # `immune_model_string()`'s per-cell literal, `mu_i = 4.05042485998488 * s_t` -- the cellularized
+  # model instantiated with real scale_time from ViralInfectionVTMSteppables.py:1140, NOT the
+  # organism-scale `immune_model_string_ode()`/`immune_model_string_old()` copies of the same symbol).
+  # -> per-MCS: mu_i_per_mcs = mu_i_raw * s_t, s_t = s_to_mcs/86400 = 60/86400 = 6.944444e-4 day/MCS
+  #    = 4.05042485998488 * 6.944444444444e-4 = 0.002812795041656167.
+  # Applied AS-IS with no further factor (no dim.z, no s_l/s_v): ViralCellDeathSteppable.step reads
+  # `mu_i = self.im_steppable.get_model_val('mu_i')` and applies
+  # `pr_death = ul_rate_to_prob(mu_i * (1 - cell_resist))`, `Pr = 1 - exp(-rate)`
+  # (ImmuneModelLib.ul_rate_to_prob), for cell in cell_list_by_type(INFECTED, INFECTEDRELEASING).
+  # Population-independent (no eta/s_v scaling) -- a single canonical value applies across both
+  # the 0.3mm and 1.0mm patch scenarios.
+allee:                    # cellularized Allee-effect death + recovery (Increment 4)
+  source: "CC3D source (ImmuneModel/ImmuneModelLib.py `immune_model_string()`,
+            Simulation/ViralInfectionVTMSteppables.py `RecoverySteppable`) via
+            docs/cc3d-reference/sego2022-parameters.md §6 'Uninfected death (Allee)' /
+            'Recovery (Allee)'"
+  b_h: 0.01477732983566816   # per-MCS rate coefficient, SHARED by both the death and recovery
+  # branches (see formula_death/formula_recovery below) -- RecoverySteppable.step:
+  # `b_h = self.im_steppable.get_model_val('b_h') * tot_ec_ODE`.
+  # IMPORTANT FINDING (overrides the task brief's assumption of a separate `a_H` recovery
+  # coefficient): grepping the full re-fetched source tree for `a_H`/`a_h` finds NO such symbol
+  # anywhere. RecoverySteppable's death branch (line ~1626) and recovery branch (line ~1633) both
+  # read the SAME local variable `b_h` (set once at the top of `step()`, line 1601) -- there is no
+  # separate recovery-side coefficient in the source. The transcription doc's "a_H" label (§6 table,
+  # carried from the paper's printed Table 2 symbol) is the paper's own recovery-branch name; the
+  # literal CC3D/Antimony symbol backing BOTH branches is `b_h`. Do not introduce a distinct `a_H`
+  # numeric value -- it would not match the source that produced the paper's results.
+  # Derivation: ODE-calibrated b_h = 0.0000851174198534486 /day (source ImmuneModelLib.py
+  # `immune_model_string()`'s per-cell literal, `b_h = 0.0000851174198534486 * s_t`, the
+  # cellularized model with real scale_time from ViralInfectionVTMSteppables.py:1140).
+  # -> get_model_val('b_h') (cellularized, per-MCS) = 0.0000851174198534486 * s_t
+  #    = 5.910931934267264e-08, s_t = s_to_mcs/86400 = 6.944444e-4 day/MCS.
+  # -> RecoverySteppable multiplies by tot_ec_ODE=250000 BEFORE using it as the rate coefficient:
+  #    b_h (as literally applied) = 5.910931934267264e-08 * 250000 = 0.01477732983566816.
+  # Population-independent (the tot_ec_ODE multiplier is a fixed constant, not eta/num_epithelial) --
+  # a single canonical value applies across both the 0.3mm and 1.0mm patch scenarios (verified
+  # algebraically: get_model_val('b_h') = b_h_raw*s_t has no s_v/eta factor at all).
+  srf_threshold: 0.0528712421467436   # theta_local: the per-cell Allee surface-fraction threshold
+  # coefficient (dimensionless), multiplied by a cell's total epithelial-neighbor interface area
+  # (`srf_area_total`) each step to get that cell's absolute `srf_thresh` cutoff.
+  # HOW IT'S COMPUTED (RecoverySteppable.step, line 1602): `theta = get_model_val('theta') /
+  # self.num_epithelial`, where `get_model_val('theta')` is the cellularized Antimony value
+  # `theta = 13217.8105366859 * s_v` (ImmuneModelLib.py `immune_model_string()`, s_v = eta =
+  # num_epithelial/tot_ec_ODE, i.e. `ImmuneModelLib.get_pop_scale_factor(num_epithelial)` per
+  # ViralInfectionVTMSteppables.py:1141). Substituting s_v=num_epithelial/tot_ec_ODE, the
+  # num_epithelial factor CANCELS ALGEBRAICALLY:
+  #   theta_local = (13217.8105366859 * num_epithelial/tot_ec_ODE) / num_epithelial
+  #               = 13217.8105366859 / tot_ec_ODE = 13217.8105366859 / 250000 = 0.0528712421467436
+  # -- i.e. this coefficient is SCENARIO-INDEPENDENT (identical for the 0.3mm patch, eta=0.0049,
+  # num_epithelial=1225, and the 1.0mm patch, eta=0.04, num_epithelial=10000 -- both verified
+  # numerically to reduce to the same 0.0528712421467436). Value recorded here for the 0.3mm
+  # scenario per the brief; it is also the correct value for the 1.0mm scenario (see derivation).
+  # Do NOT conflate `theta` here (the ODE-level Allee population threshold, `ImmuneModelLib.py`
+  # line 101) with the PDE-cellularization scaling coefficient also called theta in `scaling:`
+  # above (4e-8 um^-2, a completely different quantity per sego2022-parameters.md's explicit note).
+  a_H_equals_b_h: true      # documents that the source uses ONE shared coefficient (b_h above) for
+  # both death and recovery -- see the IMPORTANT FINDING note on `b_h`. Recorded as an explicit
+  # boolean flag (rather than a duplicate numeric `a_H` key) so downstream engine wiring does not
+  # accidentally treat death/recovery as independently tunable without re-reading this note.
+  formula_death: "rate = b_h * (1 - resist) * srf_area_oi * (srf_thresh - srf_uninfected) / srf_area_total**2, only when cell.type==UNINFECTED and srf_uninfected < srf_thresh"
+  # Literal from RecoverySteppable.step (line ~1626). Per-cell neighbor-surface quantities (computed
+  # each step from `self.get_cell_neighbor_data_list(cell)`, restricted to epithelial neighbor types
+  # {UNINFECTED, INFECTED, INFECTEDRELEASING, DYING}): `srf_area_total` = total interface area with
+  # epithelial neighbors; for an UNINFECTED cell, `srf_area_oi` = interface area with DYING neighbors
+  # (`type_oi = DYING`) and `srf_uninfected` = interface area with UNINFECTED neighbors;
+  # `srf_thresh = theta_local * srf_area_total` (srf_threshold above). `Pr(death in this MCS) =
+  # 1 - exp(-rate)` (ImmuneModelLib.ul_rate_to_prob). On success: cell.type -> DYING (and
+  # `cell.dict[im_dead_healthy_key] = True`, marking it as an Allee death vs. a viral death).
+  formula_recovery: "rate = b_h * (1 - resist) * srf_area_oi * (srf_uninfected - srf_thresh) / srf_area_total**2, only when cell.type==DYING and srf_uninfected > srf_thresh"
+  # Literal from RecoverySteppable.step (line ~1633), the "revive_rate" branch -- STRUCTURALLY
+  # SYMMETRIC to formula_death (uninfected<->dying roles swapped, same sign convention, same
+  # SHARED b_h coefficient -- no separate a_H). For a DYING cell: `type_oi = UNINFECTED`, so
+  # `srf_area_oi` = interface area with UNINFECTED neighbors (same as `srf_uninfected` in this
+  # branch -- both count UNINFECTED-neighbor interface area for a DYING cell, since `srf_uninfected`
+  # is defined identically regardless of the cell's own type: interface area with UNINFECTED
+  # neighbors). `Pr(revive in this MCS) = 1 - exp(-rate)`. On success: cell.type -> UNINFECTED
+  # (recovery; no `im_dead_healthy_key` reset observed in this branch).
 scenarios:
   source: "Sego 2022 Section 3"
   initial_viral_load: [1, 10, 100, 1000, 10000]

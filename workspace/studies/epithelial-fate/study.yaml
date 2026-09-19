@@ -1,0 +1,577 @@
+schema_version: 3
+name: epithelial-fate
+status: in-progress
+phase: Simulate
+title: "Increment 4: cellularized epithelial-fate lifecycle (H->I->D, D->H Allee recovery) — mechanism validated, reproduction still PENDING"
+confidence: Provisional
+investigation: influenza-sego2022
+
+purpose:
+  question: |
+    Layered on the validated Increment-2/3 virus field + infection + IFN-
+    resistance path: does wiring ALL epithelial fates together -- infection
+    (H->I), infected death (I->D), and the cellularized Allee effect (H->D
+    death / D->H recovery, both gated by local contact geometry and
+    per-cell resistance) -- produce a coherent cell-fate lifecycle where a
+    dead lesion grows via H->I->D and dead cells surrounded by healthy
+    tissue recover, while dead cells surrounded by dying tissue do not?
+  mechanism: epithelial_fate_lifecycle
+
+report:
+  title: "Increment 4: the H->I->D lesion forms and D->H Allee recovery fires correctly on contact geometry — mechanism validated, reproduction still PENDING; direct H->D Allee death is rare at 0.3mm scale (flagged, not a bug)"
+  verdict: documented
+  confidence: medium
+  evidence_quality: measured
+  objective: >-
+    Drive `run.run_epithelial_fate` (Task 4.3) -- the same 0.3mm/900-cell
+    sheet, seed, and stochastic H->I transition as Increments 2/3, plus
+    infected death (I->D, Task 4.2) and the cellularized Allee effect (H->D
+    death / D->H recovery, Task 4.3), evaluated per epithelial cell from
+    contact geometry (`world.cell_contact_area_by_type`, restricted to H/I/D
+    neighbor types) each update -- to measure whether a dead lesion forms
+    and grows, whether recovery fires correctly on local surrounding
+    composition, and to report honestly how rarely direct Allee death fires
+    at this reduced scale (Task 4.3's integration tests, plus the fuller
+    200/500-step series recorded in task-4.3-report.md).
+  conclusion: >-
+    MECHANISM VALIDATED, REPRODUCTION NOT YET ATTEMPTED. Same seed (17),
+    same 0.3mm/900-cell sheet, same init_infected_frac (0.05). The lesion
+    forms and grows via H->I->D: n_D goes 0->14 over 200 updates (n_H
+    855->668, n_I 45->218) and 0->77 over 500 updates (n_H 855->77, n_I
+    45->746) -- population conserved every update
+    (`tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time`).
+    D->H Allee recovery is confirmed to work correctly by TWO independent
+    lines of evidence: (1) a deterministic hand-made 3x3 single-pixel world
+    (frozen Potts geometry) shows a DYING cell fully Moore-surrounded by
+    UNINFECTED neighbors recovers to H within 500 stochastic draws, while an
+    identical cell surrounded only by DYING neighbors never does (rate is
+    provably 0.0 every iteration, not just empirically absent) -- the
+    negative control that rules out "recovery always eventually fires"; (2)
+    the full driver fires recovery ORGANICALLY (no hand-made geometry): 3
+    events over 200 updates, 12 events over 500 updates. Direct H->D Allee
+    death (an H cell dying WITHOUT ever being infected, from being
+    surrounded by dead neighbors) essentially never fires in either run (0
+    events at both 200 and 500 steps) -- verified this is NOT a wiring bug:
+    instrumenting every H-cell/update pair where the death rate is
+    genuinely nonzero across the full 500-step run found 15,447 qualifying
+    encounters, all correctly positive (mean rate ~1.2e-5, max ~1.8e-4 per
+    encounter), giving an expected ~0.19 successes over the whole run -- so
+    zero observed deaths is the expected stochastic outcome at these rate
+    magnitudes, not a formula/wiring error. This validates the MECHANISM
+    (the H->I->D lifecycle is coherent and population-conserving, and the
+    Allee recovery branch responds correctly to local contact geometry in
+    both directions) -- it is NOT a claim that any of Sego et al. 2022's
+    Figs 3B/5/7 quantitative targets are met; that evaluation is deferred to
+    Increment 9 (the capstone). The dominant death path observed here is
+    infection (H->I->D), not direct Allee death.
+  main_insight: >-
+    The epithelial-fate lifecycle composes correctly: infection seeds I
+    cells, infected death converts them to D, and D cells embedded in
+    healthy tissue recover to H while D cells embedded in dying tissue do
+    not -- both directions of the Allee branch are independently confirmed,
+    not just the death side. But the TWO Allee branches are structurally
+    asymmetric in how readily they fire at this reduced (0.3mm, ~900-cell)
+    scale: recovery's deficit term is capped by `(1-theta) ~ 94.7%` and
+    fires readily (3-12 organic events per run), while death's deficit term
+    is capped by `srf_thresh ~ 5.3%` and additionally scales with contact
+    to an ALREADY-substantial dead pocket, so it only engages for an H cell
+    deeply embedded in dead tissue -- geometrically rare on a small patch
+    within hundreds of updates. That asymmetry is source-literal (both
+    branches share `b_h`, but have very different effective ceilings from
+    `theta` vs `1-theta`), not a bug introduced here.
+  caveat: >-
+    This is a mechanism-validation claim only, with explicit open items
+    carried forward, kept visible rather than hidden: (1) OPEN CALIBRATION
+    QUESTION (Increment 9, NOT tuned here): direct H->D Allee death is rare
+    at 0.3mm scale for two structural reasons that Task 4.3 verified are
+    genuine (not a wiring bug) -- the b_h/theta asymmetry described above,
+    AND this driver's per-UPDATE (not per-MCS) stochastic evaluation
+    (inherited unchanged from Increments 2/3), which understates the number
+    of stochastic opportunities by the `mcs_per_update` factor (default 10)
+    relative to the source's actual per-MCS cadence, compounding with (1)
+    to make Allee death rarer still here than in the source at equivalent
+    MCS budgets. Increment 9, running at full source scale with more MCS
+    and/or per-MCS evaluation, is the place to re-check whether Allee death
+    fires at a rate consistent with the paper's dynamics. (2) infected death
+    (I->D) uses the source's SIMPLIFIED flat `mu_i*(1-resist)` rate
+    (`params.yaml` `cell_death:` block) -- the paper's fuller printed Table
+    2 "Infected death" row includes a viral-load/ROS Hill-saturation term
+    that the CC3D source's own `ViralCellDeathSteppable` docstring says it
+    omits ("simplified version"); that fuller term is a conceptual target
+    for a later increment, not implemented here or in the source itself.
+    (3) NK-cell and CD8+ T-cell contact-killing of infected cells (an
+    additional I->D pathway in the full model) is deferred to Increment 7 --
+    the ONLY death pathways modeled here are infected-death and Allee death.
+    (4) IL-10 cross-talk with resistance/Allee, chemokine-driven immune
+    recruitment, and the global ODE coupling are all later increments.
+    Reproduction verdict (Figs 3B/5/7) stays PENDING until Increment 9.
+  key_metrics:
+    - {name: n_D_growth_200_steps, value: "0 -> 14 (n_H 855->668, n_I 45->218)", note: "lesion forms via H->I->D, population conserved every update"}
+    - {name: n_D_growth_500_steps, value: "0 -> 77 (n_H 855->77, n_I 45->746, max n_D=77)"}
+    - {name: n_allee_recovery_200_steps, value: 3, note: "organic recovery events (no hand-made geometry), D->H"}
+    - {name: n_allee_recovery_500_steps, value: 12}
+    - {name: n_allee_death_200_500_steps, value: 0, flag: "genuinely rare, not a wiring bug -- see calibration flag below"}
+    - {name: allee_death_qualifying_encounters_500_steps, value: 15447, note: "H-cell/update pairs where the death rate is genuinely nonzero; mean rate ~1.2e-5, max ~1.8e-4, expected successes ~0.19 over the run"}
+
+study_card:
+  goal: Validate that the full epithelial-fate lifecycle (infection H->I, infected death I->D, Allee death H->D, Allee recovery D->H) composes into a coherent, population-conserving mechanism -- a growing dead lesion, and correct bidirectional Allee response to local contact geometry -- no reproduction claim.
+  mechanism: Each update, after `world.step`, per-cell resistance is computed from local IFN for every epithelial cell (H/I/D); infection (`transitions.infection_step`) and infected death (`transitions.infected_death_step`, gated by resist) fire on the freshly-diffused fields; then Allee death/recovery (`allee.allee_death_rate` / `allee.allee_recovery_rate`) evaluate per H/D cell from `world.cell_contact_area_by_type` restricted to epithelial (H/I/D) neighbor contact -- all fate changes are collected against a snapshot and applied together at the update's end (Task 4.3).
+  why_before_next: Increment 5 (chemokine + IL-10 fields) and later increments (macrophage/NK/CD8+ response, global ODE coupling) all assume a coherent cell-fate lifecycle already exists; this study establishes that H->I->D and the bidirectional Allee branch compose correctly and conserve population before anything downstream depends on it.
+  expected_result: A dead lesion (n_D) grows monotonically-ish from 0 as infected cells die, with H+I+D conserved every update. A dead cell fully surrounded by healthy (uninfected) tissue eventually recovers to H; a dead cell surrounded by dying tissue never does. Direct Allee death (H->D without infection) may be rare at reduced scale -- this is reported honestly, not hidden or tuned away.
+  main_expert_question: Is the near-total absence of direct Allee death at 0.3mm/900-cell scale (0 events observed, but genuinely nonzero rates at ~15k qualifying encounters) an artifact of the reduced-scale/per-update-batching convention that Increment 9's full-scale run will resolve, or does it suggest the b_h/theta calibration itself needs revisiting before the capstone reproduction?
+
+question: |
+  Does wiring infection (H->I), infected death (I->D), and the cellularized
+  Allee effect (H->D death / D->H recovery, both gated by local contact
+  geometry) together produce a coherent epithelial-fate lifecycle -- a
+  growing dead lesion, population conservation, and correct bidirectional
+  Allee response (recovery for well-surrounded D cells, no recovery for
+  poorly-surrounded ones) -- on top of the Increment 2/3 virus/infection/IFN
+  path?
+
+hypothesis: |
+  Layered on the Increment-2/3 virus field + infection + IFN-resistance
+  path: infected cells die at rate `mu_i*(1-resist)` (I->D), and every H/D
+  epithelial cell's local contact-surface composition (restricted to H/I/D
+  neighbors) drives a stochastic Allee death (H->D, for H cells deeply
+  embedded in dead tissue) or recovery (D->H, for D cells mostly surrounded
+  by healthy tissue) rate. This should produce a growing, population-
+  conserving dead lesion over time, with D cells embedded in healthy tissue
+  recovering and D cells embedded in dying tissue never recovering -- while
+  direct Allee death may be rare at reduced (0.3mm) scale given the
+  source's b_h/theta asymmetry.
+
+objective: |
+  Wire infected death (Task 4.2, `transitions.infected_death_step`) and the
+  cellularized Allee effect (Task 4.3, `pbg_cpm_studies/influenza/allee.py`)
+  into a new driver, `run.run_epithelial_fate` (Task 4.3), alongside the
+  unmodified Increment-2/3 infection + IFN-resistance path, and measure the
+  resulting n_H/n_I/n_D series plus the diagnostic n_allee_death/
+  n_allee_recovery counters (Task 4.3's integration tests
+  `tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time`,
+  `::test_dead_cell_surrounded_by_uninfected_recovers`,
+  `::test_dead_cell_surrounded_by_dying_does_not_recover`, and the fuller
+  200/500-step series in task-4.3-report.md). A minimal in-package figure
+  (`pbg_cpm_studies/influenza/viz.py::epithelial_fate_figure`, Task 4.4)
+  renders the cell-type composition over time plus cumulative Allee event
+  counts.
+
+description: |
+  Increment 4 of the influenza-sego2022 capability ladder: adds infected
+  death (I->D, a simplified flat rate) and the cellularized Allee effect
+  (H->D death / D->H recovery, both driven by local epithelial contact
+  geometry and gated by per-cell resistance) on top of the Increment-2/3
+  infection + IFN-resistance mechanism. No chemokine/IL-10 fields, no
+  immune cells (macrophage/NK/CD8+ T), no NK/CD8 contact-killing, and no
+  APC-driven global IFN amplification -- those arrive in later increments.
+  The death-rate coefficient (`mu_i_per_mcs`) and the Allee rate coefficient
+  (`b_h`) plus threshold (`srf_threshold`) are taken from the CC3D
+  ViralInfectionVTM source (see `pbg_cpm_studies/influenza/params.yaml`'s
+  `cell_death:` and `allee:` blocks); `srf_total`/`srf_uninfected` are
+  restricted to epithelial (H/I/D) neighbor contact, excluding MEDIUM,
+  matching the source's `ec_list` filter (a design decision recorded in
+  task-4.3-report.md, since it diverges from an earlier brief's looser
+  "sum over all neighbor types" phrasing).
+
+claim: |
+  Wiring infection, infected death, and the cellularized Allee effect
+  together produces a coherent, population-conserving epithelial-fate
+  lifecycle: a dead lesion grows via H->I->D (n_D: 0->14 at 200 updates,
+  0->77 at 500 updates, same seed=17/0.3mm/900-cell sheet as Increments
+  2/3), and the Allee branch responds correctly to local contact geometry
+  in BOTH directions -- a dead cell fully surrounded by healthy tissue
+  recovers (proven both deterministically in a hand-made frozen-geometry
+  world and organically in the full driver, 3-12 events/run), while a dead
+  cell surrounded by dying tissue never does (rate is provably 0, not just
+  empirically absent). This is a MECHANISM-validation claim (the fate
+  lifecycle composes correctly and the Allee branch is bidirectionally
+  functional), not a claim that any of Sego et al. 2022's quantitative
+  figure targets (Figs 3B/5/7) are met -- that reproduction verdict remains
+  PENDING until Increment 9 (the capstone). Direct H->D Allee death is
+  honestly reported as RARE at this reduced scale (0 observed events across
+  both runs) -- verified genuine via rate instrumentation (15,447
+  qualifying encounters, all correctly nonzero, expected ~0.19 successes),
+  not a wiring bug, and flagged as an open Increment-9 calibration question
+  rather than tuned away here.
+
+expected_behavior:
+  - The dead-cell count n_D grows from 0 over the course of a run, while
+    n_H + n_I + n_D stays exactly conserved at every update (no cells
+    created or destroyed, only re-typed).
+  - A dead (D) cell whose local epithelial contact surface is mostly
+    UNINFECTED (healthy) neighbors eventually recovers to H.
+  - A dead (D) cell whose local epithelial contact surface has no
+    UNINFECTED neighbors (e.g. surrounded only by other D cells) never
+    recovers -- the recovery rate is provably 0 in that configuration, not
+    just empirically rare.
+  - Direct Allee death (H->D without prior infection) may be rare or absent
+    at reduced (0.3mm) scale within a few hundred updates -- this is
+    reported honestly rather than hidden, with rate instrumentation to
+    distinguish "genuinely rare" from "wired incorrectly."
+
+readouts:
+  - name: Dead-lesion growth (H->I->D), population conserved
+    identifier: n_D
+    units: cells
+    status: measured
+    description: >-
+      `n_D` series from `run.run_epithelial_fate` (seed=17, patch_mm=0.3,
+      init_infected_frac=0.05, mcs_per_update=10): 0 -> 14 over 200 updates
+      (n_H 855->668, n_I 45->218) and 0 -> 77 over 500 updates (n_H
+      855->77, n_I 45->746, max n_D=77). n_H + n_I + n_D is exactly
+      conserved at every update (asserted every step by
+      `tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time`).
+      The dominant death path is infection (H->I->D); direct Allee death
+      contributes 0 of these deaths at this scale (see below).
+  - name: Allee recovery (D->H) fires correctly on contact geometry
+    identifier: n_allee_recovery
+    units: events
+    status: measured
+    description: >-
+      Two independent lines of evidence: (1) a deterministic hand-made 3x3
+      single-pixel world (frozen Potts geometry, `temperature=0.0`) shows a
+      DYING cell fully Moore-surrounded by 8 UNINFECTED neighbors recovers
+      to H within 500 stochastic draws
+      (`test_dead_cell_surrounded_by_uninfected_recovers`), while an
+      identical cell surrounded only by DYING neighbors never recovers,
+      with the recovery rate asserted to be exactly 0.0 every single
+      iteration -- not just empirically absent
+      (`test_dead_cell_surrounded_by_dying_does_not_recover`); (2) the full
+      driver fires recovery ORGANICALLY with no hand-made geometry: 3
+      events over 200 updates, 12 events over 500 updates (diagnostic
+      `n_allee_recovery` counter, task-4.3-report.md).
+  - name: Direct Allee death (H->D) is rare at 0.3mm scale -- flagged, not a bug
+    identifier: n_allee_death
+    units: events
+    status: measured
+    description: >-
+      0 direct Allee-death events observed across both the 200-step and
+      500-step runs (seed=17). Verified genuine rather than a wiring/
+      formula bug: instrumenting every H-cell/update pair where the death
+      rate is genuinely nonzero (deficit > 0 AND srf_D > 0) across the full
+      500-step run found 15,447 qualifying encounters, all with correctly-
+      computed positive rates (mean ~1.2e-5, max ~1.8e-4 per encounter) --
+      expected successes ~0.19 over the whole run, so 0 observed is the
+      expected stochastic outcome at these rate magnitudes. FLAGGED
+      (task-4.3-report.md CALIBRATION FLAG) as an open Increment-9
+      calibration question, kept visible rather than hidden: the b_h/theta
+      asymmetry between the death and recovery branches, plus this
+      driver's per-update (not per-MCS) stochastic evaluation (inherited
+      from Increments 2/3), both structurally suppress direct Allee death
+      at this reduced scale/step budget. Not tuned away here per the
+      brief's explicit "do not tune constants" instruction.
+
+behavior_tests:
+  - name: Epithelial-fate lifecycle forms a growing dead lesion, population conserved
+    classification: primary
+    description: |
+      A seeded lesion (5% initial infection) run for 200 updates at
+      0.3mm/900-cell scale must grow a nonzero dead (D) region via H->I->D,
+      with H+I+D exactly conserved at every single update (no cells
+      created/destroyed, only re-typed). This is the study's primary
+      integration claim: the full fate lifecycle (infection + infected
+      death + Allee death/recovery, all wired together) composes into a
+      coherent, mass-conserving mechanism.
+    measure: {kind: n_D_final, condition: epithelial-fate, stat: final}
+    pass_if: {op: gt, value: 0}
+    status: passed
+    result: PASS
+    evaluated_by: tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time
+  - name: Dead cell fully surrounded by healthy tissue recovers (D->H)
+    classification: primary
+    description: |
+      Deterministic proof of the recovery mechanism, isolated from Potts
+      shape dynamics: a hand-made 5x5 frozen-geometry (`temperature=0.0`)
+      world with a 3x3 block of single-pixel cells, the center cell DYING
+      and all 8 Moore neighbors UNINFECTED. Drawing the stochastic Allee
+      recovery transition up to 500 times, the center cell must recover to
+      H at least once.
+    measure: {kind: recovers_within_500_draws, condition: epithelial-fate, stat: final}
+    pass_if: {op: eq, value: true}
+    status: passed
+    result: PASS
+    evaluated_by: tests/test_influenza_allee.py::test_dead_cell_surrounded_by_uninfected_recovers
+  - name: Dead cell surrounded by dying tissue never recovers (negative control)
+    classification: primary
+    description: |
+      The negative control that rules out "recovery always eventually
+      fires regardless of geometry": the same 3x3 frozen-geometry world,
+      but ALL 8 Moore neighbors of the center DYING cell are also DYING
+      (srf_uninfected = 0, below the recovery threshold). The recovery rate
+      is asserted to be EXACTLY 0.0 at every one of 500 iterations (not
+      just empirically absent), and the center cell must still be DYING at
+      the end.
+    measure: {kind: recovery_rate_over_500_draws, condition: epithelial-fate, stat: max}
+    pass_if: {op: eq, value: 0.0}
+    status: passed
+    result: PASS
+    evaluated_by: tests/test_influenza_allee.py::test_dead_cell_surrounded_by_dying_does_not_recover
+
+findings:
+  - id: F-01
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: Epithelial-fate lifecycle forms a growing dead lesion, population conserved
+      divergence_factor: null
+      observed: "n_D 0->14 over 200 updates (n_H 855->668, n_I 45->218), 0->77 over 500 updates (n_H 855->77, n_I 45->746); n_H+n_I+n_D conserved every update in both runs (seed=17, patch_mm=0.3, init_infected_frac=0.05)"
+    statement: |
+      The full fate lifecycle (infection H->I, infected death I->D, Allee
+      death/recovery H<->D, all wired together each update) composes into a
+      coherent, mass-conserving mechanism: the dead lesion grows steadily
+      over both a 200- and 500-update horizon, driven overwhelmingly by the
+      infection->death path (H->I->D), with population exactly conserved
+      throughout. This is the study's central confirming result.
+  - id: F-02
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: Dead cell fully surrounded by healthy tissue recovers (D->H)
+      divergence_factor: null
+      observed: "center D cell (8/8 UNINFECTED Moore neighbors, frozen geometry) recovers to H within 500 stochastic draws (seed=3); organically, 3 recovery events fire over 200 updates and 12 over 500 updates in the full driver with no hand-made geometry"
+    statement: |
+      Allee recovery (D->H) responds correctly to local contact geometry:
+      a dead cell embedded in healthy tissue recovers, both in a
+      deterministic isolated test and organically within the full driver.
+      This confirms the recovery branch is not just formally correct but
+      actually engages under realistic run conditions.
+  - id: F-03
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: Dead cell surrounded by dying tissue never recovers (negative control)
+      divergence_factor: 0.0
+      observed: "center D cell (8/8 DYING Moore neighbors) has recovery rate exactly 0.0 at all 500 iterations; never recovers"
+    statement: |
+      The negative control confirms recovery is genuinely GATED by local
+      geometry, not an artifact of "eventually everything recovers given
+      enough draws" -- a dead cell with no healthy neighbors has a
+      provably, not just empirically, zero recovery rate. Together with
+      F-02, this establishes the Allee recovery branch is bidirectionally
+      correct.
+  - id: F-04
+    kind: computational
+    status: partial
+    mechanism_origin: engineered
+    evidence:
+      from_test: null
+      divergence_factor: null
+      observed: "0 direct Allee-death (H->D) events across both the 200-step and 500-step runs; 15,447 qualifying H-cell/update pairs (deficit>0 AND srf_D>0) at 500 steps, mean rate ~1.2e-5, max ~1.8e-4, expected successes ~0.19"
+    statement: |
+      Direct Allee death is honestly reported as essentially absent at this
+      reduced (0.3mm, ~900-cell) scale within practically-runnable step
+      counts. This is NOT hidden as a clean pass -- it is flagged (status:
+      partial) because it only PARTIALLY confirms the expected behavior
+      (the rate formula is verified genuinely positive-but-tiny at
+      qualifying encounters, ruling out a wiring bug, but the driver never
+      actually observes a death event). Structural causes (b_h/theta
+      asymmetry, per-update-vs-per-MCS batching) are recorded as an open
+      Increment-9 calibration question, not tuned away here.
+
+conclusion: |
+  MECHANISM VALIDATED, NOT REPRODUCED. The full epithelial-fate lifecycle
+  (infection H->I, infected death I->D, cellularized Allee death H->D /
+  recovery D->H) composes into a coherent, population-conserving mechanism:
+  a dead lesion grows via H->I->D (0->14 at 200 updates, 0->77 at 500
+  updates, same seed=17/0.3mm/900-cell sheet as Increments 2/3), and the
+  Allee recovery branch is confirmed bidirectionally correct -- a
+  well-surrounded dead cell recovers (deterministically and organically, 3-
+  12 events/run), a poorly-surrounded one provably never does. Direct Allee
+  death is honestly reported as essentially absent at this scale (0 events
+  observed), verified genuine via rate instrumentation rather than a wiring
+  bug, and flagged -- not tuned away -- as an open Increment-9 calibration
+  question. This increment has infected death using the source's
+  SIMPLIFIED flat mu_i*(1-resist) rate (no ROS/Hill saturation term, per
+  the CC3D source's own docstring), no NK/CD8+ contact-killing (Increment
+  7), no chemokine/IL-10 fields, no other immune cells, and no APC-driven
+  global IFN amplification, and makes NO claim about matching any of Sego
+  et al. 2022's Figs 3B/5/7 quantitative acceptance bands -- that
+  reproduction verdict is PENDING until Increment 9 (the capstone).
+
+conclusion_verdicts:
+  regression_compatibility:
+    result: PASS
+    basis: Reproduces Task 4.3's measured integration-test results and report series exactly (same driver, same seed, same params.yaml constants); Increments 0-3 unchanged.
+  biological_validation:
+    result: PENDING
+    basis: >-
+      This increment validates the MECHANISM (the H->I->D->[recover]
+      lifecycle composes correctly, conserves population, and the Allee
+      branch is bidirectionally gated by local contact geometry) with
+      single-seeded runs, not a quantitative reproduction against any of
+      Figs 3B/5/7. Chemokine/IL-10 fields, immune cells, NK/CD8+
+      contact-killing, and APC-driven global IFN amplification don't exist
+      yet. The direct-Allee-death rarity is an OPEN calibration question for
+      Increment 9 -- do NOT read PENDING here as a passing or failing
+      reproduction verdict; no reproduction claim is made until Increment 9.
+  explanatory_gain:
+    result: PENDING
+    basis: >-
+      No alternative mechanism is being compared at this increment;
+      deferred to later increments / the capstone where a reproduction
+      comparison against the paper's figures becomes meaningful.
+
+biological_summary: |
+  Infected epithelial cells die at a simplified flat per-MCS rate
+  `mu_i*(1-resist)` (I->D, source-cited `mu_i_per_mcs`, no viral-load/ROS
+  Hill saturation term -- the CC3D source's own `ViralCellDeathSteppable`
+  docstring calls this a "simplified version" of the paper's fuller printed
+  term). Independently, EVERY epithelial cell's local contact surface with
+  its neighbors (restricted to other epithelial H/I/D cells, excluding
+  MEDIUM, matching the source's `ec_list` filter) drives a cellularized
+  Allee effect: an H cell deeply embedded in dead (D) tissue -- contact
+  with dead neighbors above a threshold and total uninfected-neighbor
+  contact below a threshold -- can die directly (H->D, no infection
+  needed), while a D cell mostly surrounded by healthy (uninfected)
+  neighbors can recover (D->H). Both branches share a rate coefficient
+  `b_h` but have structurally different effective ceilings (`srf_thresh` ~
+  5.3% for death's deficit term vs `1-srf_thresh` ~ 94.7% for recovery's),
+  so recovery engages far more readily than death at reduced (0.3mm,
+  ~900-cell) scale: over 200-500 updates, recovery fires organically 3-12
+  times while direct death fires 0 times, though 15,447 genuinely-
+  qualifying death encounters were found (500-step run) with correctly
+  positive but tiny rates -- an expected ~0.19 total successes, so the zero
+  observed is statistically unsurprising, not a formula error. The
+  resulting dead lesion (n_D) grows steadily and is driven overwhelmingly
+  by the infection->death pathway (H->I->D) rather than direct Allee death
+  at this scale. There is no chemokine/IL-10 field, no macrophage/NK/CD8+ T
+  cell, no NK/CD8+ contact-killing of infected cells (a second I->D pathway
+  in the full model, Increment 7), and no APC-driven global IFN
+  amplification feedback yet -- all later increments.
+
+key_assumptions:
+  - Infected death uses the CC3D source's own SIMPLIFIED flat rate
+    `mu_i*(1-resist)` -- no viral-load/ROS Hill-saturation term. The
+    paper's printed Table 2 "Infected death" row is fuller than what the
+    source (and therefore this study) actually implements; that fuller term
+    is a conceptual target, not modeled here or in the source itself.
+  - NK-cell and CD8+ T-cell contact-killing of infected cells (an
+    additional I->D death pathway present in the full source model) is
+    entirely absent -- deferred to Increment 7. The ONLY death pathways
+    modeled here are infected-death (I->D) and Allee death (H->D).
+  - >-
+    OPEN CALIBRATION QUESTION (flagged for Increment 9, NOT tuned here) --
+    direct Allee death (H->D) fires 0 times across both the 200- and
+    500-step runs despite 15,447 genuinely-qualifying encounters at 500
+    steps (rate correctly nonzero, ~1.2e-5 mean, expected ~0.19 successes).
+    Two structural, source-literal reasons: (1) the b_h/theta asymmetry
+    between the death and recovery branches' effective ceilings; (2) this
+    driver's per-update (not per-MCS) stochastic evaluation, inherited
+    unchanged from Increments 2/3, which understates stochastic
+    opportunities by the `mcs_per_update` factor (default 10) relative to
+    the source's true per-MCS cadence. Neither was changed here per the
+    brief's explicit "do not tune constants" instruction -- Increment 9,
+    at full source scale, is the place to re-check whether this rate
+    magnitude is consistent with the paper's dynamics.
+  - The contact-area totals `srf_total`/`srf_uninfected`/`srf_D` are restricted to epithelial
+    (H/I/D) neighbor contact, excluding MEDIUM -- a design decision
+    recorded in task-4.3-report.md that follows the CC3D source's `ec_list`
+    filter literally, diverging from an earlier task brief's looser "sum
+    over all neighbor types" phrasing. This matters materially on this
+    small patch, which has real free (sheet-edge) boundaries unlike the
+    paper's much larger domain relative to the lesion.
+  - Single seed (17) for the driver (same two/three/four-RNG-stream
+    convention as Increments 2/3) -- the measured lesion growth and Allee
+    event counts are a single-run demonstration of the mechanism's
+    qualitative and approximate quantitative behavior, not a statistically
+    characterized effect size across a systematic replicate sweep.
+  - As in Increment 3, there is no live-demo process-bigraph composite for
+    `run_epithelial_fate` -- it is a raw `cpm_core.World` loop (Task 4.3),
+    not wrapped as a composite. The `conditions.baseline` entry below
+    reuses the SAME Increment-2 live-demo composite
+    (`pbg_cpm_studies.composites.influenza.virus_infection`, no infected-
+    death/Allee wiring) purely so this study has a dashboard-loadable
+    baseline; it is NOT the composite this study's readouts are measured
+    from, and it does not reproduce the epithelial-fate mechanism. All
+    readouts above come directly from `run.run_epithelial_fate`.
+  - No chemokine/IL-10 field, no macrophage/NK/CD8+ T cell, and no
+    APC-driven global IFN amplification exist yet -- all later increments.
+
+literature_anchors:
+  - expectation: "Infected epithelial cells undergo virally-induced apoptosis (Sego 2022 Sec. 2.2/2.3, Table 2 'Infected death'); dying/dead cells can be replaced by neighboring healthy tissue via a cellularized Allee-effect recovery term (RecoverySteppable)."
+    model_observable: "n_D grows from 0 to 14 (200 updates) / 77 (500 updates) via H->I->D; D->H recovery fires both deterministically (frozen-geometry test) and organically (3-12 events/run) when a dead cell is well-surrounded by healthy tissue, and provably never fires when it is not."
+    source: "CC3D ViralInfectionVTM source (ViralCellDeathSteppable, RecoverySteppable) via pbg_cpm_studies/influenza/params.yaml cell_death: and allee: blocks"
+    status_in_workspace: "Wired and measured directly (infected death + bidirectional Allee response). Infected death uses the source's own SIMPLIFIED flat-rate form (no ROS/Hill term); NK/CD8 contact-killing (a second death pathway) is deferred to Increment 7. No acceptance-band comparison to a digitized figure yet."
+    cites: [sego2022influenza]
+  - expectation: "The paper's Fig-3B-style reproduction implicitly requires the epithelial-fate lifecycle to produce a growing, spatially coherent dead lesion whose size tracks the immune response over time, at paper scale."
+    model_observable: "At reduced (0.3mm/900-cell) scale, the lesion grows monotonically over 200-500 updates driven by infection->death; direct Allee death is essentially absent (0 events) though genuinely, if rarely, nonzero in the underlying rate -- a scale/calibration question, not a wiring failure, flagged for Increment 9."
+    source: "Sego 2022 Figs 3B, 5, 7 (digitized acceptance bands, Increment 0)"
+    status_in_workspace: "Referenced QUALITATIVELY only -- this study does not compare against the digitized Fig 3B/5/7 acceptance bands (pbg_cpm_studies/influenza/targets/); that quantitative reproduction comparison is Increment 9's capstone, not attempted here."
+    cites: [sego2022influenza]
+
+gate_status: passed
+
+runtime:
+  default_emitter: series-json
+  max_generations: 1
+  post_run_scripts: []
+
+model_change:
+  base_model: pbg_cpm_studies.composites.influenza.virus_infection
+  new_processes: []
+  new_state_variables: [per-cell type D (dead/dying), Allee death/recovery diagnostic counters]
+  new_parameters: [mu_i_per_mcs, b_h, srf_threshold]
+  modified_processes: []
+  new_listeners: []
+  notes: |
+    No new process-bigraph composite is added this increment (see
+    key_assumptions): infected death and the Allee death/recovery
+    mechanism are driven directly by `run.run_epithelial_fate` (a raw
+    `cpm_core.World` loop, Task 4.3), not through a live-demo composite.
+    `base_model` above points at the SAME Increment-2 composite reused as
+    this study's dashboard-loadable baseline entry; it has no infected-
+    death/Allee wiring. A composite for the full-fate driver, if wanted for
+    a live demo, is deferred to a later task/increment.
+
+runs:
+  - run_id: epithelial-fate-lifecycle-0p3mm
+    name: Full epithelial-fate lifecycle (0.3mm, 900 cells, seed 17, 200 and 500 updates)
+    status: completed
+    canonical: true
+    timestamp: '2026-09-18'
+    seeds: [17]
+    emitter: "n/a (direct pytest measurement)"
+    outcomes:
+      'Epithelial-fate lifecycle forms a growing dead lesion, population conserved':
+        result: PASS
+        measured_value: 14.0
+        notes: "n_D[-1]=14 > n_D[0]=0 at 200 updates (task-4.3-report.md); n_H+n_I+n_D conserved every update. At 500 updates: n_D[-1]=77."
+        evaluated_by: tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time
+      'Dead cell fully surrounded by healthy tissue recovers (D->H)':
+        result: PASS
+        measured_value: 1.0
+        notes: "center D cell (frozen 3x3 geometry, 8/8 UNINFECTED neighbors) recovers to H within 500 stochastic draws (seed=3)."
+        evaluated_by: tests/test_influenza_allee.py::test_dead_cell_surrounded_by_uninfected_recovers
+      'Dead cell surrounded by dying tissue never recovers (negative control)':
+        result: PASS
+        measured_value: 0.0
+        notes: "center D cell (frozen 3x3 geometry, 8/8 DYING neighbors) has recovery rate exactly 0.0 at all 500 iterations; never recovers."
+        evaluated_by: tests/test_influenza_allee.py::test_dead_cell_surrounded_by_dying_does_not_recover
+
+discovery_implications:
+  followup_study_proposals:
+    - id: chemokine-il10-fields
+      title: "Increment 5: chemokine + IL-10 diffusible fields"
+      motivation: "Add the immune-recruitment chemokine field and IL-10 cross-talk that later increments' macrophage/NK/CD8+ response depend on."
+    - id: allee-death-rate-calibration
+      title: "Increment 9 (or earlier spike): re-check the direct-Allee-death rate at full source scale"
+      motivation: "This study's CALIBRATION FLAG -- direct H->D Allee death fires 0 times at 0.3mm/900-cell/200-500-update scale despite genuinely nonzero underlying rates -- should be re-examined once Increment 9 runs at full source scale (larger domain, more MCS, and/or per-MCS rather than per-update stochastic evaluation) to determine whether the rate magnitude, not just the run scale, needs revisiting."
+
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.influenza.virus_infection
+    params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch, no infected-death/Allee wiring; the measured readouts above come from run.run_epithelial_fate at 0.3mm/900 cells (Task 4.3), not this composite -- see key_assumptions
+
+  model_settings: []
+
+narrative_spine_skip: [implementation_requirements]
+narrative_spine_skip_reason: >-
+  Increment 4's mechanism is built and measured (Task 4.3's integration
+  tests); implementation_requirements is a forward-looking build checklist
+  with no authored content for a study whose scope (infection + infected
+  death + Allee death/recovery, no chemokine/IL-10/immune cells/NK-CD8
+  contact-killing) is complete for this increment.

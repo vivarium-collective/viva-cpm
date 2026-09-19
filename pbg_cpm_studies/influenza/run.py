@@ -21,9 +21,33 @@ import math
 
 import numpy as np
 
-from . import build, fields, sheet, transitions, types
+from . import allee, build, fields, sheet, transitions, types
 from .params import load_params
 from .resistance import cell_resistance
+
+# Epithelial cell types that participate in the Allee contact-surface
+# calculation (matches the source's `ec_list = [UNINFECTED, INFECTED,
+# INFECTEDRELEASING, DYING]`, i.e. H/I/D here) -- MEDIUM and any future
+# immune-cell contact must be excluded from `srf_total`/`srf_uninfected`,
+# not just tallied by `world.cell_contact_area_by_type`'s raw dict.
+_EPITHELIAL_TYPES = (types.H, types.I, types.D)
+
+
+def _epithelial_contact_totals(world, cid):
+    """srf_uninfected/srf_D/srf_total for cell `cid`, restricted to
+    epithelial neighbor types (see `_EPITHELIAL_TYPES`). `world.
+    cell_contact_area_by_type(cid)` (Task 4.1) returns contact area for
+    EVERY neighbor type touching `cid`, including MEDIUM (key 0) at sheet
+    edges -- the source's `RecoverySteppable.step` only accumulates
+    `srf_area_total`/`srf_uninfected` over neighbors whose type is in
+    `ec_list`, so MEDIUM contact must NOT inflate `srf_total` here (an
+    edge-of-sheet H cell touching medium is not thereby "poorly
+    surrounded" in the source's sense)."""
+    contact = world.cell_contact_area_by_type(cid)
+    srf_uninfected = contact.get(types.H, 0)
+    srf_D = contact.get(types.D, 0)
+    srf_total = sum(v for t, v in contact.items() if t in _EPITHELIAL_TYPES)
+    return srf_uninfected, srf_D, srf_total
 
 
 def run_virus_infection(patch_mm: float = 0.3, steps: int = 60, seed: int = 17,
@@ -215,5 +239,185 @@ def run_virus_infection_with_ifn(patch_mm: float = 0.3, steps: int = 60, seed: i
 
         current_types = new_types
         _record(step_idx, new_dists, mean_resist)
+
+    return result
+
+
+def run_epithelial_fate(patch_mm: float = 0.3, steps: int = 200, seed: int = 17,
+                         init_infected_frac: float = 0.05,
+                         mcs_per_update: int = 10) -> dict:
+    """Increment-4 crux driver: wire ALL epithelial fates together --
+    infection (H -> I, Task 2.2), infected death (I -> D, Task 4.2), and
+    the cellularized Allee effect (H -> D death / D -> H recovery, Task
+    4.3, this task) -- on top of the virus + type-I IFN fields (2.1/3.2).
+
+    Each update, AFTER `world.step` advances both fields together:
+      1. per-cell resist from local IFN, for EVERY epithelial cell (H, I,
+         D all carry local IFN in the source, not just I -- see
+         `resistance.cell_resistance`); gate I-cell virus secretion by
+         `(1 - resist)` for the NEXT update (same convention as
+         `run_virus_infection_with_ifn`).
+      2. infection H -> I (`transitions.infection_step`, virus field).
+      3. infected death I -> D (`transitions.infected_death_step`, resist
+         + `cell_death.mu_i_per_mcs`).
+      4. Allee death H -> D / recovery D -> H (`allee.allee_death_rate` /
+         `allee.allee_recovery_rate`), evaluated per epithelial cell from
+         `world.cell_contact_area_by_type` (`_epithelial_contact_totals`).
+    Steps 2-3's type changes are written to the world via `world.
+    set_cell_type` BEFORE step 4 reads neighbor contact -- matching the
+    source's within-MCS sequencing (`RecoverySteppable` runs after the
+    infection/death steppables in the same MCS, and CC3D applies
+    `cell.type` immediately, so `RecoverySteppable` sees THIS MCS's fresh
+    infection/death types when tallying neighbor contact, not last
+    update's stale types). Step 4's OWN death/recovery writes are still
+    batched and applied together at the very end of the update (a much
+    smaller residual approximation than the one just fixed -- see the
+    in-loop comment and task-4.3-report.md). This otherwise follows this
+    module's existing per-update-not-per-MCS driver convention (see
+    `run_virus_infection`).
+
+    Returns per-update series: "steps", "n_H"/"n_I"/"n_D", "total_virus",
+    plus "n_allee_death"/"n_allee_recovery" (count of Allee-driven
+    transitions THAT update -- 0 for index 0, the seeded initial state; a
+    diagnostic for checking the Allee mechanism actually engaged, not part
+    of the brief's required series).
+    """
+    params = load_params()
+    g_hv = float(params["virus"]["infection_g_hv"])
+    a_rf = float(params["resistance"]["a_rf"])
+    mu_i = float(params["cell_death"]["mu_i_per_mcs"])
+    b_h = float(params["allee"]["b_h"])
+    theta = float(params["allee"]["srf_threshold"])
+
+    spec = sheet.build_sheet_spec(patch_mm, seed=seed)
+    n_cells = len(spec["cells"])  # ids 1..n_cells, all seeded as H
+
+    world = build.world_from_spec(spec, finalize=False)
+    virus_fi = fields.add_virus_field(world)
+    ifn_fi = fields.add_ifn_field(world)
+
+    init_rng = np.random.default_rng(seed)
+    n_init = int(round(n_cells * init_infected_frac))
+    initial_infected_ids = (
+        sorted(int(c) for c in init_rng.choice(np.arange(1, n_cells + 1),
+                                                size=n_init, replace=False))
+        if n_init > 0 else []
+    )
+    for cid in initial_infected_ids:
+        world.set_cell_type(cid, types.I)
+
+    world.finalize(int(spec["potts"]["seed"]))
+
+    # Independent RNG streams so the initial-lesion draw, the infection
+    # transition, the infected-death transition, and the Allee draws don't
+    # share (or accidentally correlate) random state.
+    infect_rng = np.random.default_rng(seed + 1)
+    death_rng = np.random.default_rng(seed + 2)
+    allee_rng = np.random.default_rng(seed + 3)
+
+    current_types = list(world.cell_types())
+
+    result = {
+        "steps": [], "n_H": [], "n_I": [], "n_D": [], "total_virus": [],
+        "n_allee_death": [], "n_allee_recovery": [],
+    }
+
+    def _record(step_idx, n_allee_death, n_allee_recovery):
+        result["steps"].append(step_idx)
+        result["n_H"].append(sum(1 for t in current_types[1:] if t == types.H))
+        result["n_I"].append(sum(1 for t in current_types[1:] if t == types.I))
+        result["n_D"].append(sum(1 for t in current_types[1:] if t == types.D))
+        result["total_virus"].append(float(sum(world.field_conc(virus_fi))))
+        result["n_allee_death"].append(n_allee_death)
+        result["n_allee_recovery"].append(n_allee_recovery)
+
+    _record(0, 0, 0)
+
+    for step_idx in range(1, steps + 1):
+        world.step(mcs_per_update)
+
+        # (1) per-cell resist from local IFN -- for every epithelial cell
+        # (H, I, D), not just infected ones (H and D cells have local IFN
+        # too, per the brief).
+        resist_at_cell = [0.0] * (n_cells + 1)
+        for cid in range(1, n_cells + 1):
+            if current_types[cid] in _EPITHELIAL_TYPES:
+                f_bar = world.field_mean_at_cell(ifn_fi, cid)
+                resist_at_cell[cid] = cell_resistance(f_bar, a_rf)
+        for cid in range(1, n_cells + 1):
+            if current_types[cid] == types.I:
+                world.set_cell_secretion_scale(virus_fi, cid, 1.0 - resist_at_cell[cid])
+
+        # (2) infection H -> I.
+        virus_at_cell = [world.field_mean_at_cell(virus_fi, cid)
+                          for cid in range(n_cells + 1)]
+        types_after_infection = transitions.infection_step(
+            current_types, virus_at_cell, g_hv, infect_rng)
+
+        # (3) infected death I -> D.
+        types_after_death = transitions.infected_death_step(
+            types_after_infection, resist_at_cell, mu_i, death_rng)
+
+        # Apply the infection + infected-death writes to the world NOW,
+        # BEFORE the Allee step reads neighbor contact -- matching the
+        # source's within-MCS sequencing (RecoverySteppable runs AFTER the
+        # infection/death steppables in the same MCS, and CC3D applies
+        # cell.type changes immediately, so RecoverySteppable's
+        # `get_cell_neighbor_data_list` sees THIS MCS's fresh infection/
+        # death types, not last update's). Committing here (rather than
+        # batching these into the final write-back below) is the fix for
+        # a prior review finding: reading `cell_contact_area_by_type`
+        # against stale (pre-update) neighbor types systematically biased
+        # Allee death DOWN and recovery UP.
+        for cid in range(1, n_cells + 1):
+            if types_after_death[cid] != current_types[cid]:
+                world.set_cell_type(cid, types_after_death[cid])
+
+        # (4) Allee death H -> D / recovery D -> H, from contact geometry
+        # as of the world's state AFTER this update's infection/death
+        # writes (just applied above) but BEFORE any Allee writes -- i.e.
+        # every cell's Allee rate this update is computed from the SAME
+        # neighbor snapshot (this update's post-infection/death types).
+        # Residual approximation (deliberately not fixed further, see
+        # task-4.3-report.md): the source applies each cell's death/revive
+        # write immediately within RecoverySteppable's own per-cell loop,
+        # so a cell processed later in the source's iteration order can see
+        # an EARLIER cell's Allee write this same MCS; here all Allee
+        # writes are collected and applied together at the end of this
+        # step, so within-Allee-pass neighbor propagation is one iteration
+        # behind the source. Much smaller effect than the infection/death
+        # staleness this fix addresses (Allee write density per update is
+        # far lower than the infection/death write density it now reads
+        # freshly).
+        final_types = list(types_after_death)
+        n_allee_death = 0
+        n_allee_recovery = 0
+        for cid in range(1, n_cells + 1):
+            t = types_after_death[cid]
+            if t not in (types.H, types.D):
+                continue
+            srf_uninfected, srf_D, srf_total = _epithelial_contact_totals(world, cid)
+            resist = resist_at_cell[cid]
+            if t == types.H:
+                rate = allee.allee_death_rate(srf_D, srf_uninfected, srf_total,
+                                               b_h, resist, theta)
+                pr = 1.0 - math.exp(-rate)
+                if allee_rng.random() < pr:
+                    final_types[cid] = types.D
+                    n_allee_death += 1
+            else:  # types.D
+                rate = allee.allee_recovery_rate(srf_uninfected, srf_total,
+                                                  b_h, resist, theta)
+                pr = 1.0 - math.exp(-rate)
+                if allee_rng.random() < pr:
+                    final_types[cid] = types.H
+                    n_allee_recovery += 1
+
+        for cid in range(1, n_cells + 1):
+            if final_types[cid] != types_after_death[cid]:
+                world.set_cell_type(cid, final_types[cid])
+
+        current_types = final_types
+        _record(step_idx, n_allee_death, n_allee_recovery)
 
     return result
