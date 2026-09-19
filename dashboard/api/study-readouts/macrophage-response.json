@@ -1,0 +1,1 @@
+{"error": "study spec parse failed: while scanning a simple key\n  in \"<unicode string>\", line 538, column 5:\n        version of this scenario placed  ... \n        ^\ncould not find expected ':'\n  in \"<unicode string>\", line 539, column 5:\n        CORNER, diagonally opposite the  ... \n        ^"}
