@@ -2,7 +2,7 @@ schema_version: 3
 name: ifn-resistance
 status: in-progress
 phase: Simulate
-title: "Increment 3: type-I IFN + per-cell resistance gates virus release — mechanism validated, reproduction still PENDING"
+title: "Type-I IFN field & cellular resistance"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:

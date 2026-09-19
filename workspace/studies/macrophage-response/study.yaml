@@ -2,7 +2,7 @@ schema_version: 3
 name: macrophage-response
 status: in-progress
 phase: Simulate
-title: "Increment 5: macrophages chemotax up the virus field and LOCALIZE to the infection, robust across 5 seeds with an unbiased interior control — LOCALIZATION mechanism validated, reproduction still PENDING"
+title: "Macrophage localization to infection"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:
