@@ -1,9 +1,9 @@
 name: Publish investigation reports
 
 # Regenerate every investigation's self-contained HTML report and publish it to
-# the gh-pages branch at investigations/<slug>.html. The report is built by the
-# vivarium-workbench SPA CLIENT-SIDE, so we serve the dashboard headlessly and
-# drive its "Generate report" button via Playwright
+# the gh-pages branch at investigations/<slug>.html. The report is generated
+# SERVER-SIDE by vivarium-workbench (GET /api/investigation-report/<slug>), so we
+# serve the dashboard and fetch that endpoint per investigation — no browser
 # (scripts/publish_investigation_reports.py).
 #
 # Ships with every workspace scaffolded from the template. DEPLOY job
@@ -47,15 +47,10 @@ jobs:
       - name: Install dependencies (incl. vivarium-workbench)
         run: uv sync --extra dev || uv sync
 
-      - name: Install Playwright + Chromium
-        run: |
-          uv pip install playwright
-          uv run playwright install --with-deps chromium
-
       - name: Generate investigation reports
         id: gen
-        # Serves the dashboard, drives each investigation's report export
-        # headlessly, writes reports/published/investigations/<slug>.html.
+        # Serves the dashboard, fetches each investigation's server-rendered
+        # report, writes reports/published/investigations/<slug>.html.
         # Keep going on a per-report failure so good reports still publish.
         run: |
           set +e
