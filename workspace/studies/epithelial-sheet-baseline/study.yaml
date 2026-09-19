@@ -2,7 +2,7 @@ schema_version: 3
 name: epithelial-sheet-baseline
 status: in-progress
 phase: Simulate
-title: "Increment 1: confluent epithelial sheet (substrate only)"
+title: "Epithelial sheet baseline"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:

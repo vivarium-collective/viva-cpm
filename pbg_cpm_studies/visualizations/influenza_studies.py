@@ -12,7 +12,11 @@ immune-arm studies (IFN/resistance, macrophage/NK/CD8) drop in with one more
 subclass each, reusing the same shell + palette.
 """
 from __future__ import annotations
+import base64
 import json
+import zlib
+
+import numpy as np
 
 from viva_superpowers.visualization import as_visualization
 
@@ -82,18 +86,24 @@ def _spatial_controls(steps):
     }
 
 
-def _type_traces(grid_flat, nx, ny):
-    z = [grid_flat[r * nx:(r + 1) * nx] for r in range(ny)]
-    return [{"type": "heatmap", "z": z, "colorscale": S.discrete_state_colorscale(7),
+def _decode_grid(frame, nx, ny, dtype):
+    """Inflate one baked frame (zlib+base64 row-major int lattice) to a 2D
+    numpy grid — the inverse of ``_capture_spatial._encode``."""
+    raw = zlib.decompress(base64.b64decode(frame["grid"]))
+    return np.frombuffer(raw, dtype=np.dtype(dtype)).reshape(ny, nx)
+
+
+def _type_traces(grid2d):
+    return [{"type": "heatmap", "z": grid2d.tolist(),
+             "colorscale": S.discrete_state_colorscale(7),
              "zmin": -0.5, "zmax": 7.5, "showscale": False, "xgap": 0, "ygap": 0,
              "hoverinfo": "skip"}]
 
 
-def _owner_traces(grid_flat, nx, ny):
+def _owner_traces(grid2d):
     # hash each cell label into a repeating soft-hue tile band; medium recedes
-    zz = [[0 if grid_flat[r * nx + c] == 0
-           else 1 + (grid_flat[r * nx + c] * 2654435761 % 11)
-           for c in range(nx)] for r in range(ny)]
+    g = grid2d.astype(np.int64)
+    zz = np.where(g == 0, 0, 1 + (g * 2654435761 % 11)).tolist()
     return [{"type": "heatmap", "z": zz, "colorscale": S.MOSAIC_SCALE, "zmin": 0,
              "zmax": 11, "showscale": False, "xgap": 0, "ygap": 0, "hoverinfo": "skip"}]
 
@@ -106,7 +116,9 @@ def _build_spatial(slug, title, subtitle, caption, *, increment, kpis,
     sheet) render the cell-label tile mosaic; all others the cell-TYPE mosaic."""
     d = _SP[slug]
     nx, ny, owner = d["nx"], d["ny"], d["kind"] == "owner"
+    dtype = d.get("dtype", "uint8")
     frames_data = d["frames"]
+    decoded = [_decode_grid(fr, nx, ny, dtype) for fr in frames_data]
     div = f"influenza-spatial-{slug}"
 
     def _stamp_text(mcs):
@@ -116,12 +128,12 @@ def _build_spatial(slug, title, subtitle, caption, *, increment, kpis,
             return f"MCS {mcs} · day {mcs / 1440.0:.2f}"
         return f"MCS {mcs}"
 
-    def _traces(fr):
-        return (_owner_traces if owner else _type_traces)(fr["grid"], nx, ny)
+    def _traces(g):
+        return (_owner_traces if owner else _type_traces)(g)
 
-    frames = [{"name": str(i), "data": _traces(fr),
+    frames = [{"name": str(i), "data": _traces(g),
                "layout": {"annotations": [_spatial_stamp(_stamp_text(fr["mcs"]))]}}
-              for i, fr in enumerate(frames_data)]
+              for i, (fr, g) in enumerate(zip(frames_data, decoded))]
     steps = [{"label": str(fr["mcs"]), "method": "animate",
               "args": [[str(i)], {"mode": "immediate",
                                   "frame": {"duration": 0, "redraw": True},
@@ -133,9 +145,10 @@ def _build_spatial(slug, title, subtitle, caption, *, increment, kpis,
         "annotations": [_spatial_stamp(_stamp_text(frames_data[0]["mcs"]))],
         **_spatial_axes(nx, ny), **_spatial_controls(steps)})
 
-    codes = sorted({v for fr in frames_data for v in set(fr["grid"])}) if not owner else []
+    codes = (sorted({int(v) for g in decoded for v in np.unique(g)})
+             if not owner else [])
     body = (_spatial_legend(codes, owner=owner)
-            + S.plot(div, _traces(frames_data[0]), layout, frames=frames))
+            + S.plot(div, _traces(decoded[0]), layout, frames=frames))
     return S.card(title, subtitle, body, caption, increment=increment, kpis=kpis)
 
 
@@ -747,7 +760,7 @@ def _sp_kpis(slug, *headline):
     d = _SP[slug]
     fr = d["frames"]
     span = f'MCS {fr[0]["mcs"]}→{fr[-1]["mcs"]}'
-    return [(f'{d["nx"]}×{d["ny"]} lattice', f'coarsened ×{d["coarsen"]} mosaic'),
+    return [(f'{d["nx"]}×{d["ny"]} lattice', 'full-resolution mosaic'),
             (f'{len(fr)} frames', span), headline]
 
 
@@ -755,13 +768,13 @@ def _build_spatial_sheet():
     """Confluent epithelial sheet relaxing under the Potts temperature (owner mosaic)"""
     cap = ('<b>The substrate, in motion.</b> The confluent 0.3&nbsp;mm / 900-cell epithelial '
            'tiling (Increment&nbsp;1) relaxes under the Cellular-Potts surface/volume energy over '
-           '200 MCS — each tile is one cell, and you can watch the irregular cell boundaries '
+           '300 MCS — each tile is one cell, and you can watch the irregular cell boundaries '
            'settle while the sheet stays gap-free. This is geometry only: no virus, infection or '
-           'immune biology runs yet (those layer on in Increments 2+). Coarsened for display; '
-           'the mean cell volume and throughput are quantified in the companion sheet card.')
+           'immune biology runs yet (those layer on in Increments 2+). Rendered at full lattice '
+           'resolution; the mean cell volume and throughput are quantified in the companion sheet card.')
     return _build_spatial("epithelial-sheet-baseline",
                           "Confluent epithelial sheet — spatial relaxation",
-                          "Increment-1 substrate — the cell mosaic settling over 200 MCS (seed 17)",
+                          "Increment-1 substrate — the cell mosaic settling over 300 MCS (seed 17)",
                           cap, increment=1,
                           kpis=_sp_kpis("epithelial-sheet-baseline",
                                         "900 cells", "confluent, gap-free tiling"))
@@ -908,27 +921,35 @@ def _build_spatial_global():
 
 
 def _build_spatial_repro(fig_label, increment_note):
-    """Shared full-model money-shot mosaic for the three repro-fig* studies."""
-    cap = (f'<b>Reduced-scale, band_eval.passed=False — NO reproduction claimed.</b> The '
-           f'money shot: <b>every</b> Increment 0–8 mechanism wired into ONE per-MCS loop '
-           f'(<code>run_full_model</code>), rendered as the live cell mosaic — healthy '
-           f'(<span style="color:{S.HEALTHY}">■</span>) and infected '
-           f'(<span style="color:{S.INFECTED}">■</span>) epithelium, macrophages '
+    """Shared full-model money-shot mosaic for the three repro-fig* studies —
+    a full-SCALE, full-DURATION single realization (the qualitative sweep),
+    distinct from the reduced-scale quantitative ensemble card."""
+    cap = (f'<b>Qualitative full-scale sweep — NOT a quantitative reproduction.</b> The '
+           f'money shot: <b>every</b> Increment 0–10 mechanism wired into ONE per-MCS loop '
+           f'(<code>run_full_model</code>), rendered as the live cell mosaic at the paper\'s '
+           f'shipped <b>0.3&nbsp;mm scale</b> — a 35×35 (1,225-cell) epithelial patch with '
+           f'macrophage / NK / CD8⁺ clusters, run the full <b>~3.5 simulated days</b> '
+           f'(5,040 MCS) at full lattice resolution. Play it: the seeded lesion of infected '
+           f'(<span style="color:{S.INFECTED}">■</span>) cells spreads across the healthy '
+           f'(<span style="color:{S.HEALTHY}">■</span>) sheet, and Increment-10 ROS-driven '
+           f'death then sweeps the epithelium to a dead (<span style="color:{S.DEAD}">■</span>) '
+           f'core — the green→orange→grey collapse Sego 2022 Fig 2/3 shows — while macrophages '
            f'(<span style="color:{S.CELL_STATES[4][1]}">■</span>), NK '
            f'(<span style="color:{S.CELL_STATES[5][1]}">■</span>) and CD8⁺ '
-           f'(<span style="color:{S.CELL_STATES[6][1]}">■</span>) all acting on one lattice. '
-           f'This is the same REDUCED-scale config the {fig_label} study reports (15×15 cells, '
-           f'few replicas, ~0.1 simulated days) — mechanisms are wired and source-faithful but '
-           f'field/coupling MAGNITUDES remain calibration-pending, so at this scale the '
-           f'{fig_label} acceptance bands are not met. {increment_note} Only the paper-scale '
-           f'ensemble (Mac-mini Phase-B follow-up) can set a <code>reproduced</code> verdict — '
-           f'this scene must not be read as one.')
+           f'(<span style="color:{S.CELL_STATES[6][1]}">■</span>) act on the same lattice. '
+           f'This is a <b>single-seed realization</b> for visual realism, not the calibrated '
+           f'50-replica ensemble: the companion {fig_label} time-course card evaluates the '
+           f'quantitative acceptance bands (still at reduced scale, band_eval.passed=False), '
+           f'and full quantitative {fig_label} calibration is ongoing (Mac-mini Phase-B). '
+           f'{increment_note} Read this as the mechanism\'s spatial behaviour, not a '
+           f'<code>reproduced</code> verdict.')
     return _build_spatial("repro-full-model",
                           f"Full model — spatial state ({fig_label})",
-                          f"Increment-9 CAPSTONE — the complete run_full_model mosaic (reduced scale, seed 0)",
+                          "Increment-9/10 CAPSTONE — full run_full_model mosaic, full scale + "
+                          "~3.5 days, ROS death (seed 0)",
                           cap, increment=9,
                           kpis=_sp_kpis("repro-full-model",
-                                        "all mechanisms", "one per-MCS loop"))
+                                        "green→orange→grey", "ROS death sweeps the sheet"))
 
 
 def _build_spatial_repro_fig3b():

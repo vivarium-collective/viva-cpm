@@ -2,7 +2,7 @@ schema_version: 3
 name: repro-fig3b
 status: in-progress
 phase: Evaluate
-title: "Increment 9 Task 9.2 (CAPSTONE): repro_fig3b wires run_full_model into an ensemble driver and evaluates it against the digitized Fig-3B acceptance bands — at REDUCED scale (2 replicas, 15x15 cells, 20 records ~0.09 days) 0/12 observables land in-band for every checkpoint (band_eval.passed=False), expected at this population/time scale — the paper-scale 50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict"
+title: "Reproduction — Fig 3B (time series vs ODE)"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:

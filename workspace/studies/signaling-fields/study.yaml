@@ -2,7 +2,7 @@ schema_version: 3
 name: signaling-fields
 status: in-progress
 phase: Simulate
-title: "Increment 6: chemokine field forms a gradient centered on the macrophage cluster (4.2x per-cell, 5.9x radial decay), IL-10 positive from both regulated sources — FIELD MECHANISM documented, reproduction still PENDING"
+title: "Chemokine & IL-10 signaling fields"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:

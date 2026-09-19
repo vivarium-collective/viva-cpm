@@ -2,7 +2,7 @@ schema_version: 3
 name: epithelial-fate
 status: in-progress
 phase: Simulate
-title: "Increment 4: cellularized epithelial-fate lifecycle (H->I->D, D->H Allee recovery) — mechanism validated, reproduction still PENDING"
+title: "Epithelial death & Allee recovery"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:

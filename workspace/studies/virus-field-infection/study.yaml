@@ -2,7 +2,7 @@ schema_version: 3
 name: virus-field-infection
 status: in-progress
 phase: Simulate
-title: "Increment 2: virus field diffusion/decay + stochastic local infection spread"
+title: "Virus field & stochastic H→I infection"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:

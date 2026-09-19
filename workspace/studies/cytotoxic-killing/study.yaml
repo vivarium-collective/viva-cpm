@@ -2,7 +2,7 @@ schema_version: 3
 name: cytotoxic-killing
 status: in-progress
 phase: Simulate
-title: "Increment 7: NK/CD8 chemotax up the chemokine field and localize robustly (5/5 seeds); contact-killing WORKS in a close-contact test (1->0) — but at the DEFAULT full-scale scenario NK/CD8 never reach the infected cell, so end-to-end cytotoxic CLEARANCE is WEAK — capability proven, clearance an Increment-9 calibration gap"
+title: "NK / CD8⁺ cytotoxic killing"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:

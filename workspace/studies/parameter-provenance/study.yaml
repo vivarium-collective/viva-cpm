@@ -2,7 +2,7 @@ schema_version: 3
 name: parameter-provenance
 status: in-progress
 phase: Design
-title: "Parameter provenance: CC3D source authority for the Sego 2022 reproduction"
+title: "Parameter provenance & digitized Fig 3B/5/7 targets"
 confidence: medium
 investigation: influenza-sego2022
 
