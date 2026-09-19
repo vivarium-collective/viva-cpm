@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Study: recruitment-inhibited</title>
+<title>Study: global-coupling</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
 <!-- Inherit the workbench light/dark theme (this page loads in an iframe;
@@ -14,11 +14,11 @@
 <header class="study-header">
   <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
-    <span class="study-name" id="study-name" data-slug="recruitment-inhibited" title="recruitment-inhibited">Intervention: block the response</span>
+    <span class="study-name" id="study-name" data-slug="global-coupling" title="global-coupling">Increment 8: hybrid 10-species global ODE (Price 2015) integrates once/MCS, coupled bidirectionally to the spatial CPM model — the three carried stubs (dynamic sig_1, ODE-driven recruitment, NK/CD8 nearby-killing) are RESOLVED as mechanisms, source-faithful and wired correctly — but at reduced scale the coupling MAGNITUDES are not yet calibrated (dynamic sig_1 collapses ~1e-6 vs the old stub&#39;s 2.44; recruitment/nearby-killing stay too weak to engage naturally): mechanism-resolved, calibration-pending, Increment 9</span>
     
     <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
     
-    <span class="phase-pill phase-decide" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Decide</span>
+    <span class="phase-pill phase-simulate" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Simulate</span>
     
   </h1>
   <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0;">
@@ -36,7 +36,7 @@
     
 
     
-    <div id="readiness-panel" data-slug="recruitment-inhibited"></div>
+    <div id="readiness-panel" data-slug="global-coupling"></div>
 
     
     
@@ -58,7 +58,7 @@
             <span class="dot"></span>2&nbsp;·&nbsp;Execution
           </span>
           
-          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 3 · Evidence">
+          <span class="status-step gate-step axis-evaluation_status gate-state-passed-with-conditions set" title="Gate 3 · Evidence">
             <span class="dot"></span>3&nbsp;·&nbsp;Evidence
           </span>
           
@@ -90,19 +90,21 @@
           <span class="status-detail-axis">2 · Execution</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="1 completed run(s)">◆ computed: ran</span>
+          <span class="gate-computed-chip gate-state-passed" title="3 completed run(s)">◆ computed: ran</span>
           
           
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed">
+        <div class="status-detail-row gate-row gate-state-passed-with-conditions">
           <span class="status-detail-axis">3 · Evidence</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          <span class="gate-computed-chip gate-state-passed-with-conditions" title="completed run + recorded verdicts + visualization readiness gate (V4)">◆ computed: evaluated</span>
           
           
+          
+          <span class="gate-viz-gap-note" style="font-size:0.86em;color:#92400e">visualization gap: no figures</span>
           
         </div>
         
@@ -148,15 +150,24 @@
 
 
 
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> If the chemotactic response is blocked (lambda -&gt; 0) while the cue is still
-secreted, is recruitment abolished?
+<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Coupling the Price (2015)-derived global immune ODE (10 systemic
+species) bidirectionally to the spatial CPM patch — spatial aggregates
+feeding the ODE each MCS, the freshly-integrated ODE state (TNF, APC)
+feeding back into spatial secretion regulation and recruitment — do the
+three mechanisms carried as documented stubs since Increments 5-7
+(static sig_1, absent recruitment, LOCAL-only cytotoxic killing) now
+resolve into DYNAMIC, ODE-driven mechanisms that are individually
+correct and source-faithful, and — the honest question this study
+exists to surface — do the resulting coupling MAGNITUDES already
+reconcile at this reduced-scale patch, or is the wiring correct while
+the field-vs-ODE unit scales still need Increment-9 calibration?
 </p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
   <div class="act-cluster" data-act="study">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="study" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="study" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">The Study</span>
     </div>
     <div class="act-tabs">
@@ -177,7 +188,7 @@ secreted, is recruitment abolished?
   </div>
   <div class="act-cluster" data-act="evidence">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">Evidence</span>
     </div>
     <div class="act-tabs">
@@ -561,34 +572,115 @@ secreted, is recruitment abolished?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">Blocking the chemotactic response abolishes recruitment: the recruitment index
-stays at 0 (mean approach ~0), despite the cue being present.
+      <p class="ctr-text">The hybrid Price-2015 global ODE (10 systemic species, discrepancy #9)
+integrates stably once per MCS and responds to the spatial infection.
+All three stubs carried since Increments 5-7 are RESOLVED as dynamic,
+source-faithful mechanisms: dynamic sig_1 (`a_11*T + a_12*D`, the
+unchanged Michaelis secretion form, discrepancy #11), ODE-driven
+recruitment (chemokine/APC Hill inflows with the source&#39;s CD8-no-
+baseline asymmetry preserved, discrepancy #12), and NK/CD8 killing
+extended with a well-mixed NEARBY term (verified via a documented test
+seam) alongside the unchanged Increment-7 LOCAL contact term. THIS STUDY
+DOES NOT CLAIM THESE MECHANISMS ARE ALREADY CALIBRATED — at this
+driver&#39;s default reduced-scale patch (eta ~1.4e-4), dynamic sig_1&#39;s
+value is ~6 orders of magnitude below the retired static stub (2.44),
+collapsing the secretion-scale factor to near-zero; ODE-driven
+recruitment produces sub-0.01-per-MCS rates (no observable integer
+population growth from the chemokine/APC signal within a short run, only
+from the baseline term at a boosted eta); and the nearby-killing term,
+grown via natural recruitment alone over 300 MCS, remains orders of
+magnitude too weak to fire. These are FIELD-vs-ODE UNIT-SCALE
+CALIBRATION gaps — the same root-cause category as Increment 7&#39;s
+chemotaxis-engine-scale correction — deliberately reported as open,
+NOT tuned away, and deferred to Increment 9.
 </p>
       
-      <div class="ctr-context">This is the response-blocked negative-control arm of the chemotactic-recruitment
-slice. The world is identical to the baseline — source cells still secrete the
-diffusible cue and form the same spatial gradient — except the responder
-chemotaxis strength (lambda) is set to zero, the CPM analogue of pharmacologically
-blocking the response. With no bias on their Cellular Potts copy attempts,
-responder centres of mass do not drift toward the source and the recruitment
-index stays at 0.000 across all 500 Monte-Carlo sweeps and all 5 seeds, versus
-0.767 for the baseline. This shows the chemotactic response — not merely the
-presence of the cue — is a necessary ingredient for recruitment.
+      <div class="ctr-context">The Price (2015)-derived global (whole-organ) immune ODE compartment —
+10 systemic species `{NB, N, T, X, A, B, P, W, G, O}` (neutrophils
+blood/tissue, TNF, ROS, antibody, IL-12, APC, IL-12, IFN-gamma, CD4+
+Th1) — now integrates once per MCS (scipy LSODA, dt=60s, approximating
+the source&#39;s RoadRunner CVODE integrator), fed each MCS by the spatial
+model&#39;s cell counts, field integrals, and resistance-weighted infected-
+load terms (discrepancy #9&#39;s hybrid correction: only these 10 states are
+advanced by the integrator, the spatialized species are read as inputs).
+The freshly-integrated TNF, combined with the spatial dead-epithelial
+count, now drives a DYNAMIC macrophage chemokine/IL-10 secretion-scale
+factor (`sig_1 = a_11*T + a_12*D`, the unchanged Increment-6 Michaelis
+form, discrepancy #11) in place of the static Increment-6 stub; ODE-
+driven recruitment (discrepancy #12) activates/removes CPM macrophage/
+NK/CD8+ cells from a pre-seeded dormant reserve pool via chemokine- and
+APC-Hill-driven inflow (CD8+ strictly APC-driven with NO homeostatic
+baseline, unlike macrophage/NK, per the source&#39;s own asymmetry); and
+NK/CD8 cytotoxic killing now combines the Increment-7 LOCAL contact term
+with a well-mixed NEARBY-population term driven by ODE surrogates
+(`K_nb`/`E_nb`). Every one of these three mechanisms is individually
+verified correct: sig_1 is genuinely time-varying and monotone-rising
+with TNF; CD8+&#39;s no-baseline asymmetry is preserved exactly (inflow ==
+0.0 with the signal zeroed); and the nearby-killing term clears infected
+cells when a sufficiently large nearby population is present (via a
+documented test seam). This study&#39;s central, deliberately UN-hidden
+finding is that at this driver&#39;s small reduced-scale default (eta
+~1.4e-4), none of these mechanisms&#39; MAGNITUDES yet reconcile with the
+values they replaced or need to matter within a feasible run: dynamic
+sig_1 is ~6 orders of magnitude below the retired static stub (2.44),
+collapsing macrophage secretion regulation to near-zero; ODE-driven
+recruitment produces sub-0.01-per-MCS chemokine/APC-signal-driven rates
+(no observable integer population growth there; a boosted eta DOES seed
+cells, but from the homeostatic baseline, not the signal); and the
+nearby-killing term, grown via natural recruitment alone over 300 MCS,
+remains orders of magnitude too weak to fire. These are FIELD-vs-ODE
+UNIT-SCALE CALIBRATION gaps -- the same root-cause category already
+recorded for macrophage/NK/CD8 chemotaxis in Increments 5 and 7 -- now
+propagating into the ODE-coupling layer this task adds, deliberately
+reported as open Increment-9 calibration items rather than tuned away.
+Discrepancy #9 (hybrid ODE), #10 (spatial-string scalings), #7 (resist-
+direct, carried), LSODA-vs-CVODE, the reserve-pool recruitment-geometry
+approximation, and 2D-approximation geometry are all additional open
+items, not resolved here.
 </div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Test</h2>
-      <p class="ctr-text">Repeat the baseline world with the responder chemotaxis strength set to zero (the
-intervention) and measure the recruitment index over 500 MC sweeps.
+      <p class="ctr-text">Wire `price_ode.GlobalODE` (Task 8.1, the hybrid 10-species integrator,
+discrepancy #9) into `run.run_global_coupling`&#39;s per-MCS loop: spatial-&gt;
+ODE aggregate push (Task 8.2), ODE-&gt;spatial dynamic sig_1 feedback (Task
+8.3, discrepancy #11), ODE-driven recruitment (Task 8.4, discrepancy
+#12), and NK/CD8 LOCAL+NEARBY cytotoxic killing (Task 8.5). Measure sig_1&#39;s
+dynamic range vs the retired static stub, recruitment inflow/outflow
+rates and population trajectories (default vs boosted eta), and whether
+the nearby-killing term fires via natural recruitment buildup vs a
+documented test-seam override
+(`tests/test_influenza_price_ode.py`, `tests/test_influenza_recruitment.py`,
+`tests/test_influenza_killing.py`, task-8.1 through task-8.5-report.md).
+A minimal in-package figure (`pbg_cpm_studies/influenza/viz.py::
+global_coupling_figure`, Task 8.6) renders the systemic ODE species
+(T/X/A/P) and the spatial aggregates (I/M/K/E) plus dynamic sig_1 over
+MCS.
 </p>
       
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>recruitment-inhibited</code></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">Pass criterion: recruitment index stays below 0.1 throughout. Measured from the
-run: recruitment index remains 0.000 across all 500 sweeps (mean approach -0.08,
-i.e. no net approach).
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>global-coupling</code></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">`run.run_global_coupling` must return finite (non-NaN, non-diverging)
+trajectories for all 10 INTEGRATED_STATES across a short run.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">sig_1 computed each MCS from a_11*T + a_12*D must be a genuinely
+time-varying series (not the constant stub), monotone-rising when
+TNF T is rising.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">CD8+ inflow rate must be exactly 0.0 when the APC driving signal is
+zeroed (recruit_zero_signal=True), while macrophage and NK inflow
+stay strictly positive under the same control (discrepancy #12).
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">With the initial_K_nb/initial_E_nb test seam set to a large
+synthetic value, n_infected_final/I[-1] must be strictly lower than
+the K_nb=E_nb=0 control over the same short run, and
+dead_from_infected must be 0 in that control (non-vacuous).
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Every types.D cell created by this driver&#39;s own killing step is
+dead-from-infected; the spatial-&gt;ODE DH input must stay 0 whether or
+not killing fires, so DI (and its dP/dt driver) isn&#39;t suppressed by
+an over-counted DH.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Panel (a) plots the driver&#39;s actual T/X/A/P ODE series; panel (b)
+plots the driver&#39;s actual I/M/K/E spatial series plus dynamic
+sigma1; matplotlib Figure with &gt;= 2 axes.
 </span></div>
       </div>
       
@@ -596,7 +688,7 @@ i.e. no net approach).
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">Recruitment is causally dependent on the chemotactic response, not merely on the presence of the cue — the response is a necessary ingredient.</p>
+      <p class="ctr-text">Every one of this task&#39;s three &#34;resolved&#34; mechanisms hits the SAME root cause the investigation has flagged repeatedly since Increment 5: this engine&#39;s small default-scale patch produces field concentrations and population counts many orders of magnitude below what the source&#39;s literal ODE constants (calibrated at `tot_ec_ODE=250000`, the paper&#39;s full 1mm^2 organ scale) were designed to consume. `eta` (= `num_epithelial / 250000`) is tiny (~1.4e-4) at this driver&#39;s default `side=30`, so every `eta`-scaled coupling term — the cellularized Hill-dissociation constants driving recruitment, the nearby-population surrogates driving the new killing term, and (via `a_11`/`a_12`) the dynamic sig_1 itself — collapses toward zero long before it can produce an observable integer effect within a feasible step budget. This is NOT a new failure mode this task introduced; it is the field-magnitude/ engine-unit-scale gap already recorded in `cytotoxic-killing`&#39;s `main_insight` and `macrophage-response`&#39;s localization numbers, now propagating into the ODE-coupling layer this task adds on top. Increment 9&#39;s capstone calibration needs to treat sig_1, recruitment, and nearby-killing as one COMBINED eta-scale calibration target, not three separate ad hoc corrections.</p>
       
       
     <div class="overview-section findings-section">
@@ -613,12 +705,14 @@ i.e. no net approach).
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The intervention works: across 5 seeds the recruitment index stays at
-0.000 +/- 0.000 with lambda=0, despite the cue being present (baseline 0.767;
-Cohen&#39;s d = 6.38) — recruitment is response-dependent.
+            <span class="finding-claim finding-statement">The macrophage chemokine/IL-10 secretion-scale driver is genuinely
+dynamic now, computed each MCS from the ODE&#39;s own freshly-integrated
+TNF plus the spatial dead-epithelial count, through the unchanged
+Increment-6 Michaelis functional form (discrepancy #11) -- this
+resolves the static Increment-6 stub as a MECHANISM.
 </span>
             
-            <span class="finding-chip">via <code>Blocking the response abolishes recruitment</code></span>
+            <span class="finding-chip">via <code>Dynamic sig_1 differs from and replaces the static stub</code></span>
             
           </summary>
           <div class="finding-drawer">
@@ -630,9 +724,9 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> recruitment index 0.000 ± 0.000 across 5 seeds despite the cue present (baseline 0.767; d=6.38) · 
+              <strong>observed:</strong> sig_1 = a_11*T + a_12*D: 6.04429e-07 (MCS 1) -&gt; 2.82018e-06 (MCS 20), monotone-rising; retired static stub was the constant 2.4412677 · 
               
-              via test <a href="#bt-Blocking" onclick="_gotoStudyTab('tests','bt-Blocking');return false;"><code>Blocking the response abolishes recruitment</code></a> · 
+              via test <a href="#bt-Dynamic" onclick="_gotoStudyTab('tests','bt-Dynamic');return false;"><code>Dynamic sig_1 differs from and replaces the static stub</code></a> · 
               
               
               
@@ -640,7 +734,288 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
             
             
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×6.38 vs expected</span>
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-partial">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">◐</span>
+            <span class="finding-claim finding-statement">Reported as a GAP, not hidden (status: partial): at this reduced-
+scale default (tiny eta), the dynamic sig_1&#39;s MAGNITUDE is far below
+what the retired stub supplied, collapsing macrophage secretion
+regulation to near-zero. This is a field-vs-ODE unit-scale
+calibration gap, not a functional-form or wiring defect -- deferred
+to Increment 9, not tuned away.
+</span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-02</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">partial literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> dynamic sig_1 (~6.04e-7 to ~2.82e-6) is ~6 orders of magnitude below the retired static stub (2.4412677); the resulting Michaelis secretion-scale factor collapses to ~1e-5-1e-7 vs the stub&#39;s ~0.5-0.975 at representative local-IL-10 readings · 
+              
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">Recruitment is genuinely ODE-driven and preserves the source&#39;s
+documented asymmetry (discrepancy #12): CD8+&#39;s Hill-driven inflow has
+no homeostatic baseline term, unlike macrophage/NK -- implemented
+literally, not symmetrized for convenience.
+</span>
+            
+            <span class="finding-chip">via <code>CD8+ recruitment inflow is APC-driven with no homeostatic baseline</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-03</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> CD8+ inflow rate == 0.0 exactly when the APC signal is zeroed; macrophage inflow 5.17e-4, NK inflow 4.98e-5 stay positive under the same zero-signal control (seed=5, default eta) · 
+              
+              via test <a href="#bt-CD8+" onclick="_gotoStudyTab('tests','bt-CD8+');return false;"><code>CD8+ recruitment inflow is APC-driven with no homeostatic baseline</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-partial">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">◐</span>
+            <span class="finding-claim finding-statement">This is the study&#39;s second honest gap: neither the default nor the
+boosted-eta regime yields chemokine/APC-SIGNAL-driven INTEGER
+population growth within a short run -- a genuine field-vs-ODE-scale
+calibration item, same category as Increment 7&#39;s chemotaxis-lambda
+finding. No recruitment constant was tuned to force growth.
+</span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-04</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">partial literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> default-eta chemokine/APC-Hill-driven inflow rates are all &lt;0.01/MCS (macrophage 1.69e-3, NK 8.04e-3, CD8 3.29e-5); boosted eta=1 DOES seed cells (macrophage 10-&gt;43) but from the homeostatic baseline term, not the signal-driven Hill term, which collapses at that eta · 
+              
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">The well-mixed nearby-population killing term (`killing.
+nearby_kill_rate`) is implemented and verified CORRECT: given a
+sufficiently large nearby NK/CD8 surrogate population, the term
+fires and clears infected cells, combining correctly with the
+unchanged Increment-7 LOCAL contact term into one total-rate draw.
+</span>
+            
+            <span class="finding-chip">via <code>Nearby-population killing clears infected cells given a sufficient nearby population</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-05</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> with initial_K_nb=2000/initial_E_nb=100 (test seam): both seeded infected cells cleared within 2 MCS; K_nb=E_nb=0 control: 0 cells cleared by the nearby term (LOCAL term alone clears none in 10 MCS at this scale) · 
+              
+              via test <a href="#bt-Nearby-population" onclick="_gotoStudyTab('tests','bt-Nearby-population');return false;"><code>Nearby-population killing clears infected cells given a sufficient nearby population</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-partial">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">◐</span>
+            <span class="finding-claim finding-statement">The study&#39;s third honest gap: at this engine&#39;s default reduced-scale
+patch, the NEARBY killing term&#39;s own natural-recruitment-driven
+buildup is orders of magnitude too weak to matter within a feasible
+step budget -- the SAME root cause as F-02/F-04 (tiny eta collapsing
+eta-scaled coupling terms), not a separate defect. The
+initial_K_nb/initial_E_nb test seam (F-05) exists specifically to
+exercise the wiring without waiting on this slow natural buildup.
+</span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-06</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">partial literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> 300-MCS run, seed=1, default scenario, natural Task-8.4 recruitment (no test seam): K_nb rises only to ~0.16-0.17 (then slowly declines), E_nb to ~0.011, at eta~1.44e-4 -- nearby_kill_rate&#39;s NK term ~2.4e-5*resist, no infected cell cleared by the nearby term alone · 
+              
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
               
               
             </div>
@@ -665,9 +1040,9 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
       <div class="ctr-meta ctr-assess">
         
         <div class="ctr-meta-row"><span class="ctr-meta-k">Confidence</span>
-          <span class="ctr-badge ctr-badge-accepted">Accepted</span>
-          <span class="ctr-vch">biology&nbsp;PASS</span>
-          <span class="ctr-vch">insight&nbsp;POSITIVE</span>
+          <span class="ctr-badge ctr-badge-provisional">Provisional</span>
+          <span class="ctr-vch">biology&nbsp;PENDING</span>
+          <span class="ctr-vch">insight&nbsp;PENDING</span>
         </div>
         
         
@@ -686,12 +1061,12 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
     <h2 class="overview-label" style="margin:0">Model composition</h2>
     
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'recruitment-inhibited', 'chemotactic-recruitment')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'global-coupling', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
   </div>
 
   
   
-  <div id="model-composite-cards" class="model-composite-cards" data-study="recruitment-inhibited"
+  <div id="model-composite-cards" class="model-composite-cards" data-study="global-coupling"
        data-study-config="">
     <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
   </div>
@@ -710,29 +1085,33 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.chemotaxis.recruitment" data-model-overrides='{"chemo_lambda": 0.0, "cue_rate": 10.0}'>
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.global_coupling" data-model-overrides='{"chemotaxis_v_cd8": 1000000.0, "chemotaxis_v_macro": 5000.0, "chemotaxis_v_nk": 500000.0, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <strong>recruitment-inhibited</strong>
+        <strong>global-coupling</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.chemotaxis.recruitment</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.global_coupling</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.chemotaxis.recruitment')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.global_coupling')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="recruitment-inhibited"
-               value="pbg_cpm_studies.composites.chemotaxis.recruitment" placeholder="pkg.composites.name"
+        <input type="text" class="baseline-composite-input" data-baseline-name="global-coupling"
+               value="pbg_cpm_studies.composites.influenza.global_coupling" placeholder="pkg.composites.name"
                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
-                data-baseline-name="recruitment-inhibited">Set composite</button>
+                data-baseline-name="global-coupling">Set composite</button>
       </div>
-      <div class="baseline-composite-status muted" data-baseline-name="recruitment-inhibited" style="font-size:0.8em;margin-top:2px"></div>
+      <div class="baseline-composite-status muted" data-baseline-name="global-coupling" style="font-size:0.8em;margin-top:2px"></div>
       
       
       
       
       
+      
+        
+      
+        
       
         
       
@@ -747,7 +1126,7 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
       
       
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:0.8em">
-        <span class="cond-pill"><span class="cond-pill-k">seeds</span>=5</span>
+        
         
         
         <span class="cond-pill"><span class="cond-pill-k">status</span>=completed</span>
@@ -765,20 +1144,41 @@ Cohen&#39;s d = 6.38) — recruitment is response-dependent.
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.chemotaxis.recruitment</code></p>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.cytotoxic_response</code></p>
     
+    
+    <p><strong>New state variables:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code>10 systemic ODE species NB/N/T/X/A/B/P/W/G/O</code></li><li><code>nearby-population ODE surrogates M_nb/K_nb/E_nb</code></li><li><code>dynamic sigma1 series</code></li><li><code>per-MCS recruitment inflow/outflow rates</code></li>
+    </ul>
     
     
     <p><strong>New parameters:</strong></p>
     <ul style="margin:0 0 8px 18px">
-      <li><code></code></li><li><code></code></li>
+      <li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li>
     </ul>
     
     
     
-    <p class="muted" style="font-size:0.88em">Same parameterized CPMProcess as the baseline, with chemo_lambda forced to 0
-(response blocked) while cue_rate is unchanged (cue present). No new
-processes, state variables, or listeners were added.
+    <p class="muted" style="font-size:0.88em">A new dashboard-loadable composite IS added this increment:
+`pbg_cpm_studies.composites.influenza.global_coupling` (Task 8.6) --
+reuses `cytotoxic_response_composite_document` verbatim (the Task-7.1
+three-cluster scenario + virus/chemokine field stack + macrophage/NK/
+CD8 chemotaxis wiring). This is a LIVE-DEMO SCENARIO-GEOMETRY wrapper
+ONLY -- it does NOT implement the global ODE integration (Task 8.1),
+the spatial&lt;-&gt;ODE bidirectional coupling (Task 8.2), dynamic sig_1
+feedback (Task 8.3), ODE-driven recruitment (Task 8.4), or the nearby-
+population killing term (Task 8.5): none of these are expressible in
+this declarative CPMProcess spec format (each is custom per-MCS Python
+over `price_ode.GlobalODE`/`recruitment`/`killing`). This study&#39;s
+measured numbers (sig_1&#39;s dynamic range, recruitment rates, nearby-
+killing behavior) all come directly from `run.run_global_coupling`
+(Tasks 8.1-8.5, a raw `cpm_core.World` + `price_ode.GlobalODE` loop),
+not from this composite. The dashboard &#34;run baseline&#34; therefore
+exercises the SAME scenario geometry this study&#39;s mechanisms run over,
+but not the ODE-coupling mechanisms themselves -- expected to show
+dashboard status PENDING for the same reason `cytotoxic-killing`&#39;s
+composite does (see that study&#39;s own model_change.notes precedent).
 </p>
   </div>
   
@@ -812,7 +1212,7 @@ processes, state variables, or listeners were added.
 
   <h4>Latest run preview</h4>
   <p class="muted" style="font-size:0.9em">Per-store sparkline + first/last/min/max from the most recent run's emitted trajectory. This is a downsampled PREVIEW, not the full data — use the per-store or Download-all links for the complete arrays.</p>
-  <div id="results-preview" data-study="recruitment-inhibited">
+  <div id="results-preview" data-study="global-coupling">
     <p class="empty-message">Loading results preview…</p>
   </div>
 
@@ -836,9 +1236,9 @@ processes, state variables, or listeners were added.
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
     <span class="muted" style="margin-right:auto;font-weight:600">Analysis result files</span>
     <a id="data-download-all" class="btn-mini" style="display:none"
-       href="/api/study-analysis-zip?study=recruitment-inhibited">Download all (.zip)</a>
+       href="/api/study-analysis-zip?study=global-coupling">Download all (.zip)</a>
   </div>
-  <div id="data-files" data-study="recruitment-inhibited">
+  <div id="data-files" data-study="global-coupling">
     <p class="empty-message">Loading result files…</p>
   </div>
 </div>
@@ -859,7 +1259,7 @@ processes, state variables, or listeners were added.
     interval/buffer, output location, and emit scope — from
     <code>lib/emitters.py</code> and this study's (or the workspace's)
     <code>runtime.default_emitter</code>.</p>
-    <div id="readouts-emitter" data-study="recruitment-inhibited">
+    <div id="readouts-emitter" data-study="global-coupling">
       <p class="empty-message">Loading emitter configuration…</p>
     </div>
 
@@ -871,7 +1271,7 @@ processes, state variables, or listeners were added.
     
     <div id="readouts-download" style="margin:0 0 16px 0"></div>
 
-    <div id="readouts-table" data-study="recruitment-inhibited">
+    <div id="readouts-table" data-study="global-coupling">
       <p class="empty-message">Loading readouts from the composite emit plan…</p>
     </div>
 
@@ -879,7 +1279,7 @@ processes, state variables, or listeners were added.
     <p class="muted" style="font-size:0.9em">Store path, dtype, shape
     <code>(n_steps, …)</code>, units, and a best-effort byte estimate for each emitted
     leaf.</p>
-    <div id="readouts-shapes" data-study="recruitment-inhibited">
+    <div id="readouts-shapes" data-study="global-coupling">
       <p class="empty-message">Loading output shapes…</p>
     </div>
 
@@ -902,30 +1302,9 @@ processes, state variables, or listeners were added.
 
     
     
-    <div class="viz-actions-row" style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'recruitment-inhibited')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
-    </div>
-    
 
     <div id="native-gallery-panel" class="figure-mount"><p class="empty-message">Loading figures…</p></div>
 
-    
-    
-    
-    <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/recruitment-inhibited/viz/scene.html"
-              class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="Animated spatial scene"
-              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
-              ></iframe>
-      
-      <div class="figure-caption-row">
-        <span class="figure-source-chip">embed</span>
-        <span class="figure-title">Animated spatial scene</span>
-        
-        <a href="/viva-cpm/dashboard/workspace/studies/recruitment-inhibited/viz/scene.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
-      </div>
-    </div>
     
     
 
@@ -952,14 +1331,14 @@ processes, state variables, or listeners were added.
       
       <li class="literature-anchor-card expectation-item">
         <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span>Blocking the chemotactic response abolishes gradient-directed recruitment even when the cue is present.</span>
+          <span>The global immune ODE compartment (Price 2015-derived, Sego 2022 Sec. 2.2/2.5) integrates systemic TNF/ROS/antibody/APC/IL-12/IFN-gamma/CD4+/neutrophil dynamics coupled bidirectionally to the spatial CPM patch via the eta/theta scaling factors, driving macrophage secretion regulation, NK/CD8/macrophage recruitment, and (with the spatial contact-killing term) infected-cell clearance.</span>
           
         </div>
         <div class="anchor-observable">
-          <em>Model observable:</em> <code>recruitment_index</code>
+          <em>Model observable:</em> <code>price_ode.GlobalODE integrates the 10 systemic states once/MCS, fed by spatial aggregates; the freshly-integrated TNF + spatial dead count drives a dynamic sig_1 (replacing the Increment-6 stub); ODE-driven recruitment and a nearby-population killing term are both wired and individually verified correct (dynamic sig_1&#39;s monotone TNF-tracking, CD8&#39;s no-baseline asymmetry, nearby-killing&#39;s test-seam-verified clearance). At this reduced-scale default, none of the three mechanisms&#39; magnitudes yet reach the scale needed to matter within a feasible run -- honestly reported, not a reproduction claim.</code>
         </div>
         
-        <div class="anchor-source"><em>Source:</em> Chemotaxis up a secreted gradient (canonical)</div>
+        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (ImmuneModelLib.py immune_model_string, spatial-coupling variant) via pbg_cpm_studies/influenza/price_ode.py, recruitment.py, killing.py, signaling.py, and params.yaml&#39;s price_ode:/coupling: blocks</div>
         
       </li>
     
@@ -1008,10 +1387,49 @@ processes, state variables, or listeners were added.
     
     
     
-    <li class="expected-behavior-item" id="bt-Blocking the response abolishes recruitment"
+    <li class="expected-behavior-item" id="bt-GlobalODE integrates the 10 systemic species stably over a run"
         data-test-kind="behavioral"
         
-        data-pytest-node="Blocking the response abolishes recruitment"
+        data-pytest-node="GlobalODE integrates the 10 systemic species stably over a run"
+        data-classification="primary"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">GlobalODE integrates the 10 systemic species stably over a run</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">`run.run_global_coupling` must return finite (non-NaN, non-diverging)
+trajectories for all 10 INTEGRATED_STATES across a short run.
+</div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "global-coupling-ode-stability", "kind": "ode_states_finite_and_stable", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-Dynamic sig_1 differs from and replaces the static stub"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="Dynamic sig_1 differs from and replaces the static stub"
         data-classification="primary"
         data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
@@ -1020,22 +1438,22 @@ processes, state variables, or listeners were added.
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">Blocking the response abolishes recruitment</strong>
+        <strong style="font-size: 0.9em;">Dynamic sig_1 differs from and replaces the static stub</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: recruitment index stays below 0.1 throughout. Measured from the
-run: recruitment index remains 0.000 across all 500 sweeps (mean approach -0.08,
-i.e. no net approach).
+      <div style="margin-top: 6px; font-size: 0.95em;">sig_1 computed each MCS from a_11*T + a_12*D must be a genuinely
+time-varying series (not the constant stub), monotone-rising when
+TNF T is rising.
 </div>
       
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.0</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 2.82018e-06</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: 0.000 across 5 seeds with the cue present (baseline 0.767)</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: sig_1 at MCS 20 (final), side=30, with_immune=True, seed_infection_frac=0.05; monotone-rising from 6.04429e-07 at MCS 1; retired static stub was 2.4412677 (task-8.3-report.md).</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: pbg_cpm_studies.evaluators</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_signaling.py</code>
         
       </div>
       
@@ -1043,8 +1461,170 @@ i.e. no net approach).
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "recruitment-inhibited", "kind": "recruitment_index", "stat": "max"}
-pass_if: {"op": "lt", "value": 0.1}</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "dynamic-sig1-vs-stub", "kind": "sig_1_dynamic_monotone_and_differs_from_stub", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-CD8+ recruitment inflow is APC-driven with no homeostatic baseline"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="CD8+ recruitment inflow is APC-driven with no homeostatic baseline"
+        data-classification="primary"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">CD8+ recruitment inflow is APC-driven with no homeostatic baseline</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">CD8+ inflow rate must be exactly 0.0 when the APC driving signal is
+zeroed (recruit_zero_signal=True), while macrophage and NK inflow
+stay strictly positive under the same control (discrepancy #12).
+</div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "cd8-no-baseline-recruitment", "kind": "cd8_recruitment_is_apc_driven_asymmetry_preserved", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-Nearby-population killing clears infected cells given a sufficient nearby population"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="Nearby-population killing clears infected cells given a sufficient nearby population"
+        data-classification="primary"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">Nearby-population killing clears infected cells given a sufficient nearby population</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">With the initial_K_nb/initial_E_nb test seam set to a large
+synthetic value, n_infected_final/I[-1] must be strictly lower than
+the K_nb=E_nb=0 control over the same short run, and
+dead_from_infected must be 0 in that control (non-vacuous).
+</div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "nearby-killing-on-vs-off", "kind": "n_infected_final_lower_with_nearby_surrogate_present", "stat": "final"}
+pass_if: {"op": "lt", "value": "n_infected_final[K_nb=E_nb=0 control]"}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-DH-input fix -- dead-from-infected cells do not inflate the dead-from-healthy ODE input"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="DH-input fix -- dead-from-infected cells do not inflate the dead-from-healthy ODE input"
+        data-classification="secondary"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-secondary">secondary</span>
+        <strong style="font-size: 0.9em;">DH-input fix -- dead-from-infected cells do not inflate the dead-from-healthy ODE input</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">Every types.D cell created by this driver&#39;s own killing step is
+dead-from-infected; the spatial-&gt;ODE DH input must stay 0 whether or
+not killing fires, so DI (and its dP/dt driver) isn&#39;t suppressed by
+an over-counted DH.
+</div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "dh-input-fix", "kind": "dh_input_zero_regardless_of_killing", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-global_coupling_figure renders a non-vacuous 2-panel mechanism figure"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="global_coupling_figure renders a non-vacuous 2-panel mechanism figure"
+        data-classification="secondary"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-secondary">secondary</span>
+        <strong style="font-size: 0.9em;">global_coupling_figure renders a non-vacuous 2-panel mechanism figure</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">Panel (a) plots the driver&#39;s actual T/X/A/P ODE series; panel (b)
+plots the driver&#39;s actual I/M/K/E spatial series plus dynamic
+sigma1; matplotlib Figure with &gt;= 2 axes.
+</div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "global-coupling-figure-non-vacuous", "kind": "figure_axes_and_data_match_driver_output", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
       </details>
       
       
@@ -1125,33 +1705,33 @@ pass_if: {"op": "lt", "value": 0.1}</pre>
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces the expected abolished-recruitment behaviour with the declared energies and ICs (lambda=0).</textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces Tasks 8.1-8.5&#39;s measured integration-test results and report numbers exactly (same driver, same seeds, same params.yaml constants); Increments 0-7 unchanged; this task&#39;s viz/composite additions add tests without touching any driver.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="biological_validation"
                 title="Computed from the gate evaluator (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
           <span class="muted small" style="margin-left:6px">computed from gate evaluator</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">recruitment index ≈ 0.0, abolished vs baseline 0.767</textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This study validates that the global-ODE coupling mechanisms (dynamic sig_1, ODE-driven recruitment, nearby-population killing) are each individually wired correctly and source-faithful, but explicitly does NOT demonstrate that the resulting coupling MAGNITUDES reconcile with the source&#39;s calibration at this reduced scale (sig_1 collapses ~6 orders of magnitude below the retired stub; recruitment/nearby-killing stay sub-observable within a feasible run) -- an honestly-reported calibration gap, not a quantitative reproduction against any figure&#39;s acceptance band. Do NOT read PENDING here as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="explanatory_gain"
                 title="Computed from interpretation-tier findings (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">POSITIVE</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
           <span class="muted small" style="margin-left:6px">computed from interpretation-tier findings</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">Isolates the chemotactic response as a necessary ingredient for recruitment.</textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No alternative mechanism is being compared at this increment; deferred to Increment 9, where a reproduction comparison against the paper&#39;s Fig 3B global panels becomes meaningful.</textarea>
         </label>
       </div>
     </div>
@@ -1164,9 +1744,30 @@ pass_if: {"op": "lt", "value": 0.1}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>Recruitment is causally dependent on the chemotactic response, not merely on the
-presence of the cue. Together with the baseline, this isolates the response as a
-necessary cause.</p>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>MECHANISM RESOLVED, MAGNITUDE CALIBRATION PENDING (Increment 9). The
+hybrid Price-2015 global ODE (10 systemic species, discrepancy #9)
+integrates stably once per MCS, coupled bidirectionally to the spatial
+CPM patch. All three stubs carried since Increments 5-7 are now dynamic,
+source-faithful mechanisms, each individually verified correct: dynamic
+sig_1 (discrepancy #11's Michaelis form, unchanged, now driven by the
+ODE's own TNF + spatial dead count), ODE-driven recruitment (discrepancy
+#12's CD8-no-baseline asymmetry preserved literally), and NK/CD8 killing
+extended with a verified-correct NEARBY term alongside the unchanged
+Increment-7 LOCAL term. This study's central, deliberately UN-hidden
+finding: at this driver's small reduced-scale default (eta ~1.4e-4),
+NONE of these three mechanisms' MAGNITUDES yet reconcile with the values
+they replaced (sig_1) or need to produce an observable effect within a
+feasible run (recruitment, nearby-killing) -- a field-vs-ODE unit-scale
+calibration gap, the same root-cause category as Increment 7's
+chemotaxis-engine-scale correction, deliberately reported as open rather
+than tuned away. Other open items, all recorded not resolved:
+discrepancy #9 (hybrid, not full well-mixed ODE), #10 (spatial-string
+scalings), #7 (resist-direct killing, carried from Increment 7),
+LSODA-approximates-CVODE, the reserve-pool recruitment geometry
+approximation (engine add_cell-after-finalize limitation), and
+2D-approximation geometry. No Figs 3B/5/7 reproduction claim is made --
+that verdict stays PENDING until Increment 9 (the capstone), which needs
+this study's calibration gaps resolved first.</p>
 </div>
     </div>
     
@@ -1184,7 +1785,7 @@ necessary cause.</p>
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">Identical world to recruitment-baseline except responder chemotaxis lambda = 0.</li><li style="margin:2px 0">Recruitment radius = 15 px.</li>
+        <li style="margin:2px 0">DISCREPANCY #9 (hybrid ODE, load-bearing) -- only the 10 systemic/integrated states {NB, N, T, X, A, B, P, W, G, O} are advanced by the scipy solve_ivp integrator each MCS; the spatialized species {H, I, M, E, K, L, C, F, V, DH} are read from the CPM world each MCS as ODE inputs, never integrated -- per the source&#39;s own spatial-coupling model variant, NOT the full ~20-variable well-mixed ODE string.</li><li style="margin:2px 0">DISCREPANCY #10 (spatial-string scalings) -- cellularized constants use the source&#39;s documented s_t/s_v/s_l (time/population/density) scale-token form from the spatial-model variant of the immune-model string, a judgment call the Task 8.1 brief mandated over the well-mixed variant&#39;s alternative scaling.</li><li style="margin:2px 0">DISCREPANCY #11 (sig_1 dynamic form, functional form unchanged) -- sig_1 = a_11*T + a_12*D and the Michaelis secretion-scale function are implemented verbatim from Increment 6; the ~6-orders-of-magnitude MAGNITUDE gap vs the retired static stub is a calibration item at this reduced scale, not a functional-form deviation.</li><li style="margin:2px 0">DISCREPANCY #12 (recruitment asymmetry, implemented literally) -- CD8+ inflow is strictly APC(P)-Hill-driven with NO homeostatic baseline term, unlike macrophage/NK which keep a positive baseline even with their chemokine signal zeroed; implemented per the source, not symmetrized for convenience.</li><li style="margin:2px 0">DISCREPANCY #7 (resist-DIRECT), carried from Increment 7 -- both the LOCAL and the new NEARBY killing terms multiply resist DIRECTLY, not (1-resist), per the source&#39;s literal ContactKillingSteppable form; not adjudicated as a bug or an intentional antigen-presentation effect.</li><li style="margin:2px 0">LSODA approximates CVODE -- scipy.integrate.solve_ivp&#39;s LSODA method stands in for the source&#39;s RoadRunner/libRoadRunner CVODE integrator; not bit-for-bit identical, not expected to be.</li><li style="margin:2px 0">RESERVE-POOL RECRUITMENT GEOMETRY (engine-imposed approximation) -- the engine&#39;s World.add_cell/seed_block errors after finalize, so recruited cells activate from a pre-seeded dormant reserve pool parked in the domain&#39;s Medium margins (an interior reservoir), not minted at the lesion as the source&#39;s new_immune_cell_by_type does; immaterial to this task&#39;s population-count observable, but a geometry difference worth flagging for Increment 9.</li><li style="margin:2px 0">2D-APPROXIMATION geometry, carried forward -- the same non-confluent interior-placed 2D patch as Increments 5-7, not the source&#39;s z=2 immune-layer-over-confluent-z=1-sheet geometry.</li><li style="margin:2px 0">FIELD-vs-ODE UNIT-SCALE CALIBRATION not yet reconciled at reduced scale -- this study&#39;s central, three-part honest finding (sig_1&#39;s magnitude collapse, recruitment&#39;s sub-single-cell rates, nearby-killing&#39;s too-weak natural buildup), all tracing to the same tiny default eta (~1.4e-4); reported honestly as an open Increment-9 calibration target, not tuned away by adjusting a_11/a_12, the Hill dissociation constants, or the killing-rate divisor until the numbers look better.</li><li style="margin:2px 0">No Figs 3B/5/7 quantitative reproduction claim exists yet -- that is Increment 9, the capstone, which needs this study&#39;s calibration gaps resolved first.</li>
       </ul>
     </div>
     
@@ -1231,45 +1832,6 @@ necessary cause.</p>
 
     
     
-    <div class="overview-section" id="open-debts-section" style="margin-top:6px">
-      <h3 class="overview-label">Open debts <span class="narrative-card-hint">(pre-run expert review)</span></h3>
-      <div class="overview-section pre-run-expert-review">
-        <p class="muted" style="margin:0 0 8px 0;font-size:0.88em">
-          Open biological questions the planning is contingent on. A "wrong" answer here
-          means a primary test threshold needs to change <em>before</em> the simulation
-          is run, not after. Each question lists alternatives + the impact of the wrong
-          choice + what downstream work it blocks.
-        </p>
-        <div class="expert-question-list">
-          
-          <div class="expert-question-card status-resolved">
-            <div class="expert-question-header">
-              <span class="expert-question-id">negative-control-arm</span>
-              <span class="expert-question-status">resolved</span>
-              
-              <span class="expert-question-asked-to actor-kind-unattributed" title="actor kind: unattributed">asked to: <span class="actor-glyph">○</span> unattributed</span>
-            </div>
-            <div class="expert-question-text"><strong>Q.</strong> Should the response-blocked condition be built as a dedicated study arm, or treated only as an implicit zero-baseline comparison?</div>
-            
-            <div class="expert-question-alternatives">
-              <em>Alternatives:</em>
-              <ul><li>Treat lambda=0 as an informal baseline comparison only</li><li>Build a dedicated inhibited study as a first-class necessary-ingredient control (this study)</li></ul>
-            </div>
-            
-            
-            
-            
-            <div class="expert-question-response">
-              <strong>Requested response format</strong>
-              <p>none — resolved</p>
-            </div>
-            
-          </div>
-          
-        </div>
-      </div>
-    </div>
-    
 
     
     
@@ -1297,7 +1859,7 @@ necessary cause.</p>
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Dose-response: recruitment vs cue rate and chemotaxis lambda</strong>
+              <strong class="followup-title">Increment 9: combined eta-scale calibration for sig_1, recruitment, and nearby-killing</strong>
               
               
               
@@ -1307,14 +1869,14 @@ necessary cause.</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('recruitment-inhibited', "recruitment-dose-response")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('global-coupling', "incr9-eta-scale-combined-calibration")">➕ Add to investigation</button>
             </div>
           </div>
           
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">3D-lattice recruitment</strong>
+              <strong class="followup-title">Increment 9: evaluate whether reserve-pool recruitment geometry (interior reservoir) needs replacing at paper scale</strong>
               
               
               
@@ -1324,14 +1886,14 @@ necessary cause.</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('recruitment-inhibited', "recruitment-3d")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('global-coupling', "incr9-reserve-pool-geometry-vs-lesion-placement")">➕ Add to investigation</button>
             </div>
           </div>
           
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Receptor-kinetics realization of the same claim</strong>
+              <strong class="followup-title">Increment 9 (or earlier spike): sensitivity check of scipy LSODA vs a RoadRunner/CVODE reference integration</strong>
               
               
               
@@ -1341,7 +1903,7 @@ necessary cause.</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('recruitment-inhibited', "receptor-kinetics-realization")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('global-coupling', "incr9-lsoda-vs-cvode-sensitivity")">➕ Add to investigation</button>
             </div>
           </div>
           
@@ -1367,7 +1929,7 @@ necessary cause.</p>
 <script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "2042b34ee16a172cb0d046bf0a23beb2d323f50f", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/2042b34ee16a172cb0d046bf0a23beb2d323f50f", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 11:40 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
-window._studyName = "recruitment-inhibited";
+window._studyName = "global-coupling";
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.
