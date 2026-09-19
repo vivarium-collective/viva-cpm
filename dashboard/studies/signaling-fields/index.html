@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Study: epithelial-sheet-baseline</title>
+<title>Study: signaling-fields</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
 <!-- Inherit the workbench light/dark theme (this page loads in an iframe;
@@ -14,7 +14,7 @@
 <header class="study-header">
   <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
-    <span class="study-name" id="study-name" data-slug="epithelial-sheet-baseline" title="epithelial-sheet-baseline">Increment 1: confluent epithelial sheet (substrate only)</span>
+    <span class="study-name" id="study-name" data-slug="signaling-fields" title="signaling-fields">Increment 6: chemokine field forms a gradient centered on the macrophage cluster (4.2x per-cell, 5.9x radial decay), IL-10 positive from both regulated sources — FIELD MECHANISM documented, reproduction still PENDING</span>
     
     <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
     
@@ -36,7 +36,7 @@
     
 
     
-    <div id="readiness-panel" data-slug="epithelial-sheet-baseline"></div>
+    <div id="readiness-panel" data-slug="signaling-fields"></div>
 
     
     
@@ -58,7 +58,7 @@
             <span class="dot"></span>2&nbsp;·&nbsp;Execution
           </span>
           
-          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 3 · Evidence">
+          <span class="status-step gate-step axis-evaluation_status gate-state-passed-with-conditions set" title="Gate 3 · Evidence">
             <span class="dot"></span>3&nbsp;·&nbsp;Evidence
           </span>
           
@@ -90,19 +90,21 @@
           <span class="status-detail-axis">2 · Execution</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="2 completed run(s)">◆ computed: ran</span>
+          <span class="gate-computed-chip gate-state-passed" title="1 completed run(s)">◆ computed: ran</span>
           
           
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed">
+        <div class="status-detail-row gate-row gate-state-passed-with-conditions">
           <span class="status-detail-axis">3 · Evidence</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          <span class="gate-computed-chip gate-state-passed-with-conditions" title="completed run + recorded verdicts + visualization readiness gate (V4)">◆ computed: evaluated</span>
           
           
+          
+          <span class="gate-viz-gap-note" style="font-size:0.86em;color:#92400e">visualization gap: no figures</span>
           
         </div>
         
@@ -148,17 +150,21 @@
 
 
 
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Does the CPM engine hold a confluent, source-literal-adhesion epithelial
-sheet stable (no gaps, no vanished cells) at 1 mm^2 paper scale, and does
-it step fast enough (Rust engine, `step_parallel`) for the eventual
-2-week/~20160-MCS capstone run to be computationally feasible?
+<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Adding macrophage-released chemokine and IL-10 diffusible fields (Task
+6.1: `fields.add_chemokine_field`/`add_il10_field`, with per-cell
+secretion regulated by an IL-10-Hill self-regulation loop on macrophages
+and a `1-resist` gate on uninfected epithelial cells): does the
+chemokine field actually form a spatial GRADIENT centered on the
+macrophage cluster (the attractant signal Increment 7&#39;s NK/CD8+ cells
+will chemotax up), and is IL-10 genuinely positive and increasing from
+BOTH its regulated sources (macrophage, uninfected-cell)?
 </p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
   <div class="act-cluster" data-act="study">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="study" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="study" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">The Study</span>
     </div>
     <div class="act-tabs">
@@ -179,7 +185,7 @@ it step fast enough (Rust engine, `step_parallel`) for the eventual
   </div>
   <div class="act-cluster" data-act="evidence">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">Evidence</span>
     </div>
     <div class="act-tabs">
@@ -563,45 +569,99 @@ it step fast enough (Rust engine, `step_parallel`) for the eventual
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">The confluent epithelial-only sheet is geometrically stable (mean cell
-volume ~25 sites, none vanished) and the Rust CPM engine steps the full
-1mm^2 lattice at ~406-422 MCS/s, far above the throughput needed to make
-the eventual 2-week capstone run computationally tractable. This is a
-substrate-readiness claim, not a biological-reproduction claim.
+      <p class="ctr-text">Wiring macrophage-released chemokine + IL-10 diffusible fields, with
+per-cell secretion regulated by a shared IL-10-Hill self-regulation loop
+(macrophages) and a `1-resist` gate (uninfected epithelial cells),
+produces a genuine chemokine GRADIENT centered on the macrophage cluster:
+per-cell, macrophages read 0.00261 vs. 0.00062 at a far uninfected
+epithelial patch (4.2x near/far), and a raw-lattice radial profile
+(position-independent) decays monotonically from 0.00195 at the
+macrophage-centered innermost bin to 0.00033 at the outermost of 6 bins
+(5.9x end-to-end drop). IL-10 is positive and increasing from BOTH its
+regulated sources (macrophages 2.97e-4, uninfected cells 3.71e-5, final
+step). This is a FIELD-MECHANISM validation claim (the gradient future
+NK/CD8+ recruitment, Increment 7, will chemotax up genuinely exists and is
+correctly centered) -- NOT a claim that any quantitative reproduction
+target is met, that `sig_1`&#39;s true TNF-dependent dynamics are modeled (a
+documented constant stub is used, Increment 8), or that recruitment/
+chemotaxis toward the field is wired (Increment 7). That fuller
+reproduction verdict remains PENDING until Increment 9 (the capstone).
 </p>
       
-      <div class="ctr-context">A uniform lattice of type-H (uninfected epithelial) cells, each occupying
-a 5x5-site (10 um) block, tiles the simulated patch. Cell-cell (H-H) and
-cell-medium (H-medium) adhesion energies are taken source-literally from
-the CC3D ViralInfectionVTM reference (H-H=5.0, H-medium=25.0 — a
-CONTROLLER OVERRIDE of the CC3D-typical 4.0/16.0 pair, see
-`pbg_cpm_studies/influenza/params.yaml` provenance). This produces a
-confluent monolayer with no biological dynamics yet: no infection, immune
-response, or cell death. It is the mechanical substrate the subsequent 8
-increments (virus field, IFN/resistance, death/recovery, chemokines,
-macrophages, NK/CD8+ T, global ODE coupling, capstone) build on top of.
+      <div class="ctr-context">Building on Increment 5&#39;s macrophage-localization mechanism, this study
+adds two macrophage-released diffusible fields -- chemokine (attractant
+for future NK/CD8+ recruitment, Increment 7) and IL-10 (an
+immunoregulatory cytokine) -- both secreted by macrophages under a shared
+IL-10-Hill self-regulation loop (`signaling.macrophage_secretion_scale`,
+each macrophage gated by its OWN local IL-10 reading), with uninfected
+epithelial cells contributing a second, independently-gated IL-10 source
+(`signaling.uninfected_il10_scale`, `1-resist`, resist from local type-I
+IFN). Over a 15-update run (seed=17, default scenario), the chemokine
+field forms a genuine spatial gradient centered on the macrophage cluster:
+4.2x higher per-cell at macrophages than at a far uninfected epithelial
+patch, and a raw-lattice radial profile (independent of any cell&#39;s
+position) decays monotonically 5.9x from the macrophage-centered innermost
+bin outward across 6 bins. IL-10 is positive and increasing from both
+regulated sources (macrophages 2.97e-4, uninfected cells 3.71e-5), neither
+pinned at 0 nor saturating instantly. This demonstrates the FIELD
+mechanism behind the paper&#39;s chemokine-driven recruitment claim -- the
+gradient future NK/CD8+ chemotaxis (Increment 7) will follow genuinely
+exists and is correctly centered -- but nothing chemotaxes toward it yet,
+and several source terms are documented approximations, not
+reproductions: `sig_1` (the source&#39;s live TNF/global-ODE state gating both
+fields&#39; secretion) is a fixed constant STUB, not the true dynamic value
+(Increment 8); `g_1`/`g_2`&#39;s cellularization defaults to the
+0.3mm-scenario `eta` (this scenario has no exact patch size of its own,
+Increment 8/9); global boundary secretion terms and IL-10&#39;s uniform
+initial condition are both deferred (no field-write API for the latter;
+Increment 8/9). No reproduction verdict against any figure is made --
+that stays PENDING until Increment 9.
 </div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Test</h2>
-      <p class="ctr-text">Build the epithelial-sheet `load_world` spec (Task 1.1), instantiate and
-relax the CPM world (Task 1.2), and measure step throughput on the full
-1mm^2 patch (Task 1.3). Wrap the geometry in a process-bigraph composite
-(`pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline`) so the
-dashboard can run a modest (0.1mm, 100-cell) live demo of the same
-substrate (Task 1.4, this study).
+      <p class="ctr-text">Wire the chemokine + IL-10 fields (`fields.add_chemokine_field`/
+`add_il10_field`, Task 6.1) and their per-cell secretion regulation
+(`signaling.macrophage_secretion_scale`/`uninfected_il10_scale`) into the
+Increment-5 non-confluent macrophage scenario, and drive
+`run.run_macrophage_signaling` (steps=15, seed=17, default scenario
+knobs) to measure: (a) the chemokine field&#39;s per-cell near (macrophages)
+vs. far (uninfected epithelial patch, `separation_sites` away) split, and
+its raw-lattice radial profile (6 concentric bins) around the macrophage-
+cluster centroid; (b) IL-10 positivity and growth at both the macrophage
+and uninfected-cell source populations. Evidence: `tests/
+test_influenza_signaling.py`&#39;s 4 integration tests
+(`test_chemokine_and_il10_fields_are_positive_after_macrophage_signaling_run`,
+`test_chemokine_field_is_highest_near_macrophages_and_decays_with_distance`,
+`test_il10_positive_from_macrophage_and_uninfected_sources`,
+`test_macrophage_signaling_run_is_deterministic`) plus the full
+localization numbers recorded in task-6.1-report.md. A minimal in-package
+figure (`pbg_cpm_studies/influenza/viz.py::signaling_fields_figure`, Task
+6.2) renders the chemokine radial profile (panel a) and the IL-10
+trajectories at both source populations (panel b).
 </p>
       
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>epithelial-sheet-baseline</code></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">Pass criterion: after 50-step relaxation, every real cell (indices
-1..900) has volume &gt; 0 and the mean is close to the 25-site target.
-Measured: mean volume ~25 sites, none vanished (Task 1.2).
-</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Pass criterion: `step_parallel` throughput on the full 1mm^2 lattice
-exceeds the 200.0 MCS/s perf-gate floor. Measured 406.47 MCS/s (one
-of 4 runs, range 406.47-421.95).
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>signaling-fields</code></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">`run.run_macrophage_signaling`&#39;s lattice-sum chemokine and IL-10
+totals must both be positive and strictly greater than their (zero)
+starting values by the final step.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Per-cell chemokine at macrophages must exceed chemokine at the far
+uninfected epithelial patch, AND the raw-lattice radial profile
+around the macrophage-cluster centroid must be positive in the
+innermost bin, higher in the innermost than the outermost bin, and
+predominantly non-increasing with distance (at most one local bump
+allowed, from noise/geometry).
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">`il10_at_macrophages` and `il10_at_uninfected` must both be positive
+at the final step -- confirming both regulated secretion pathways
+(macrophage Hill self-regulation, uninfected 1-resist gating)
+actually engage.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Two `run.run_macrophage_signaling(steps=8, seed=17)` calls must
+produce identical `total_chemokine`, `total_il10`, and
+`chemo_radial_profile` series -- no unseeded randomness in the field
+mechanism.
 </span></div>
       </div>
       
@@ -609,7 +669,7 @@ of 4 runs, range 406.47-421.95).
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">The bare geometry + adhesion substrate is stable and fast enough to carry the remaining 8 increments of biology; this is a scaffolding result, not a reproduction result.</p>
+      <p class="ctr-text">The chemokine gradient is measured TWO independent ways that agree: a simple per-cell near/far comparison (macrophages vs. a far epithelial patch, 4.2x) and a raw-lattice radial profile around the macrophage centroid that is fully independent of cell positions (5.9x, 6 bins, predominantly monotonic decay). Agreement between a per-cell reading and a position-independent lattice reading rules out the gradient being an artifact of which cells happen to sample which lattice sites. IL-10&#39;s dual-source regulation (macrophage Hill self-regulation AND uninfected `1-resist` gating) both engage in the same short run, using the SAME IL-10-Hill parameters that gate chemokine secretion (source: `b_c`/`b_l` share `sig_1`/`g_1`/`g_2`/`d_2`) -- a single shared regulatory loop driving two distinct fields, matching the source&#39;s structure even though `sig_1` itself is a documented stub (see caveats).</p>
       
       
     <div class="overview-section findings-section">
@@ -626,13 +686,16 @@ of 4 runs, range 406.47-421.95).
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The confluent epithelial-only sheet (source-literal adhesion H-H=5.0,
-H-medium=25.0, target volume 25 sites) is mechanically stable under
-CPM relaxation at 0.3mm scale — an engineered geometric result (target
-volume matched by construction), not an emergent biological finding.
+            <span class="finding-claim finding-statement">The chemokine field forms a genuine spatial gradient CENTERED ON THE
+MACROPHAGE CLUSTER, confirmed two independent ways (per-cell near/far,
+and a raw-lattice radial profile independent of cell positions) that
+agree in direction and magnitude order. This is the attractant profile
+Increment 7&#39;s NK/CD8+ recruitment will chemotax up -- this study
+establishes it exists and is correctly centered, not that anything
+chemotaxes up it yet.
 </span>
             
-            <span class="finding-chip">via <code>Sheet holds confluent after relaxation</code></span>
+            <span class="finding-chip">via <code>Chemokine is highest near macrophages and decays with distance</code></span>
             
           </summary>
           <div class="finding-drawer">
@@ -644,9 +707,9 @@ volume matched by construction), not an emergent biological finding.
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> mean cell volume ~25 sites, none vanished after 50-step relaxation on the 900-cell confluent 0.3mm tiling · 
+              <strong>observed:</strong> per-cell: 0.00261 at macrophages vs 0.00062 at the far uninfected patch (4.2x); radial profile (6 bins from macrophage-cluster centroid): [0.00195, 0.00127, 0.00098, 0.00060, 0.00038, 0.00033] (5.9x innermost/outermost, monotonic decay) · 
               
-              via test <a href="#bt-Sheet" onclick="_gotoStudyTab('tests','bt-Sheet');return false;"><code>Sheet holds confluent after relaxation</code></a> · 
+              via test <a href="#bt-Chemokine" onclick="_gotoStudyTab('tests','bt-Chemokine');return false;"><code>Chemokine is highest near macrophages and decays with distance</code></a> · 
               
               
               
@@ -654,7 +717,7 @@ volume matched by construction), not an emergent biological finding.
             
             
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×1.0 vs expected</span>
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
               
               
             </div>
@@ -682,13 +745,18 @@ volume matched by construction), not an emergent biological finding.
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The Rust CPM engine&#39;s `step_parallel` throughput at full 1mm^2 scale
-is ~2x the perf-gate floor (and ~200x the brief&#39;s original 2.0 MCS/s
-minimum), so the ~20160-step capstone run remains computationally
-tractable — a performance-engineering result, not a biology finding.
+            <span class="finding-claim finding-statement">Both regulated IL-10 secretion pathways engage cleanly within a short
+(15-update) run -- neither pinned at exactly 0 (the gate never opens)
+nor saturating instantly (the gate is degenerate). The macrophage
+pathway and the uninfected-cell pathway are independently gated
+(Hill-self-regulation vs. 1-resist) but share the same underlying
+Hill-constant plumbing (`sig_1`/`g_1`/`g_2`/`d_2`) that also gates
+chemokine secretion (F-01), matching the source&#39;s shared-regulation
+structure even though `sig_1` itself is a documented stub (see
+caveats).
 </span>
             
-            <span class="finding-chip">via <code>1mm^2 throughput clears the perf-gate floor</code></span>
+            <span class="finding-chip">via <code>IL-10 positive from both macrophage and uninfected sources</code></span>
             
           </summary>
           <div class="finding-drawer">
@@ -700,9 +768,9 @@ tractable — a performance-engineering result, not a biology finding.
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> 406.47-421.95 MCS/s measured across 4 runs at 1mm^2 (500x500 lattice, 10000 cells), vs 200.0 MCS/s perf-gate floor · 
+              <strong>observed:</strong> il10_at_macrophages 2.97e-4 (Hill-self-regulated), il10_at_uninfected 3.71e-5 (1-resist gated); total_il10 lattice sum 0 -&gt; 0.72 over 15 updates, strictly increasing · 
               
-              via test <a href="#bt-1mm^2" onclick="_gotoStudyTab('tests','bt-1mm^2');return false;"><code>1mm^2 throughput clears the perf-gate floor</code></a> · 
+              via test <a href="#bt-IL-10" onclick="_gotoStudyTab('tests','bt-IL-10');return false;"><code>IL-10 positive from both macrophage and uninfected sources</code></a> · 
               
               
               
@@ -710,7 +778,65 @@ tractable — a performance-engineering result, not a biology finding.
             
             
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×2.0 vs expected</span>
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">Both new fields&#39; lattice-wide totals grow monotonically over the run
+(sources only add; the driver&#39;s default field_warmup=0 means there is
+no pre-loop decay to offset growth), confirming the diffusion/decay/
+secretion wiring (Task 6.1&#39;s `add_chemokine_field`/`add_il10_field`,
+dt/substeps stability-checked) is numerically stable and the fields
+are genuinely sourced, not degenerate.
+</span>
+            
+            <span class="finding-chip">via <code>Chemokine and IL-10 fields are positive after the run</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-03</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> total_chemokine 0 -&gt; 9.17, total_il10 0 -&gt; 0.72 over 15 updates, both strictly increasing · 
+              
+              via test <a href="#bt-Chemokine" onclick="_gotoStudyTab('tests','bt-Chemokine');return false;"><code>Chemokine and IL-10 fields are positive after the run</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
               
               
             </div>
@@ -756,12 +882,12 @@ tractable — a performance-engineering result, not a biology finding.
   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
     <h2 class="overview-label" style="margin:0">Model composition</h2>
     
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'epithelial-sheet-baseline', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'signaling-fields', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
   </div>
 
   
   
-  <div id="model-composite-cards" class="model-composite-cards" data-study="epithelial-sheet-baseline"
+  <div id="model-composite-cards" class="model-composite-cards" data-study="signaling-fields"
        data-study-config="">
     <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
   </div>
@@ -780,29 +906,31 @@ tractable — a performance-engineering result, not a biology finding.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline" data-model-overrides='{"patch_mm": 0.1}'>
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.macrophage_response" data-model-overrides='{"chemotaxis_v_macro": 5000.0, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <strong>epithelial-sheet-baseline</strong>
+        <strong>signaling-fields</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.macrophage_response</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.macrophage_response')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="epithelial-sheet-baseline"
-               value="pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline" placeholder="pkg.composites.name"
+        <input type="text" class="baseline-composite-input" data-baseline-name="signaling-fields"
+               value="pbg_cpm_studies.composites.influenza.macrophage_response" placeholder="pkg.composites.name"
                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
-                data-baseline-name="epithelial-sheet-baseline">Set composite</button>
+                data-baseline-name="signaling-fields">Set composite</button>
       </div>
-      <div class="baseline-composite-status muted" data-baseline-name="epithelial-sheet-baseline" style="font-size:0.8em;margin-top:2px"></div>
+      <div class="baseline-composite-status muted" data-baseline-name="signaling-fields" style="font-size:0.8em;margin-top:2px"></div>
       
       
       
       
       
+      
+        
       
         
       
@@ -833,24 +961,39 @@ tractable — a performance-engineering result, not a biology finding.
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline</code></p>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.macrophage_response</code></p>
     
+    
+    <p><strong>New state variables:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code>chemokine field concentration</code></li><li><code>IL-10 field concentration</code></li><li><code>per-cell chemokine/IL-10 secretion scale</code></li>
+    </ul>
     
     
     <p><strong>New parameters:</strong></p>
     <ul style="margin:0 0 8px 18px">
-      <li><code></code></li>
+      <li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li>
     </ul>
     
     
     
-    <p class="muted" style="font-size:0.88em">Wraps the existing CPMProcess over the epithelial-sheet geometry
-(`pbg_cpm_studies.influenza.sheet.build_sheet_spec`) — no new process
-code. The live-demo composite runs a small 0.1mm/100-cell patch for a
-fast dashboard run; the 0.3mm/900-cell geometry check and the
-1mm^2/10000-cell throughput benchmark that back this study&#39;s readouts
-were run directly against `sheet.build_sheet_spec` and `load_world`
-in Tasks 1.1-1.3, not through this composite.
+    <p class="muted" style="font-size:0.88em">No new dashboard-loadable composite is added this increment (per the
+brief&#39;s REUSE instruction). `baseline.composite` below reuses the
+existing `pbg_cpm_studies.composites.influenza.macrophage_response`
+composite (Task 5.2, unchanged) -- the closest signaling-adjacent
+live-demo wrapper already registered (virus field + macrophage
+chemotaxis, interior-placed scenario). This composite does NOT
+declaratively wire the new chemokine/IL-10 fields or their per-cell
+Hill/1-resist secretion regulation -- that mechanism exists only in
+`run.run_macrophage_signaling` (Task 6.1, a raw `cpm_core.World` loop),
+which is where every measured number in this study&#39;s report/findings
+comes from, not from this composite. Same &#34;live-demo wrapper reproduces
+scenario geometry only, not the measurement&#34; pattern the
+macrophage-response study itself documents (see that study&#39;s
+`model_change.notes`). A declarative chemokine/IL-10-field composite is
+left to a later increment (e.g. Increment 7, when NK/CD8+ chemotaxis
+toward the field needs a live-demo wrapper too) rather than added here
+speculatively.
 </p>
   </div>
   
@@ -884,7 +1027,7 @@ in Tasks 1.1-1.3, not through this composite.
 
   <h4>Latest run preview</h4>
   <p class="muted" style="font-size:0.9em">Per-store sparkline + first/last/min/max from the most recent run's emitted trajectory. This is a downsampled PREVIEW, not the full data — use the per-store or Download-all links for the complete arrays.</p>
-  <div id="results-preview" data-study="epithelial-sheet-baseline">
+  <div id="results-preview" data-study="signaling-fields">
     <p class="empty-message">Loading results preview…</p>
   </div>
 
@@ -908,9 +1051,9 @@ in Tasks 1.1-1.3, not through this composite.
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
     <span class="muted" style="margin-right:auto;font-weight:600">Analysis result files</span>
     <a id="data-download-all" class="btn-mini" style="display:none"
-       href="/api/study-analysis-zip?study=epithelial-sheet-baseline">Download all (.zip)</a>
+       href="/api/study-analysis-zip?study=signaling-fields">Download all (.zip)</a>
   </div>
-  <div id="data-files" data-study="epithelial-sheet-baseline">
+  <div id="data-files" data-study="signaling-fields">
     <p class="empty-message">Loading result files…</p>
   </div>
 </div>
@@ -931,7 +1074,7 @@ in Tasks 1.1-1.3, not through this composite.
     interval/buffer, output location, and emit scope — from
     <code>lib/emitters.py</code> and this study's (or the workspace's)
     <code>runtime.default_emitter</code>.</p>
-    <div id="readouts-emitter" data-study="epithelial-sheet-baseline">
+    <div id="readouts-emitter" data-study="signaling-fields">
       <p class="empty-message">Loading emitter configuration…</p>
     </div>
 
@@ -943,7 +1086,7 @@ in Tasks 1.1-1.3, not through this composite.
     
     <div id="readouts-download" style="margin:0 0 16px 0"></div>
 
-    <div id="readouts-table" data-study="epithelial-sheet-baseline">
+    <div id="readouts-table" data-study="signaling-fields">
       <p class="empty-message">Loading readouts from the composite emit plan…</p>
     </div>
 
@@ -951,7 +1094,7 @@ in Tasks 1.1-1.3, not through this composite.
     <p class="muted" style="font-size:0.9em">Store path, dtype, shape
     <code>(n_steps, …)</code>, units, and a best-effort byte estimate for each emitted
     leaf.</p>
-    <div id="readouts-shapes" data-study="epithelial-sheet-baseline">
+    <div id="readouts-shapes" data-study="signaling-fields">
       <p class="empty-message">Loading output shapes…</p>
     </div>
 
@@ -974,30 +1117,9 @@ in Tasks 1.1-1.3, not through this composite.
 
     
     
-    <div class="viz-actions-row" style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'epithelial-sheet-baseline')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
-    </div>
-    
 
     <div id="native-gallery-panel" class="figure-mount"><p class="empty-message">Loading figures…</p></div>
 
-    
-    
-    
-    <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/epithelial-sheet-baseline/viz/confluent-sheet.html"
-              class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="Confluent sheet"
-              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
-              ></iframe>
-      
-      <div class="figure-caption-row">
-        <span class="figure-source-chip">embed</span>
-        <span class="figure-title">Confluent sheet</span>
-        
-        <a href="/viva-cpm/dashboard/workspace/studies/epithelial-sheet-baseline/viz/confluent-sheet.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
-      </div>
-    </div>
     
     
 
@@ -1013,6 +1135,30 @@ in Tasks 1.1-1.3, not through this composite.
   <p class="muted" style="margin:0 0 12px 0"><strong>The bar.</strong> What must be true for this model to count as correct — the acceptance criteria, their bands, and the report cards that grade them.</p>
 
   
+  
+  
+  <div class="overview-section expectations-band" id="expectations-band">
+    <h3 class="section-title">Expectations
+      <span class="muted" style="font-size:0.85em;font-weight:normal">— from literature, mapped to the model observable that measures each</span>
+    </h3>
+    <ul class="literature-anchor-list" style="list-style:none;padding-left:0">
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Macrophages release chemokine that recruits immune cells to the infection site, and IL-10 as an immunoregulatory cross-talk signal between macrophages and epithelial cells (Sego 2022 model structure; Table 3/4 give chemokine/IL-10 diffusion, decay, and secretion/Hill-regulation constants).</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>Chemokine forms a gradient centered on the macrophage cluster (4.2x per-cell near/far, 5.9x radial decay across 6 bins); IL-10 is positive and increasing from both the macrophage (Hill-self-regulated) and uninfected-cell (1-resist-gated) sources, over a 15-update run, seed=17.</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (ChemokineFieldSteppable / IL10FieldSteppable and their Antimony Hill-regulation rules) via pbg_cpm_studies/influenza/params.yaml chemokine: and il10: blocks</div>
+        
+      </li>
+    
+    </ul>
+  </div>
   
 
   
@@ -1056,10 +1202,10 @@ in Tasks 1.1-1.3, not through this composite.
     
     
     
-    <li class="expected-behavior-item" id="bt-Sheet holds confluent after relaxation"
+    <li class="expected-behavior-item" id="bt-Chemokine and IL-10 fields are positive after the run"
         data-test-kind="behavioral"
         
-        data-pytest-node="Sheet holds confluent after relaxation"
+        data-pytest-node="Chemokine and IL-10 fields are positive after the run"
         data-classification="primary"
         data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
@@ -1068,22 +1214,22 @@ in Tasks 1.1-1.3, not through this composite.
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">Sheet holds confluent after relaxation</strong>
+        <strong style="font-size: 0.9em;">Chemokine and IL-10 fields are positive after the run</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: after 50-step relaxation, every real cell (indices
-1..900) has volume &gt; 0 and the mean is close to the 25-site target.
-Measured: mean volume ~25 sites, none vanished (Task 1.2).
+      <div style="margin-top: 6px; font-size: 0.95em;">`run.run_macrophage_signaling`&#39;s lattice-sum chemokine and IL-10
+totals must both be positive and strictly greater than their (zero)
+starting values by the final step.
 </div>
       
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 25.0</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 9.17</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: mean cell volume ~25 sites, none vanished across 900 real cells (Task 1.2, test_world_builds_and_holds_volume_after_relaxation)</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: total_chemokine 0 -&gt; 9.17, total_il10 0 -&gt; 0.72 over 15 updates, both strictly increasing (task-6.1-report.md).</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_sheet.py</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_signaling.py::test_chemokine_and_il10_fields_are_positive_after_macrophage_signaling_run</code>
         
       </div>
       
@@ -1091,8 +1237,8 @@ Measured: mean volume ~25 sites, none vanished (Task 1.2).
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "epithelial-sheet-baseline", "kind": "mean_cell_volume_sites", "stat": "mean"}
-pass_if: {"op": "gt", "value": 0}</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "signaling-fields-positivity", "kind": "total_field_positive_and_increasing", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
       </details>
       
       
@@ -1107,32 +1253,150 @@ pass_if: {"op": "gt", "value": 0}</pre>
     
     
     
-    <li class="expected-behavior-item" id="bt-1mm^2 throughput clears the perf-gate floor"
+    <li class="expected-behavior-item" id="bt-Chemokine is highest near macrophages and decays with distance"
         data-test-kind="behavioral"
         
-        data-pytest-node="1mm^2 throughput clears the perf-gate floor"
+        data-pytest-node="Chemokine is highest near macrophages and decays with distance"
         data-classification="primary"
-        data-result="pending"
+        data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">1mm^2 throughput clears the perf-gate floor</strong>
+        <strong style="font-size: 0.9em;">Chemokine is highest near macrophages and decays with distance</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: `step_parallel` throughput on the full 1mm^2 lattice
-exceeds the 200.0 MCS/s perf-gate floor. Measured 406.47 MCS/s (one
-of 4 runs, range 406.47-421.95).
+      <div style="margin-top: 6px; font-size: 0.95em;">Per-cell chemokine at macrophages must exceed chemokine at the far
+uninfected epithelial patch, AND the raw-lattice radial profile
+around the macrophage-cluster centroid must be positive in the
+innermost bin, higher in the innermost than the outermost bin, and
+predominantly non-increasing with distance (at most one local bump
+allowed, from noise/geometry).
 </div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 4.2</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: per-cell near/far ratio 0.00261/0.00062 = 4.2x; radial profile innermost/outermost 0.00195/0.00033 = 5.9x, monotonic across 6 bins.</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_signaling.py::test_chemokine_field_is_highest_near_macrophages_and_decays_with_distance</code>
+        
+      </div>
       
       
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "epithelial-sheet-baseline", "kind": "throughput_mcs_per_s", "stat": "min"}
-pass_if: {"op": "gt", "value": 200.0}</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "signaling-fields-gradient", "kind": "chemo_near_gt_far_and_radial_decay", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-IL-10 positive from both macrophage and uninfected sources"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="IL-10 positive from both macrophage and uninfected sources"
+        data-classification="primary"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">IL-10 positive from both macrophage and uninfected sources</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">`il10_at_macrophages` and `il10_at_uninfected` must both be positive
+at the final step -- confirming both regulated secretion pathways
+(macrophage Hill self-regulation, uninfected 1-resist gating)
+actually engage.
+</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.000297</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: il10_at_macrophages 2.97e-4, il10_at_uninfected 3.71e-5, both positive and increasing.</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_signaling.py::test_il10_positive_from_macrophage_and_uninfected_sources</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "signaling-fields-il10-sources", "kind": "il10_dual_source_positive", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-Run is fully deterministic given a fixed seed"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="Run is fully deterministic given a fixed seed"
+        data-classification="secondary"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-secondary">secondary</span>
+        <strong style="font-size: 0.9em;">Run is fully deterministic given a fixed seed</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">Two `run.run_macrophage_signaling(steps=8, seed=17)` calls must
+produce identical `total_chemokine`, `total_il10`, and
+`chemo_radial_profile` series -- no unseeded randomness in the field
+mechanism.
+</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 1.0</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: two steps=8/seed=17 runs produce identical total_chemokine, total_il10, and chemo_radial_profile series.</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_signaling.py::test_macrophage_signaling_run_is_deterministic</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "signaling-fields-determinism", "kind": "series_equal_across_repeats", "stat": "all"}
+pass_if: {"op": "eq", "value": true}</pre>
       </details>
       
       
@@ -1213,7 +1477,7 @@ pass_if: {"op": "gt", "value": 200.0}</pre>
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Geometry and throughput reproduce Task 1.1-1.3&#39;s measured results exactly (same spec builder, same perf test).</textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces Task 6.1&#39;s (commit 48c96c1) measured integration-test results exactly (same driver, same seed=17, same params.yaml constants); Increments 0-5 unchanged (targeted regression rerun of params/fields/macrophage/composite/viz suites, all pass, no regressions, per task-6.1-report.md).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
@@ -1226,7 +1490,7 @@ pass_if: {"op": "gt", "value": 200.0}</pre>
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This increment has no biology to validate against (no virus, no infection, no immune response) — it is a substrate/perf gate only. Do NOT read PENDING as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9 (the capstone), which evaluates against Figs 3B/5/7.</textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This study validates the chemokine/IL-10 FIELD MECHANISM (gradient centered on the macrophage cluster, dual-source IL-10 positivity), not a quantitative reproduction against any figure&#39;s acceptance band. sig_1 is a documented stub (not the true TNF-dependent dynamic value), g_1/g_2 use the 0.3mm-scenario eta approximation, global boundary terms and IL-10&#39;s uniform IC are deferred, and no chemotaxis toward the field is wired yet (Increment 7). Do NOT read PENDING here as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
@@ -1239,7 +1503,7 @@ pass_if: {"op": "gt", "value": 200.0}</pre>
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No mechanism is being compared to an alternative explanation at this increment; deferred to later increments where dynamics exist.</textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No alternative mechanism is being compared at this increment; deferred to later increments / the capstone where a reproduction comparison against the paper&#39;s figures becomes meaningful.</textarea>
         </label>
       </div>
     </div>
@@ -1252,13 +1516,27 @@ pass_if: {"op": "gt", "value": 200.0}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>SUBSTRATE VALIDATED, NOT BIOLOGY REPRODUCED. The confluent epithelial
-sheet geometry is stable at scale and the engine is fast enough. No
-virus field, infection dynamics, IFN response, or immune cells exist yet
-in this increment, and this study makes no reproduction claim against
-Sego et al. 2022's published figures (Figs 3B/5/7) — that evaluation is
-deferred to Increment 9 (the capstone), per the investigation's
-capability-ladder design.</p>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>CHEMOKINE/IL-10 FIELD MECHANISM DOCUMENTED, NOT REPRODUCED. The chemokine
+field forms a genuine spatial gradient centered on the macrophage cluster
+-- 4.2x higher per-cell at macrophages than at a far uninfected epithelial
+patch, and a position-independent raw-lattice radial profile decaying
+monotonically 5.9x from the innermost (macrophage-centered) bin to the
+outermost of 6 -- confirmed two independent ways that agree. IL-10 is
+positive and increasing from BOTH its regulated sources (macrophages
+2.97e-4, Hill self-regulated; uninfected cells 3.71e-5, 1-resist gated),
+sharing the same underlying Hill-constant plumbing that also gates
+chemokine secretion. Both fields' lattice-wide totals grow monotonically
+and stably over the run. This validates the FIELD mechanism (macrophage-
+released chemokine/IL-10, spatially localized, positive and regulated) --
+it is NOT a claim that any quantitative reproduction target is met, that
+the true TNF-dependent <code>sig_1</code> dynamics are modeled (a documented constant
+stub is used, deferred to Increment 8), that <code>g_1</code>/<code>g_2</code>'s scenario-exact
+cellularization is used (the 0.3mm-scenario <code>eta</code> approximation is used
+instead, Increment 8/9), that global boundary secretion terms or IL-10's
+uniform initial condition are modeled (both deferred, Increment 8/9), or
+that anything chemotaxes toward the new chemokine gradient yet
+(Increment 7's scope). No Figs 2/3A-adjacent reproduction claim is made --
+that verdict stays PENDING until Increment 9 (the capstone).</p>
 </div>
     </div>
     
@@ -1276,7 +1554,7 @@ capability-ladder design.</p>
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">Confluent exact tiling (5x5-site cells, no gaps by construction) — the 0.3mm/900-cell geometry check and the 1mm^2/10000-cell throughput benchmark are both exactly-confluent lattices.</li><li style="margin:2px 0">Second-nearest-neighbour (neighbor_order=3) square lattice, per the CC3D source (accepted by the Rust engine without a capability fallback — see task-1.1-1.3-report.md Task 1.2).</li><li style="margin:2px 0">Perf numbers are single-machine measurements (this laptop); re-measure before relying on the 200.0 MCS/s floor as a strict CI gate on different hardware (e.g. the Mac mini).</li>
+        <li style="margin:2px 0">SIG_1 STUBBED — the source&#39;s `sig_1` (`Sigma1 := a_11*T + a_12*D`) is a live TNF-dependent global-ODE-solver state, not a fixed literal; Task 6.1 introduces a SEPARATE, documented `il10.sig_1_stub` constant (distinct from Task 6.0&#39;s own honest non-numeric `il10.sig_1` documentation string) chosen so the Hill ratio term sits at a genuine non-degenerate self-regulation point (Hill(0)~=0.975 sliding toward Hill(large L)~=0.5) rather than trivially saturating. The L-dependent self-regulation SHAPE and the chemokine gradient&#39;s spatial shape both hold regardless of the stub value; the true TNF-dependent DYNAMICS are deferred to Increment 8.</li><li style="margin:2px 0">G_1/G_2 ETA APPROXIMATION — `il10.g_1`/`g_2`/`d_2`&#39;s cellularization (`fields.il10_hill_constants`) defaults to the 0.3mm-scenario `eta` (`scaling.eta_0p3mm`), the package&#39;s existing convention for a scenario (the non-confluent macrophage scenario) with no exact patch size of its own. Order-of-magnitude, documented, not scenario-calibrated (Increment 8/9).</li><li style="margin:2px 0">GLOBAL BOUNDARY SECRETION + IL-10 IC DEFERRED — the source&#39;s `num_macro`-scaled global boundary terms are not modeled (Increment 8); IL-10&#39;s uniform initial condition is skipped because the engine has no field-write API (fields build up from sources only, starting at 0; the formula and raw `b_lh` constant are already recorded in `params.yaml` by Task 6.0) (Increment 9).</li><li style="margin:2px 0">NO CHEMOTAXIS ON THE NEW FIELDS YET — this study measures that the chemokine gradient EXISTS and is correctly centered; wiring NK/CD8+ recruitment to chemotax up it is Increment 7&#39;s scope, not modeled here.</li><li style="margin:2px 0">Absolute chemokine/IL-10 magnitudes are NOT calibrated against the paper&#39;s figures (Increment-9 territory) — the fidelity criterion tested here (gradient shape centered on the macrophages, dual-source IL-10 positivity) holds cleanly, not the exact numeric magnitudes.</li><li style="margin:2px 0">Same 2D-approximation geometry and modest-scale scenario knobs as Increment 5&#39;s macrophage-response study (non-confluent 2D patch, both clusters domain-interior, 6 macrophages, 1 infected cell) — see that study&#39;s key_assumptions for the full geometry rationale, unchanged here.</li>
       </ul>
     </div>
     
@@ -1305,8 +1583,8 @@ capability-ladder design.</p>
       
       
       <p class="muted" style="margin:0;font-size:0.9em">
-        <strong>1</strong> test outcome
-        — <span style="color:#065f46;font-weight:600">1 PASS</span> ·
+        <strong>4</strong> test outcomes
+        — <span style="color:#065f46;font-weight:600">4 PASS</span> ·
         <span style="color:#991b1b;font-weight:600">0 FAIL</span>.
         Per-test outcomes (measured value · evaluator · band) are canonical on the
         <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline">Tests tab →</a>.
@@ -1343,14 +1621,14 @@ capability-ladder design.</p>
       <div class="di-group">
         <h3>Follow-up study proposals
           <span class="muted" style="font-weight:normal;font-size:0.82em">(discovered)</span>
-          <span class="muted" style="font-weight:normal;font-size:0.85em">(2)</span></h3>
+          <span class="muted" style="font-weight:normal;font-size:0.85em">(3)</span></h3>
         <p class="muted" style="margin:0 0 8px 0;font-size:0.85em">Click <strong>➕ Add to investigation</strong> to spawn a new study node in the investigation graph.</p>
         <div class="followup-list">
           
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Increment 2: virus field + infection</strong>
+              <strong class="followup-title">Increment 7: NK/CD8+ cytotoxic recruitment chemotaxing up the chemokine gradient established here</strong>
               
               
               
@@ -1360,14 +1638,14 @@ capability-ladder design.</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('epithelial-sheet-baseline', "virus-field-infection")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('signaling-fields', "nk-cd8-chemotaxis-on-chemokine")">➕ Add to investigation</button>
             </div>
           </div>
           
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Increment 3: IFN + per-cell resistance</strong>
+              <strong class="followup-title">Increment 8: replace il10.sig_1_stub with the true TNF-dependent dynamic sig_1</strong>
               
               
               
@@ -1377,7 +1655,24 @@ capability-ladder design.</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('epithelial-sheet-baseline', "ifn-resistance")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('signaling-fields', "sig_1-dynamic-tnf-coupling")">➕ Add to investigation</button>
+            </div>
+          </div>
+          
+          
+          <div class="di-card di-fup-card">
+            <div class="followup-header">
+              <strong class="followup-title">Later increment: a declarative dashboard composite wiring the chemokine/IL-10 fields + per-cell secretion regulation</strong>
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="followup-actions" style="margin-top:8px">
+              <button class="btn-seed-followup"
+                      onclick="_seedFollowupProposal('signaling-fields', "signaling-fields-declarative-composite")">➕ Add to investigation</button>
             </div>
           </div>
           
@@ -1403,7 +1698,7 @@ capability-ladder design.</p>
 <script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "1bddfb7021cce8c142b215416a0ea8a8325ce9e1", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/1bddfb7021cce8c142b215416a0ea8a8325ce9e1", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 07:19 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
-window._studyName = "epithelial-sheet-baseline";
+window._studyName = "signaling-fields";
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.
