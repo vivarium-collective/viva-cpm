@@ -467,6 +467,158 @@ def _build_global():
                   body, cap, increment=8, kpis=kpis)
 
 
+# ── Study J · repro-fig3b (Increment 9 CAPSTONE): full model vs Fig-3B ──────
+def _repro_band_traces(obs_name, target_obs, ensemble, color, label):
+    """Shared by the three Increment-9 repro cards: for one observable,
+    the digitized target's [lo,hi] band + ODE-reference line (if present in
+    `target_obs`) PLUS the model ensemble-mean line (if present in
+    `ensemble`) — the overlay each repro card's honesty rests on (model vs
+    the SAME band `run.repro_fig3b`/`repro_fig5`/`repro_fig7`'s own
+    `band_eval` compares against, not a second/different computation)."""
+    traces = []
+    pts = target_obs.get(obs_name) or []
+    if pts:
+        t = [p["t_days"] for p in pts]
+        lo = [p.get("lo", p["value"]) for p in pts]
+        hi = [p.get("hi", p["value"]) for p in pts]
+        val = [p["value"] for p in pts]
+        traces += S.band_trace(t, lo, hi, color, label + " target")
+        traces.append(S.line_trace(t, val, color, label + " target (ODE ref)",
+                                    dash="dot", width=1.4, markers=False))
+    series = ensemble.get(obs_name) or []
+    if series:
+        mt = [p[0] for p in series]
+        mv = [p[1] for p in series]
+        traces.append(S.line_trace(mt, mv, color, label + " (model)", markers=False))
+    return traces
+
+
+def _build_repro_fig3b():
+    """CAPSTONE run_full_model ensemble vs digitized Fig-3B bands — reduced scale, 0/12 in-band"""
+    d = _SD["repro_fig3b"]
+    ensemble = d["ensemble"]
+    target = _D["targets"]["fig3b"]["observables"]
+
+    traces_counts = []
+    for key, label, color in (("uninfected_cells", "Uninfected (H)", S.HEALTHY),
+                               ("infected_cells", "Infected (I)", S.INFECTED),
+                               ("dead_cells", "Dead (D)", S.DEAD)):
+        traces_counts += _repro_band_traces(key, target, ensemble, color, label)
+    counts_layout = S.base_layout("t (days)", "cell count", height=320)
+
+    traces_virus = _repro_band_traces("extracellular_virus", target, ensemble,
+                                       _VIRUS_BLUE, "Extracellular virus")
+    virus_layout = S.base_layout("t (days)", "spatial-mean concentration", height=280)
+
+    body = ('<div style="font-size:12px;color:%s;font-weight:600;margin:2px 4px 0">'
+            'Cell counts — ensemble mean (solid) vs digitized Fig-3B band (shaded)</div>'
+            % S.SECONDARY
+            + S.plot("influenza-repro-fig3b-counts", traces_counts, counts_layout)
+            + '<div style="font-size:12px;color:%s;font-weight:600;margin:8px 4px 0">'
+              'Extracellular virus — ensemble mean vs Fig-3B band</div>' % S.SECONDARY
+            + S.plot("influenza-repro-fig3b-virus", traces_virus, virus_layout))
+
+    be = d["band_eval"]
+    n_pass = sum(1 for v in be["observables"].values() if v["in_band"])
+    n_tot = len(be["observables"])
+    sim_days = d["steps"] * 7 * 60 / 86400
+    kpis = [(f'{n_pass} / {n_tot} observables', "in-band at reduced scale"),
+            (f'{d["replicas"]} reps · {d["cells_per_side"]}×{d["cells_per_side"]} cells',
+             "reduced-scale config"),
+            ("Phase B (Mac mini)", "paper-scale ensemble still required")]
+    cap = (f'<b>Reduced-scale, band_eval.passed=False — NO reproduction claimed.</b> '
+           f'`run.repro_fig3b` wires every Increment 0-8 mechanism into ONE per-MCS loop '
+           f'(`run_full_model`) and evaluates the ensemble mean against the digitized Fig-3B '
+           f'acceptance bands (`targets/fig3b.json`, `bands.evaluate_study`). At this '
+           f'reduced-scale config ({d["replicas"]} replicas, {d["cells_per_side"]}×'
+           f'{d["cells_per_side"]} cells, {d["steps"]} records, ~{sim_days:.2f} simulated '
+           f'days) {n_pass} of {n_tot} observables land in-band at every digitized checkpoint '
+           f'— expected at this small population/short-duration scale, not a mechanism '
+           f'failure. The mechanisms are wired and source-faithful; field/coupling '
+           f'MAGNITUDES remain calibration-pending. Only the paper-scale 50-replica, '
+           f'35×35-cell, ~3.5-day ensemble (Mac-mini Phase-B follow-up) can set a '
+           f'`reproduced` verdict — this card must not be read as one.')
+    return S.card("Fig-3B reproduction — reduced-scale ensemble vs acceptance band",
+                  "Increment-9 CAPSTONE — run_full_model ensemble vs targets/fig3b.json",
+                  body, cap, increment=9, kpis=kpis)
+
+
+def _build_repro_sweep(kind):
+    """Shared by `_build_repro_fig5`/`_build_repro_fig7`: the dose-response
+    curve (final ensemble-mean uninfected fraction vs the swept dose) plus
+    the highest-tested-dose `uninfected_cells` overlay against ITS
+    scenario-filtered Fig-5/Fig-7 band (never the raw multi-scenario band
+    list — mirrors `run.py`'s `_fig5_target_subset`/`_fig7_target_subset`
+    scenario-grouping guard)."""
+    if kind == "fig5":
+        d = _SD["repro_fig5"]
+        doses, by = d["loads"], d["by_load"]
+        tag_key, xlabel = "viral_load_multiplier", "initial viral load multiplier"
+        target_fig, fig_label = "fig5", "Fig-5"
+    else:
+        d = _SD["repro_fig7"]
+        doses, by = d["fracs"], d["by_frac"]
+        tag_key, xlabel = "initial_infection_fraction", "initial infection fraction"
+        target_fig, fig_label = "fig7", "Fig-7"
+
+    final_fracs = [by[str(dose)]["uninfected_final_frac"] for dose in doses]
+    dose_traces = [S.line_trace(doses, final_fracs, S.INFECTED,
+                                "final uninfected fraction (model)")]
+    dose_layout = S.base_layout(xlabel, "final ensemble-mean uninfected fraction",
+                                logx=True, height=300)
+
+    rep_dose = doses[-1]  # highest tested dose — the paper's most-severe scenario
+    rep = by[str(rep_dose)]
+    target_all = _D["targets"][target_fig]["observables"].get("uninfected_cells", [])
+    matched = [o for o in target_all if o.get(tag_key) == rep_dose]
+    rep_target = {"uninfected_cells": matched} if matched else {}
+    band_traces = _repro_band_traces("uninfected_cells", rep_target, rep["ensemble"],
+                                     S.HEALTHY, "Uninfected (H)")
+    band_layout = S.base_layout("t (days)", "uninfected_cells (ensemble mean)", height=300)
+
+    sim_days = d["steps"] * 7 * 60 / 86400
+    body = ('<div style="font-size:12px;color:%s;font-weight:600;margin:2px 4px 0">'
+            f'Dose-response — final uninfected fraction vs {xlabel} (log x)</div>'
+            % S.SECONDARY
+            + S.plot(f"influenza-repro-{target_fig}-dose", dose_traces, dose_layout)
+            + '<div style="font-size:12px;color:%s;font-weight:600;margin:8px 4px 0">'
+              f'Highest tested dose ({rep_dose:g}) vs its {fig_label} acceptance band</div>'
+            % S.SECONDARY
+            + S.plot(f"influenza-repro-{target_fig}-band", band_traces, band_layout))
+
+    n_fail = sum(1 for dose in doses if not by[str(dose)]["band_eval"]["passed"])
+    lt = d.get("lethal_threshold")
+    lt_str = f'{lt:g}' if lt is not None else "none reached"
+    kpis = [(f'{len(doses) - n_fail} / {len(doses)} doses', "band_eval.passed at reduced scale"),
+            (f'{d["replicas"]} reps · {d["cells_per_side"]}×{d["cells_per_side"]} cells',
+             "reduced-scale config"),
+            (f'model lethal_threshold={lt_str}', "this driver's own reduced-scale run")]
+    cap = (f'<b>Reduced-scale, band_eval.passed=False at every tested dose — NO reproduction '
+           f'claimed.</b> `run.repro_{target_fig}` sweeps `run_full_model` over {fig_label}\'s '
+           f'{xlabel} scenarios ({", ".join(f"{x:g}" for x in doses)}) and evaluates EACH dose '
+           f'against ONLY that dose\'s {fig_label} band subset (scenario-grouping guard). At '
+           f'this reduced-scale config ({d["replicas"]} replica, {d["cells_per_side"]}×'
+           f'{d["cells_per_side"]} cells, {d["steps"]} records, ~{sim_days:.2f} simulated days), '
+           f'the monotone dose-response DIRECTION holds (higher dose → not-more-surviving) but '
+           f'per-dose band containment fails for all {len(doses)} tested doses — expected at '
+           f'this scale. Mechanisms are wired and source-faithful; magnitudes are '
+           f'calibration-pending. Only the paper-scale ensemble (Mac-mini Phase-B follow-up) '
+           f'can set a `reproduced` verdict.')
+    return S.card(f"{fig_label} reproduction — dose-response vs acceptance band",
+                  f"Increment-9 CAPSTONE — run_full_model {xlabel} sweep vs targets/{target_fig}.json",
+                  body, cap, increment=9, kpis=kpis)
+
+
+def _build_repro_fig5():
+    """CAPSTONE viral-load sweep vs digitized Fig-5 bands — reduced scale, dose-response direction holds"""
+    return _build_repro_sweep("fig5")
+
+
+def _build_repro_fig7():
+    """CAPSTONE infection-fraction sweep vs digitized Fig-7 bands — reduced scale, dose-response direction holds"""
+    return _build_repro_sweep("fig7")
+
+
 # ── registry wrappers (auto-discovered v2 Visualizations) ───────────────────
 @as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaFig3BTargets", demo={"mcs": [0.0]})
 def update_influenza_fig3b_targets(state):
@@ -528,6 +680,24 @@ def update_influenza_global_coupling(state):
     return {"html": _build_global()}
 
 
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaReproFig3B", demo={"mcs": [0.0]})
+def update_influenza_repro_fig3b(state):
+    """CAPSTONE run_full_model ensemble vs digitized Fig-3B bands — reduced scale, 0/12 in-band"""
+    return {"html": _build_repro_fig3b()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaReproFig5", demo={"mcs": [0.0]})
+def update_influenza_repro_fig5(state):
+    """CAPSTONE viral-load sweep vs digitized Fig-5 bands — reduced scale, dose-response direction holds"""
+    return {"html": _build_repro_fig5()}
+
+
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaReproFig7", demo={"mcs": [0.0]})
+def update_influenza_repro_fig7(state):
+    """CAPSTONE infection-fraction sweep vs digitized Fig-7 bands — reduced scale, dose-response direction holds"""
+    return {"html": _build_repro_fig7()}
+
+
 # ── zero-arg accessors (exercise outside the Step lifecycle: tests + file render) ──
 def InfluenzaFig3BTargets():
     return _build_fig3b()
@@ -567,3 +737,15 @@ def InfluenzaCytotoxicKilling():
 
 def InfluenzaGlobalCoupling():
     return _build_global()
+
+
+def InfluenzaReproFig3B():
+    return _build_repro_fig3b()
+
+
+def InfluenzaReproFig5():
+    return _build_repro_fig5()
+
+
+def InfluenzaReproFig7():
+    return _build_repro_fig7()

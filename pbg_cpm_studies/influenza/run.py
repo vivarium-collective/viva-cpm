@@ -21,8 +21,8 @@ import math
 
 import numpy as np
 
-from . import (allee, build, fields, immune, killing, price_ode, recruitment,
-               sheet, signaling, transitions, types)
+from . import (allee, bands, build, fields, immune, killing, price_ode,
+               recruitment, sheet, signaling, transitions, types)
 from .params import load_params
 from .resistance import cell_resistance
 
@@ -1148,7 +1148,11 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
       - "ode": {sp: [...]} for each of the 10 integrated states
         (NB, N, T, X, A, B, P, W, G, O)
       - "spatial": {"H","I","M","K","E","DH","V","F","C","L": [...]} -- the fed-in
-        spatial aggregates (counts and z-normalized field integrals)
+        spatial aggregates (counts and z-normalized field integrals). Task
+        9.0 §4a fix: "M"/"K"/"E" are `num_immune_by_type` = the LOCAL CPM
+        count PLUS the Task-8.4 NEARBY ODE surrogate (state["M_nb"/"K_nb"/
+        "E_nb"], as of the end of the preceding MCS's recruitment step) --
+        this IS the value fed to the ODE, not the pure CPM count.
       - "sigma1": [a_11*T + a_12*D] each MCS (T from the ODE, D from spatial
         counts) -- Task 8.3: this is the DYNAMIC sig_1 actually fed into
         `_apply_secretion_scales` (macrophage chemokine + IL-10 Michaelis
@@ -1194,7 +1198,9 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
 
     cell_type_by_idx = [c["type"] for c in spec["cells"]]  # spec index i -> cell id i+1
     infected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I]
-    macrophage_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.M]
+    # NB: no static `macrophage_ids` here (Task 9.0 §4a fix) -- the
+    # secretion-scale loop below recomputes the CURRENT macrophage id list
+    # every MCS, so it picks up Task-8.4-recruited macrophages too.
     uninfected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.H]
     n_epithelial_actual = sum(1 for t in cell_type_by_idx if t in (types.H, types.I))
 
@@ -1329,7 +1335,15 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         # count) instead of the static Increment-6 stub: local IL-10
         # self-limits the macrophage's chemokine + IL-10 release; uninfected
         # cells' IL-10 is (1-resist)-gated (unaffected by sig_1).
-        for cid in macrophage_ids:
+        # Task 9.0 §4a fix: refresh the macrophage-id list EVERY MCS (any
+        # cell currently typed `types.M`, seeded OR Task-8.4-recruited),
+        # not the static pre-loop `macrophage_ids` -- else a macrophage
+        # activated from the reserve pool by `_recruit_step` never gets its
+        # chemokine/IL-10 secretion scale set. Same "current cells of a
+        # type" pattern `_recruit_step`'s own outflow draw already uses.
+        current_macrophage_ids = [cid for cid, ct in enumerate(world.cell_types())
+                                   if ct == types.M and cid != 0]
+        for cid in current_macrophage_ids:
             l_loc = world.field_mean_at_cell(il10_fi, cid)
             scale = signaling.macrophage_secretion_scale(l_loc, sig_1_dynamic, g_1, g_2, d_2)
             world.set_cell_secretion_scale(chemo_fi, cid, scale)
@@ -1450,7 +1464,18 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         B_ei = sum_resist * b_ei
         G_ki = sum_resist * g_ki
 
-        inputs = dict(H=H, I=I, M=M, K=K, E=E, DH=DH,
+        # Task 9.0 §4a fix: ODE `num_immune_by_type` = LOCAL CPM count +
+        # NEARBY ODE surrogate (dossier §4a), not the pure CPM count --
+        # `state["M_nb"/"K_nb"/"E_nb"]` as of the end of the PRECEDING MCS's
+        # `_recruit_step` (same causal-ordering convention
+        # `_apply_cytotoxic_killing`'s NEARBY term already uses). Macro
+        # `M_nb` stays 0 (macro `local_ratio`=1.0 -> no nearby accrual, see
+        # `_recruit_step`); NK/CD8 pick up their Task-8.4 nearby surrogates.
+        M_ode = M + state["M_nb"]
+        K_ode = K + state["K_nb"]
+        E_ode = E + state["E_nb"]
+
+        inputs = dict(H=H, I=I, M=M_ode, K=K_ode, E=E_ode, DH=DH,
                       V=V, F=F, C=C, L=L, B_ei=B_ei, G_ki=G_ki)
 
         # --- integrate one MCS (dt = 60 s) ---
@@ -1511,3 +1536,1008 @@ def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
         "dead_from_infected": len(dead_from_infected_ids),
     }
     return result
+
+
+# Enable-flag tokens accepted by `run_full_model.enable` (subsystem isolation).
+_FULL_MODEL_SUBSYSTEMS = (
+    "infection", "ifn", "death", "allee", "macrophage", "chemokine",
+    "nk_cd8", "killing", "recruitment", "ode",
+)
+
+
+def _seed_uniform_virus(world, virus_fi, target_conc, epithelial_ids):
+    """Approximate the source's uniform ``Virus``-field initial condition
+    (``ImmuneModelSteppable.init_fresh_immune_model``: if ``v0 > 0`` seed the
+    field uniformly to ``v0`` with NO pre-infected cells) within this engine's
+    API, which has NO direct field-write primitive (`crates/cpm-py/src/lib.rs`
+    exposes only secretion + diffusion, no field setter) and MUST NOT be
+    rebuilt this task.
+
+    Engine-only approximation: transiently make every epithelial (H) cell a
+    virus SOURCE for one field advance, sized so the per-pixel deposit equals
+    ``target_conc`` (the field engine adds ``rate*dt`` once per advance, see
+    `fields._per_pixel_secretion_rate`), then RESET H-cell virus secretion to 0
+    so only infected cells secrete during the run proper. The result is a
+    ~uniform ``target_conc`` virus concentration under the epithelial patch --
+    the region where infection is decided -- with a small amount of edge
+    diffusion (virus D ~ 0.18 lat^2/MCS is the smallest of any field, so the
+    spread over one advance is negligible). This is a documented IC
+    approximation, NOT a tuned rate: the deposit scales linearly with
+    ``target_conc`` (so the fig5 viral-load dose-response is monotone) and adds
+    no multiplier to any dynamics constant.
+    """
+    _d, _decay, dt, _substeps, _sec = fields._virus_field_params()
+    # `world.set_secretion(field, TYPE, rate)` is a per-TYPE rule; every H cell
+    # is the epithelial patch, so this deposits uniformly across the patch.
+    world.set_secretion(virus_fi, types.H, float(target_conc) / dt)
+    world.advance_fields(1)
+    world.set_secretion(virus_fi, types.H, 0.0)
+
+
+def run_full_model(*, cells_per_side: int, steps: int, seed: int,
+                   init_infection_frac: float | None = None,
+                   init_viral_load: float | None = None,
+                   s_per_mcs: float = 60.0,
+                   enable=_FULL_MODEL_SUBSYSTEMS,
+                   mcs_per_step: int = 7,
+                   n_macrophages: int = 4, n_nk: int = 4, n_cd8: int = 4,
+                   margin_sites: int = 10, separation_sites: int = 8,
+                   recruit_pool_per_type: int = 6,
+                   **scenario_kw) -> dict:
+    """Increment 9 Task 9.1 -- the CAPSTONE multiscale driver: assemble ALL
+    mechanism primitives from Increments 0-8 into ONE per-MCS loop, in the
+    Sego-2022 source's steppable order (dossier
+    ``docs/cc3d-reference/sego2022-global-ode.md`` §4 / the plan's Global
+    Constraints), and record every capstone observable.
+
+    This is `run_global_coupling`'s ODE-coupling block (spatial->ODE push,
+    dynamic ``sig_1`` macrophage secretion, ODE-driven recruitment, NK/CD8
+    LOCAL+NEARBY killing, the §4a nearby-surrogate + recruited-macrophage
+    fidelity fixes) reused wholesale, PLUS the two subsystems it was missing
+    per the Task-8.2 review: the epithelial-fate TRANSITIONS (infection H->I,
+    infected apoptosis I->D, Allee death H->D / recovery D->H) and immune-cell
+    CHEMOTAXIS (macrophage up virus, NK/CD8 up chemokine). No mechanism math is
+    reimplemented here -- every step calls the existing Increment-0..8 helper.
+
+    Scenario: `immune.build_cytotoxic_scenario_spec` at
+    ``epithelial_cells_per_side = cells_per_side`` (a non-confluent epithelial
+    patch + interior macrophage and NK/CD8 clusters + the Task-8.4 dormant
+    recruit reserve pool). ``cells_per_side`` sets the ODE population scale
+    ``eta = cells_per_side**2 / 250000`` (the ODE reference population
+    ``tot_cell`` is the actual epithelial cell count, ``cells_per_side**2``).
+
+    Scenario selection (mutually exclusive -- exactly one required):
+      - ``init_infection_frac``: seed ``round(frac*tot_cell)`` random-nearest-
+        center epithelial cells as INFECTED (the virus/IFN sources), no initial
+        virus field. ``infected[0] > 0``.
+      - ``init_viral_load``: seed NO pre-infected cells; instead lay down a
+        ~uniform virus-field IC at concentration ``init_viral_load`` under the
+        patch (`_seed_uniform_virus`), so infection EMERGES from the field
+        (H->I ∝ local virus·g_hv). ``infected[0] == 0``.
+
+    Per-MCS SOURCE-ORDERED pipeline (Global Constraints; each step calls the
+    named existing helper, gated by ``enable`` so tests can isolate a
+    subsystem):
+      1. ``world.step`` -- advance Potts + all four fields (virus/IFN/chemokine/
+         IL-10) together (also applies the chemotaxis wired once at setup:
+         macrophage↑virus, NK/CD8↑chemokine).
+      2. infection H->I -- `transitions.infection_step` (local virus·``g_hv``).
+      3. per-cell resistance ρ from local IFN -- `resistance.cell_resistance`.
+      4. field secretion scales -- virus release by infected gated ``(1-ρ)``;
+         macrophage chemokine/IL-10 via `signaling.macrophage_secretion_scale`
+         driven by the DYNAMIC ``sig_1 = a_11*T + a_12*D`` (§4b(i)), macrophage
+         id list refreshed each MCS (§4a fix); uninfected IL-10 gated ``(1-ρ)``.
+      5. chemotaxis -- persistent engine setting wired once at setup (applied
+         inside every ``world.step``); no per-MCS action.
+      6. contact + nearby killing I->D -- `killing.contact_kill_rate` (LOCAL) +
+         `killing.nearby_kill_rate` (well-mixed NEARBY, from ``K_nb``/``E_nb``).
+      7. Allee death H->D / recovery D->H -- `allee.allee_death_rate` /
+         `allee.allee_recovery_rate` over the epithelial contact geometry.
+      8. infected apoptosis I->D -- `transitions.infected_death_step`
+         (``mu_i·(1-ρ)``).
+      9. spatial->ODE push + `price_ode.GlobalODE.step` + ODE->spatial
+         recruitment -- the source's ``__update_spatial_data`` ->
+         ``rr.timestep()`` -> ``update_populations`` order (§4; recruitment
+         follows the integrate, using the freshly-integrated APC ``P``), reused
+         verbatim from `run_global_coupling`.
+
+    CALIBRATION HONESTY (plan Global Constraints): this task WIRES the model; it
+    does NOT tune to hit figure bands. The only engine-unit scale used is the
+    documented Increment-7 100× chemotaxis normalization
+    (`NK_CD8_CHEMOTAXIS_ENGINE_SCALE`, see its module-level docstring -- the
+    source's literal λ is statistically undetectable at this engine's
+    chemokine-field concentration scale); source constants and the correct η
+    are used unchanged. At the reduced η of these fast tests some subsystems
+    (recruitment inflow, NEARBY killing) are near-inert -- expected, flagged for
+    the 9.2-9.4 / Phase-B paper-scale calibration, and NOT tuned here.
+
+    Returns (index 0 = the seeded INITIAL state, before any transition --
+    matching `run_virus_infection`'s convention, so ``infected[0]`` reflects the
+    scenario's initial seeding; indices 1..steps-1 are after each stepped MCS,
+    for ``steps`` records total; ``t_days[i] = i*mcs_per_step*s_per_mcs/86400``
+    -- each record advances ``mcs_per_step`` MCS)::
+
+        {
+          "mcs":    [0, 1, ..., steps-1],
+          "t_days": [0.0, ...],
+          "counts": {"uninfected","infected","dead","macrophage","nk","cd8"},
+          "fields": {"virus","ifn","chemo","il10"},   # lattice field integrals
+          "ode":    {sp: [...] for the 10 integrated states}
+                    + {"H","I","M","K","E","DH"}       # the spatial->ODE inputs
+                    (M/K/E = LOCAL CPM count + NEARBY surrogate, the §4a value
+                    actually fed to the ODE),
+          "params": {...},
+        }
+    """
+    if (init_infection_frac is None) == (init_viral_load is None):
+        raise ValueError(
+            "run_full_model requires exactly one of init_infection_frac XOR "
+            "init_viral_load (got both or neither)")
+
+    enable = set(enable)
+    params = load_params()
+    a_rf = float(params["resistance"]["a_rf"])
+    _, g_1, g_2, d_2 = fields.il10_hill_constants()
+    g_ik = float(params["nk"]["g_ik"])
+    g_ie = float(params["cd8"]["g_ie"])
+    tot_ec = float(params["scaling"]["ode_epithelial_population"])
+    g_hv = float(params["virus"]["infection_g_hv"])
+    mu_i = float(params["cell_death"]["mu_i_per_mcs"])
+    b_h = float(params["allee"]["b_h"])
+    theta = float(params["allee"]["srf_threshold"])
+
+    # --- scenario ---------------------------------------------------------
+    tot_cell = cells_per_side * cells_per_side
+    if init_infection_frac is not None:
+        n_infected = int(round(float(init_infection_frac) * tot_cell))
+        n_infected = max(0, min(n_infected, tot_cell))
+    else:
+        n_infected = 0  # init_viral_load: no pre-infected cells
+
+    spec = immune.build_cytotoxic_scenario_spec(
+        epithelial_cells_per_side=cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
+        margin_sites=margin_sites, separation_sites=separation_sites, seed=seed,
+        **scenario_kw)
+
+    world = build.world_from_spec(spec, finalize=False)
+    virus_fi = fields.add_virus_field(world)
+    ifn_fi = fields.add_ifn_field(world)
+    chemo_fi = fields.add_chemokine_field(world)
+    il10_fi = fields.add_il10_field(world)
+
+    # Task-8.4 recruit reserve pool (dormant cells activated by ODE inflow).
+    recruit_targets = [types.M, types.K, types.E]
+    reserve_pool: dict[int, list[int]] = {}
+    if "recruitment" in enable:
+        mv = int(params["macrophage"]["volume_sites"])
+        mlv = float(params["macrophage"]["lambda_volume"])
+        for t in range(0, RECRUIT_RESERVE_TYPE):
+            world.set_contact(RECRUIT_RESERVE_TYPE, t, 10.0)
+        world.set_contact(RECRUIT_RESERVE_TYPE, RECRUIT_RESERVE_TYPE, 25.0)
+        reserve_pool = _seed_recruit_pool(
+            world, spec, pool_per_type=recruit_pool_per_type,
+            targets=recruit_targets, target_volume=mv, lambda_volume=mlv)
+
+    world.finalize(int(spec["potts"]["seed"]))
+
+    n_cells = len(spec["cells"])
+    dim_z = world.dims()[2]
+
+    cell_type_by_idx = [c["type"] for c in spec["cells"]]
+    epithelial_ids = [i + 1 for i, t in enumerate(cell_type_by_idx)
+                      if t in (types.H, types.I)]
+
+    # init_viral_load: lay down the ~uniform virus IC (engine has no field-write
+    # primitive; see `_seed_uniform_virus`) BEFORE the initial-state record.
+    if init_viral_load is not None:
+        _seed_uniform_virus(world, virus_fi, init_viral_load, epithelial_ids)
+
+    # --- chemotaxis (the piece run_global_coupling was missing) -----------
+    if "macrophage" in enable:
+        immune.set_macrophage_chemotaxis(world, virus_fi)
+    if "nk_cd8" in enable:
+        nk_lam = float(params["nk"]["chemotaxis_v_nk"]) * NK_CD8_CHEMOTAXIS_ENGINE_SCALE
+        cd8_lam = float(params["cd8"]["chemotaxis_v_cd8"]) * NK_CD8_CHEMOTAXIS_ENGINE_SCALE
+        immune.set_nk_cd8_chemotaxis(world, chemo_fi,
+                                     chemotaxis_v_nk=nk_lam, chemotaxis_v_cd8=cd8_lam)
+
+    # --- ODE (Task 8.1) ---------------------------------------------------
+    consts = price_ode.resolve_constants(params["price_ode"], num_epithelial=tot_cell)
+    ode = price_ode.GlobalODE(consts, num_epithelial=tot_cell)
+    state = price_ode.initial_state(consts, num_epithelial=tot_cell, v0=0.0)
+    b_ei = consts["b_ei"]
+    g_ki = consts["g_ki"]
+    a_11, a_12 = consts["a_11"], consts["a_12"]
+    eta = tot_cell / price_ode.ODE_EPITHELIAL_POPULATION
+
+    # --- independent RNG streams (offsets match the other drivers) --------
+    infect_rng = np.random.default_rng(seed + 1)
+    death_rng = np.random.default_rng(seed + 2)
+    allee_rng = np.random.default_rng(seed + 3)
+    kill_rng = np.random.default_rng(seed + 800)
+    recruit_rng = np.random.default_rng(seed + 900)
+
+    _lr = params["coupling"]["recruitment"]["local_ratios"]
+    local_ratio = {types.M: float(_lr["macro"]), types.K: float(_lr["nk"]),
+                   types.E: float(_lr["cd8"])}
+
+    infected_ids = set(i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I)
+    # Dead-cell provenance for the §4a DH input: Allee/ROS deaths are
+    # dead-from-HEALTHY (source `DH`); killing + apoptosis are dead-from-
+    # INFECTED (source `DI = tot-H-I-DH`). DH = count of currently-D cells of
+    # healthy origin.
+    dead_from_healthy_ids: set[int] = set()
+    dead_from_infected_ids: set[int] = set()
+
+    def _recruit_step(C_field, P_ode, G_ki_now, B_ei_now):
+        """One MCS of ODE-driven recruitment (source `update_populations`,
+        AFTER `rr.timestep()`): activate/remove CPM immune cells + attrit the
+        nearby surrogates. Reused verbatim from `run_global_coupling`."""
+        rates = {
+            "macro_inflow": recruitment.macrophage_inflow(C_field, consts),
+            "nk_inflow": recruitment.nk_inflow(C_field, consts),
+            "cd8_inflow": recruitment.cd8_inflow(P_ode, consts),
+            "macro_outflow": recruitment.macrophage_outflow(consts),
+            "nk_outflow": recruitment.nk_outflow(G_ki_now, consts),
+            "cd8_outflow": recruitment.cd8_outflow(B_ei_now, consts),
+        }
+        by_type = {
+            types.M: (rates["macro_inflow"], rates["macro_outflow"], "M_nb"),
+            types.K: (rates["nk_inflow"], rates["nk_outflow"], "K_nb"),
+            types.E: (rates["cd8_inflow"], rates["cd8_outflow"], "E_nb"),
+        }
+        for t, (inflow, outflow, nb_key) in by_type.items():
+            lr = local_ratio[t]
+            pr_out = recruitment.ul_rate_to_prob(lr * outflow)
+            if pr_out > 0.0:
+                active = [cid for cid, ct in enumerate(world.cell_types())
+                          if ct == t and cid != 0]
+                to_remove = [cid for cid in active if recruit_rng.random() < pr_out]
+                if to_remove:
+                    world.remove_cells(to_remove)
+                    for cid in to_remove:
+                        world.set_cell_type(cid, RECRUIT_RESERVE_TYPE)
+            n_local = recruitment.poisson_inflow_count(lr * inflow, recruit_rng)
+            pool_t = reserve_pool.get(t, [])
+            for _ in range(n_local):
+                if not pool_t:
+                    break
+                world.set_cell_type(pool_t.pop(0), t)
+            nearby_in = (1.0 - lr) * inflow
+            state[nb_key] = state[nb_key] * (1.0 - recruitment.ul_rate_to_prob(outflow)) + nearby_in
+        return rates
+
+    def _counts(types_now):
+        H = sum(1 for t in types_now[1:] if t == types.H)
+        I = sum(1 for t in types_now[1:] if t == types.I)
+        D = sum(1 for t in types_now[1:] if t == types.D)
+        M = sum(1 for t in types_now[1:] if t == types.M)
+        K = sum(1 for t in types_now[1:] if t == types.K)
+        E = sum(1 for t in types_now[1:] if t == types.E)
+        return H, I, D, M, K, E
+
+    result = {
+        "mcs": [], "t_days": [],
+        "counts": {k: [] for k in ("uninfected", "infected", "dead",
+                                   "macrophage", "nk", "cd8")},
+        "fields": {k: [] for k in ("virus", "ifn", "chemo", "il10")},
+        # `ode` carries BOTH the 10 integrated states AND the §4a spatial->ODE
+        # inputs (H,I,M,K,E,DH) actually fed to the ODE -- M/K/E = LOCAL CPM
+        # count + NEARBY surrogate, so e.g. r["ode"]["K"] >= the local NK count.
+        "ode": {sp: [] for sp in
+                tuple(price_ode.INTEGRATED_STATES) + ("H", "I", "M", "K", "E", "DH")},
+    }
+
+    def _record(i):
+        types_now = world.cell_types()
+        H, I, D, M, K, E = _counts(types_now)
+        DH = sum(1 for cid in dead_from_healthy_ids if types_now[cid] == types.D)
+        mcs_now = i * mcs_per_step  # actual MCS elapsed at record i
+        result["mcs"].append(mcs_now)
+        result["t_days"].append(mcs_now * s_per_mcs / 86400.0)
+        result["counts"]["uninfected"].append(H)
+        result["counts"]["infected"].append(I)
+        result["counts"]["dead"].append(D)
+        result["counts"]["macrophage"].append(M)
+        result["counts"]["nk"].append(K)
+        result["counts"]["cd8"].append(E)
+        result["fields"]["virus"].append(float(sum(world.field_conc(virus_fi))))
+        result["fields"]["ifn"].append(float(sum(world.field_conc(ifn_fi))))
+        result["fields"]["chemo"].append(float(sum(world.field_conc(chemo_fi))))
+        result["fields"]["il10"].append(float(sum(world.field_conc(il10_fi))))
+        for sp in price_ode.INTEGRATED_STATES:
+            result["ode"][sp].append(state[sp])
+        result["ode"]["H"].append(H)
+        result["ode"]["I"].append(I)
+        result["ode"]["M"].append(M + state["M_nb"])
+        result["ode"]["K"].append(K + state["K_nb"])
+        result["ode"]["E"].append(E + state["E_nb"])
+        result["ode"]["DH"].append(DH)
+
+    # resist_at_cell persists across the inner-MCS loop and is read by the
+    # per-record ODE push (B_ei/G_ki). Recomputed every MCS below.
+    resist_at_cell = [0.0] * (n_cells + 1)
+
+    def _one_mcs(sig_1_dynamic):
+        """One source-faithful MCS of the cell-scale pipeline (steps 1-8 of the
+        dossier §4 order): advance Potts + all four fields, then infection,
+        resistance, field-secretion scales, contact+nearby killing, Allee
+        death/recovery, and infected apoptosis. Every cell-fate transition
+        fires EVERY MCS (matching the source's per-MCS steppable cadence). The
+        systemic-ODE coupling (step 9) runs once per RECORDED step in the outer
+        loop -- a documented coupling-cadence reduction for test speed that is
+        immaterial at reduced scale (the integrated ODE species evolve slowly);
+        ``sig_1`` and the nearby surrogates it feeds are refreshed there."""
+        nonlocal resist_at_cell
+        # (1) advance Potts + all fields (chemotaxis applied inside world.step).
+        world.step(1)
+        current_types = list(world.cell_types())
+
+        # (2) infection H->I (local virus·g_hv).
+        if "infection" in enable:
+            virus_at_cell = [world.field_mean_at_cell(virus_fi, cid)
+                             for cid in range(n_cells + 1)]
+            after_inf = transitions.infection_step(current_types, virus_at_cell, g_hv, infect_rng)
+            for cid in range(1, n_cells + 1):
+                if after_inf[cid] == types.I and current_types[cid] != types.I:
+                    world.set_cell_type(cid, types.I)
+                    infected_ids.add(cid)
+            current_types = after_inf
+
+        # (3) per-cell resistance ρ from local IFN (every epithelial cell).
+        resist_at_cell = [0.0] * (n_cells + 1)
+        if "ifn" in enable:
+            for cid in range(1, n_cells + 1):
+                if current_types[cid] in _EPITHELIAL_TYPES:
+                    f_bar = world.field_mean_at_cell(ifn_fi, cid)
+                    resist_at_cell[cid] = cell_resistance(f_bar, a_rf)
+
+        # (4) field-secretion scales. Virus release by infected gated (1-ρ);
+        # macrophage chemokine/IL-10 via the DYNAMIC sig_1 with the §4a-
+        # refreshed macrophage id list; uninfected IL-10 gated (1-ρ).
+        for cid in infected_ids:
+            world.set_cell_secretion_scale(virus_fi, cid, 1.0 - resist_at_cell[cid])
+        if "chemokine" in enable:
+            current_macrophage_ids = [cid for cid, ct in enumerate(world.cell_types())
+                                      if ct == types.M and cid != 0]
+            for cid in current_macrophage_ids:
+                l_loc = world.field_mean_at_cell(il10_fi, cid)
+                scale = signaling.macrophage_secretion_scale(l_loc, sig_1_dynamic, g_1, g_2, d_2)
+                world.set_cell_secretion_scale(chemo_fi, cid, scale)
+                world.set_cell_secretion_scale(il10_fi, cid, scale)
+            for cid in range(1, n_cells + 1):
+                if current_types[cid] == types.H:
+                    world.set_cell_secretion_scale(
+                        il10_fi, cid, signaling.uninfected_il10_scale(resist_at_cell[cid]))
+
+        # (5) chemotaxis: persistent engine setting, applied inside world.step.
+
+        # (6) contact + nearby killing I->D.
+        if "killing" in enable and infected_ids:
+            cell_volumes = world.cell_volumes()
+            for cid in list(infected_ids):
+                contact = world.cell_contact_area_by_type(cid)
+                srf_nk = contact.get(types.K, 0)
+                srf_cd8 = contact.get(types.E, 0)
+                resist = resist_at_cell[cid]
+                cvol = cell_volumes[cid]
+                total_rate = (
+                    killing.contact_kill_rate(srf_nk, resist, g_ik, tot_ec, cvol)
+                    + killing.contact_kill_rate(srf_cd8, resist, g_ie, tot_ec, cvol)
+                    + killing.nearby_kill_rate(g_ik, eta, state["K_nb"], resist)
+                    + killing.nearby_kill_rate(g_ie, eta, state["E_nb"], resist)
+                )
+                if kill_rng.random() < 1.0 - math.exp(-total_rate):
+                    world.set_cell_type(cid, types.D)
+                    infected_ids.discard(cid)
+                    dead_from_infected_ids.add(cid)
+
+        # (7) Allee death H->D / recovery D->H (contact-geometry rule).
+        if "allee" in enable:
+            snapshot = list(world.cell_types())
+            allee_writes = []
+            for cid in range(1, n_cells + 1):
+                t = snapshot[cid]
+                if t not in (types.H, types.D):
+                    continue
+                srf_uninfected, srf_D, srf_total = _epithelial_contact_totals(world, cid)
+                resist = resist_at_cell[cid]
+                if t == types.H:
+                    rate = allee.allee_death_rate(srf_D, srf_uninfected, srf_total,
+                                                  b_h, resist, theta)
+                    if allee_rng.random() < 1.0 - math.exp(-rate):
+                        allee_writes.append((cid, types.D, "death"))
+                else:  # types.D
+                    rate = allee.allee_recovery_rate(srf_uninfected, srf_total,
+                                                     b_h, resist, theta)
+                    if allee_rng.random() < 1.0 - math.exp(-rate):
+                        allee_writes.append((cid, types.H, "recover"))
+            for cid, new_t, kind in allee_writes:
+                world.set_cell_type(cid, new_t)
+                if kind == "death":  # H->D: dead-from-HEALTHY (source DH)
+                    dead_from_healthy_ids.add(cid)
+                else:                # D->H: recovered, no longer dead
+                    dead_from_healthy_ids.discard(cid)
+                    dead_from_infected_ids.discard(cid)
+
+        # (8) infected apoptosis I->D (mu_i·(1-ρ)).
+        if "death" in enable and infected_ids:
+            current_types = list(world.cell_types())
+            after_apop = transitions.infected_death_step(current_types, resist_at_cell, mu_i, death_rng)
+            for cid in range(1, n_cells + 1):
+                if after_apop[cid] == types.D and current_types[cid] == types.I:
+                    world.set_cell_type(cid, types.D)
+                    infected_ids.discard(cid)
+                    dead_from_infected_ids.add(cid)
+
+    def _ode_couple(sig_1_dynamic):
+        """Step 9: spatial->ODE push -> integrate -> ODE->spatial recruitment
+        (source §4: __update_spatial_data -> rr.timestep() -> update_
+        populations), reused wholesale from `run_global_coupling` incl. the
+        §4a nearby-surrogate fix. Returns the fresh dynamic sig_1 for the next
+        record's secretion. No-op (returns sig_1 unchanged) if ODE disabled."""
+        if "ode" not in enable:
+            return sig_1_dynamic
+        types_now = world.cell_types()
+        H, I, D, M, K, E = _counts(types_now)
+        DH = sum(1 for cid in dead_from_healthy_ids if types_now[cid] == types.D)
+        V = float(sum(world.field_conc(virus_fi))) / dim_z
+        F = float(sum(world.field_conc(ifn_fi))) / dim_z
+        C = float(sum(world.field_conc(chemo_fi))) / dim_z
+        L = float(sum(world.field_conc(il10_fi))) / dim_z
+        sum_resist = sum(resist_at_cell[cid] for cid in infected_ids)
+        B_ei = sum_resist * b_ei
+        G_ki = sum_resist * g_ki
+        # §4a fix: num_immune_by_type = LOCAL CPM count + NEARBY surrogate.
+        inputs = dict(H=H, I=I, M=M + state["M_nb"], K=K + state["K_nb"],
+                      E=E + state["E_nb"], DH=DH, V=V, F=F, C=C, L=L,
+                      B_ei=B_ei, G_ki=G_ki)
+        # dt spans the mcs_per_step MCS advanced since the last coupling, so
+        # ODE model-time stays synced to CPM time.
+        new_state = ode.step(state, inputs, dt_seconds=s_per_mcs * mcs_per_step)
+        state.clear()
+        state.update(new_state)
+        if "recruitment" in enable:
+            _recruit_step(C, state["P"], G_ki, B_ei)
+        # dynamic sig_1 for the next record's secretion (a_11*T + a_12*D).
+        return a_11 * state["T"] + a_12 * (tot_cell - H - I)
+
+    # sig_1 for the first secretion step: D = tot_cell - H - I = 0 at the
+    # seeded initial state, T = healthy-IC T (0.0). Same causal ordering as
+    # `run_global_coupling` (a record's secretion uses the PRECEDING record's
+    # freshly-integrated T + spatial dead count; the initial record uses D=0).
+    sig_1_dynamic = a_11 * state["T"] + a_12 * 0.0
+
+    # Index 0 = the seeded initial state (before any transition), so
+    # infected[0] reflects the scenario's initial seeding (frac -> >0, viral
+    # load -> 0). Indices 1..steps-1 each advance `mcs_per_step` MCS.
+    _record(0)
+
+    for i in range(1, steps):
+        for _ in range(mcs_per_step):
+            _one_mcs(sig_1_dynamic)
+        sig_1_dynamic = _ode_couple(sig_1_dynamic)
+        _record(i)
+
+    result["params"] = {
+        "cells_per_side": cells_per_side, "tot_cell": tot_cell, "eta": eta,
+        "steps": steps, "seed": seed, "s_per_mcs": s_per_mcs,
+        "mcs_per_step": mcs_per_step,
+        "init_infection_frac": init_infection_frac, "init_viral_load": init_viral_load,
+        "n_infected_seeded": n_infected,
+        "n_macrophages": n_macrophages, "n_nk": n_nk, "n_cd8": n_cd8,
+        "enable": sorted(enable),
+        "nk_cd8_chemotaxis_engine_scale": NK_CD8_CHEMOTAXIS_ENGINE_SCALE,
+        "b_m": consts["b_m"], "b_k": consts["b_k"], "b_p": consts["b_p"],
+        "n_infected_final": len(infected_ids),
+        "dead_from_infected": len(dead_from_infected_ids),
+        "dead_from_healthy": len(dead_from_healthy_ids),
+        "recruit_pool_per_type": recruit_pool_per_type if "recruitment" in enable else 0,
+        "dims": list(world.dims()),
+    }
+    return result
+
+
+# Task 9.2 (this task): maps `run_full_model`'s returned series onto the
+# `targets/fig3b.json` observable keys -- the EXACT names as they appear in
+# that JSON's "observables" dict (some differ from `run_full_model`'s own
+# section/key names, e.g. fields.virus -> "extracellular_virus", ode.P (the
+# integrated APC state, dossier/`price_ode.INTEGRATED_STATES`) -> "apcs",
+# ode.A (the integrated antibody state) -> "antibodies"). Each value is a
+# ``(section, key)`` pair into a single replica's `run_full_model` result
+# dict; `repro_fig3b` zips the matching series against that replica's
+# `t_days` to build the ``[(t_days, value)]`` series `bands.
+# aggregate_replicas`/`bands.series_in_band` expect. `apcs`/`antibodies` come
+# from the ODE state, not a spatial count/field -- the source models both as
+# well-mixed ODE-only populations (no CPM cell type or diffusive field of
+# their own), so `run_full_model`'s `ode` dict is their only source.
+_FIG3B_OBSERVABLE_MAP = {
+    "uninfected_cells": ("counts", "uninfected"),
+    "infected_cells": ("counts", "infected"),
+    "dead_cells": ("counts", "dead"),
+    "macrophages": ("counts", "macrophage"),
+    "nk_cells": ("counts", "nk"),
+    "cd8_t_cells": ("counts", "cd8"),
+    "extracellular_virus": ("fields", "virus"),
+    "type1_ifn": ("fields", "ifn"),
+    "chemokines": ("fields", "chemo"),
+    "il10": ("fields", "il10"),
+    "apcs": ("ode", "P"),
+    "antibodies": ("ode", "A"),
+}
+
+
+# Task-9.3-review MUST-FIX (units bug): `run_full_model`'s "fields" section
+# records the RAW SUM of `world.field_conc(...)` over every lattice site
+# (needed as-is by the §4 ODE coupling, whose V/F/C/L inputs divide only by
+# `dim_z` -- an areal-density convention, NOT a per-site concentration; see
+# `run_full_model`'s `_ode_couple`). `targets/{fig3b,fig5,fig7}.json`'s
+# field-typed observables (extracellular_virus, type1_ifn, chemokines, il10)
+# are digitized as PER-SITE CONCENTRATIONS -- e.g. fig5.json's t=0
+# `extracellular_virus` target for viral_load_multiplier=``load`` is
+# ``load`` itself, a concentration, while `run_full_model`'s raw sum at t=0
+# is ``load * n_patch_sites`` (thousands x too large). Converting the raw
+# sum to the lattice's SPATIAL-MEAN concentration (``sum / n_lattice_sites``,
+# ``n_lattice_sites = dim.x*dim.y*dim.z`` from this run's own
+# ``params.dims``) fixes the structural units mismatch. This conversion is
+# REPRO-OBSERVABLE-MAPPING-LAYER ONLY -- applied here, in the
+# `_FIG3B_OBSERVABLE_MAP`/`_FIG5_OBSERVABLE_MAP` application, never in
+# `run_full_model`'s own `fields[...]` recording (which Increments 0-8 and
+# the ODE coupling rely on staying a raw sum). Only the 4 FIELD-typed
+# observables (section == "fields") are converted; counts/ode sections pass
+# through unchanged -- they are already in the target's units.
+def _map_full_model_observables(result: dict, observable_map: dict) -> dict:
+    """Apply an observable map (`_FIG3B_OBSERVABLE_MAP`/`_FIG5_OBSERVABLE_MAP`)
+    to one `run_full_model` result ``result``, converting each FIELD-typed
+    observable (``section == "fields"``) from `run_full_model`'s raw
+    per-lattice-site sum to the spatial-mean concentration
+    (``value / n_lattice_sites``); counts/ode-typed observables pass through
+    unchanged. Returns ``{obs_name: [(t_days, value)]}``, the per-replica
+    mapped series `repro_fig3b`/`repro_fig5`/`repro_fig7` ensemble-mean via
+    `bands.aggregate_replicas`."""
+    n_lattice_sites = 1
+    for d in result["params"]["dims"]:
+        n_lattice_sites *= d
+    mapped = {}
+    for obs_name, (section, key) in observable_map.items():
+        series = list(zip(result["t_days"], result[section][key]))
+        if section == "fields":
+            series = [(t, v / n_lattice_sites) for t, v in series]
+        mapped[obs_name] = series
+    return mapped
+
+
+def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240,
+                seed0: int = 0) -> dict:
+    """Increment 9 Task 9.2 -- the CAPSTONE `repro_fig3b` driver: run the full
+    model (`run_full_model`, Task 9.1) over the Sego-2022 Fig-3B scenario (5%
+    initial infection fraction, 0.3 mm patch -> ``cells_per_side x
+    cells_per_side`` epithelial cells, matching `targets/fig3b.json`'s
+    ``"scenario"`` block: ``initial_infection_fraction=0.05, patch_mm=0.3,
+    total_epithelial_cells=1225`` at ``cells_per_side=35``) for ``replicas``
+    seeds (``seed0, seed0+1, ..., seed0+replicas-1``), maps each run's
+    counts/fields/ode series onto the fig3b target's observable keys
+    (`_FIG3B_OBSERVABLE_MAP` -- the EXACT names in `targets/fig3b.json`, read
+    from that file, not invented here), ensemble-means each observable across
+    replicas (`bands.aggregate_replicas`), and evaluates the ensemble against
+    the digitized Fig-3B acceptance bands (`bands.evaluate_study`).
+
+    PAPER-SCALE CONFIG (the Mac-mini Phase-B follow-up that will set the
+    `reproduced` verdict -- NOT this function's default, which stays small so
+    the test suite is fast): ``replicas=50, cells_per_side=35, steps≈720``.
+    `steps` is in RECORD units of ``mcs_per_step=7`` MCS each at
+    ``s_per_mcs=60`` (1 min/MCS), so each record advances 7 min and
+    ``t_days = i*mcs_per_step*s_per_mcs/86400 = i*0.004861``; ``steps≈720``
+    therefore covers ~3.5 days -- the full 0-3.5 day window of the digitized
+    Fig-3B checkpoints (``max t_days = 3.5`` in ``targets/fig3b.json``). (An
+    earlier draft said ``steps≈2880 = 2 days``; that is wrong -- 2880 records
+    x 7 MCS = 20160 MCS ~ 14 days, and 2 days would undershoot the 3.5-day
+    target window anyway.) This function's small defaults (``replicas=3,
+    cells_per_side=35, steps=240``) run the full paper patch size but far
+    fewer replicas and a shorter window than the 50-replica, 3.5-day paper
+    ensemble.
+
+    CALIBRATION HONESTY (per `run_full_model`'s docstring, inherited here):
+    this function WIRES the full model and EVALUATES it against the fig3b
+    bands; it does NOT tune any constant to pass them, and `targets/
+    fig3b.json` itself is never edited by this driver. A reduced-scale
+    (small ``replicas``/``steps``, e.g. this module's own test) run is
+    expected to diverge from the bands on some observables -- see
+    `workspace/studies/repro-fig3b/study.yaml` for the honestly-reported
+    reduced-scale comparison; only the paper-scale 50-replica ensemble sets
+    the `reproduced` verdict.
+
+    Returns ``{"ensemble": {obs_name: [(t_days, value)]}, "band_eval":
+    {"figure": "fig3b", "observables": {...}, "passed": bool}, "replicas":
+    replicas, "cells_per_side": cells_per_side, "steps": steps}``.
+    """
+    runs = []
+    for i in range(replicas):
+        seed = seed0 + i
+        r = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
+                           init_infection_frac=0.05)
+        mapped = _map_full_model_observables(r, _FIG3B_OBSERVABLE_MAP)
+        runs.append(mapped)
+
+    ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
+                for obs_name in _FIG3B_OBSERVABLE_MAP}
+    band_eval = bands.evaluate_study(ensemble, "fig3b")
+
+    return {
+        "ensemble": ensemble,
+        "band_eval": band_eval,
+        "replicas": replicas,
+        "cells_per_side": cells_per_side,
+        "steps": steps,
+    }
+
+
+# Task 9.3: `targets/fig5.json`'s observable list uses the SAME 4 keys as a
+# subset of `_FIG3B_OBSERVABLE_MAP` (uninfected_cells, infected_cells,
+# extracellular_virus, antibodies -- fig5 has no dead_cells/macrophages/nk/
+# cd8/chemokines/type1_ifn/il10/apcs entries; read directly from the file,
+# not invented here). Map into the SAME (section, key) pairs as fig3b's map
+# -- both figures read the same `run_full_model` sections.
+_FIG5_OBSERVABLE_MAP = {
+    "uninfected_cells": ("counts", "uninfected"),
+    "infected_cells": ("counts", "infected"),
+    "extracellular_virus": ("fields", "virus"),
+    "antibodies": ("ode", "A"),
+}
+
+
+def _scenario_target_subset(target_observables: dict, tag_key: str, tag_value,
+                            *, source_name: str) -> dict:
+    """SCENARIO-GROUPING GUARD (Task-9.0-review finding, load-bearing;
+    shared by `_fig5_target_subset` and `_fig7_target_subset` -- see Task
+    9.4). Both `targets/fig5.json` (tagged ``viral_load_multiplier``) and
+    `targets/fig7.json` (tagged ``initial_infection_fraction``) interleave
+    MULTIPLE scenarios in one flat list per observable. Passing that whole
+    heterogeneous list to `bands.series_in_band`/`bands.evaluate_study` for a
+    single-scenario model run would silently compare against a mix of every
+    OTHER scenario's band too (e.g. a low-dose ensemble checked against a
+    high-dose scenario's near-total-lesion band at the same `t_days`) -- a
+    wrong, averaged-away comparison that could fabricate a pass or a fail.
+
+    This filters ``target_observables`` (the raw ``<fig>.json["observables"]``
+    dict) down to ONLY the entries tagged ``tag_key == tag_value``, per
+    observable key. Raises ``ValueError`` (fail loudly, per the brief) if ANY
+    observable has zero matching entries for the requested `tag_value` --
+    never silently falls back to the unfiltered (mixed-scenario) list.
+    """
+    subset = {}
+    for obs_name, obs_list in target_observables.items():
+        matched = [o for o in obs_list if o.get(tag_key) == tag_value]
+        if not matched:
+            raise ValueError(
+                f"{source_name} has no {obs_name!r} entries tagged "
+                f"{tag_key}={tag_value!r}; refusing to fall back to the "
+                f"unfiltered (multi-scenario) observable list -- fix the "
+                f"requested value or {source_name}'s tagging, do not silently "
+                f"mix scenarios")
+        subset[obs_name] = matched
+    return subset
+
+
+def _fig5_target_subset(target_observables: dict, load) -> dict:
+    """`_scenario_target_subset` specialized to `targets/fig5.json`'s
+    ``viral_load_multiplier`` tag. See `_scenario_target_subset`'s docstring
+    for why this filter (and its fail-loud raise) is load-bearing."""
+    return _scenario_target_subset(target_observables, "viral_load_multiplier",
+                                   load, source_name="fig5.json")
+
+
+def _fig7_target_subset(target_observables: dict, frac) -> dict:
+    """`_scenario_target_subset` specialized to `targets/fig7.json`'s
+    ``initial_infection_fraction`` tag (Task 9.4 -- the same
+    scenario-grouping guard `_fig5_target_subset` uses for fig5's
+    ``viral_load_multiplier`` scenarios). `targets/fig7.json`'s
+    ``"observables"`` dict interleaves FOUR initial-infection-fraction
+    scenarios (``{0.001, 0.005, 0.01, 0.05}``) in one flat list per
+    observable; see `_scenario_target_subset`'s docstring for why the raw
+    multi-scenario list must never reach `series_in_band` directly for a
+    single-fraction comparison."""
+    return _scenario_target_subset(target_observables, "initial_infection_fraction",
+                                   frac, source_name="fig7.json")
+
+
+def _evaluate_scenario_subset(ensemble: dict, target_subset: dict, *,
+                              figure_name: str) -> dict:
+    """`bands.evaluate_study`'s own per-observable loop (soft-widening +
+    `series_in_band` + the `passed` reduction), applied to an ALREADY
+    scenario-filtered ``target_subset`` (`_fig5_target_subset`'s or
+    `_fig7_target_subset`'s output) instead of
+    `bands.load(figure_name)["observables"]` wholesale -- see
+    `_scenario_target_subset`'s docstring for why the raw multi-scenario
+    dict must never reach `series_in_band` directly for a single-scenario
+    comparison."""
+    results = {}
+    passed = True
+    for name, obs_list in target_subset.items():
+        if name not in ensemble:
+            continue
+        soft = any(o.get("soft", False) for o in obs_list)
+        verdict = bands.series_in_band(ensemble[name], obs_list, soft=soft)
+        results[name] = verdict
+        if not verdict["in_band"]:
+            passed = False
+    return {"figure": figure_name, "observables": results, "passed": passed}
+
+
+def _evaluate_fig5_subset(ensemble: dict, target_subset: dict) -> dict:
+    """`_evaluate_scenario_subset` specialized to fig5."""
+    return _evaluate_scenario_subset(ensemble, target_subset, figure_name="fig5")
+
+
+def _evaluate_fig7_subset(ensemble: dict, target_subset: dict) -> dict:
+    """`_evaluate_scenario_subset` specialized to fig7 (Task 9.4)."""
+    return _evaluate_scenario_subset(ensemble, target_subset, figure_name="fig7")
+
+
+def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
+              cells_per_side: int = 35, steps: int = 240, seed0: int = 0) -> dict:
+    """Increment 9 Task 9.3 -- the CAPSTONE `repro_fig5` driver: run the full
+    model (`run_full_model`, Task 9.1) as a seeded ensemble at EACH initial
+    viral load in `loads`, matching `targets/fig5.json`'s
+    ``"scenario"`` block (``patch_mm=1.0, total_epithelial_cells=10000,
+    replicas=50, viral_load_multipliers=[1,10,100,1000,10000]``): for every
+    load, `replicas` runs seed a ~uniform virus-field IC at that
+    concentration with NO pre-infected cells (`run_full_model(...,
+    init_viral_load=load, init_infection_frac=None)` -- infection emerges
+    from the field, per `run_full_model`'s ``init_viral_load`` branch and
+    `_seed_uniform_virus`), each mapped onto fig5's 4 observable keys
+    (`_FIG5_OBSERVABLE_MAP`: uninfected_cells, infected_cells,
+    extracellular_virus, antibodies), ensemble-meaned across that load's
+    replicas (`bands.aggregate_replicas`), and evaluated against ONLY that
+    load's band subset (`_fig5_target_subset` + `_evaluate_fig5_subset` --
+    the scenario-grouping guard; see those functions' docstrings).
+
+    The paper's own Sec. 3.3 finding (`targets/fig5.json`'s ``"notes"``) is
+    the fidelity criterion this driver is built to expose: the spatial model
+    trends toward LETHAL outcomes only near a ~1000x dose increase
+    (``viral_load_multiplier=10000``), while multipliers 1/10/100/1000 stay
+    non-lethal across all replicas -- i.e. a MONOTONE, but strongly
+    NONLINEAR/threshold-like, dose-response in final uninfected (surviving)
+    fraction, NOT a claim that every load's band is individually matched at
+    reduced scale (see CALIBRATION HONESTY below).
+
+    PAPER-SCALE CONFIG (the Mac-mini Phase-B follow-up that will set the
+    `reproduced` verdict -- NOT this function's default, which stays small
+    for a fast test suite): ``replicas=50, cells_per_side=35, steps≈3086``.
+    As in `repro_fig3b`, `steps` is in RECORD units of ``mcs_per_step=7`` MCS
+    each at ``s_per_mcs=60`` (1 min/MCS), so each record advances 7 min and
+    ``t_days = i*mcs_per_step*s_per_mcs/86400 = i*0.0048611...``; fig5's
+    checkpoints run to ``max t_days=15`` (see `targets/fig5.json`), which
+    needs ``steps ≈ 15/0.0048611 ≈ 3086`` records -- NOT 2880 (2 simulated
+    days, which would badly undershoot fig5's 15-day window; that number was
+    a documented prior-task error for THIS figure, corrected here). This
+    function's small defaults (``replicas=3, cells_per_side=35, steps=240``)
+    keep the full paper patch size but far fewer replicas and a much shorter
+    window (``steps=240`` reaches only ``t_days≈1.17``) than the 50-replica,
+    15-day paper ensemble.
+
+    CALIBRATION HONESTY (per `run_full_model`'s docstring, inherited here):
+    this function WIRES the full model at each viral load and EVALUATES it
+    against fig5's per-load band subsets; it does NOT tune any constant to
+    pass them, and `targets/fig5.json` is never edited by this driver. A
+    reduced-scale (small `loads`/`replicas`/`steps`) run is expected to
+    diverge from the bands on most observables/loads -- the MONOTONE
+    dose-response direction (higher initial load -> not-more surviving
+    uninfected fraction) is the reduced-scale fidelity criterion this
+    driver's own test checks, not per-load band containment; only the
+    paper-scale ensemble sets the `reproduced` verdict. See
+    `workspace/studies/repro-fig5-viral-load/study.yaml` for the honestly-
+    reported reduced-scale result.
+
+    Returns::
+
+        {
+          "by_load": {
+            load: {
+              "ensemble": {obs_name: [(t_days, value)]},
+              "band_eval": {"figure": "fig5", "observables": {...}, "passed": bool},
+              "uninfected_final_frac": float,   # final ensemble-mean uninfected / tot_cell
+              "uninfected_min_frac": float,      # min ensemble-mean uninfected / tot_cell
+            }
+            for load in loads
+          },
+          "lethal_threshold": load or None,   # see below
+          "band_eval": {"figure": "fig5", "by_load": {load: {...}}, "passed": bool},
+          "loads": tuple(loads), "replicas": replicas,
+          "cells_per_side": cells_per_side, "steps": steps,
+        }
+
+    ``lethal_threshold`` is the SMALLEST tested `load` (in ascending order)
+    whose ensemble-mean final uninfected fraction is <= 0.5 (majority of the
+    epithelial patch no longer uninfected) -- a MODEL-side threshold computed
+    from this driver's own run, distinct from `targets/fig5.json["scenario"]
+    ["calibrated_lethal_ode_multiplier"]` (the paper's ODE-model threshold,
+    which Sec. 3.3 explicitly notes the spatial model does NOT agree with;
+    conflating the two would misrepresent the paper's own Fig-4/5
+    disagreement finding). ``None`` if no tested load reaches that
+    threshold.
+    """
+    target_observables = bands.load("fig5")["observables"]
+    tot_cell = cells_per_side * cells_per_side
+
+    by_load: dict = {}
+    for load_idx, load in enumerate(loads):
+        runs = []
+        for r in range(replicas):
+            seed = seed0 + load_idx * replicas + r
+            res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
+                                 init_infection_frac=None, init_viral_load=float(load))
+            mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
+            runs.append(mapped)
+
+        ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
+                   for obs_name in _FIG5_OBSERVABLE_MAP}
+
+        target_subset = _fig5_target_subset(target_observables, load)
+        load_band_eval = _evaluate_fig5_subset(ensemble, target_subset)
+
+        uninfected_series = [v for _, v in ensemble["uninfected_cells"]]
+        by_load[load] = {
+            "ensemble": ensemble,
+            "band_eval": load_band_eval,
+            "uninfected_final_frac": uninfected_series[-1] / tot_cell,
+            "uninfected_min_frac": min(uninfected_series) / tot_cell,
+        }
+
+    lethal_threshold = None
+    for load in sorted(by_load):
+        if by_load[load]["uninfected_final_frac"] <= 0.5:
+            lethal_threshold = load
+            break
+
+    band_eval = {
+        "figure": "fig5",
+        "by_load": {load: by_load[load]["band_eval"] for load in by_load},
+        "passed": all(by_load[load]["band_eval"]["passed"] for load in by_load),
+    }
+
+    return {
+        "by_load": by_load,
+        "lethal_threshold": lethal_threshold,
+        "band_eval": band_eval,
+        "loads": tuple(loads),
+        "replicas": replicas,
+        "cells_per_side": cells_per_side,
+        "steps": steps,
+    }
+
+
+def repro_fig7(*, fracs=(0.001, 0.005, 0.01, 0.05), replicas: int = 3,
+              cells_per_side: int = 35, steps: int = 240, seed0: int = 0) -> dict:
+    """Increment 9 Task 9.4 -- the CAPSTONE `repro_fig7` driver: run the full
+    model (`run_full_model`, Task 9.1) as a seeded ensemble at EACH initial
+    infection fraction in `fracs`, matching `targets/fig7.json`'s
+    ``"scenario"`` block (``patch_mm=1.0, total_epithelial_cells=10000,
+    replicas=20, initial_infection_fractions=[0.001,0.005,0.01,0.05]``): for
+    every fraction, `replicas` runs seed ``round(frac*tot_cell)`` random
+    pre-infected epithelial cells with NO initial virus field
+    (`run_full_model(..., init_infection_frac=frac, init_viral_load=None)` --
+    infected[0] > 0, per `run_full_model`'s ``init_infection_frac`` branch),
+    each mapped onto fig7's 4 observable keys (`_FIG5_OBSERVABLE_MAP` --
+    `targets/fig7.json` uses the SAME 4 observable names as fig5.json:
+    uninfected_cells, infected_cells, extracellular_virus, antibodies --
+    reused here rather than duplicating an identical map), ensemble-meaned
+    across that fraction's replicas (`bands.aggregate_replicas`), and
+    evaluated against ONLY that fraction's band subset (`_fig7_target_subset`
+    + `_evaluate_fig7_subset` -- the scenario-grouping guard; see those
+    functions' docstrings and `_scenario_target_subset`, the helper this
+    reuses from `repro_fig5`, Task 9.3).
+
+    The paper's own Sec. 3.4 finding (`targets/fig7.json`'s ``"notes"``) is
+    the fidelity criterion this driver is built to expose: ALL replicas are
+    non-lethal (the patch recovers) for initial infection fraction <= 1%,
+    even though the ODE model is fatal for all of these, while at
+    fraction=0.05 the spatial model is comparably severe to the ODE model,
+    though some replicas still retain surviving uninfected cells -- i.e. a
+    MONOTONE, but strongly threshold-like, dose-response in final uninfected
+    (surviving) fraction as the initial infection fraction rises, NOT a claim
+    that every fraction's band is individually matched at reduced scale (see
+    CALIBRATION HONESTY below).
+
+    PAPER-SCALE CONFIG (the Mac-mini Phase-B follow-up that will set the
+    `reproduced` verdict -- NOT this function's default, which stays small
+    for a fast test suite): ``replicas=50, cells_per_side=35, steps≈3086``
+    (as in `repro_fig5`: ``mcs_per_step=7, s_per_mcs=60`` gives
+    ``t_days = i*0.0048611...``, and fig7's checkpoints run to
+    ``max t_days=15``, needing ``steps ≈ 15/0.0048611 ≈ 3086``). This
+    function's small defaults (``replicas=3, cells_per_side=35, steps=240``)
+    keep the full paper patch size but far fewer replicas and a much shorter
+    window (``steps=240`` reaches only ``t_days≈1.17``) than the 20-replica
+    (fig7.json's own ``scenario.replicas``), 15-day paper ensemble.
+
+    CALIBRATION HONESTY (per `run_full_model`'s docstring, inherited here):
+    this function WIRES the full model at each initial infection fraction
+    and EVALUATES it against fig7's per-fraction band subsets; it does NOT
+    tune any constant to pass them, and `targets/fig7.json` is never edited
+    by this driver. A reduced-scale (small `fracs`/`replicas`/`steps`) run is
+    expected to diverge from the bands on most observables/fractions -- the
+    MONOTONE dose-response direction (higher initial infection fraction ->
+    not-more surviving uninfected fraction) is the reduced-scale fidelity
+    criterion this driver's own test checks, not per-fraction band
+    containment; only the paper-scale ensemble sets the `reproduced` verdict.
+    See `workspace/studies/repro-fig7-infection-fraction/study.yaml` for the
+    honestly-reported reduced-scale result.
+
+    Returns::
+
+        {
+          "by_frac": {
+            frac: {
+              "ensemble": {obs_name: [(t_days, value)]},
+              "band_eval": {"figure": "fig7", "observables": {...}, "passed": bool},
+              "uninfected_final_frac": float,   # final ensemble-mean uninfected / tot_cell
+              "uninfected_min_frac": float,      # min ensemble-mean uninfected / tot_cell
+            }
+            for frac in fracs
+          },
+          "lethal_threshold": frac or None,   # see below
+          "band_eval": {"figure": "fig7", "by_frac": {frac: {...}}, "passed": bool},
+          "fracs": tuple(fracs), "replicas": replicas,
+          "cells_per_side": cells_per_side, "steps": steps,
+        }
+
+    ``lethal_threshold`` is the SMALLEST tested `frac` (in ascending order)
+    whose ensemble-mean final uninfected fraction is <= 0.5 (majority of the
+    epithelial patch no longer uninfected) -- a MODEL-side threshold computed
+    from this driver's own run, distinct from any paper-side threshold value;
+    Sec. 3.4 (`targets/fig7.json`'s ``"notes"``) itself only frames the
+    <=1% vs 5% contrast qualitatively (non-lethal vs comparably-severe-to-ODE),
+    not a single crisp threshold fraction, so this value should be read as
+    this reduced driver's own operational threshold, not a reproduction of a
+    paper-stated number. ``None`` if no tested fraction reaches that
+    threshold.
+    """
+    target_observables = bands.load("fig7")["observables"]
+    tot_cell = cells_per_side * cells_per_side
+
+    by_frac: dict = {}
+    for frac_idx, frac in enumerate(fracs):
+        runs = []
+        for r in range(replicas):
+            seed = seed0 + frac_idx * replicas + r
+            res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
+                                 init_infection_frac=float(frac), init_viral_load=None)
+            mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
+            runs.append(mapped)
+
+        ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
+                   for obs_name in _FIG5_OBSERVABLE_MAP}
+
+        target_subset = _fig7_target_subset(target_observables, frac)
+        frac_band_eval = _evaluate_fig7_subset(ensemble, target_subset)
+
+        uninfected_series = [v for _, v in ensemble["uninfected_cells"]]
+        by_frac[frac] = {
+            "ensemble": ensemble,
+            "band_eval": frac_band_eval,
+            "uninfected_final_frac": uninfected_series[-1] / tot_cell,
+            "uninfected_min_frac": min(uninfected_series) / tot_cell,
+        }
+
+    lethal_threshold = None
+    for frac in sorted(by_frac):
+        if by_frac[frac]["uninfected_final_frac"] <= 0.5:
+            lethal_threshold = frac
+            break
+
+    band_eval = {
+        "figure": "fig7",
+        "by_frac": {frac: by_frac[frac]["band_eval"] for frac in by_frac},
+        "passed": all(by_frac[frac]["band_eval"]["passed"] for frac in by_frac),
+    }
+
+    return {
+        "by_frac": by_frac,
+        "lethal_threshold": lethal_threshold,
+        "band_eval": band_eval,
+        "fracs": tuple(fracs),
+        "replicas": replicas,
+        "cells_per_side": cells_per_side,
+        "steps": steps,
+    }

@@ -18,6 +18,8 @@ matplotlib.use("Agg")  # headless: no display backend required
 import numpy as np
 from matplotlib.figure import Figure
 
+from . import bands
+
 
 def sheet_snapshot_figure(world) -> Figure:
     """Render a two-panel figure for a CPM ``world`` (``cpm.schema.load_world``
@@ -413,6 +415,150 @@ def cytotoxic_killing_figure(run_result: dict, control_result: dict | None = Non
     ax_infected.set_xlabel("update index")
     ax_infected.set_ylabel("n_infected")
     ax_infected.legend()
+
+    fig.tight_layout()
+    return fig
+
+
+def _overlay_band(ax, ensemble: dict, target_obs: dict, obs_name: str,
+                   label: str, color: str) -> None:
+    """Shared helper (`repro_fig3b_figure`/`repro_sweep_figure`): plot an
+    ensemble-mean model series (solid line) alongside its digitized
+    `[lo, hi]` acceptance band (a shaded fill about the dashed ODE-reference
+    `value` line) on `ax`, for one observable. `ensemble` is a `{obs_name:
+    [(t_days, value)]}` map (a `repro_fig3b`/`repro_fig5`/`repro_fig7`
+    ensemble); `target_obs` is a `{obs_name: [{"t_days","value","lo","hi",
+    ...}]}` map (a `targets/fig*.json["observables"]` dict, or an
+    already-scenario-filtered subset of one -- see `bands._scenario_target_subset`
+    in `run.py`). Silently no-ops for either half if `obs_name` is absent,
+    so this renders whatever a partial/ongoing result actually contains."""
+    series = ensemble.get(obs_name)
+    obs_list = target_obs.get(obs_name)
+    if series:
+        t = [p[0] for p in series]
+        v = [p[1] for p in series]
+        ax.plot(t, v, color=color, label=f"{label} (model ensemble mean)")
+    if obs_list:
+        bt = [o["t_days"] for o in obs_list]
+        lo = [o["lo"] for o in obs_list]
+        hi = [o["hi"] for o in obs_list]
+        val = [o["value"] for o in obs_list]
+        ax.fill_between(bt, lo, hi, color=color, alpha=0.15,
+                        label=f"{label} target [lo,hi]")
+        ax.plot(bt, val, color=color, linestyle="--", linewidth=1, alpha=0.6)
+
+
+def repro_fig3b_figure(result: dict) -> Figure:
+    """Render a two-panel figure for a `run.repro_fig3b(...)` result
+    (Increment 9 Tasks 9.1/9.2/9.5 -- the CAPSTONE): (a) uninfected/infected/
+    dead ensemble-mean cell counts overlaid on the digitized Fig-3B `[lo,hi]`
+    acceptance bands for those three observables, (b) extracellular-virus
+    ensemble-mean spatial-mean concentration overlaid on ITS Fig-3B band.
+    Bands are loaded fresh from `targets/fig3b.json` via `bands.load("fig3b")`
+    -- the SAME acceptance target `repro_fig3b`'s own `result["band_eval"]`
+    already compares the ensemble against, so this figure visualizes exactly
+    what that `passed` bool reports, it does not compute a second verdict.
+
+    HONEST CAVEAT (per `run.repro_fig3b`'s docstring, inherited here): at
+    REDUCED scale (few replicas / a short window -- see `result["replicas"]`/
+    `result["steps"]`), the model curve is expected to diverge from the band;
+    this function renders whatever `result` contains and does not itself
+    assert a reproduction verdict -- only the paper-scale Phase-B ensemble
+    (Mac-mini) sets that.
+
+    This is a minimal in-package stub, NOT the polished viz system under
+    `pbg_cpm_studies/visualizations/` (owned by a peer session; see
+    `InfluenzaReproFig3B` there for the dashboard card). Returns a
+    `matplotlib.figure.Figure` (not shown/saved)."""
+    ensemble = result["ensemble"]
+    target_obs = bands.load("fig3b")["observables"]
+
+    fig = Figure(figsize=(11, 4.4))
+    ax_counts, ax_virus = fig.subplots(1, 2)
+
+    _overlay_band(ax_counts, ensemble, target_obs, "uninfected_cells",
+                  "uninfected (H)", "steelblue")
+    _overlay_band(ax_counts, ensemble, target_obs, "infected_cells",
+                  "infected (I)", "firebrick")
+    _overlay_band(ax_counts, ensemble, target_obs, "dead_cells",
+                  "dead (D)", "dimgray")
+    ax_counts.set_title("Cell counts: ensemble mean vs Fig-3B acceptance band")
+    ax_counts.set_xlabel("t (days)")
+    ax_counts.set_ylabel("cell count")
+    ax_counts.legend(fontsize="small")
+
+    _overlay_band(ax_virus, ensemble, target_obs, "extracellular_virus",
+                  "extracellular virus", "darkorange")
+    ax_virus.set_title("Extracellular virus: ensemble mean vs Fig-3B band")
+    ax_virus.set_xlabel("t (days)")
+    ax_virus.set_ylabel("spatial-mean concentration")
+    ax_virus.legend(fontsize="small")
+
+    fig.tight_layout()
+    return fig
+
+
+def repro_sweep_figure(result: dict, kind: str) -> Figure:
+    """Render a two-panel figure for a `run.repro_fig5(...)` (``kind=
+    "fig5"``, viral-load sweep, Task 9.3) or `run.repro_fig7(...)` (``kind=
+    "fig7"``, initial-infection-fraction sweep, Task 9.4) result -- both
+    CAPSTONE Increment-9 drivers: (a) the dose-response curve, final
+    ensemble-mean uninfected (surviving) fraction vs the swept dose
+    (``result["loads"]``/``result["fracs"]``, log x-axis), with the driver's
+    own model-side ``lethal_threshold`` marked if any tested dose crossed it;
+    (b) the highest tested dose's `uninfected_cells` ensemble-mean series
+    overlaid on ITS Fig-5/Fig-7 acceptance band -- scenario-filtered to that
+    ONE dose via the same tag key `run.py`'s `_fig5_target_subset`/
+    `_fig7_target_subset` use (never the raw multi-scenario band list; see
+    those functions' docstrings for why mixing scenarios would be a wrong
+    comparison).
+
+    HONEST CAVEAT (per `run.repro_fig5`/`run.repro_fig7`'s docstrings,
+    inherited here): the reduced-scale fidelity criterion these drivers'
+    OWN tests check is the MONOTONE dose-response DIRECTION (higher dose ->
+    not-more-surviving), not per-dose band containment; this figure renders
+    whatever `result` contains and does not itself assert a reproduction
+    verdict -- only the paper-scale Phase-B ensemble (Mac-mini) does.
+
+    This is a minimal in-package stub, NOT the polished viz system under
+    `pbg_cpm_studies/visualizations/` (owned by a peer session; see
+    `InfluenzaReproFig5`/`InfluenzaReproFig7` there for the dashboard cards).
+    Returns a `matplotlib.figure.Figure` (not shown/saved)."""
+    if kind == "fig5":
+        by, xs = result["by_load"], list(result["loads"])
+        tag_key, xlabel = "viral_load_multiplier", "initial viral load multiplier"
+    elif kind == "fig7":
+        by, xs = result["by_frac"], list(result["fracs"])
+        tag_key, xlabel = "initial_infection_fraction", "initial infection fraction"
+    else:
+        raise ValueError(f"repro_sweep_figure: kind must be 'fig5' or 'fig7', got {kind!r}")
+
+    fig = Figure(figsize=(11, 4.4))
+    ax_dose, ax_traj = fig.subplots(1, 2)
+
+    final_fracs = [by[x]["uninfected_final_frac"] for x in xs]
+    ax_dose.plot(xs, final_fracs, color="firebrick", marker="o",
+                 label="model ensemble-mean final uninfected fraction")
+    ax_dose.set_xscale("log")
+    lethal_threshold = result.get("lethal_threshold")
+    if lethal_threshold is not None:
+        ax_dose.axvline(lethal_threshold, color="dimgray", linestyle="--",
+                        label=f"model lethal_threshold={lethal_threshold:g}")
+    ax_dose.set_title(f"Dose-response: final uninfected fraction vs {xlabel}")
+    ax_dose.set_xlabel(f"{xlabel} (log scale)")
+    ax_dose.set_ylabel("final ensemble-mean uninfected fraction")
+    ax_dose.legend(fontsize="small")
+
+    rep_x = xs[-1]  # highest tested dose -- the paper's own most-severe scenario
+    target_all = bands.load(kind)["observables"].get("uninfected_cells", [])
+    matched = [o for o in target_all if o.get(tag_key) == rep_x]
+    rep_target = {"uninfected_cells": matched} if matched else {}
+    _overlay_band(ax_traj, by[rep_x]["ensemble"], rep_target, "uninfected_cells",
+                  "uninfected (H)", "steelblue")
+    ax_traj.set_title(f"Uninfected cells vs acceptance band ({xlabel}={rep_x:g})")
+    ax_traj.set_xlabel("t (days)")
+    ax_traj.set_ylabel("uninfected_cells (ensemble mean)")
+    ax_traj.legend(fontsize="small")
 
     fig.tight_layout()
     return fig

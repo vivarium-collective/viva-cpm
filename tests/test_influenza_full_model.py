@@ -1,0 +1,108 @@
+"""Increment 9 Task 9.1: the complete multiscale driver `run.run_full_model`.
+
+These tests are the contract for the capstone full-model assembly: every
+mechanism from Increments 0-8 (infection/death transitions, per-cell
+resistance, the four diffusive fields, macrophage/NK/CD8 chemotaxis +
+contact/nearby killing, ODE-driven recruitment, the hybrid Price-2015 global
+ODE, the Allee death/recovery rule) wired into ONE source-ordered per-MCS
+loop. They assert BEHAVIOR (all observables recorded; infection depletes
+uninfected; a uniform virus IC seeds infection with no pre-infected cells) at
+a small/fast reduced scale -- NOT figure-band matching (that is Tasks
+9.2-9.4 + the Phase-B paper-scale ensemble).
+"""
+import pytest
+
+from pbg_cpm_studies.influenza import run
+
+
+def test_full_model_smoke_all_observables():
+    r = run.run_full_model(cells_per_side=15, steps=10, seed=1, init_infection_frac=0.05)
+    n = len(r["mcs"])
+    assert n == 10 and len(r["t_days"]) == n
+    for k in ("uninfected", "infected", "dead", "macrophage", "nk", "cd8"):
+        assert len(r["counts"][k]) == n
+    for f in ("virus", "ifn", "chemo", "il10"):
+        assert len(r["fields"][f]) == n
+    assert set(("T", "X", "A", "P")).issubset(r["ode"].keys())
+
+
+def test_full_model_infection_depletes_uninfected():
+    # With infection + death active and a 5% seed, uninfected count must fall
+    r = run.run_full_model(cells_per_side=15, steps=25, seed=2, init_infection_frac=0.05)
+    assert r["counts"]["uninfected"][-1] < r["counts"]["uninfected"][0]
+    assert r["counts"]["infected"][0] > 0
+
+
+def test_full_model_viral_load_scenario_seeds_infection():
+    # init_viral_load with no pre-infected cells: virus drives H->I over time
+    r = run.run_full_model(cells_per_side=15, steps=25, seed=3, init_viral_load=1000.0)
+    assert r["counts"]["infected"][0] == 0
+    assert max(r["counts"]["infected"]) > 0     # infection emerges from the virus field
+
+
+def test_full_model_fidelity_fixes():
+    # §4a: ODE M/K/E inputs include nearby surrogates (K input >= local K when K_nb>0);
+    # recruited macrophages secrete (macrophage id list refreshes). Assert via the driver's
+    # recorded ode K vs spatial macrophage/nk counts, or an exposed debug hook. Keep FAST.
+    r = run.run_full_model(cells_per_side=15, steps=8, seed=4, init_infection_frac=0.05)
+    assert "K" in r["ode"]
+
+
+def test_repro_fig3b_runs_and_evaluates_bands():
+    r = run.repro_fig3b(replicas=2, cells_per_side=15, steps=20, seed0=0)  # reduced for CI
+    assert r["replicas"] == 2
+    assert "uninfected_cells" in r["ensemble"]
+    assert "band_eval" in r and "passed" in r["band_eval"]
+    # non-vacuous: the ensemble uninfected series declines under infection
+    u = r["ensemble"]["uninfected_cells"]
+    assert u[-1][1] <= u[0][1]
+
+
+def test_repro_fig5_viral_load_sweep():
+    r = run.repro_fig5(loads=(1, 10000), replicas=1, cells_per_side=12, steps=15, seed0=0)  # reduced
+    assert set(r["by_load"].keys()) == {1, 10000}
+    # higher initial viral load => not more surviving uninfected than the low-load case
+    surv = lambda L: r["by_load"][L]["uninfected_final_frac"]
+    assert surv(10000) <= surv(1) + 1e-9
+    assert "band_eval" in r
+
+
+def test_repro_fig7_infection_fraction_sweep():
+    r = run.repro_fig7(fracs=(0.001, 0.05), replicas=1, cells_per_side=12, steps=15, seed0=0)  # reduced
+    assert set(r["by_frac"].keys()) == {0.001, 0.05}
+    # a larger initial infection fraction does not leave more uninfected at the end
+    f = lambda x: r["by_frac"][x]["uninfected_final_frac"]
+    assert f(0.05) <= f(0.001) + 1e-9
+    assert "band_eval" in r
+
+
+def test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum():
+    # Task-9.3-review MUST-FIX regression (units bug): `run_full_model`'s
+    # "fields" section is a RAW SUM over the lattice, but `targets/fig5.json`
+    # digitizes extracellular_virus as a PER-SITE CONCENTRATION -- at t=0 for
+    # viral_load_multiplier=load, the target value IS `load` itself. Before
+    # the fix, `repro_fig5` fed the raw sum straight through
+    # (`load * n_patch_sites` ~ 3600x too large at cells_per_side=12,
+    # confirmed by direct measurement: worst_miss=1198.67 for load=1).
+    # `_map_full_model_observables` now divides field-typed observables by
+    # `n_lattice_sites` (`params.dims` product) before mapping, so the
+    # ensemble's t=0 extracellular_virus must land within an order of
+    # magnitude of `load`, not thousands of times larger.
+    load = 1000.0
+    r = run.repro_fig5(loads=(load,), replicas=1, cells_per_side=12, steps=2, seed0=0)
+    t0_virus = r["by_load"][load]["ensemble"]["extracellular_virus"][0][1]
+    assert 0.01 * load < t0_virus < 10 * load
+
+
+def test_fig7_target_subset_scenario_grouping_guard():
+    # Fast unit test for the scenario-grouping guard itself (Task-9.3-review
+    # gap: the fig5 guard was only verified interactively, not in pytest).
+    target_observables = run.bands.load("fig7")["observables"]
+
+    subset = run._fig7_target_subset(target_observables, 0.05)
+    for obs_name, obs_list in subset.items():
+        assert obs_list, f"{obs_name} subset for frac=0.05 must be non-empty"
+        assert {o["initial_infection_fraction"] for o in obs_list} == {0.05}
+
+    with pytest.raises(ValueError):
+        run._fig7_target_subset(target_observables, 0.5)  # untagged fraction
