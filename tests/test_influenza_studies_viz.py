@@ -42,6 +42,39 @@ def test_virus_scene_is_animated():
     assert html.count('"frames"') > 0
 
 
+# ── CPM 2D spatial-state videos (the PRIMARY per-study visualization) ────────
+_SPATIAL_ACCESSORS = (
+    V.InfluenzaSpatialSheet, V.InfluenzaSpatialVirusField,
+    V.InfluenzaSpatialIfnResistance, V.InfluenzaSpatialEpithelialFate,
+    V.InfluenzaSpatialMacrophage, V.InfluenzaSpatialSignaling,
+    V.InfluenzaSpatialCytotoxic, V.InfluenzaSpatialGlobalCoupling,
+    V.InfluenzaSpatialReproFig3B, V.InfluenzaSpatialReproFig5,
+    V.InfluenzaSpatialReproFig7,
+)
+
+
+def test_spatial_state_videos_render_animated_html():
+    # Each study's primary spatial-state video renders non-empty Plotly HTML
+    # with a real top-level frames array (▶ Play/❙❙ Pause + MCS slider). Fast:
+    # renders from the baked _influenza_spatial blob, no live capture.
+    for fn in _SPATIAL_ACCESSORS:
+        html = fn()
+        assert isinstance(html, str) and "plotly" in html.lower()
+        assert html.count('"frames"') > 0
+        assert len(html) > 2000
+
+
+def test_spatial_data_is_real_multiframe():
+    # the baked spatial blob has a frame series (>=2 frames) per study, with
+    # grids sized to the recorded coarsened lattice (compact, side <= 60).
+    from pbg_cpm_studies.visualizations.influenza_studies import _SP
+    assert len(_SP) == 9  # 8 distinct scenes + the shared full-model repro scene
+    for slug, d in _SP.items():
+        assert len(d["frames"]) >= 2
+        assert max(d["nx"], d["ny"]) <= 60
+        assert len(d["frames"][0]["grid"]) == d["nx"] * d["ny"]
+
+
 def test_data_is_real_engine_output():
     # baked series match the study's reported values (n_I 9->16, virus->~1216)
     from pbg_cpm_studies.visualizations.influenza_studies import _D

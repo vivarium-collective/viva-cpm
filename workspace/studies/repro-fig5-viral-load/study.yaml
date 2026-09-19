@@ -5,6 +5,9 @@ phase: Evaluate
 title: "Increment 9 Task 9.3 (CAPSTONE): repro_fig5 sweeps run_full_model over Sego-2022's viral-load scenarios (1x/10000x, REDUCED scale: 1 replica, 12x12 cells, 15 records ~0.068 days) and evaluates each load against ONLY that load's fig5.json band subset (scenario-grouping guard) — the monotone dose-response direction holds (load=10000 ends with 0/144 uninfected vs load=1's 88/144) but per-load band_eval.passed is False for both loads; the paper-scale 50-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: repro-fig3b
+    condition: tests-passed
 
 purpose:
   question: |
@@ -404,9 +407,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_full_model.py::test_repro_fig5_viral_load_sweep
 
 visualizations:
+  - name: Spatial state — full model (animated)
+    address: local:InfluenzaSpatialReproFig5
   - name: Fig-5 reproduction — dose-response vs acceptance band
     address: local:InfluenzaReproFig5
 embed_visualizations:
+  - name: Spatial state — full model
+    title: "Full model — spatial-state mosaic (animated, reduced scale)"
+    url: /workspace/studies/repro-fig5-viral-load/viz/spatial-repro-fig5.html
   - name: Fig-5 repro
     title: "Fig-5 reproduction — viral-load dose-response vs acceptance band (band_eval.passed=False at every tested dose, expected at this scale)"
     url: /workspace/studies/repro-fig5-viral-load/viz/repro-fig5.html

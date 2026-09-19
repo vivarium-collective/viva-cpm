@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 1: confluent epithelial sheet (substrate only)"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: parameter-provenance
+    condition: tests-passed
 
 purpose:
   question: |
@@ -155,9 +158,14 @@ behavior_tests:
     result: PASS
 
 visualizations:
+  - name: Spatial state — sheet relaxation (animated)
+    address: local:InfluenzaSpatialSheet
   - name: Confluent epithelial sheet
     address: local:InfluenzaEpithelialSheet
 embed_visualizations:
+  - name: Spatial state — sheet
+    title: "Confluent epithelial sheet — spatial relaxation (animated, 200 MCS)"
+    url: /workspace/studies/epithelial-sheet-baseline/viz/spatial-sheet.html
   - name: Confluent sheet
     title: "Confluent epithelial sheet at scale \u2014 geometry + throughput"
     url: /workspace/studies/epithelial-sheet-baseline/viz/confluent-sheet.html

@@ -31,6 +31,22 @@ STUDIES = {
     "repro-fig7-infection-fraction": ("repro-fig7.html", V.InfluenzaReproFig7),
 }
 
+# The PRIMARY CPM 2D spatial-state videos, one per study (rendered FIRST in each
+# study's viz tab). study slug -> (embed filename, zero-arg accessor).
+SPATIAL_STUDIES = {
+    "epithelial-sheet-baseline": ("spatial-sheet.html", V.InfluenzaSpatialSheet),
+    "virus-field-infection": ("spatial-virus-field.html", V.InfluenzaSpatialVirusField),
+    "ifn-resistance": ("spatial-ifn.html", V.InfluenzaSpatialIfnResistance),
+    "epithelial-fate": ("spatial-fate.html", V.InfluenzaSpatialEpithelialFate),
+    "macrophage-response": ("spatial-macrophage.html", V.InfluenzaSpatialMacrophage),
+    "signaling-fields": ("spatial-signaling.html", V.InfluenzaSpatialSignaling),
+    "cytotoxic-killing": ("spatial-cytotoxic.html", V.InfluenzaSpatialCytotoxic),
+    "global-coupling": ("spatial-global.html", V.InfluenzaSpatialGlobalCoupling),
+    "repro-fig3b": ("spatial-repro-fig3b.html", V.InfluenzaSpatialReproFig3B),
+    "repro-fig5-viral-load": ("spatial-repro-fig5.html", V.InfluenzaSpatialReproFig5),
+    "repro-fig7-infection-fraction": ("spatial-repro-fig7.html", V.InfluenzaSpatialReproFig7),
+}
+
 
 def _standalone(fragment: str, title: str) -> str:
     """Wrap a Plotly card fragment in a minimal light standalone document
@@ -46,12 +62,13 @@ def _standalone(fragment: str, title: str) -> str:
 
 def main() -> int:
     ws = Path(__file__).resolve().parent.parent
-    for slug, (filename, fn) in STUDIES.items():
-        viz = ws / "workspace" / "studies" / slug / "viz"
-        viz.mkdir(parents=True, exist_ok=True)
-        title = filename[: -len(".html")]
-        (viz / filename).write_text(_standalone(fn(), title), encoding="utf-8")
-        print(f"wrote {viz.relative_to(ws)}/{filename}")
+    for mapping in (SPATIAL_STUDIES, STUDIES):
+        for slug, (filename, fn) in mapping.items():
+            viz = ws / "workspace" / "studies" / slug / "viz"
+            viz.mkdir(parents=True, exist_ok=True)
+            title = filename[: -len(".html")]
+            (viz / filename).write_text(_standalone(fn(), title), encoding="utf-8")
+            print(f"wrote {viz.relative_to(ws)}/{filename}")
     return 0
 
 

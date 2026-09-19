@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 6: chemokine field forms a gradient centered on the macrophage cluster (4.2x per-cell, 5.9x radial decay), IL-10 positive from both regulated sources — FIELD MECHANISM documented, reproduction still PENDING"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: macrophage-response
+    condition: tests-passed
 
 purpose:
   question: |
@@ -302,9 +305,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_signaling.py::test_macrophage_signaling_run_is_deterministic
 
 visualizations:
+  - name: Spatial state — signaling scene (animated)
+    address: local:InfluenzaSpatialSignaling
   - name: Chemokine + IL-10 fields
     address: local:InfluenzaSignalingFields
 embed_visualizations:
+  - name: Spatial state — signaling
+    title: "Signaling-field scene — spatial-state mosaic (animated)"
+    url: /workspace/studies/signaling-fields/viz/spatial-signaling.html
   - name: Signaling fields
     title: "Chemokine + IL-10 signaling fields — radial gradient + IL-10 sources (field mechanism)"
     url: /workspace/studies/signaling-fields/viz/signaling-fields.html

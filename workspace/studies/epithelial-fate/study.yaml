@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 4: cellularized epithelial-fate lifecycle (H->I->D, D->H Allee recovery) — mechanism validated, reproduction still PENDING"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: ifn-resistance
+    condition: tests-passed
 
 purpose:
   question: |
@@ -308,9 +311,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_allee.py::test_dead_cell_surrounded_by_dying_does_not_recover
 
 visualizations:
+  - name: Spatial state — fate lifecycle (animated)
+    address: local:InfluenzaSpatialEpithelialFate
   - name: Epithelial-fate lifecycle
     address: local:InfluenzaEpithelialFate
 embed_visualizations:
+  - name: Spatial state — fate
+    title: "Epithelial fate lifecycle — spatial-state mosaic (animated, 200 updates)"
+    url: /workspace/studies/epithelial-fate/viz/spatial-fate.html
   - name: Epithelial fate
     title: "Cellularized epithelial-fate lifecycle — H→I→D + Allee recovery (mechanism only)"
     url: /workspace/studies/epithelial-fate/viz/epithelial-fate.html
