@@ -54,11 +54,14 @@ executive:
     population conserved (Increment 2, mechanism-only — no resistance/IFN,
     death/recovery, or immune cells yet). A type-I IFN field now drives a
     per-cell resistance scalar that gates virus secretion by (1-resist),
-    measurably slowing spread and roughly halving total virus versus the
-    same-seed no-IFN path (Increment 3, mechanism-only — resist plateaus
-    ~0.55 rather than saturating toward 1, an OPEN Increment-9 calibration
-    question recorded not resolved; death/recovery, Allee effect, IL-10,
-    immune cells, and APC-driven IFN amplification are all still absent).
+    roughly HALVING total virus versus the same-seed no-IFN path (the
+    primary, robust quantitative evidence — ~53% at step 20 through ~58% at
+    step 40) with a weaker, later-emerging reduction in infected-cell count
+    (~4% at step 20, widening to ~23% by step 40) (Increment 3,
+    mechanism-only — resist plateaus ~0.55 rather than saturating toward 1,
+    an OPEN Increment-9 calibration question recorded not resolved;
+    death/recovery, Allee effect, IL-10, immune cells, and APC-driven IFN
+    amplification are all still absent).
     Eight source-vs-paper discrepancies remain recorded, not resolved. No
     Figs 3B/5/7 reproduction claim is made — that verdict stays PENDING
     until Increment 9 (the capstone).
@@ -84,14 +87,18 @@ executive:
     shuffled-field non-local control fails at ~1.13x — population conserved;
     null control confirms no spontaneous infection). ifn-resistance
     (Increment 3) validates the type-I IFN field + per-cell resistance
-    MECHANISM (measured, same seed=17/0.3mm/900-cell sheet: n_I with-IFN
-    48/51/53 vs without 50/60/69 at steps 20/30/40; total_virus with-IFN
-    819.16/1222.88/1624.58 vs without 1750.69/2752.34/3905.38 — roughly
-    halved throughout; mean_resist engages immediately (~0.53 at step 1) and
-    plateaus at ~0.55-0.57 through step 40 rather than saturating toward 1,
-    an OPEN Increment-9 calibration/convention question recorded, not
-    resolved). No reproduction verdict against Figs 3B/5/7 exists yet — that
-    begins at Increment 9 (the capstone).
+    MECHANISM (measured, same seed=17/0.3mm/900-cell sheet). The PRIMARY,
+    robust quantitative evidence is total_virus: with-IFN
+    819.16/1222.88/1624.58 vs without 1750.69/2752.34/3905.38 at steps
+    20/30/40 — roughly halved already at step 20 (~53%) through ~58% at
+    step 40. n_I is a WEAKER, corroborating directional signal at the
+    tested step (48 vs 50 at step 20, only ~4%), widening to a more
+    meaningful ~23% by step 40 (53 vs 69) as the effect compounds.
+    mean_resist engages immediately (~0.53 at step 1) and plateaus at
+    ~0.55-0.57 through step 40 rather than saturating toward 1, an OPEN
+    Increment-9 calibration/convention question recorded, not resolved. No
+    reproduction verdict against Figs 3B/5/7 exists yet — that begins at
+    Increment 9 (the capstone).
   decisions_needed:
     - question: "Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?"
       context: |
@@ -177,7 +184,7 @@ at_a_glance:
   - {study: parameter-provenance, role: "Increment 0: establishes the cited parameter authority, provenance docs, and digitized figure targets; documents open source-vs-paper discrepancies. No simulation."}
   - {study: epithelial-sheet-baseline, role: "Increment 1: validates the confluent epithelial-sheet substrate (geometry + 1mm^2 throughput) as a process-bigraph composite. Substrate only — no biology reproduction claim."}
   - {study: virus-field-infection, role: "Increment 2: validates the virus field (diffusion/decay) + stochastic H->I infection MECHANISM (local spread, population conserved) over the Increment-1 sheet. Mechanism only — no resistance/IFN/immune cells yet, and no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
-  - {study: ifn-resistance, role: "Increment 3: validates the type-I IFN field + per-cell resistance MECHANISM gating virus secretion by (1-resist) over the Increment-2 virus-field/infection path — n_I with-IFN 48/51/53 vs without 50/60/69 at steps 20/30/40, total_virus roughly halved. Mechanism only — death/recovery/Allee/IL-10/immune cells/APC-driven IFN amplification not yet modeled; resist plateaus ~0.55 (not ~1), an OPEN Increment-9 calibration question; no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
+  - {study: ifn-resistance, role: "Increment 3: validates the type-I IFN field + per-cell resistance MECHANISM gating virus secretion by (1-resist) over the Increment-2 virus-field/infection path — PRIMARY evidence is total_virus roughly halved (~53% at step 20 through ~58% at step 40); n_I is a weaker, corroborating signal at the tested step (~4% at step 20, widening to ~23% by step 40). Mechanism only — death/recovery/Allee/IL-10/immune cells/APC-driven IFN amplification not yet modeled; resist plateaus ~0.55 (not ~1), an OPEN Increment-9 calibration question; no Figs 3B/5/7 reproduction claim (still PENDING, Increment 9)."}
 
 members:
 - parameter-provenance
@@ -189,4 +196,4 @@ acceptance_criteria:
 - {study: parameter-provenance, behavior: "Parameter authority is established and cited"}
 - {study: epithelial-sheet-baseline, behavior: "Confluent epithelial sheet holds stable geometry (~25 sites/cell) and 1mm^2 throughput clears the perf-gate floor (200.0 MCS/s)"}
 - {study: virus-field-infection, behavior: "Virus field diffuses/decays and a seeded lesion spreads locally via stochastic H->I infection (new infections within a few diffusion lengths of prior-infected cells), with population conserved and no spontaneous infection absent a seed/field"}
-- {study: ifn-resistance, behavior: "Type-I IFN field drives a per-cell resistance scalar (resist = f_bar/(a_rf+f_bar)) that gates virus secretion by (1-resist), measurably reducing infected-cell growth and total virus vs the same-seed no-IFN run (n_I 48/51/53 vs 50/60/69 at steps 20/30/40; total_virus roughly halved), with mean_resist > 0 once IFN accumulates"}
+- {study: ifn-resistance, behavior: "Type-I IFN field drives a per-cell resistance scalar (resist = f_bar/(a_rf+f_bar)) that gates virus secretion by (1-resist), measurably reducing total virus vs the same-seed no-IFN run (primary evidence, roughly halved: ~53% at step 20 through ~58% at step 40), with a weaker, later-emerging reduction in infected-cell growth (n_I: ~4% at step 20, widening to ~23% by step 40) and mean_resist > 0 once IFN accumulates"}
