@@ -482,7 +482,7 @@ key_assumptions:
     `run_epithelial_fate` -- it is a raw `cpm_core.World` loop (Task 4.3),
     not wrapped as a composite. The `conditions.baseline` entry below
     reuses the SAME Increment-2 live-demo composite
-    (`pbg_cpm_studies.composites.influenza.virus_infection`, no infected-
+    (`pbg_cpm_studies.composites.influenza.viral_infection`, no infected-
     death/Allee wiring) purely so this study has a dashboard-loadable
     baseline; it is NOT the composite this study's readouts are measured
     from, and it does not reproduce the epithelial-fate mechanism. All
@@ -510,7 +510,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.virus_infection
+  base_model: pbg_cpm_studies.composites.influenza.viral_infection
   new_processes: []
   new_state_variables: [per-cell type D (dead/dying), Allee death/recovery diagnostic counters]
   new_parameters: [mu_i_per_mcs, b_h, srf_threshold]
@@ -563,7 +563,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.virus_infection
+    composite: pbg_cpm_studies.composites.influenza.viral_infection
     params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch, no infected-death/Allee wiring; the measured readouts above come from run.run_epithelial_fate at 0.3mm/900 cells (Task 4.3), not this composite -- see key_assumptions
 
   model_settings: []

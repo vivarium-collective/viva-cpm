@@ -125,7 +125,7 @@ objective: |
   report the measured spread/locality/null-control behavior from the
   integration test (`tests/test_influenza_virus_infection.py`). Wrap the
   same mechanism as a process-bigraph composite
-  (`pbg_cpm_studies.composites.influenza.virus_infection`, CPMProcess +
+  (`pbg_cpm_studies.composites.influenza.viral_infection`, CPMProcess +
   InfectionProcess wired through `fates`) for the dashboard live demo (Task
   2.4, this study) — measurements come from `run_virus_infection`, not the
   live-demo composite (see caveat and Task 2.3's report on why the two
@@ -382,7 +382,7 @@ key_assumptions:
     a full replicate study), not a statistically characterized rate across
     a systematic replicate sweep.
   - The live-demo composite
-    (`pbg_cpm_studies.composites.influenza.virus_infection`) and the
+    (`pbg_cpm_studies.composites.influenza.viral_infection`) and the
     measurement driver (`run.run_virus_infection`) use independent RNG
     streams for the same `seed` and are NOT expected to produce bit-
     identical trajectories (Task 2.3 report) — the composite exists for a
@@ -408,11 +408,11 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.virus_infection
+  base_model: pbg_cpm_studies.composites.influenza.viral_infection
   new_processes: [pbg_cpm_studies.influenza.infection_process.InfectionProcess]
   new_state_variables: [virus field (per-site concentration)]
   new_parameters: [patch_mm, seed, init_infected_frac]
-  modified_processes: [pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline (adds fields + secretory_types)]
+  modified_processes: [pbg_cpm_studies.composites.influenza.epithelium (adds fields + secretory_types)]
   new_listeners: []
   notes: |
     Wraps the existing CPMProcess (now with `n_fields=1`,
@@ -467,7 +467,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.virus_infection
+    composite: pbg_cpm_studies.composites.influenza.viral_infection
     params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch; the measured readouts above come from run_virus_infection at 0.3mm/900 cells (Task 2.3), not this live-demo composite
 
   model_settings: []

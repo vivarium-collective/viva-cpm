@@ -442,7 +442,7 @@ key_assumptions:
     the WITH-IFN driver — `run_virus_infection_with_ifn` is a raw
     `cpm_core.World` loop (Task 3.3), not wrapped as a composite. The
     `conditions.baseline` entry below reuses the SAME Increment-2
-    live-demo composite (`pbg_cpm_studies.composites.influenza.virus_infection`,
+    live-demo composite (`pbg_cpm_studies.composites.influenza.viral_infection`,
     no IFN/resistance wiring) purely so this study has a dashboard-loadable
     baseline; it is NOT the composite this study's readouts are measured
     from, and it does not reproduce the IFN mechanism. All readouts above
@@ -473,7 +473,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.virus_infection
+  base_model: pbg_cpm_studies.composites.influenza.viral_infection
   new_processes: []
   new_state_variables: [type-I IFN field (per-site concentration), per-cell resistance (derived, not stored on the composite)]
   new_parameters: [a_rf]
@@ -526,7 +526,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.virus_infection
+    composite: pbg_cpm_studies.composites.influenza.viral_infection
     params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch, no IFN/resistance wiring; the measured readouts above come from run_virus_infection_with_ifn / run_virus_infection at 0.3mm/900 cells (Task 3.3), not this composite -- see key_assumptions
 
   model_settings: []

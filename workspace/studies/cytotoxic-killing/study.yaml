@@ -616,7 +616,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.cytotoxic_response
+  base_model: pbg_cpm_studies.composites.influenza.cytotoxic_immunity
   new_processes: []
   new_state_variables: [per-cell types K (NK) and E (CD8+ T), NK/CD8 centre-of-mass localization diagnostic, per-infected-cell n_infected series]
   new_parameters: [chemotaxis_v_nk, chemotaxis_v_cd8, g_ik, g_ie, tot_ec_ODE, NK_CD8_CHEMOTAXIS_ENGINE_SCALE]
@@ -624,7 +624,7 @@ model_change:
   new_listeners: []
   notes: |
     A new dashboard-loadable composite IS added this increment:
-    `pbg_cpm_studies.composites.influenza.cytotoxic_response` (Task 7.3) --
+    `pbg_cpm_studies.composites.influenza.cytotoxic_immunity` (Task 7.3) --
     wraps the Task-7.1 three-cluster scenario + virus field (macrophage
     chemotaxis, unchanged) + chemokine field (a NEW declarative spec entry,
     `fields.chemokine_field_spec_entry`, Task 7.3), with NK/CD8 chemotaxis
@@ -703,7 +703,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.cytotoxic_response
+    composite: pbg_cpm_studies.composites.influenza.cytotoxic_immunity
     params: {chemotaxis_v_macro: 5000.0, chemotaxis_v_nk: 500000.0, chemotaxis_v_cd8: 1000000.0, seed: 17}  # live-demo composite (Task 7.3, LOCALIZATION geometry/chemotaxis only, NO killing step -- see model_change.notes); the measured localization AND killing readouts above come from run.run_cytotoxic_response (Tasks 7.1/7.2), not this composite directly
 
   model_settings: []
