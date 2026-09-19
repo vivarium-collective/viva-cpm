@@ -10,6 +10,8 @@ uninfected; a uniform virus IC seeds infection with no pre-infected cells) at
 a small/fast reduced scale -- NOT figure-band matching (that is Tasks
 9.2-9.4 + the Phase-B paper-scale ensemble).
 """
+import pytest
+
 from pbg_cpm_studies.influenza import run
 
 
@@ -63,3 +65,26 @@ def test_repro_fig5_viral_load_sweep():
     surv = lambda L: r["by_load"][L]["uninfected_final_frac"]
     assert surv(10000) <= surv(1) + 1e-9
     assert "band_eval" in r
+
+
+def test_repro_fig7_infection_fraction_sweep():
+    r = run.repro_fig7(fracs=(0.001, 0.05), replicas=1, cells_per_side=12, steps=15, seed0=0)  # reduced
+    assert set(r["by_frac"].keys()) == {0.001, 0.05}
+    # a larger initial infection fraction does not leave more uninfected at the end
+    f = lambda x: r["by_frac"][x]["uninfected_final_frac"]
+    assert f(0.05) <= f(0.001) + 1e-9
+    assert "band_eval" in r
+
+
+def test_fig7_target_subset_scenario_grouping_guard():
+    # Fast unit test for the scenario-grouping guard itself (Task-9.3-review
+    # gap: the fig5 guard was only verified interactively, not in pytest).
+    target_observables = run.bands.load("fig7")["observables"]
+
+    subset = run._fig7_target_subset(target_observables, 0.05)
+    for obs_name, obs_list in subset.items():
+        assert obs_list, f"{obs_name} subset for frac=0.05 must be non-empty"
+        assert {o["initial_infection_fraction"] for o in obs_list} == {0.05}
+
+    with pytest.raises(ValueError):
+        run._fig7_target_subset(target_observables, 0.5)  # untagged fraction

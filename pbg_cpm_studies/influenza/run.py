@@ -2148,45 +2148,71 @@ _FIG5_OBSERVABLE_MAP = {
 }
 
 
-def _fig5_target_subset(target_observables: dict, load) -> dict:
-    """SCENARIO-GROUPING GUARD (Task-9.0-review finding, load-bearing here):
-    `targets/fig5.json`'s ``"observables"`` dict interleaves FIVE viral-load
-    scenarios (``viral_load_multiplier`` in ``{1,10,100,1000,10000}``) in one
-    flat list per observable. Passing that whole heterogeneous list to
-    `bands.series_in_band`/`bands.evaluate_study` for a single-`load` model
-    run would silently compare against a mix of every OTHER load's band too
-    (e.g. `load`'s low-infection ensemble checked against `load=10000`'s
-    near-total-lesion band at the same `t_days`) -- a wrong, averaged-away
-    comparison that could fabricate a pass or a fail.
+def _scenario_target_subset(target_observables: dict, tag_key: str, tag_value,
+                            *, source_name: str) -> dict:
+    """SCENARIO-GROUPING GUARD (Task-9.0-review finding, load-bearing;
+    shared by `_fig5_target_subset` and `_fig7_target_subset` -- see Task
+    9.4). Both `targets/fig5.json` (tagged ``viral_load_multiplier``) and
+    `targets/fig7.json` (tagged ``initial_infection_fraction``) interleave
+    MULTIPLE scenarios in one flat list per observable. Passing that whole
+    heterogeneous list to `bands.series_in_band`/`bands.evaluate_study` for a
+    single-scenario model run would silently compare against a mix of every
+    OTHER scenario's band too (e.g. a low-dose ensemble checked against a
+    high-dose scenario's near-total-lesion band at the same `t_days`) -- a
+    wrong, averaged-away comparison that could fabricate a pass or a fail.
 
-    This filters ``target_observables`` (the raw ``fig5.json["observables"]``
-    dict) down to ONLY the entries tagged ``viral_load_multiplier == load``,
-    per observable key. Raises ``ValueError`` (fail loudly, per the brief) if
-    ANY observable has zero matching entries for the requested `load` --
+    This filters ``target_observables`` (the raw ``<fig>.json["observables"]``
+    dict) down to ONLY the entries tagged ``tag_key == tag_value``, per
+    observable key. Raises ``ValueError`` (fail loudly, per the brief) if ANY
+    observable has zero matching entries for the requested `tag_value` --
     never silently falls back to the unfiltered (mixed-scenario) list.
     """
     subset = {}
     for obs_name, obs_list in target_observables.items():
-        matched = [o for o in obs_list if o.get("viral_load_multiplier") == load]
+        matched = [o for o in obs_list if o.get(tag_key) == tag_value]
         if not matched:
             raise ValueError(
-                f"fig5.json has no {obs_name!r} entries tagged "
-                f"viral_load_multiplier={load!r}; refusing to fall back to "
-                f"the unfiltered (multi-scenario) observable list -- fix the "
-                f"requested `load` or fig5.json's tagging, do not silently mix "
-                f"scenarios")
+                f"{source_name} has no {obs_name!r} entries tagged "
+                f"{tag_key}={tag_value!r}; refusing to fall back to the "
+                f"unfiltered (multi-scenario) observable list -- fix the "
+                f"requested value or {source_name}'s tagging, do not silently "
+                f"mix scenarios")
         subset[obs_name] = matched
     return subset
 
 
-def _evaluate_fig5_subset(ensemble: dict, target_subset: dict) -> dict:
+def _fig5_target_subset(target_observables: dict, load) -> dict:
+    """`_scenario_target_subset` specialized to `targets/fig5.json`'s
+    ``viral_load_multiplier`` tag. See `_scenario_target_subset`'s docstring
+    for why this filter (and its fail-loud raise) is load-bearing."""
+    return _scenario_target_subset(target_observables, "viral_load_multiplier",
+                                   load, source_name="fig5.json")
+
+
+def _fig7_target_subset(target_observables: dict, frac) -> dict:
+    """`_scenario_target_subset` specialized to `targets/fig7.json`'s
+    ``initial_infection_fraction`` tag (Task 9.4 -- the same
+    scenario-grouping guard `_fig5_target_subset` uses for fig5's
+    ``viral_load_multiplier`` scenarios). `targets/fig7.json`'s
+    ``"observables"`` dict interleaves FOUR initial-infection-fraction
+    scenarios (``{0.001, 0.005, 0.01, 0.05}``) in one flat list per
+    observable; see `_scenario_target_subset`'s docstring for why the raw
+    multi-scenario list must never reach `series_in_band` directly for a
+    single-fraction comparison."""
+    return _scenario_target_subset(target_observables, "initial_infection_fraction",
+                                   frac, source_name="fig7.json")
+
+
+def _evaluate_scenario_subset(ensemble: dict, target_subset: dict, *,
+                              figure_name: str) -> dict:
     """`bands.evaluate_study`'s own per-observable loop (soft-widening +
     `series_in_band` + the `passed` reduction), applied to an ALREADY
-    scenario-filtered ``target_subset`` (`_fig5_target_subset`'s output)
-    instead of `bands.load("fig5")["observables"]` wholesale -- see
-    `_fig5_target_subset`'s docstring for why the raw multi-scenario dict
-    must never reach `series_in_band` directly for a single-load comparison.
-    """
+    scenario-filtered ``target_subset`` (`_fig5_target_subset`'s or
+    `_fig7_target_subset`'s output) instead of
+    `bands.load(figure_name)["observables"]` wholesale -- see
+    `_scenario_target_subset`'s docstring for why the raw multi-scenario
+    dict must never reach `series_in_band` directly for a single-scenario
+    comparison."""
     results = {}
     passed = True
     for name, obs_list in target_subset.items():
@@ -2197,7 +2223,17 @@ def _evaluate_fig5_subset(ensemble: dict, target_subset: dict) -> dict:
         results[name] = verdict
         if not verdict["in_band"]:
             passed = False
-    return {"figure": "fig5", "observables": results, "passed": passed}
+    return {"figure": figure_name, "observables": results, "passed": passed}
+
+
+def _evaluate_fig5_subset(ensemble: dict, target_subset: dict) -> dict:
+    """`_evaluate_scenario_subset` specialized to fig5."""
+    return _evaluate_scenario_subset(ensemble, target_subset, figure_name="fig5")
+
+
+def _evaluate_fig7_subset(ensemble: dict, target_subset: dict) -> dict:
+    """`_evaluate_scenario_subset` specialized to fig7 (Task 9.4)."""
+    return _evaluate_scenario_subset(ensemble, target_subset, figure_name="fig7")
 
 
 def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
@@ -2329,6 +2365,143 @@ def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
         "lethal_threshold": lethal_threshold,
         "band_eval": band_eval,
         "loads": tuple(loads),
+        "replicas": replicas,
+        "cells_per_side": cells_per_side,
+        "steps": steps,
+    }
+
+
+def repro_fig7(*, fracs=(0.001, 0.005, 0.01, 0.05), replicas: int = 3,
+              cells_per_side: int = 35, steps: int = 240, seed0: int = 0) -> dict:
+    """Increment 9 Task 9.4 -- the CAPSTONE `repro_fig7` driver: run the full
+    model (`run_full_model`, Task 9.1) as a seeded ensemble at EACH initial
+    infection fraction in `fracs`, matching `targets/fig7.json`'s
+    ``"scenario"`` block (``patch_mm=1.0, total_epithelial_cells=10000,
+    replicas=20, initial_infection_fractions=[0.001,0.005,0.01,0.05]``): for
+    every fraction, `replicas` runs seed ``round(frac*tot_cell)`` random
+    pre-infected epithelial cells with NO initial virus field
+    (`run_full_model(..., init_infection_frac=frac, init_viral_load=None)` --
+    infected[0] > 0, per `run_full_model`'s ``init_infection_frac`` branch),
+    each mapped onto fig7's 4 observable keys (`_FIG5_OBSERVABLE_MAP` --
+    `targets/fig7.json` uses the SAME 4 observable names as fig5.json:
+    uninfected_cells, infected_cells, extracellular_virus, antibodies --
+    reused here rather than duplicating an identical map), ensemble-meaned
+    across that fraction's replicas (`bands.aggregate_replicas`), and
+    evaluated against ONLY that fraction's band subset (`_fig7_target_subset`
+    + `_evaluate_fig7_subset` -- the scenario-grouping guard; see those
+    functions' docstrings and `_scenario_target_subset`, the helper this
+    reuses from `repro_fig5`, Task 9.3).
+
+    The paper's own Sec. 3.4 finding (`targets/fig7.json`'s ``"notes"``) is
+    the fidelity criterion this driver is built to expose: ALL replicas are
+    non-lethal (the patch recovers) for initial infection fraction <= 1%,
+    even though the ODE model is fatal for all of these, while at
+    fraction=0.05 the spatial model is comparably severe to the ODE model,
+    though some replicas still retain surviving uninfected cells -- i.e. a
+    MONOTONE, but strongly threshold-like, dose-response in final uninfected
+    (surviving) fraction as the initial infection fraction rises, NOT a claim
+    that every fraction's band is individually matched at reduced scale (see
+    CALIBRATION HONESTY below).
+
+    PAPER-SCALE CONFIG (the Mac-mini Phase-B follow-up that will set the
+    `reproduced` verdict -- NOT this function's default, which stays small
+    for a fast test suite): ``replicas=50, cells_per_side=35, steps≈3086``
+    (as in `repro_fig5`: ``mcs_per_step=7, s_per_mcs=60`` gives
+    ``t_days = i*0.0048611...``, and fig7's checkpoints run to
+    ``max t_days=15``, needing ``steps ≈ 15/0.0048611 ≈ 3086``). This
+    function's small defaults (``replicas=3, cells_per_side=35, steps=240``)
+    keep the full paper patch size but far fewer replicas and a much shorter
+    window (``steps=240`` reaches only ``t_days≈1.17``) than the 20-replica
+    (fig7.json's own ``scenario.replicas``), 15-day paper ensemble.
+
+    CALIBRATION HONESTY (per `run_full_model`'s docstring, inherited here):
+    this function WIRES the full model at each initial infection fraction
+    and EVALUATES it against fig7's per-fraction band subsets; it does NOT
+    tune any constant to pass them, and `targets/fig7.json` is never edited
+    by this driver. A reduced-scale (small `fracs`/`replicas`/`steps`) run is
+    expected to diverge from the bands on most observables/fractions -- the
+    MONOTONE dose-response direction (higher initial infection fraction ->
+    not-more surviving uninfected fraction) is the reduced-scale fidelity
+    criterion this driver's own test checks, not per-fraction band
+    containment; only the paper-scale ensemble sets the `reproduced` verdict.
+    See `workspace/studies/repro-fig7-infection-fraction/study.yaml` for the
+    honestly-reported reduced-scale result.
+
+    Returns::
+
+        {
+          "by_frac": {
+            frac: {
+              "ensemble": {obs_name: [(t_days, value)]},
+              "band_eval": {"figure": "fig7", "observables": {...}, "passed": bool},
+              "uninfected_final_frac": float,   # final ensemble-mean uninfected / tot_cell
+              "uninfected_min_frac": float,      # min ensemble-mean uninfected / tot_cell
+            }
+            for frac in fracs
+          },
+          "lethal_threshold": frac or None,   # see below
+          "band_eval": {"figure": "fig7", "by_frac": {frac: {...}}, "passed": bool},
+          "fracs": tuple(fracs), "replicas": replicas,
+          "cells_per_side": cells_per_side, "steps": steps,
+        }
+
+    ``lethal_threshold`` is the SMALLEST tested `frac` (in ascending order)
+    whose ensemble-mean final uninfected fraction is <= 0.5 (majority of the
+    epithelial patch no longer uninfected) -- a MODEL-side threshold computed
+    from this driver's own run, distinct from any paper-side threshold value;
+    Sec. 3.4 (`targets/fig7.json`'s ``"notes"``) itself only frames the
+    <=1% vs 5% contrast qualitatively (non-lethal vs comparably-severe-to-ODE),
+    not a single crisp threshold fraction, so this value should be read as
+    this reduced driver's own operational threshold, not a reproduction of a
+    paper-stated number. ``None`` if no tested fraction reaches that
+    threshold.
+    """
+    target_observables = bands.load("fig7")["observables"]
+    tot_cell = cells_per_side * cells_per_side
+
+    by_frac: dict = {}
+    for frac_idx, frac in enumerate(fracs):
+        runs = []
+        for r in range(replicas):
+            seed = seed0 + frac_idx * replicas + r
+            res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
+                                 init_infection_frac=float(frac), init_viral_load=None)
+            mapped = {}
+            for obs_name, (section, key) in _FIG5_OBSERVABLE_MAP.items():
+                mapped[obs_name] = list(zip(res["t_days"], res[section][key]))
+            runs.append(mapped)
+
+        ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
+                   for obs_name in _FIG5_OBSERVABLE_MAP}
+
+        target_subset = _fig7_target_subset(target_observables, frac)
+        frac_band_eval = _evaluate_fig7_subset(ensemble, target_subset)
+
+        uninfected_series = [v for _, v in ensemble["uninfected_cells"]]
+        by_frac[frac] = {
+            "ensemble": ensemble,
+            "band_eval": frac_band_eval,
+            "uninfected_final_frac": uninfected_series[-1] / tot_cell,
+            "uninfected_min_frac": min(uninfected_series) / tot_cell,
+        }
+
+    lethal_threshold = None
+    for frac in sorted(by_frac):
+        if by_frac[frac]["uninfected_final_frac"] <= 0.5:
+            lethal_threshold = frac
+            break
+
+    band_eval = {
+        "figure": "fig7",
+        "by_frac": {frac: by_frac[frac]["band_eval"] for frac in by_frac},
+        "passed": all(by_frac[frac]["band_eval"]["passed"] for frac in by_frac),
+    }
+
+    return {
+        "by_frac": by_frac,
+        "lethal_threshold": lethal_threshold,
+        "band_eval": band_eval,
+        "fracs": tuple(fracs),
         "replicas": replicas,
         "cells_per_side": cells_per_side,
         "steps": steps,
