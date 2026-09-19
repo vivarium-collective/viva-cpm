@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Study: epithelial-sheet-baseline</title>
+<title>Study: epithelial-fate</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
 <!-- Inherit the workbench light/dark theme (this page loads in an iframe;
@@ -14,7 +14,7 @@
 <header class="study-header">
   <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
-    <span class="study-name" id="study-name" data-slug="epithelial-sheet-baseline" title="epithelial-sheet-baseline">Increment 1: confluent epithelial sheet (substrate only)</span>
+    <span class="study-name" id="study-name" data-slug="epithelial-fate" title="epithelial-fate">Increment 4: cellularized epithelial-fate lifecycle (H-&gt;I-&gt;D, D-&gt;H Allee recovery) — mechanism validated, reproduction still PENDING</span>
     
     <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
     
@@ -36,7 +36,7 @@
     
 
     
-    <div id="readiness-panel" data-slug="epithelial-sheet-baseline"></div>
+    <div id="readiness-panel" data-slug="epithelial-fate"></div>
 
     
     
@@ -58,7 +58,7 @@
             <span class="dot"></span>2&nbsp;·&nbsp;Execution
           </span>
           
-          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 3 · Evidence">
+          <span class="status-step gate-step axis-evaluation_status gate-state-passed-with-conditions set" title="Gate 3 · Evidence">
             <span class="dot"></span>3&nbsp;·&nbsp;Evidence
           </span>
           
@@ -90,19 +90,21 @@
           <span class="status-detail-axis">2 · Execution</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="2 completed run(s)">◆ computed: ran</span>
+          <span class="gate-computed-chip gate-state-passed" title="1 completed run(s)">◆ computed: ran</span>
           
           
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed">
+        <div class="status-detail-row gate-row gate-state-passed-with-conditions">
           <span class="status-detail-axis">3 · Evidence</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          <span class="gate-computed-chip gate-state-passed-with-conditions" title="completed run + recorded verdicts + visualization readiness gate (V4)">◆ computed: evaluated</span>
           
           
+          
+          <span class="gate-viz-gap-note" style="font-size:0.86em;color:#92400e">visualization gap: no figures</span>
           
         </div>
         
@@ -148,17 +150,20 @@
 
 
 
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Does the CPM engine hold a confluent, source-literal-adhesion epithelial
-sheet stable (no gaps, no vanished cells) at 1 mm^2 paper scale, and does
-it step fast enough (Rust engine, `step_parallel`) for the eventual
-2-week/~20160-MCS capstone run to be computationally feasible?
+<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Layered on the validated Increment-2/3 virus field + infection + IFN-
+resistance path: does wiring ALL epithelial fates together -- infection
+(H-&gt;I), infected death (I-&gt;D), and the cellularized Allee effect (H-&gt;D
+death / D-&gt;H recovery, both gated by local contact geometry and
+per-cell resistance) -- produce a coherent cell-fate lifecycle where a
+dead lesion grows via H-&gt;I-&gt;D and dead cells surrounded by healthy
+tissue recover, while dead cells surrounded by dying tissue do not?
 </p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
   <div class="act-cluster" data-act="study">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="study" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="study" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">The Study</span>
     </div>
     <div class="act-tabs">
@@ -179,7 +184,7 @@ it step fast enough (Rust engine, `step_parallel`) for the eventual
   </div>
   <div class="act-cluster" data-act="evidence">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed-with-conditions"></span>
       <span class="act-label">Evidence</span>
     </div>
     <div class="act-tabs">
@@ -563,45 +568,96 @@ it step fast enough (Rust engine, `step_parallel`) for the eventual
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">The confluent epithelial-only sheet is geometrically stable (mean cell
-volume ~25 sites, none vanished) and the Rust CPM engine steps the full
-1mm^2 lattice at ~406-422 MCS/s, far above the throughput needed to make
-the eventual 2-week capstone run computationally tractable. This is a
-substrate-readiness claim, not a biological-reproduction claim.
+      <p class="ctr-text">Wiring infection, infected death, and the cellularized Allee effect
+together produces a coherent, population-conserving epithelial-fate
+lifecycle: a dead lesion grows via H-&gt;I-&gt;D (n_D: 0-&gt;14 at 200 updates,
+0-&gt;77 at 500 updates, same seed=17/0.3mm/900-cell sheet as Increments
+2/3), and the Allee branch responds correctly to local contact geometry
+in BOTH directions -- a dead cell fully surrounded by healthy tissue
+recovers (proven both deterministically in a hand-made frozen-geometry
+world and organically in the full driver, 3-12 events/run), while a dead
+cell surrounded by dying tissue never does (rate is provably 0, not just
+empirically absent). This is a MECHANISM-validation claim (the fate
+lifecycle composes correctly and the Allee branch is bidirectionally
+functional), not a claim that any of Sego et al. 2022&#39;s quantitative
+figure targets (Figs 3B/5/7) are met -- that reproduction verdict remains
+PENDING until Increment 9 (the capstone). Direct H-&gt;D Allee death is
+honestly reported as RARE at this reduced scale (0 observed events across
+both runs) -- verified genuine via rate instrumentation (15,447
+qualifying encounters, all correctly nonzero, expected ~0.19 successes),
+not a wiring bug, and flagged as an open Increment-9 calibration question
+rather than tuned away here.
 </p>
       
-      <div class="ctr-context">A uniform lattice of type-H (uninfected epithelial) cells, each occupying
-a 5x5-site (10 um) block, tiles the simulated patch. Cell-cell (H-H) and
-cell-medium (H-medium) adhesion energies are taken source-literally from
-the CC3D ViralInfectionVTM reference (H-H=5.0, H-medium=25.0 — a
-CONTROLLER OVERRIDE of the CC3D-typical 4.0/16.0 pair, see
-`pbg_cpm_studies/influenza/params.yaml` provenance). This produces a
-confluent monolayer with no biological dynamics yet: no infection, immune
-response, or cell death. It is the mechanical substrate the subsequent 8
-increments (virus field, IFN/resistance, death/recovery, chemokines,
-macrophages, NK/CD8+ T, global ODE coupling, capstone) build on top of.
+      <div class="ctr-context">Infected epithelial cells die at a simplified flat per-MCS rate
+`mu_i*(1-resist)` (I-&gt;D, source-cited `mu_i_per_mcs`, no viral-load/ROS
+Hill saturation term -- the CC3D source&#39;s own `ViralCellDeathSteppable`
+docstring calls this a &#34;simplified version&#34; of the paper&#39;s fuller printed
+term). Independently, EVERY epithelial cell&#39;s local contact surface with
+its neighbors (restricted to other epithelial H/I/D cells, excluding
+MEDIUM, matching the source&#39;s `ec_list` filter) drives a cellularized
+Allee effect: an H cell deeply embedded in dead (D) tissue -- contact
+with dead neighbors above a threshold and total uninfected-neighbor
+contact below a threshold -- can die directly (H-&gt;D, no infection
+needed), while a D cell mostly surrounded by healthy (uninfected)
+neighbors can recover (D-&gt;H). Both branches share a rate coefficient
+`b_h` but have structurally different effective ceilings (`srf_thresh` ~
+5.3% for death&#39;s deficit term vs `1-srf_thresh` ~ 94.7% for recovery&#39;s),
+so recovery engages far more readily than death at reduced (0.3mm,
+~900-cell) scale: over 200-500 updates, recovery fires organically 3-12
+times while direct death fires 0 times, though 15,447 genuinely-
+qualifying death encounters were found (500-step run) with correctly
+positive but tiny rates -- an expected ~0.19 total successes, so the zero
+observed is statistically unsurprising, not a formula error. The
+resulting dead lesion (n_D) grows steadily and is driven overwhelmingly
+by the infection-&gt;death pathway (H-&gt;I-&gt;D) rather than direct Allee death
+at this scale. There is no chemokine/IL-10 field, no macrophage/NK/CD8+ T
+cell, no NK/CD8+ contact-killing of infected cells (a second I-&gt;D pathway
+in the full model, Increment 7), and no APC-driven global IFN
+amplification feedback yet -- all later increments.
 </div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Test</h2>
-      <p class="ctr-text">Build the epithelial-sheet `load_world` spec (Task 1.1), instantiate and
-relax the CPM world (Task 1.2), and measure step throughput on the full
-1mm^2 patch (Task 1.3). Wrap the geometry in a process-bigraph composite
-(`pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline`) so the
-dashboard can run a modest (0.1mm, 100-cell) live demo of the same
-substrate (Task 1.4, this study).
+      <p class="ctr-text">Wire infected death (Task 4.2, `transitions.infected_death_step`) and the
+cellularized Allee effect (Task 4.3, `pbg_cpm_studies/influenza/allee.py`)
+into a new driver, `run.run_epithelial_fate` (Task 4.3), alongside the
+unmodified Increment-2/3 infection + IFN-resistance path, and measure the
+resulting n_H/n_I/n_D series plus the diagnostic n_allee_death/
+n_allee_recovery counters (Task 4.3&#39;s integration tests
+`tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time`,
+`::test_dead_cell_surrounded_by_uninfected_recovers`,
+`::test_dead_cell_surrounded_by_dying_does_not_recover`, and the fuller
+200/500-step series in task-4.3-report.md). A minimal in-package figure
+(`pbg_cpm_studies/influenza/viz.py::epithelial_fate_figure`, Task 4.4)
+renders the cell-type composition over time plus cumulative Allee event
+counts.
 </p>
       
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>epithelial-sheet-baseline</code></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">Pass criterion: after 50-step relaxation, every real cell (indices
-1..900) has volume &gt; 0 and the mean is close to the 25-site target.
-Measured: mean volume ~25 sites, none vanished (Task 1.2).
-</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Pass criterion: `step_parallel` throughput on the full 1mm^2 lattice
-exceeds the 200.0 MCS/s perf-gate floor. Measured 406.47 MCS/s (one
-of 4 runs, range 406.47-421.95).
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>epithelial-fate</code></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">A seeded lesion (5% initial infection) run for 200 updates at
+0.3mm/900-cell scale must grow a nonzero dead (D) region via H-&gt;I-&gt;D,
+with H+I+D exactly conserved at every single update (no cells
+created/destroyed, only re-typed). This is the study&#39;s primary
+integration claim: the full fate lifecycle (infection + infected
+death + Allee death/recovery, all wired together) composes into a
+coherent, mass-conserving mechanism.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Deterministic proof of the recovery mechanism, isolated from Potts
+shape dynamics: a hand-made 5x5 frozen-geometry (`temperature=0.0`)
+world with a 3x3 block of single-pixel cells, the center cell DYING
+and all 8 Moore neighbors UNINFECTED. Drawing the stochastic Allee
+recovery transition up to 500 times, the center cell must recover to
+H at least once.
+</span><span class="ctr-dot">·</span><span class="ctr-meta-item">The negative control that rules out &#34;recovery always eventually
+fires regardless of geometry&#34;: the same 3x3 frozen-geometry world,
+but ALL 8 Moore neighbors of the center DYING cell are also DYING
+(srf_uninfected = 0, below the recovery threshold). The recovery rate
+is asserted to be EXACTLY 0.0 at every one of 500 iterations (not
+just empirically absent), and the center cell must still be DYING at
+the end.
 </span></div>
       </div>
       
@@ -609,7 +665,7 @@ of 4 runs, range 406.47-421.95).
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">The bare geometry + adhesion substrate is stable and fast enough to carry the remaining 8 increments of biology; this is a scaffolding result, not a reproduction result.</p>
+      <p class="ctr-text">The epithelial-fate lifecycle composes correctly: infection seeds I cells, infected death converts them to D, and D cells embedded in healthy tissue recover to H while D cells embedded in dying tissue do not -- both directions of the Allee branch are independently confirmed, not just the death side. But the TWO Allee branches are structurally asymmetric in how readily they fire at this reduced (0.3mm, ~900-cell) scale: recovery&#39;s deficit term is capped by `(1-theta) ~ 94.7%` and fires readily (3-12 organic events per run), while death&#39;s deficit term is capped by `srf_thresh ~ 5.3%` and additionally scales with contact to an ALREADY-substantial dead pocket, so it only engages for an H cell deeply embedded in dead tissue -- geometrically rare on a small patch within hundreds of updates. That asymmetry is source-literal (both branches share `b_h`, but have very different effective ceilings from `theta` vs `1-theta`), not a bug introduced here.</p>
       
       
     <div class="overview-section findings-section">
@@ -626,13 +682,15 @@ of 4 runs, range 406.47-421.95).
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The confluent epithelial-only sheet (source-literal adhesion H-H=5.0,
-H-medium=25.0, target volume 25 sites) is mechanically stable under
-CPM relaxation at 0.3mm scale — an engineered geometric result (target
-volume matched by construction), not an emergent biological finding.
+            <span class="finding-claim finding-statement">The full fate lifecycle (infection H-&gt;I, infected death I-&gt;D, Allee
+death/recovery H&lt;-&gt;D, all wired together each update) composes into a
+coherent, mass-conserving mechanism: the dead lesion grows steadily
+over both a 200- and 500-update horizon, driven overwhelmingly by the
+infection-&gt;death path (H-&gt;I-&gt;D), with population exactly conserved
+throughout. This is the study&#39;s central confirming result.
 </span>
             
-            <span class="finding-chip">via <code>Sheet holds confluent after relaxation</code></span>
+            <span class="finding-chip">via <code>Epithelial-fate lifecycle forms a growing dead lesion, population conserved</code></span>
             
           </summary>
           <div class="finding-drawer">
@@ -644,9 +702,9 @@ volume matched by construction), not an emergent biological finding.
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> mean cell volume ~25 sites, none vanished after 50-step relaxation on the 900-cell confluent 0.3mm tiling · 
+              <strong>observed:</strong> n_D 0-&gt;14 over 200 updates (n_H 855-&gt;668, n_I 45-&gt;218), 0-&gt;77 over 500 updates (n_H 855-&gt;77, n_I 45-&gt;746); n_H+n_I+n_D conserved every update in both runs (seed=17, patch_mm=0.3, init_infected_frac=0.05) · 
               
-              via test <a href="#bt-Sheet" onclick="_gotoStudyTab('tests','bt-Sheet');return false;"><code>Sheet holds confluent after relaxation</code></a> · 
+              via test <a href="#bt-Epithelial-fate" onclick="_gotoStudyTab('tests','bt-Epithelial-fate');return false;"><code>Epithelial-fate lifecycle forms a growing dead lesion, population conserved</code></a> · 
               
               
               
@@ -654,7 +712,7 @@ volume matched by construction), not an emergent biological finding.
             
             
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×1.0 vs expected</span>
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
               
               
             </div>
@@ -682,13 +740,14 @@ volume matched by construction), not an emergent biological finding.
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The Rust CPM engine&#39;s `step_parallel` throughput at full 1mm^2 scale
-is ~2x the perf-gate floor (and ~200x the brief&#39;s original 2.0 MCS/s
-minimum), so the ~20160-step capstone run remains computationally
-tractable — a performance-engineering result, not a biology finding.
+            <span class="finding-claim finding-statement">Allee recovery (D-&gt;H) responds correctly to local contact geometry:
+a dead cell embedded in healthy tissue recovers, both in a
+deterministic isolated test and organically within the full driver.
+This confirms the recovery branch is not just formally correct but
+actually engages under realistic run conditions.
 </span>
             
-            <span class="finding-chip">via <code>1mm^2 throughput clears the perf-gate floor</code></span>
+            <span class="finding-chip">via <code>Dead cell fully surrounded by healthy tissue recovers (D-&gt;H)</code></span>
             
           </summary>
           <div class="finding-drawer">
@@ -700,9 +759,9 @@ tractable — a performance-engineering result, not a biology finding.
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> 406.47-421.95 MCS/s measured across 4 runs at 1mm^2 (500x500 lattice, 10000 cells), vs 200.0 MCS/s perf-gate floor · 
+              <strong>observed:</strong> center D cell (8/8 UNINFECTED Moore neighbors, frozen geometry) recovers to H within 500 stochastic draws (seed=3); organically, 3 recovery events fire over 200 updates and 12 over 500 updates in the full driver with no hand-made geometry · 
               
-              via test <a href="#bt-1mm^2" onclick="_gotoStudyTab('tests','bt-1mm^2');return false;"><code>1mm^2 throughput clears the perf-gate floor</code></a> · 
+              via test <a href="#bt-Dead" onclick="_gotoStudyTab('tests','bt-Dead');return false;"><code>Dead cell fully surrounded by healthy tissue recovers (D-&gt;H)</code></a> · 
               
               
               
@@ -710,7 +769,124 @@ tractable — a performance-engineering result, not a biology finding.
             
             
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×2.0 vs expected</span>
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">The negative control confirms recovery is genuinely GATED by local
+geometry, not an artifact of &#34;eventually everything recovers given
+enough draws&#34; -- a dead cell with no healthy neighbors has a
+provably, not just empirically, zero recovery rate. Together with
+F-02, this establishes the Allee recovery branch is bidirectionally
+correct.
+</span>
+            
+            <span class="finding-chip">via <code>Dead cell surrounded by dying tissue never recovers (negative control)</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-03</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> center D cell (8/8 DYING Moore neighbors) has recovery rate exactly 0.0 at all 500 iterations; never recovers · 
+              
+              via test <a href="#bt-Dead" onclick="_gotoStudyTab('tests','bt-Dead');return false;"><code>Dead cell surrounded by dying tissue never recovers (negative control)</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×0.0 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-partial">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">◐</span>
+            <span class="finding-claim finding-statement">Direct Allee death is honestly reported as essentially absent at this
+reduced (0.3mm, ~900-cell) scale within practically-runnable step
+counts. This is NOT hidden as a clean pass -- it is flagged (status:
+partial) because it only PARTIALLY confirms the expected behavior
+(the rate formula is verified genuinely positive-but-tiny at
+qualifying encounters, ruling out a wiring bug, but the driver never
+actually observes a death event). Structural causes (b_h/theta
+asymmetry, per-update-vs-per-MCS batching) are recorded as an open
+Increment-9 calibration question, not tuned away here.
+</span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-04</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">partial literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> 0 direct Allee-death (H-&gt;D) events across both the 200-step and 500-step runs; 15,447 qualifying H-cell/update pairs (deficit&gt;0 AND srf_D&gt;0) at 500 steps, mean rate ~1.2e-5, max ~1.8e-4, expected successes ~0.19 · 
+              
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
               
               
             </div>
@@ -756,12 +932,12 @@ tractable — a performance-engineering result, not a biology finding.
   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
     <h2 class="overview-label" style="margin:0">Model composition</h2>
     
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'epithelial-sheet-baseline', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'epithelial-fate', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
   </div>
 
   
   
-  <div id="model-composite-cards" class="model-composite-cards" data-study="epithelial-sheet-baseline"
+  <div id="model-composite-cards" class="model-composite-cards" data-study="epithelial-fate"
        data-study-config="">
     <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
   </div>
@@ -780,29 +956,33 @@ tractable — a performance-engineering result, not a biology finding.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline" data-model-overrides='{"patch_mm": 0.1}'>
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.virus_infection" data-model-overrides='{"init_infected_frac": 0.05, "patch_mm": 0.1, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <strong>epithelial-sheet-baseline</strong>
+        <strong>epithelial-fate</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.virus_infection</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.virus_infection')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="epithelial-sheet-baseline"
-               value="pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline" placeholder="pkg.composites.name"
+        <input type="text" class="baseline-composite-input" data-baseline-name="epithelial-fate"
+               value="pbg_cpm_studies.composites.influenza.virus_infection" placeholder="pkg.composites.name"
                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
-                data-baseline-name="epithelial-sheet-baseline">Set composite</button>
+                data-baseline-name="epithelial-fate">Set composite</button>
       </div>
-      <div class="baseline-composite-status muted" data-baseline-name="epithelial-sheet-baseline" style="font-size:0.8em;margin-top:2px"></div>
+      <div class="baseline-composite-status muted" data-baseline-name="epithelial-fate" style="font-size:0.8em;margin-top:2px"></div>
       
       
       
       
       
+      
+        
+      
+        
       
         
       
@@ -833,24 +1013,30 @@ tractable — a performance-engineering result, not a biology finding.
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline</code></p>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.virus_infection</code></p>
     
+    
+    <p><strong>New state variables:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code>per-cell type D (dead/dying)</code></li><li><code>Allee death/recovery diagnostic counters</code></li>
+    </ul>
     
     
     <p><strong>New parameters:</strong></p>
     <ul style="margin:0 0 8px 18px">
-      <li><code></code></li>
+      <li><code></code></li><li><code></code></li><li><code></code></li>
     </ul>
     
     
     
-    <p class="muted" style="font-size:0.88em">Wraps the existing CPMProcess over the epithelial-sheet geometry
-(`pbg_cpm_studies.influenza.sheet.build_sheet_spec`) — no new process
-code. The live-demo composite runs a small 0.1mm/100-cell patch for a
-fast dashboard run; the 0.3mm/900-cell geometry check and the
-1mm^2/10000-cell throughput benchmark that back this study&#39;s readouts
-were run directly against `sheet.build_sheet_spec` and `load_world`
-in Tasks 1.1-1.3, not through this composite.
+    <p class="muted" style="font-size:0.88em">No new process-bigraph composite is added this increment (see
+key_assumptions): infected death and the Allee death/recovery
+mechanism are driven directly by `run.run_epithelial_fate` (a raw
+`cpm_core.World` loop, Task 4.3), not through a live-demo composite.
+`base_model` above points at the SAME Increment-2 composite reused as
+this study&#39;s dashboard-loadable baseline entry; it has no infected-
+death/Allee wiring. A composite for the full-fate driver, if wanted for
+a live demo, is deferred to a later task/increment.
 </p>
   </div>
   
@@ -884,7 +1070,7 @@ in Tasks 1.1-1.3, not through this composite.
 
   <h4>Latest run preview</h4>
   <p class="muted" style="font-size:0.9em">Per-store sparkline + first/last/min/max from the most recent run's emitted trajectory. This is a downsampled PREVIEW, not the full data — use the per-store or Download-all links for the complete arrays.</p>
-  <div id="results-preview" data-study="epithelial-sheet-baseline">
+  <div id="results-preview" data-study="epithelial-fate">
     <p class="empty-message">Loading results preview…</p>
   </div>
 
@@ -908,9 +1094,9 @@ in Tasks 1.1-1.3, not through this composite.
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
     <span class="muted" style="margin-right:auto;font-weight:600">Analysis result files</span>
     <a id="data-download-all" class="btn-mini" style="display:none"
-       href="/api/study-analysis-zip?study=epithelial-sheet-baseline">Download all (.zip)</a>
+       href="/api/study-analysis-zip?study=epithelial-fate">Download all (.zip)</a>
   </div>
-  <div id="data-files" data-study="epithelial-sheet-baseline">
+  <div id="data-files" data-study="epithelial-fate">
     <p class="empty-message">Loading result files…</p>
   </div>
 </div>
@@ -931,7 +1117,7 @@ in Tasks 1.1-1.3, not through this composite.
     interval/buffer, output location, and emit scope — from
     <code>lib/emitters.py</code> and this study's (or the workspace's)
     <code>runtime.default_emitter</code>.</p>
-    <div id="readouts-emitter" data-study="epithelial-sheet-baseline">
+    <div id="readouts-emitter" data-study="epithelial-fate">
       <p class="empty-message">Loading emitter configuration…</p>
     </div>
 
@@ -943,7 +1129,7 @@ in Tasks 1.1-1.3, not through this composite.
     
     <div id="readouts-download" style="margin:0 0 16px 0"></div>
 
-    <div id="readouts-table" data-study="epithelial-sheet-baseline">
+    <div id="readouts-table" data-study="epithelial-fate">
       <p class="empty-message">Loading readouts from the composite emit plan…</p>
     </div>
 
@@ -951,7 +1137,7 @@ in Tasks 1.1-1.3, not through this composite.
     <p class="muted" style="font-size:0.9em">Store path, dtype, shape
     <code>(n_steps, …)</code>, units, and a best-effort byte estimate for each emitted
     leaf.</p>
-    <div id="readouts-shapes" data-study="epithelial-sheet-baseline">
+    <div id="readouts-shapes" data-study="epithelial-fate">
       <p class="empty-message">Loading output shapes…</p>
     </div>
 
@@ -974,30 +1160,9 @@ in Tasks 1.1-1.3, not through this composite.
 
     
     
-    <div class="viz-actions-row" style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'epithelial-sheet-baseline')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
-    </div>
-    
 
     <div id="native-gallery-panel" class="figure-mount"><p class="empty-message">Loading figures…</p></div>
 
-    
-    
-    
-    <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/epithelial-sheet-baseline/viz/confluent-sheet.html"
-              class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="Confluent sheet"
-              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
-              ></iframe>
-      
-      <div class="figure-caption-row">
-        <span class="figure-source-chip">embed</span>
-        <span class="figure-title">Confluent sheet</span>
-        
-        <a href="/viva-cpm/dashboard/workspace/studies/epithelial-sheet-baseline/viz/confluent-sheet.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
-      </div>
-    </div>
     
     
 
@@ -1013,6 +1178,44 @@ in Tasks 1.1-1.3, not through this composite.
   <p class="muted" style="margin:0 0 12px 0"><strong>The bar.</strong> What must be true for this model to count as correct — the acceptance criteria, their bands, and the report cards that grade them.</p>
 
   
+  
+  
+  <div class="overview-section expectations-band" id="expectations-band">
+    <h3 class="section-title">Expectations
+      <span class="muted" style="font-size:0.85em;font-weight:normal">— from literature, mapped to the model observable that measures each</span>
+    </h3>
+    <ul class="literature-anchor-list" style="list-style:none;padding-left:0">
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Infected epithelial cells undergo virally-induced apoptosis (Sego 2022 Sec. 2.2/2.3, Table 2 &#39;Infected death&#39;); dying/dead cells can be replaced by neighboring healthy tissue via a cellularized Allee-effect recovery term (RecoverySteppable).</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>n_D grows from 0 to 14 (200 updates) / 77 (500 updates) via H-&gt;I-&gt;D; D-&gt;H recovery fires both deterministically (frozen-geometry test) and organically (3-12 events/run) when a dead cell is well-surrounded by healthy tissue, and provably never fires when it is not.</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (ViralCellDeathSteppable, RecoverySteppable) via pbg_cpm_studies/influenza/params.yaml cell_death: and allee: blocks</div>
+        
+      </li>
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>The paper&#39;s Fig-3B-style reproduction implicitly requires the epithelial-fate lifecycle to produce a growing, spatially coherent dead lesion whose size tracks the immune response over time, at paper scale.</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>At reduced (0.3mm/900-cell) scale, the lesion grows monotonically over 200-500 updates driven by infection-&gt;death; direct Allee death is essentially absent (0 events) though genuinely, if rarely, nonzero in the underlying rate -- a scale/calibration question, not a wiring failure, flagged for Increment 9.</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> Sego 2022 Figs 3B, 5, 7 (digitized acceptance bands, Increment 0)</div>
+        
+      </li>
+    
+    </ul>
+  </div>
   
 
   
@@ -1056,10 +1259,10 @@ in Tasks 1.1-1.3, not through this composite.
     
     
     
-    <li class="expected-behavior-item" id="bt-Sheet holds confluent after relaxation"
+    <li class="expected-behavior-item" id="bt-Epithelial-fate lifecycle forms a growing dead lesion, population conserved"
         data-test-kind="behavioral"
         
-        data-pytest-node="Sheet holds confluent after relaxation"
+        data-pytest-node="Epithelial-fate lifecycle forms a growing dead lesion, population conserved"
         data-classification="primary"
         data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
@@ -1068,22 +1271,26 @@ in Tasks 1.1-1.3, not through this composite.
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">Sheet holds confluent after relaxation</strong>
+        <strong style="font-size: 0.9em;">Epithelial-fate lifecycle forms a growing dead lesion, population conserved</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: after 50-step relaxation, every real cell (indices
-1..900) has volume &gt; 0 and the mean is close to the 25-site target.
-Measured: mean volume ~25 sites, none vanished (Task 1.2).
+      <div style="margin-top: 6px; font-size: 0.95em;">A seeded lesion (5% initial infection) run for 200 updates at
+0.3mm/900-cell scale must grow a nonzero dead (D) region via H-&gt;I-&gt;D,
+with H+I+D exactly conserved at every single update (no cells
+created/destroyed, only re-typed). This is the study&#39;s primary
+integration claim: the full fate lifecycle (infection + infected
+death + Allee death/recovery, all wired together) composes into a
+coherent, mass-conserving mechanism.
 </div>
       
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 25.0</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 14.0</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: mean cell volume ~25 sites, none vanished across 900 real cells (Task 1.2, test_world_builds_and_holds_volume_after_relaxation)</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: n_D[-1]=14 &gt; n_D[0]=0 at 200 updates (task-4.3-report.md); n_H+n_I+n_D conserved every update. At 500 updates: n_D[-1]=77.</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_sheet.py</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time</code>
         
       </div>
       
@@ -1091,7 +1298,7 @@ Measured: mean volume ~25 sites, none vanished (Task 1.2).
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "epithelial-sheet-baseline", "kind": "mean_cell_volume_sites", "stat": "mean"}
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "epithelial-fate", "kind": "n_D_final", "stat": "final"}
 pass_if: {"op": "gt", "value": 0}</pre>
       </details>
       
@@ -1107,32 +1314,101 @@ pass_if: {"op": "gt", "value": 0}</pre>
     
     
     
-    <li class="expected-behavior-item" id="bt-1mm^2 throughput clears the perf-gate floor"
+    <li class="expected-behavior-item" id="bt-Dead cell fully surrounded by healthy tissue recovers (D-&gt;H)"
         data-test-kind="behavioral"
         
-        data-pytest-node="1mm^2 throughput clears the perf-gate floor"
+        data-pytest-node="Dead cell fully surrounded by healthy tissue recovers (D-&gt;H)"
         data-classification="primary"
-        data-result="pending"
+        data-result="PASS"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
         <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">1mm^2 throughput clears the perf-gate floor</strong>
+        <strong style="font-size: 0.9em;">Dead cell fully surrounded by healthy tissue recovers (D-&gt;H)</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Pass criterion: `step_parallel` throughput on the full 1mm^2 lattice
-exceeds the 200.0 MCS/s perf-gate floor. Measured 406.47 MCS/s (one
-of 4 runs, range 406.47-421.95).
+      <div style="margin-top: 6px; font-size: 0.95em;">Deterministic proof of the recovery mechanism, isolated from Potts
+shape dynamics: a hand-made 5x5 frozen-geometry (`temperature=0.0`)
+world with a 3x3 block of single-pixel cells, the center cell DYING
+and all 8 Moore neighbors UNINFECTED. Drawing the stochastic Allee
+recovery transition up to 500 times, the center cell must recover to
+H at least once.
 </div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 1.0</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: center D cell (frozen 3x3 geometry, 8/8 UNINFECTED neighbors) recovers to H within 500 stochastic draws (seed=3).</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_allee.py::test_dead_cell_surrounded_by_uninfected_recovers</code>
+        
+      </div>
       
       
       <details style="margin-top: 6px; font-size: 0.82em;">
         <summary class="muted" style="cursor: pointer;">Assertion</summary>
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "epithelial-sheet-baseline", "kind": "throughput_mcs_per_s", "stat": "min"}
-pass_if: {"op": "gt", "value": 200.0}</pre>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "epithelial-fate", "kind": "recovers_within_500_draws", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-Dead cell surrounded by dying tissue never recovers (negative control)"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="Dead cell surrounded by dying tissue never recovers (negative control)"
+        data-classification="primary"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">Dead cell surrounded by dying tissue never recovers (negative control)</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">The negative control that rules out &#34;recovery always eventually
+fires regardless of geometry&#34;: the same 3x3 frozen-geometry world,
+but ALL 8 Moore neighbors of the center DYING cell are also DYING
+(srf_uninfected = 0, below the recovery threshold). The recovery rate
+is asserted to be EXACTLY 0.0 at every one of 500 iterations (not
+just empirically absent), and the center cell must still be DYING at
+the end.
+</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.0</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: center D cell (frozen 3x3 geometry, 8/8 DYING neighbors) has recovery rate exactly 0.0 at all 500 iterations; never recovers.</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_allee.py::test_dead_cell_surrounded_by_dying_does_not_recover</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "epithelial-fate", "kind": "recovery_rate_over_500_draws", "stat": "max"}
+pass_if: {"op": "eq", "value": 0.0}</pre>
       </details>
       
       
@@ -1213,7 +1489,7 @@ pass_if: {"op": "gt", "value": 200.0}</pre>
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Geometry and throughput reproduce Task 1.1-1.3&#39;s measured results exactly (same spec builder, same perf test).</textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces Task 4.3&#39;s measured integration-test results and report series exactly (same driver, same seed, same params.yaml constants); Increments 0-3 unchanged.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
@@ -1226,7 +1502,7 @@ pass_if: {"op": "gt", "value": 200.0}</pre>
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This increment has no biology to validate against (no virus, no infection, no immune response) — it is a substrate/perf gate only. Do NOT read PENDING as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9 (the capstone), which evaluates against Figs 3B/5/7.</textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This increment validates the MECHANISM (the H-&gt;I-&gt;D-&gt;[recover] lifecycle composes correctly, conserves population, and the Allee branch is bidirectionally gated by local contact geometry) with single-seeded runs, not a quantitative reproduction against any of Figs 3B/5/7. Chemokine/IL-10 fields, immune cells, NK/CD8+ contact-killing, and APC-driven global IFN amplification don&#39;t exist yet. The direct-Allee-death rarity is an OPEN calibration question for Increment 9 -- do NOT read PENDING here as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
@@ -1239,7 +1515,7 @@ pass_if: {"op": "gt", "value": 200.0}</pre>
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No mechanism is being compared to an alternative explanation at this increment; deferred to later increments where dynamics exist.</textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No alternative mechanism is being compared at this increment; deferred to later increments / the capstone where a reproduction comparison against the paper&#39;s figures becomes meaningful.</textarea>
         </label>
       </div>
     </div>
@@ -1252,13 +1528,24 @@ pass_if: {"op": "gt", "value": 200.0}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>SUBSTRATE VALIDATED, NOT BIOLOGY REPRODUCED. The confluent epithelial
-sheet geometry is stable at scale and the engine is fast enough. No
-virus field, infection dynamics, IFN response, or immune cells exist yet
-in this increment, and this study makes no reproduction claim against
-Sego et al. 2022's published figures (Figs 3B/5/7) — that evaluation is
-deferred to Increment 9 (the capstone), per the investigation's
-capability-ladder design.</p>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>MECHANISM VALIDATED, NOT REPRODUCED. The full epithelial-fate lifecycle
+(infection H-&gt;I, infected death I-&gt;D, cellularized Allee death H-&gt;D /
+recovery D-&gt;H) composes into a coherent, population-conserving mechanism:
+a dead lesion grows via H-&gt;I-&gt;D (0-&gt;14 at 200 updates, 0-&gt;77 at 500
+updates, same seed=17/0.3mm/900-cell sheet as Increments 2/3), and the
+Allee recovery branch is confirmed bidirectionally correct -- a
+well-surrounded dead cell recovers (deterministically and organically, 3-
+12 events/run), a poorly-surrounded one provably never does. Direct Allee
+death is honestly reported as essentially absent at this scale (0 events
+observed), verified genuine via rate instrumentation rather than a wiring
+bug, and flagged -- not tuned away -- as an open Increment-9 calibration
+question. This increment has infected death using the source's
+SIMPLIFIED flat mu_i*(1-resist) rate (no ROS/Hill saturation term, per
+the CC3D source's own docstring), no NK/CD8+ contact-killing (Increment
+7), no chemokine/IL-10 fields, no other immune cells, and no APC-driven
+global IFN amplification, and makes NO claim about matching any of Sego
+et al. 2022's Figs 3B/5/7 quantitative acceptance bands -- that
+reproduction verdict is PENDING until Increment 9 (the capstone).</p>
 </div>
     </div>
     
@@ -1276,7 +1563,7 @@ capability-ladder design.</p>
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">Confluent exact tiling (5x5-site cells, no gaps by construction) — the 0.3mm/900-cell geometry check and the 1mm^2/10000-cell throughput benchmark are both exactly-confluent lattices.</li><li style="margin:2px 0">Second-nearest-neighbour (neighbor_order=3) square lattice, per the CC3D source (accepted by the Rust engine without a capability fallback — see task-1.1-1.3-report.md Task 1.2).</li><li style="margin:2px 0">Perf numbers are single-machine measurements (this laptop); re-measure before relying on the 200.0 MCS/s floor as a strict CI gate on different hardware (e.g. the Mac mini).</li>
+        <li style="margin:2px 0">Infected death uses the CC3D source&#39;s own SIMPLIFIED flat rate `mu_i*(1-resist)` -- no viral-load/ROS Hill-saturation term. The paper&#39;s printed Table 2 &#34;Infected death&#34; row is fuller than what the source (and therefore this study) actually implements; that fuller term is a conceptual target, not modeled here or in the source itself.</li><li style="margin:2px 0">NK-cell and CD8+ T-cell contact-killing of infected cells (an additional I-&gt;D death pathway present in the full source model) is entirely absent -- deferred to Increment 7. The ONLY death pathways modeled here are infected-death (I-&gt;D) and Allee death (H-&gt;D).</li><li style="margin:2px 0">OPEN CALIBRATION QUESTION (flagged for Increment 9, NOT tuned here) -- direct Allee death (H-&gt;D) fires 0 times across both the 200- and 500-step runs despite 15,447 genuinely-qualifying encounters at 500 steps (rate correctly nonzero, ~1.2e-5 mean, expected ~0.19 successes). Two structural, source-literal reasons: (1) the b_h/theta asymmetry between the death and recovery branches&#39; effective ceilings; (2) this driver&#39;s per-update (not per-MCS) stochastic evaluation, inherited unchanged from Increments 2/3, which understates stochastic opportunities by the `mcs_per_update` factor (default 10) relative to the source&#39;s true per-MCS cadence. Neither was changed here per the brief&#39;s explicit &#34;do not tune constants&#34; instruction -- Increment 9, at full source scale, is the place to re-check whether this rate magnitude is consistent with the paper&#39;s dynamics.</li><li style="margin:2px 0">The contact-area totals `srf_total`/`srf_uninfected`/`srf_D` are restricted to epithelial (H/I/D) neighbor contact, excluding MEDIUM -- a design decision recorded in task-4.3-report.md that follows the CC3D source&#39;s `ec_list` filter literally, diverging from an earlier task brief&#39;s looser &#34;sum over all neighbor types&#34; phrasing. This matters materially on this small patch, which has real free (sheet-edge) boundaries unlike the paper&#39;s much larger domain relative to the lesion.</li><li style="margin:2px 0">Single seed (17) for the driver (same two/three/four-RNG-stream convention as Increments 2/3) -- the measured lesion growth and Allee event counts are a single-run demonstration of the mechanism&#39;s qualitative and approximate quantitative behavior, not a statistically characterized effect size across a systematic replicate sweep.</li><li style="margin:2px 0">As in Increment 3, there is no live-demo process-bigraph composite for `run_epithelial_fate` -- it is a raw `cpm_core.World` loop (Task 4.3), not wrapped as a composite. The `conditions.baseline` entry below reuses the SAME Increment-2 live-demo composite (`pbg_cpm_studies.composites.influenza.virus_infection`, no infected- death/Allee wiring) purely so this study has a dashboard-loadable baseline; it is NOT the composite this study&#39;s readouts are measured from, and it does not reproduce the epithelial-fate mechanism. All readouts above come directly from `run.run_epithelial_fate`.</li><li style="margin:2px 0">No chemokine/IL-10 field, no macrophage/NK/CD8+ T cell, and no APC-driven global IFN amplification exist yet -- all later increments.</li>
       </ul>
     </div>
     
@@ -1305,8 +1592,8 @@ capability-ladder design.</p>
       
       
       <p class="muted" style="margin:0;font-size:0.9em">
-        <strong>1</strong> test outcome
-        — <span style="color:#065f46;font-weight:600">1 PASS</span> ·
+        <strong>3</strong> test outcomes
+        — <span style="color:#065f46;font-weight:600">3 PASS</span> ·
         <span style="color:#991b1b;font-weight:600">0 FAIL</span>.
         Per-test outcomes (measured value · evaluator · band) are canonical on the
         <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline">Tests tab →</a>.
@@ -1350,7 +1637,7 @@ capability-ladder design.</p>
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Increment 2: virus field + infection</strong>
+              <strong class="followup-title">Increment 5: chemokine + IL-10 diffusible fields</strong>
               
               
               
@@ -1360,14 +1647,14 @@ capability-ladder design.</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('epithelial-sheet-baseline', "virus-field-infection")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('epithelial-fate', "chemokine-il10-fields")">➕ Add to investigation</button>
             </div>
           </div>
           
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Increment 3: IFN + per-cell resistance</strong>
+              <strong class="followup-title">Increment 9 (or earlier spike): re-check the direct-Allee-death rate at full source scale</strong>
               
               
               
@@ -1377,7 +1664,7 @@ capability-ladder design.</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('epithelial-sheet-baseline', "ifn-resistance")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('epithelial-fate', "allee-death-rate-calibration")">➕ Add to investigation</button>
             </div>
           </div>
           
@@ -1403,7 +1690,7 @@ capability-ladder design.</p>
 <script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "ec4cb80b2c38703560ac36025a8981cc9ad5c273", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/ec4cb80b2c38703560ac36025a8981cc9ad5c273", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 04:46 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
-window._studyName = "epithelial-sheet-baseline";
+window._studyName = "epithelial-fate";
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.

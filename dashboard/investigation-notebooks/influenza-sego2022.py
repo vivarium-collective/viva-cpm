@@ -466,5 +466,98 @@ print("No recorded runs for this study; nothing to reproduce.")
 # | IFN-gated virus release leaves strictly less total virus (primary quantitative gate) | kind=total_virus_delta_vs_without_ifn condition=ifn-resistance stat=final | op lt value 0 |
 # | Resistance gate actually engages (mean_resist > 0) | kind=mean_resist condition=ifn-resistance stat=final | op gt value 0.0 |
 
+# ## Study: Increment 4: cellularized epithelial-fate lifecycle (H->I->D, D->H Allee recovery) — mechanism validated, reproduction still PENDING (`epithelial-fate`)
+#
+# **Question.** Does wiring infection (H->I), infected death (I->D), and the cellularized
+# Allee effect (H->D death / D->H recovery, both gated by local contact
+# geometry) together produce a coherent epithelial-fate lifecycle -- a
+# growing dead lesion, population conservation, and correct bidirectional
+# Allee response (recovery for well-surrounded D cells, no recovery for
+# poorly-surrounded ones) -- on top of the Increment 2/3 virus/infection/IFN
+# path?
+#
+# **Objective.** Wire infected death (Task 4.2, `transitions.infected_death_step`) and the
+# cellularized Allee effect (Task 4.3, `pbg_cpm_studies/influenza/allee.py`)
+# into a new driver, `run.run_epithelial_fate` (Task 4.3), alongside the
+# unmodified Increment-2/3 infection + IFN-resistance path, and measure the
+# resulting n_H/n_I/n_D series plus the diagnostic n_allee_death/
+# n_allee_recovery counters (Task 4.3's integration tests
+# `tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time`,
+# `::test_dead_cell_surrounded_by_uninfected_recovers`,
+# `::test_dead_cell_surrounded_by_dying_does_not_recover`, and the fuller
+# 200/500-step series in task-4.3-report.md). A minimal in-package figure
+# (`pbg_cpm_studies/influenza/viz.py::epithelial_fate_figure`, Task 4.4)
+# renders the cell-type composition over time plus cumulative Allee event
+# counts.
+#
+# **Hypothesis.** Layered on the Increment-2/3 virus field + infection + IFN-resistance
+# path: infected cells die at rate `mu_i*(1-resist)` (I->D), and every H/D
+# epithelial cell's local contact-surface composition (restricted to H/I/D
+# neighbors) drives a stochastic Allee death (H->D, for H cells deeply
+# embedded in dead tissue) or recovery (D->H, for D cells mostly surrounded
+# by healthy tissue) rate. This should produce a growing, population-
+# conserving dead lesion over time, with D cells embedded in healthy tissue
+# recovering and D cells embedded in dying tissue never recovering -- while
+# direct Allee death may be rare at reduced (0.3mm) scale given the
+# source's b_h/theta asymmetry.
+#
+# **Purpose.** epithelial_fate_lifecycle
+#
+# **Claim.** Wiring infection, infected death, and the cellularized Allee effect
+# together produces a coherent, population-conserving epithelial-fate
+# lifecycle: a dead lesion grows via H->I->D (n_D: 0->14 at 200 updates,
+# 0->77 at 500 updates, same seed=17/0.3mm/900-cell sheet as Increments
+# 2/3), and the Allee branch responds correctly to local contact geometry
+# in BOTH directions -- a dead cell fully surrounded by healthy tissue
+# recovers (proven both deterministically in a hand-made frozen-geometry
+# world and organically in the full driver, 3-12 events/run), while a dead
+# cell surrounded by dying tissue never does (rate is provably 0, not just
+# empirically absent). This is a MECHANISM-validation claim (the fate
+# lifecycle composes correctly and the Allee branch is bidirectionally
+# functional), not a claim that any of Sego et al. 2022's quantitative
+# figure targets (Figs 3B/5/7) are met -- that reproduction verdict remains
+# PENDING until Increment 9 (the capstone). Direct H->D Allee death is
+# honestly reported as RARE at this reduced scale (0 observed events across
+# both runs) -- verified genuine via rate instrumentation (15,447
+# qualifying encounters, all correctly nonzero, expected ~0.19 successes),
+# not a wiring bug, and flagged as an open Increment-9 calibration question
+# rather than tuned away here.
+
+# ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.influenza.virus_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.influenza.virus_infection`** — `spec_pbg_cpm_studies_composites_influenza_virus_infection` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.influenza.virus_infection` not found under `pbg_cpm_studies/composites/` — skipped._
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: epithelial-fate ===
+STUDY = 'epithelial-fate'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | Epithelial-fate lifecycle forms a growing dead lesion, population conserved | kind=n_D_final condition=epithelial-fate stat=final | op gt value 0 |
+# | Dead cell fully surrounded by healthy tissue recovers (D->H) | kind=recovers_within_500_draws condition=epithelial-fate stat=final | op eq value True |
+# | Dead cell surrounded by dying tissue never recovers (negative control) | kind=recovery_rate_over_500_draws condition=epithelial-fate stat=max | op eq value 0.0 |
+
 # ## Open decisions
 # - Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?
