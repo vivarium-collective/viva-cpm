@@ -5,6 +5,9 @@ phase: Evaluate
 title: "Increment 9 Task 9.4 (CAPSTONE): repro_fig7 sweeps run_full_model over Sego-2022's initial-infection-fraction scenarios (0.001x/0.05x, REDUCED scale: 1 replica, 12x12 cells, 15 records ~0.068 days) and evaluates each fraction against ONLY that fraction's fig7.json band subset (scenario-grouping guard) — the monotone dose-response direction holds trivially (frac=0.001 rounds to 0 pre-infected cells of 144 at this reduced population -> uninfected_final_frac=1.0; frac=0.05 seeds 7 -> 0.9444) but per-fraction band_eval.passed is False for both fractions; the paper-scale 20-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: repro-fig3b
+    condition: tests-passed
 
 purpose:
   question: |
@@ -489,9 +492,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_full_model.py::test_fig7_target_subset_scenario_grouping_guard
 
 visualizations:
+  - name: Spatial state — full model (animated)
+    address: local:InfluenzaSpatialReproFig7
   - name: Fig-7 reproduction — dose-response vs acceptance band
     address: local:InfluenzaReproFig7
 embed_visualizations:
+  - name: Spatial state — full model
+    title: "Full model — spatial-state mosaic (animated, reduced scale)"
+    url: /workspace/studies/repro-fig7-infection-fraction/viz/spatial-repro-fig7.html
   - name: Fig-7 repro
     title: "Fig-7 reproduction — infection-fraction dose-response vs acceptance band (band_eval.passed=False at every tested fraction, expected at this scale)"
     url: /workspace/studies/repro-fig7-infection-fraction/viz/repro-fig7.html

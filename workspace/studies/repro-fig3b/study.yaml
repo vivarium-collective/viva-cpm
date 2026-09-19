@@ -5,6 +5,9 @@ phase: Evaluate
 title: "Increment 9 Task 9.2 (CAPSTONE): repro_fig3b wires run_full_model into an ensemble driver and evaluates it against the digitized Fig-3B acceptance bands — at REDUCED scale (2 replicas, 15x15 cells, 20 records ~0.09 days) 0/12 observables land in-band for every checkpoint (band_eval.passed=False), expected at this population/time scale — the paper-scale 50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: global-coupling
+    condition: tests-passed
 
 purpose:
   question: |
@@ -317,9 +320,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_full_model.py::test_repro_fig3b_runs_and_evaluates_bands
 
 visualizations:
+  - name: Spatial state — full model (animated)
+    address: local:InfluenzaSpatialReproFig3B
   - name: Fig-3B reproduction — ensemble vs acceptance band
     address: local:InfluenzaReproFig3B
 embed_visualizations:
+  - name: Spatial state — full model
+    title: "Full model — spatial-state mosaic (animated, reduced scale)"
+    url: /workspace/studies/repro-fig3b/viz/spatial-repro-fig3b.html
   - name: Fig-3B repro
     title: "Fig-3B reproduction — reduced-scale ensemble vs acceptance band (band_eval.passed=False, expected at this scale)"
     url: /workspace/studies/repro-fig3b/viz/repro-fig3b.html

@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 7: NK/CD8 chemotax up the chemokine field and localize robustly (5/5 seeds); contact-killing WORKS in a close-contact test (1->0) — but at the DEFAULT full-scale scenario NK/CD8 never reach the infected cell, so end-to-end cytotoxic CLEARANCE is WEAK — capability proven, clearance an Increment-9 calibration gap"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: signaling-fields
+    condition: tests-passed
 
 purpose:
   question: |
@@ -375,9 +378,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_killing.py::test_contact_kill_rate_matches_params_yaml_precomputed_coefficients
 
 visualizations:
+  - name: Spatial state — cytotoxic response (animated)
+    address: local:InfluenzaSpatialCytotoxic
   - name: NK/CD8 localization + killing
     address: local:InfluenzaCytotoxicKilling
 embed_visualizations:
+  - name: Spatial state — cytotoxic
+    title: "Cytotoxic response — spatial-state mosaic (animated)"
+    url: /workspace/studies/cytotoxic-killing/viz/spatial-cytotoxic.html
   - name: Cytotoxic killing
     title: "NK/CD8 cytotoxic localization + killing — capability proven, clearance weak/PENDING"
     url: /workspace/studies/cytotoxic-killing/viz/cytotoxic-killing.html

@@ -5,6 +5,9 @@ phase: Simulate
 title: "Increment 8: hybrid 10-species global ODE (Price 2015) integrates once/MCS, coupled bidirectionally to the spatial CPM model — the three carried stubs (dynamic sig_1, ODE-driven recruitment, NK/CD8 nearby-killing) are RESOLVED as mechanisms, source-faithful and wired correctly — but at reduced scale the coupling MAGNITUDES are not yet calibrated (dynamic sig_1 collapses ~1e-6 vs the old stub's 2.44; recruitment/nearby-killing stay too weak to engage naturally): mechanism-resolved, calibration-pending, Increment 9"
 confidence: Provisional
 investigation: influenza-sego2022
+parent_studies:
+  - study: cytotoxic-killing
+    condition: tests-passed
 
 purpose:
   question: |
@@ -396,9 +399,14 @@ behavior_tests:
     evaluated_by: tests/test_influenza_viz.py::test_global_coupling_figure_returns_figure_with_two_axes
 
 visualizations:
+  - name: Spatial state — global immune scene (animated)
+    address: local:InfluenzaSpatialGlobalCoupling
   - name: Hybrid global ODE coupling
     address: local:InfluenzaGlobalCoupling
 embed_visualizations:
+  - name: Spatial state — global coupling
+    title: "Global immune coupling — spatial-state mosaic (animated)"
+    url: /workspace/studies/global-coupling/viz/spatial-global.html
   - name: Global coupling
     title: "Hybrid global ODE coupling (Price 2015) — mechanism-resolved, calibration-pending"
     url: /workspace/studies/global-coupling/viz/global-coupling.html
