@@ -273,6 +273,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 #
 # _Results are shown by the figures below, produced by the run above._
 
+# **Spatial state — sheet relaxation (animated)**
+
+# Spatial state — sheet relaxation (animated)
+_save_viz('epithelial-sheet-baseline', 'Spatial_state_sheet_relaxation_animated', _render_one('local:InfluenzaSpatialSheet', {}, RUNS_DB, STUDY_YAML))
+
 # **Confluent epithelial sheet**
 
 # Confluent epithelial sheet
@@ -359,6 +364,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 # ### Visualizations
 #
 # _Results are shown by the figures below, produced by the run above._
+
+# **Spatial state — infection spread (animated)**
+
+# Spatial state — infection spread (animated)
+_save_viz('virus-field-infection', 'Spatial_state_infection_spread_animated', _render_one('local:InfluenzaSpatialVirusField', {}, RUNS_DB, STUDY_YAML))
 
 # **Virus field + local spread (animated)**
 
@@ -459,6 +469,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 # ### Visualizations
 #
 # _Results are shown by the figures below, produced by the run above._
+
+# **Spatial state — IFN-gated infection (animated)**
+
+# Spatial state — IFN-gated infection (animated)
+_save_viz('ifn-resistance', 'Spatial_state_IFN-gated_infection_animated', _render_one('local:InfluenzaSpatialIfnResistance', {}, RUNS_DB, STUDY_YAML))
 
 # **IFN + per-cell resistance**
 
@@ -561,6 +576,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 # ### Visualizations
 #
 # _Results are shown by the figures below, produced by the run above._
+
+# **Spatial state — fate lifecycle (animated)**
+
+# Spatial state — fate lifecycle (animated)
+_save_viz('epithelial-fate', 'Spatial_state_fate_lifecycle_animated', _render_one('local:InfluenzaSpatialEpithelialFate', {}, RUNS_DB, STUDY_YAML))
 
 # **Epithelial-fate lifecycle**
 
@@ -673,6 +693,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 #
 # _Results are shown by the figures below, produced by the run above._
 
+# **Spatial state — macrophage recruitment (animated)**
+
+# Spatial state — macrophage recruitment (animated)
+_save_viz('macrophage-response', 'Spatial_state_macrophage_recruitment_animated', _render_one('local:InfluenzaSpatialMacrophage', {}, RUNS_DB, STUDY_YAML))
+
 # **Macrophage localization**
 
 # Macrophage localization
@@ -779,6 +804,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 # ### Visualizations
 #
 # _Results are shown by the figures below, produced by the run above._
+
+# **Spatial state — signaling scene (animated)**
+
+# Spatial state — signaling scene (animated)
+_save_viz('signaling-fields', 'Spatial_state_signaling_scene_animated', _render_one('local:InfluenzaSpatialSignaling', {}, RUNS_DB, STUDY_YAML))
 
 # **Chemokine + IL-10 fields**
 
@@ -894,6 +924,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 #
 # _Results are shown by the figures below, produced by the run above._
 
+# **Spatial state — cytotoxic response (animated)**
+
+# Spatial state — cytotoxic response (animated)
+_save_viz('cytotoxic-killing', 'Spatial_state_cytotoxic_response_animated', _render_one('local:InfluenzaSpatialCytotoxic', {}, RUNS_DB, STUDY_YAML))
+
 # **NK/CD8 localization + killing**
 
 # NK/CD8 localization + killing
@@ -1004,6 +1039,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 #
 # _Results are shown by the figures below, produced by the run above._
 
+# **Spatial state — global immune scene (animated)**
+
+# Spatial state — global immune scene (animated)
+_save_viz('global-coupling', 'Spatial_state_global_immune_scene_animated', _render_one('local:InfluenzaSpatialGlobalCoupling', {}, RUNS_DB, STUDY_YAML))
+
 # **Hybrid global ODE coupling**
 
 # Hybrid global ODE coupling
@@ -1111,6 +1151,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 # ### Visualizations
 #
 # _Results are shown by the figures below, produced by the run above._
+
+# **Spatial state — full model (animated)**
+
+# Spatial state — full model (animated)
+_save_viz('repro-fig3b', 'Spatial_state_full_model_animated', _render_one('local:InfluenzaSpatialReproFig3B', {}, RUNS_DB, STUDY_YAML))
 
 # **Fig-3B reproduction — ensemble vs acceptance band**
 
@@ -1229,6 +1274,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 # ### Visualizations
 #
 # _Results are shown by the figures below, produced by the run above._
+
+# **Spatial state — full model (animated)**
+
+# Spatial state — full model (animated)
+_save_viz('repro-fig5-viral-load', 'Spatial_state_full_model_animated', _render_one('local:InfluenzaSpatialReproFig5', {}, RUNS_DB, STUDY_YAML))
 
 # **Fig-5 reproduction — dose-response vs acceptance band**
 
@@ -1366,6 +1416,11 @@ print("No recorded runs for this study; nothing to reproduce.")
 # ### Visualizations
 #
 # _Results are shown by the figures below, produced by the run above._
+
+# **Spatial state — full model (animated)**
+
+# Spatial state — full model (animated)
+_save_viz('repro-fig7-infection-fraction', 'Spatial_state_full_model_animated', _render_one('local:InfluenzaSpatialReproFig7', {}, RUNS_DB, STUDY_YAML))
 
 # **Fig-7 reproduction — dose-response vs acceptance band**
 
