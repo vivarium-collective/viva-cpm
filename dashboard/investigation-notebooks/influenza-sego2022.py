@@ -1022,5 +1022,364 @@ _save_viz('global-coupling', 'Hybrid_global_ODE_coupling', _render_one('local:In
 # | DH-input fix -- dead-from-infected cells do not inflate the dead-from-healthy ODE input | kind=dh_input_zero_regardless_of_killing condition=dh-input-fix stat=final | op eq value True |
 # | global_coupling_figure renders a non-vacuous 2-panel mechanism figure | kind=figure_axes_and_data_match_driver_output condition=global-coupling-figure-non-vacuous stat=final | op eq value True |
 
+# ## Study: Increment 9 Task 9.2 (CAPSTONE): repro_fig3b wires run_full_model into an ensemble driver and evaluates it against the digitized Fig-3B acceptance bands — at REDUCED scale (2 replicas, 15x15 cells, 20 records ~0.09 days) 0/12 observables land in-band for every checkpoint (band_eval.passed=False), expected at this population/time scale — the paper-scale 50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict (`repro-fig3b`)
+#
+# **Question.** Does `run.repro_fig3b` (Task 9.2) correctly assemble a seeded ensemble of
+# `run.run_full_model` (Task 9.1) over the Sego-2022 Fig-3B scenario, map
+# its output onto `targets/fig3b.json`'s exact observable keys, and evaluate
+# the ensemble mean against the digitized Fig-3B acceptance bands
+# (`bands.evaluate_study`) -- and, honestly, does a REDUCED-scale ensemble
+# (the only scale a fast CI test can run) land in-band, or does it mostly
+# expose the reduced population/duration's mismatch with the paper-scale
+# bands rather than any mechanism defect?
+#
+# **Objective.** Implement `run.repro_fig3b(*, replicas=3, cells_per_side=35, steps=240,
+# seed0=0) -> dict` (Task 9.2): loop `replicas` seeds through
+# `run.run_full_model(cells_per_side=cells_per_side, steps=steps,
+# seed=seed0+i, init_infection_frac=0.05)`; map each run's
+# `counts`/`fields`/`ode` sections onto `targets/fig3b.json`'s exact
+# observable keys (`_FIG3B_OBSERVABLE_MAP`); ensemble-mean via
+# `bands.aggregate_replicas`; evaluate via `bands.evaluate_study(ensemble,
+# "fig3b")`. Add `tests/test_influenza_full_model.py::
+# test_repro_fig3b_runs_and_evaluates_bands` (reduced: `replicas=2,
+# cells_per_side=15, steps=20`) asserting the ensemble/band_eval dict is
+# well-formed and the uninfected series is non-vacuous (declines under
+# infection) -- NOT that the bands pass, since reduced scale is not
+# expected to. Run that same reduced config directly (not the pytest
+# assertions alone) to report the actual per-observable band_eval numbers
+# in this study honestly.
+#
+# **Hypothesis.** `run.repro_fig3b` correctly wires the ensemble-and-band-evaluation
+# machinery: it runs `replicas` seeded `run_full_model` calls, maps every
+# mapped observable's series onto the fig3b target's keys, ensemble-means
+# them, and produces a well-formed `band_eval` dict. At REDUCED scale
+# (small `cells_per_side`, few `replicas`, short `steps` -- all needed to
+# keep the added pytest test fast), the ensemble is NOT expected to land
+# in-band against bands digitized from a 1225-cell, 50-replica, ~3.5-day
+# paper-scale ensemble; any near-miss or in-band result at reduced scale
+# should be reported as what it is (a coincidence of a widened `soft` band
+# and/or an early-timepoint value that happens to still be small), not
+# oversold as reproduction evidence.
+#
+# **Purpose.** full_model_ensemble_vs_fig3b_acceptance_bands
+#
+# **Claim.** `run.repro_fig3b` is implemented and wired correctly: it runs a seeded
+# ensemble of `run_full_model` over the Fig-3B scenario, maps every
+# observable onto `targets/fig3b.json`'s exact keys, ensemble-means via
+# `bands.aggregate_replicas`, and evaluates via `bands.evaluate_study`,
+# producing a well-formed `{"ensemble":..., "band_eval":{"passed": bool,
+# ...}, "replicas":..., "cells_per_side":..., "steps":...}` dict (verified
+# by `tests/test_influenza_full_model.py::
+# test_repro_fig3b_runs_and_evaluates_bands`). THIS STUDY DOES NOT CLAIM
+# FIG-3B IS REPRODUCED. At the reduced scale this task's fast test uses
+# (`replicas=2, cells_per_side=15, steps=20, seed0=0`), `band_eval['passed']`
+# is False and 0 of the 12 fig3b observables are in-band at every
+# checkpoint (per-observable n_in/8 and worst_miss reported in `report.
+# key_metrics` above) -- expected given the ~5.4x smaller epithelial
+# population and the ~0.09-simulated-day run duration vs. the target's
+# 0.0-3.5-day checkpoint window, not a mechanism defect. The paper-scale
+# 50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required
+# before any `reproduced` verdict for Fig 3B, and `conclusion_verdicts.
+# biological_validation` stays PENDING here.
+
+# ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.influenza.full_model` | 20 | replicas=2, cells_per_side=15, seed0=0 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.influenza.full_model`** — `spec_pbg_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.influenza.full_model` not found under `pbg_cpm_studies/composites/` — skipped._
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: repro-fig3b ===
+STUDY = 'repro-fig3b'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Fig-3B reproduction — ensemble vs acceptance band**
+
+# Fig-3B reproduction — ensemble vs acceptance band
+_save_viz('repro-fig3b', 'Fig-3B_reproduction_ensemble_vs_acceptance_band', _render_one('local:InfluenzaReproFig3B', {}, RUNS_DB, STUDY_YAML))
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | repro_fig3b runs and returns a well-formed ensemble/band evaluation | kind=repro_fig3b_wellformed_and_uninfected_nonincreasing condition=repro-fig3b-reduced-scale stat=final | op eq value True |
+
+# ## Study: Increment 9 Task 9.3 (CAPSTONE): repro_fig5 sweeps run_full_model over Sego-2022's viral-load scenarios (1x/10000x, REDUCED scale: 1 replica, 12x12 cells, 15 records ~0.068 days) and evaluates each load against ONLY that load's fig5.json band subset (scenario-grouping guard) — the monotone dose-response direction holds (load=10000 ends with 0/144 uninfected vs load=1's 88/144) but per-load band_eval.passed is False for both loads; the paper-scale 50-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict (`repro-fig5-viral-load`)
+#
+# **Question.** Does `run.repro_fig5` (Task 9.3) correctly sweep `run.run_full_model`
+# (Task 9.1) over Sego-2022 Fig-5's initial-viral-load scenarios, evaluate
+# EACH load against ONLY that load's own fig5.json band subset (never the
+# unfiltered, multi-scenario list), and reproduce the paper's central
+# monotone, threshold-like dose-response direction -- and, honestly, does a
+# REDUCED-scale sweep (the only scale a fast CI test can run) show that
+# direction even though it cannot match the digitized bands' absolute
+# magnitudes at paper scale?
+#
+# **Objective.** Implement `run.repro_fig5(*, loads=(1,10,100,1000,10000), replicas=3,
+# cells_per_side=35, steps=240, seed0=0) -> dict` (Task 9.3): for each
+# `load`, loop `replicas` seeds through `run.run_full_model(
+# cells_per_side=cells_per_side, steps=steps, seed=seed0+load_idx*replicas+r,
+# init_viral_load=load, init_infection_frac=None)`; map each run's
+# `counts`/`fields`/`ode` sections onto `targets/fig5.json`'s exact 4
+# observable keys (`_FIG5_OBSERVABLE_MAP`); ensemble-mean via
+# `bands.aggregate_replicas`; filter that load's own band subset from
+# fig5.json's multi-scenario observable lists (`_fig5_target_subset`,
+# raising `ValueError` rather than silently mixing scenarios if a load has
+# no matching entries); evaluate via `_evaluate_fig5_subset`. Add
+# `tests/test_influenza_full_model.py::test_repro_fig5_viral_load_sweep`
+# (reduced: `loads=(1,10000), replicas=1, cells_per_side=12, steps=15`)
+# asserting the by_load dict has exactly the tested loads as keys, the
+# monotone dose-response holds (`uninfected_final_frac(10000) <=
+# uninfected_final_frac(1) + 1e-9`), and `band_eval` is present -- NOT
+# that the bands pass, since reduced scale is not expected to. Run that
+# same reduced config directly (not the pytest assertions alone) to report
+# the actual per-load, per-observable band_eval numbers in this study
+# honestly.
+#
+# **Hypothesis.** `run.repro_fig5` correctly wires the per-load ensemble-and-scenario-
+# filtered-band-evaluation machinery: for each tested load it runs
+# `replicas` seeded `run_full_model` calls with a uniform virus-field IC,
+# maps every observable onto fig5's keys, ensemble-means them, filters
+# fig5.json's observable lists down to that load's own scenario subset
+# (the guard), and produces a well-formed per-load `band_eval`. At REDUCED
+# scale (few loads/replicas, a small population, a short duration -- all
+# needed to keep the added pytest test fast), the ensemble is NOT expected
+# to land in-band against bands digitized from a 10000-cell, 50-replica,
+# 15-day paper-scale ensemble, but the MONOTONE dose-response direction
+# (higher initial viral load -> not-more surviving uninfected fraction)
+# should still hold, since it is a qualitative mechanism check independent
+# of population/time scale; any near-miss or in-band result at reduced
+# scale should be reported as what it is (a coincidence of a wide,
+# paper-reported-high-spread band and/or a near-instant collapse that
+# happens to land inside it), not oversold as reproduction evidence.
+#
+# **Purpose.** full_model_viral_load_sweep_vs_fig5_acceptance_bands
+#
+# **Claim.** `run.repro_fig5` is implemented and wired correctly: it sweeps a seeded
+# ensemble of `run_full_model` over Fig-5's viral-load scenarios, maps
+# every observable onto `targets/fig5.json`'s exact keys, ensemble-means
+# per load via `bands.aggregate_replicas`, filters each load's own
+# scenario-tagged band subset (`_fig5_target_subset`, verified to raise
+# `ValueError` rather than silently mixing scenarios when a load has no
+# tagged entries), and evaluates via `_evaluate_fig5_subset`, producing a
+# well-formed `{"by_load": {load: {...}}, "lethal_threshold": ...,
+# "band_eval": {...}, "loads":..., "replicas":..., "cells_per_side":...,
+# "steps":...}` dict (verified by `tests/test_influenza_full_model.py::
+# test_repro_fig5_viral_load_sweep`). THIS STUDY DOES NOT CLAIM FIG-5 IS
+# REPRODUCED. At the reduced scale this task's fast test uses
+# (`loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0`),
+# per-load `band_eval["passed"]` is False for both loads (per-observable
+# n_in/6 and worst_miss reported in `report.key_metrics` above) -- expected
+# given the ~69x smaller epithelial population and the ~0.068-simulated-day
+# run duration vs. the target's 0.0-15-day checkpoint window, not a
+# mechanism defect. The MONOTONE dose-response direction this reduced
+# test's own assertion checks (`uninfected_final_frac(load=10000)=0.0 <=
+# uninfected_final_frac(load=1)=0.611`) holds. The paper-scale 50-replica,
+# all-5-load, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required
+# before any `reproduced` verdict for Fig 5, and `conclusion_verdicts.
+# biological_validation` stays PENDING here.
+
+# ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.influenza.full_model` | 15 | loads=[1, 10000], replicas=1, cells_per_side=12, seed0=0 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.influenza.full_model`** — `spec_pbg_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.influenza.full_model` not found under `pbg_cpm_studies/composites/` — skipped._
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: repro-fig5-viral-load ===
+STUDY = 'repro-fig5-viral-load'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Fig-5 reproduction — dose-response vs acceptance band**
+
+# Fig-5 reproduction — dose-response vs acceptance band
+_save_viz('repro-fig5-viral-load', 'Fig-5_reproduction_dose-response_vs_acceptance_band', _render_one('local:InfluenzaReproFig5', {}, RUNS_DB, STUDY_YAML))
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response | kind=repro_fig5_wellformed_and_monotone_dose_response condition=repro-fig5-reduced-scale stat=final | op eq value True |
+
+# ## Study: Increment 9 Task 9.4 (CAPSTONE): repro_fig7 sweeps run_full_model over Sego-2022's initial-infection-fraction scenarios (0.001x/0.05x, REDUCED scale: 1 replica, 12x12 cells, 15 records ~0.068 days) and evaluates each fraction against ONLY that fraction's fig7.json band subset (scenario-grouping guard) — the monotone dose-response direction holds trivially (frac=0.001 rounds to 0 pre-infected cells of 144 at this reduced population -> uninfected_final_frac=1.0; frac=0.05 seeds 7 -> 0.9444) but per-fraction band_eval.passed is False for both fractions; the paper-scale 20-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict (`repro-fig7-infection-fraction`)
+#
+# **Question.** Does `run.repro_fig7` (Task 9.4) correctly sweep `run.run_full_model`
+# (Task 9.1) over Sego-2022 Fig-7's initial-infection-fraction scenarios,
+# evaluate EACH fraction against ONLY that fraction's own fig7.json band
+# subset (never the unfiltered, multi-scenario list, via the shared
+# scenario-grouping guard generalized from `repro_fig5`), and reproduce the
+# paper's central threshold-like severity-response direction -- and,
+# honestly, does a REDUCED-scale sweep (the only scale a fast CI test can
+# run) show that direction even though it cannot match the digitized bands'
+# absolute magnitudes at paper scale, and does it surface any NEW
+# reduced-scale artifacts beyond what `repro_fig5`/`repro_fig3b` already
+# documented?
+#
+# **Objective.** Implement `run.repro_fig7(*, fracs=(0.001,0.005,0.01,0.05), replicas=3,
+# cells_per_side=35, steps=240, seed0=0) -> dict` (Task 9.4): for each
+# `frac`, loop `replicas` seeds through `run.run_full_model(
+# cells_per_side=cells_per_side, steps=steps, seed=seed0+frac_idx*replicas+r,
+# init_infection_frac=frac, init_viral_load=None)`; map each run's
+# `counts`/`fields`/`ode` sections onto `targets/fig7.json`'s exact 4
+# observable keys (reusing `_FIG5_OBSERVABLE_MAP`); ensemble-mean via
+# `bands.aggregate_replicas`; filter that fraction's own band subset from
+# fig7.json's multi-scenario observable lists (`_fig7_target_subset`,
+# raising `ValueError` rather than silently mixing scenarios if a fraction
+# has no matching entries); evaluate via `_evaluate_fig7_subset`. Add
+# `tests/test_influenza_full_model.py::
+# test_repro_fig7_infection_fraction_sweep` (reduced:
+# `fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15`) asserting
+# the by_frac dict has exactly the tested fractions as keys, the monotone
+# dose-response holds (`uninfected_final_frac(0.05) <=
+# uninfected_final_frac(0.001) + 1e-9`), and `band_eval` is present -- NOT
+# that the bands pass. ALSO add
+# `test_fig7_target_subset_scenario_grouping_guard`, a fast unit test
+# directly exercising `_fig7_target_subset`'s filter (returns only the
+# matching-tag entries) and its raise (unmatched fraction), closing the
+# Task-9.3-review-flagged gap that the guard was previously verified only
+# interactively. Run the reduced config directly (not the pytest assertions
+# alone) to report the actual per-fraction, per-observable band_eval numbers
+# in this study honestly.
+#
+# **Hypothesis.** `run.repro_fig7` correctly wires the per-fraction ensemble-and-scenario-
+# filtered-band-evaluation machinery, reusing `repro_fig5`'s shared
+# `_scenario_target_subset` guard rather than duplicating it: for each
+# tested fraction it runs `replicas` seeded `run_full_model` calls with
+# `round(frac*tot_cell)` pre-infected cells, maps every observable onto
+# fig7's keys, ensemble-means them, filters fig7.json's observable lists
+# down to that fraction's own scenario subset (the guard), and produces a
+# well-formed per-fraction `band_eval`. At REDUCED scale (few fractions/
+# replicas, a small population, a short duration -- all needed to keep the
+# added pytest test fast), the ensemble is NOT expected to land in-band
+# against bands digitized from a 10000-cell, 20-replica, 15-day paper-scale
+# ensemble, but the MONOTONE dose-response direction (higher initial
+# infection fraction -> not-more surviving uninfected fraction) should
+# still hold. A risk specific to `init_infection_frac` (unlike fig5's
+# `init_viral_load`, which has no analogous rounding step): the smallest
+# fraction may round to zero seeded cells at a small `cells_per_side`,
+# producing a degenerate no-infection run that should be reported as what
+# it is, not oversold as reproduction evidence.
+#
+# **Purpose.** full_model_infection_fraction_sweep_vs_fig7_acceptance_bands
+#
+# **Claim.** `run.repro_fig7` is implemented and wired correctly: it sweeps a seeded
+# ensemble of `run_full_model` over Fig-7's initial-infection-fraction
+# scenarios, maps every observable onto `targets/fig7.json`'s exact keys
+# (reusing fig5's `_FIG5_OBSERVABLE_MAP` since both targets share the same 4
+# keys), ensemble-means per fraction via `bands.aggregate_replicas`, filters
+# each fraction's own scenario-tagged band subset (`_fig7_target_subset`,
+# built on the shared `_scenario_target_subset` this task generalized from
+# `repro_fig5`'s guard, verified to raise `ValueError` rather than silently
+# mixing scenarios when a fraction has no tagged entries, AND verified to
+# filter correctly for the happy path -- both now covered by a dedicated
+# pytest unit test), and evaluates via `_evaluate_fig7_subset`, producing a
+# well-formed `{"by_frac": {frac: {...}}, "lethal_threshold": ...,
+# "band_eval": {...}, "fracs":..., "replicas":..., "cells_per_side":...,
+# "steps":...}` dict (verified by `tests/test_influenza_full_model.py::
+# test_repro_fig7_infection_fraction_sweep`). THIS STUDY DOES NOT CLAIM
+# FIG-7 IS REPRODUCED. At the reduced scale this task's fast test uses
+# (`fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, seed0=0`),
+# per-fraction `band_eval["passed"]` is False for both fractions
+# (per-observable n_in/6 and worst_miss reported in `report.key_metrics`
+# above) -- expected given the ~69x smaller epithelial population and the
+# ~0.068-simulated-day run duration vs. the target's 0.0-15-day checkpoint
+# window, not a mechanism defect. The MONOTONE dose-response direction this
+# reduced test's own assertion checks
+# (`uninfected_final_frac(frac=0.05)=0.9444 <=
+# uninfected_final_frac(frac=0.001)=1.0`) holds, BUT frac=0.001's value is a
+# degenerate no-infection control at this reduced population
+# (`round(0.001*144)=0` pre-infected cells seeded), reported here honestly
+# rather than presented as a real reproduction of fig7.json's frac=0.001
+# trajectory. The paper-scale 20-replica, all-4-fraction, 35x35-cell,
+# ~15-day ensemble (Mac-mini Phase-B) is required before any `reproduced`
+# verdict for Fig 7, and `conclusion_verdicts.biological_validation` stays
+# PENDING here.
+
+# ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.influenza.full_model` | 15 | fracs=[0.001, 0.05], replicas=1, cells_per_side=12, seed0=0 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.influenza.full_model`** — `spec_pbg_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.influenza.full_model` not found under `pbg_cpm_studies/composites/` — skipped._
+
+# ### Run
+#
+# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
+
+# === Study: repro-fig7-infection-fraction ===
+STUDY = 'repro-fig7-infection-fraction'
+STUDY_DIR = REPO / 'workspace/studies' / STUDY
+STUDY_YAML = str(STUDY_DIR / "study.yaml")
+RUNS_DB = str(STUDY_DIR / "runs.db")
+
+print("No recorded runs for this study; nothing to reproduce.")
+
+# ### Visualizations
+#
+# _Results are shown by the figures below, produced by the run above._
+
+# **Fig-7 reproduction — dose-response vs acceptance band**
+
+# Fig-7 reproduction — dose-response vs acceptance band
+_save_viz('repro-fig7-infection-fraction', 'Fig-7_reproduction_dose-response_vs_acceptance_band', _render_one('local:InfluenzaReproFig7', {}, RUNS_DB, STUDY_YAML))
+
+# ### Acceptance criteria
+#
+# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
+#
+# | test | measures | passes if |
+# | --- | --- | --- |
+# | repro_fig7 sweeps infection fractions and returns a well-formed by_frac/band_eval dict with the monotone dose-response | kind=repro_fig7_wellformed_and_monotone_dose_response condition=repro-fig7-reduced-scale stat=final | op eq value True |
+# | Scenario-grouping guard filters fig7's tagged observables correctly and raises loudly on an unmatched fraction | kind=fig7_scenario_grouping_guard_filter_and_raise condition=repro-fig7-reduced-scale stat=final | op eq value True |
+
 # ## Open decisions
 # - Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?

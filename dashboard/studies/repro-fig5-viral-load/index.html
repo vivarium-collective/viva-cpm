@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Study: repro-fig5-viral-load</title>
+<link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
+<link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
+<!-- Inherit the workbench light/dark theme (this page loads in an iframe;
+     same-origin, so it shares the parent's localStorage 'viv.theme'). -->
+<script>(function(){try{var t=localStorage.getItem('viv.theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+<main class="study-page">
+<header class="study-header">
+  <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
+  <h1 class="study-title">
+    <span class="study-name" id="study-name" data-slug="repro-fig5-viral-load" title="repro-fig5-viral-load">Increment 9 Task 9.3 (CAPSTONE): repro_fig5 sweeps run_full_model over Sego-2022&#39;s viral-load scenarios (1x/10000x, REDUCED scale: 1 replica, 12x12 cells, 15 records ~0.068 days) and evaluates each load against ONLY that load&#39;s fig5.json band subset (scenario-grouping guard) — the monotone dose-response direction holds (load=10000 ends with 0/144 uninfected vs load=1&#39;s 88/144) but per-load band_eval.passed is False for both loads; the paper-scale 50-replica, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required before any reproduced verdict</span>
+    
+    <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
+    
+    <span class="phase-pill phase-evaluate" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Evaluate</span>
+    
+  </h1>
+  <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0;">
+    
+    <button type="button" id="study-reproduce" class="btn-mini" title="Replay this study's most recent run's RECORDED manifest verbatim (POST /api/study-reproduce) — ignores any study.yaml edits made since">↻ Reproduce</button>
+    <button type="button" id="study-run-current-spec" class="btn-mini" title="Run this study's CURRENT baseline spec (POST /api/study-run-baseline) as a brand-new run">▶ Run current spec</button>
+    
+    <button type="button" id="study-run-composite" class="btn-mini" title="Dispatch a specific process-bigraph composite_id to the remote compute backend (pbg-native multi_node/mbp, or the Nextflow campaign path) — advanced, independent of this study's own pinned baseline">⚙ Dispatch composite</button>
+  </span>
+  </div>
+  <div class="study-status-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
+    
+    
+    <span class="status-pill gate-status gate-status-passed" title="Pipeline gate verdict (Pass A multi-axis status). Drives downstream unblocking.">gate: passed</span>
+    
+
+    
+    <div id="readiness-panel" data-slug="repro-fig5-viral-load"></div>
+
+    
+    
+    
+    
+    
+    
+    <details class="status-detail-panel" aria-label="Six-gate lifecycle status">
+      <summary>
+        <span class="status-stepper-more">status</span>
+        
+        <span class="status-stepper">
+          
+          <span class="status-step gate-step axis-design_status gate-state-not-assessed" title="Gate 1 · Plan">
+            <span class="dot"></span>1&nbsp;·&nbsp;Plan
+          </span>
+          
+          <span class="status-step gate-step axis-simulation_status gate-state-passed set" title="Gate 2 · Execution">
+            <span class="dot"></span>2&nbsp;·&nbsp;Execution
+          </span>
+          
+          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 3 · Evidence">
+            <span class="dot"></span>3&nbsp;·&nbsp;Evidence
+          </span>
+          
+          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 4 · Quality">
+            <span class="dot"></span>4&nbsp;·&nbsp;Quality
+          </span>
+          
+          <span class="status-step gate-step axis-gate_status gate-state-passed set" title="Gate 5 · Decision">
+            <span class="dot"></span>5&nbsp;·&nbsp;Decision<span class="step-val">passed</span>
+          </span>
+          
+          <span class="status-step gate-step axis-expert_review_status gate-state-not-assessed" title="Gate 6 · Release">
+            <span class="dot"></span>6&nbsp;·&nbsp;Release
+          </span>
+          
+          
+        </span>
+      </summary>
+      <div class="status-stepper-body">
+        
+        <div class="status-detail-row gate-row gate-state-not-assessed">
+          <span class="status-detail-axis">1 · Plan</span>
+          <span class="status-chip gate-state-not-assessed">not set</span>
+          
+          
+        </div>
+        
+        <div class="status-detail-row gate-row gate-state-passed">
+          <span class="status-detail-axis">2 · Execution</span>
+          <span class="status-chip gate-state-not-assessed">not set</span>
+          
+          <span class="gate-computed-chip gate-state-passed" title="1 completed run(s)">◆ computed: ran</span>
+          
+          
+          
+        </div>
+        
+        <div class="status-detail-row gate-row gate-state-passed">
+          <span class="status-detail-axis">3 · Evidence</span>
+          <span class="status-chip gate-state-not-assessed">not set</span>
+          
+          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          
+          
+          
+        </div>
+        
+        <div class="status-detail-row gate-row gate-state-passed">
+          <span class="status-detail-axis">4 · Quality</span>
+          <span class="status-chip gate-state-not-assessed">not set</span>
+          
+          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          
+          
+          
+        </div>
+        
+        <div class="status-detail-row gate-row gate-state-passed">
+          <span class="status-detail-axis">5 · Decision</span>
+          <span class="status-chip gate-state-passed">passed</span>
+          
+          <span class="gate-computed-chip gate-state-passed" title="spine gate evaluator (study_verdict.roll_up_verdict / pipeline_gate.gate_evaluator)">◆ computed: passed</span>
+          
+          
+          
+        </div>
+        
+        <div class="status-detail-row gate-row gate-state-not-assessed">
+          <span class="status-detail-axis">6 · Release</span>
+          <span class="status-chip gate-state-not-assessed">not set</span>
+          
+          
+        </div>
+        
+        
+      </div>
+    </details>
+    
+  </div>
+</header>
+
+
+
+
+
+
+
+
+
+<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> With every mechanism subsystem from Increments 0-8 wired into ONE
+per-MCS loop (`run.run_full_model`, Task 9.1), does sweeping that model
+over Sego-2022 Fig-5&#39;s five initial-viral-load scenarios (1x, 10x, 100x,
+1000x, 10000x the ODE-calibrated dose, uniform virus-field IC, zero
+pre-infected cells) reproduce the paper&#39;s central Fig-5 finding -- a
+MONOTONE, threshold-like dose-response in which the spatial model stays
+non-lethal for multipliers up to 1000x and trends toward lethal
+(near-total uninfected-cell loss) only near 10000x -- and, honestly,
+does a REDUCED-scale sweep (few loads/replicas, a short population and
+run duration, the only scale a fast CI test can afford) show the
+monotone DIRECTION even though it cannot match the digitized bands&#39;
+absolute magnitudes at paper scale?
+</p>
+
+<nav class="study-tabs" aria-label="Study sections">
+  
+  <div class="act-cluster" data-act="study">
+    <div class="act-header">
+      <span class="act-gate-dot" data-gate="study" data-gate-state="passed"></span>
+      <span class="act-label">The Study</span>
+    </div>
+    <div class="act-tabs">
+      <button class="study-pillar active" data-kind="overview" onclick="_setStudyTab('overview')">Overview</button>
+    </div>
+  </div>
+  <div class="act-cluster" data-act="design">
+    <div class="act-header">
+      <span class="act-gate-dot" data-gate="design" data-gate-state="not-assessed"></span>
+      <span class="act-label">Design</span>
+    </div>
+    <div class="act-tabs">
+      <button class="study-pillar" data-kind="compose"  onclick="_setStudyTab('compose')">Model</button>
+      <button class="study-pillar" data-kind="readouts" onclick="_setStudyTab('readouts')">Readouts</button>
+      
+      <button class="study-pillar" data-kind="simulate"  onclick="_setStudyTab('simulate')">Simulations</button>
+    </div>
+  </div>
+  <div class="act-cluster" data-act="evidence">
+    <div class="act-header">
+      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed"></span>
+      <span class="act-label">Evidence</span>
+    </div>
+    <div class="act-tabs">
+      
+      <button class="study-pillar" data-kind="results"   onclick="_setStudyTab('results')">Results</button>
+      <button class="study-pillar" data-kind="analyses"  onclick="_setStudyTab('analyses')">Analyses</button>
+      <button class="study-pillar" data-kind="visualize" onclick="_setStudyTab('visualize')">Visualizations</button>
+    </div>
+  </div>
+  <div class="act-cluster" data-act="assurance">
+    <div class="act-header">
+      <span class="act-gate-dot" data-gate="assurance" data-gate-state="passed"></span>
+      <span class="act-label">Assurance</span>
+    </div>
+    <div class="act-tabs">
+      <button class="study-pillar" data-kind="tests" onclick="_setStudyTab('tests')">Tests</button>
+      
+      <button class="study-pillar" data-kind="audit" onclick="_setStudyTab('audit')">Audit</button>
+      <button class="study-pillar" data-kind="build" onclick="_setStudyTab('build')">Build</button>
+    </div>
+  </div>
+  <div class="act-cluster" data-act="decision">
+    <div class="act-header">
+      <span class="act-gate-dot" data-gate="decision" data-gate-state="passed"></span>
+      <span class="act-label">Decision</span>
+    </div>
+    <div class="act-tabs">
+      
+      <button class="study-pillar" data-kind="conclusions" onclick="_setStudyTab('conclusions')">Decide</button>
+    </div>
+  </div>
+</nav>
+<style>
+/* Task 4: header restructure — kind tag, promoted question, tightened status row.
+   The 6-axis stepper + gate-status colors below are carried over verbatim from
+   the pre-restructure Pass A styling (the <details> markup was repositioned,
+   not rebuilt). */
+.study-kind-tag{display:inline-block;font-size:0.5em;font-weight:600;padding:3px 9px;border-radius:9999px;vertical-align:middle;margin-left:8px;background:#f1f5f9;color:#475569;text-transform:capitalize}
+.study-kind-tag.study-kind-biological{background:#ecfdf5;color:#065f46}
+.study-kind-tag.study-kind-computational{background:#eff6ff;color:#1e40af}
+.study-kind-tag.study-kind-theoretical{background:#faf5ff;color:#6b21a8}
+.study-question-headline{margin:6px 0 0 0;font-size:1.05em;line-height:1.5;color:#1e293b;font-family:Georgia,"Times New Roman",serif}
+.study-question-headline .q-glyph{display:inline-block;font-size:0.78em;font-weight:700;font-family:ui-monospace,monospace;color:#64748b;background:#f1f5f9;padding:1px 7px;border-radius:4px;margin-right:6px;vertical-align:middle}
+.study-status-row{font-size:0.95em}
+.status-detail-panel{margin:0;padding:2px 0;background:transparent;border:none;border-radius:0;font-size:0.92em}
+.status-detail-row{display:flex;align-items:center;gap:8px;padding:3px 0}
+.status-detail-axis{min-width:140px;color:#475569;font-size:0.9em}
+.status-chip{display:inline-block;font-size:0.78em;padding:2px 10px;border-radius:9999px;background:#e2e8f0;color:#334155;font-family:ui-monospace,monospace}
+/* gate_status colors per Pass A spec: blocked=gray, needs_calibration=amber, passed=green, failed=red, stale=purple */
+.gate-status-blocked          { background:#e5e7eb; color:#374151 }
+.gate-status-needs_calibration{ background:#fef3c7; color:#92400e }
+.gate-status-passed           { background:#d1fae5; color:#065f46 }
+.gate-status-failed           { background:#fee2e2; color:#991b1b }
+.gate-status-stale            { background:#ede9fe; color:#5b21b6 }
+.status-pill.gate-status{font-weight:500}
+/* Compact one-line lifecycle stepper; full per-axis rows behind the "status ▾" expander. */
+.status-detail-panel > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.status-detail-panel > summary::-webkit-details-marker{display:none}
+.status-stepper{display:flex;gap:13px;flex-wrap:wrap;align-items:center;flex:1}
+.status-step{display:inline-flex;align-items:center;gap:5px;font-size:0.82em;color:#94a3b8;white-space:nowrap}
+.status-step .dot{width:9px;height:9px;border-radius:50%;background:#cbd5e1;box-shadow:inset 0 0 0 1px #b6c2cf}
+.status-step.set{color:#334155}
+.status-step.set .dot{background:#10b981;box-shadow:none}
+.status-step .step-val{font-family:ui-monospace,monospace;font-size:0.92em;color:#64748b}
+.status-step.gate-status-blocked .dot{background:#9ca3af;box-shadow:none}
+.status-step.gate-status-needs_calibration .dot{background:#f59e0b;box-shadow:none}
+.status-step.gate-status-passed .dot{background:#10b981;box-shadow:none}
+.status-step.gate-status-failed .dot{background:#ef4444;box-shadow:none}
+.status-step.gate-status-stale .dot{background:#8b5cf6;box-shadow:none}
+/* Fable G2 (§13.2 gate-state vocab; §9.3 palette: grey/green/amber/red/violet).
+   One palette for the gate-ladder stepper dots + detail rows AND (via the
+   [data-gate-state] selectors below) the act-rail dots, so "how urgent is
+   this gate" reads identically in both places. Rules below `.status-step.set
+   .dot` on purpose so a "set" gate's real state wins over the generic green. */
+.status-step.gate-state-not-assessed .dot{background:#cbd5e1;box-shadow:inset 0 0 0 1px #b6c2cf}
+.status-step.gate-state-passed .dot{background:#10b981;box-shadow:none}
+.status-step.gate-state-passed-with-conditions .dot{background:#f59e0b;box-shadow:none}
+.status-step.gate-state-blocked .dot{background:#ef4444;box-shadow:none}
+.status-step.gate-state-waived .dot{background:#8b5cf6;box-shadow:none}
+.status-chip.gate-state-not-assessed{background:#e2e8f0;color:#334155}
+.status-chip.gate-state-passed{background:#d1fae5;color:#065f46}
+.status-chip.gate-state-passed-with-conditions{background:#fef3c7;color:#92400e}
+.status-chip.gate-state-blocked{background:#fee2e2;color:#991b1b}
+.status-chip.gate-state-waived{background:#ede9fe;color:#5b21b6}
+.gate-computed-chip{display:inline-block;font-size:0.78em;padding:2px 10px;border-radius:9999px;margin-left:6px;font-family:ui-monospace,monospace;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
+.gate-divergence-chip-inline{display:inline-block;font-size:0.78em;font-weight:700;padding:2px 9px;border-radius:9999px;margin-left:6px;background:#fffbeb;border:1px solid #f59e0b;color:#92400e}
+.act-gate-dot[data-gate-state="passed"]{background:#10b981;box-shadow:none}
+.act-gate-dot[data-gate-state="passed-with-conditions"]{background:#f59e0b;box-shadow:none}
+.act-gate-dot[data-gate-state="blocked"]{background:#ef4444;box-shadow:none}
+.act-gate-dot[data-gate-state="waived"]{background:#8b5cf6;box-shadow:none}
+.status-stepper-more{font-size:0.82em;font-weight:600;color:#475569;white-space:nowrap}
+.status-detail-panel[open] .status-stepper-more::after{content:" \25be"}
+.status-detail-panel:not([open]) .status-stepper-more::after{content:" \25b8"}
+.status-stepper-body{margin-top:6px;padding-top:6px;border-top:1px solid #eef2f6}
+.phase-pill{display:inline-block;font-size:0.78em;padding:2px 10px;border-radius:9999px;margin-right:6px;font-weight:500;background:#e0e7ff;color:#3730a3}
+.phase-design   { background:#e0e7ff; color:#3730a3 }
+.phase-build    { background:#fef3c7; color:#92400e }
+.phase-simulate { background:#dbeafe; color:#1e40af }
+.phase-evaluate { background:#fce7f3; color:#9d174d }
+.phase-decide   { background:#d1fae5; color:#065f46 }
+.classification-pill{display:inline-block;font-size:0.7em;padding:1px 8px;border-radius:9999px;margin-right:4px;font-weight:500}
+.classification-primary    { background:#fee2e2; color:#991b1b }
+.classification-supporting { background:#dbeafe; color:#1e40af }
+.classification-diagnostic { background:#fef3c7; color:#92400e }
+.classification-regression { background:#e5e7eb; color:#374151 }
+.sim-status-pill{display:inline-block;font-size:0.72em;padding:1px 8px;border-radius:9999px;margin-left:4px}
+.sim-status-ready  { background:#d1fae5; color:#065f46 }
+.sim-status-gated  { background:#fef3c7; color:#92400e }
+.sim-status-running{ background:#dbeafe; color:#1e40af }
+.sim-status-ran    { background:#d1fae5; color:#065f46 }
+.purpose-callout{margin-bottom:10px;padding:10px 14px;border-radius:4px;line-height:1.55}
+.purpose-callout strong{margin-right:6px}
+.followup-list{display:flex;flex-direction:column;gap:10px}
+.followup-card{padding:10px 14px;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:4px;background:#f8fafc;font-size:0.93em}
+.followup-card.followup-kind-existing{border-left-color:#3b82f6;background:#eff6ff}
+.followup-card.followup-kind-infrastructure_fix{border-left-color:#dc2626;background:#fef2f2}
+.followup-card.followup-kind-calibration_task{border-left-color:#f59e0b;background:#fefce8}
+.followup-card.followup-kind-expert_question{border-left-color:#a855f7;background:#faf5ff}
+.followup-card.followup-kind-new{border-left-color:#10b981;background:#f0fdf4}
+.followup-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.followup-kind{font-size:0.7em;text-transform:uppercase;letter-spacing:0.05em;padding:1px 8px;border-radius:9999px;background:#e2e8f0;color:#475569}
+.followup-effort{font-size:0.7em;padding:1px 8px;border-radius:9999px;background:#e0e7ff;color:#3730a3;font-family:ui-monospace,monospace}
+.followup-status{font-size:0.7em;padding:1px 8px;border-radius:9999px;background:#e2e8f0;color:#475569}
+.followup-status.status-blocked{background:#fef3c7;color:#92400e}
+.followup-status.status-done{background:#d1fae5;color:#065f46}
+.followup-title{flex:1;font-size:1em}
+.followup-why,.followup-unblocks,.followup-acceptance,.followup-hypothesis{margin:4px 0 0 0;font-size:0.92em;line-height:1.45}
+.followup-hypothesis{padding:6px 10px;background:#fff;border-radius:3px;border:1px dashed #cbd5e1}
+.btn-seed-followup{font-size:0.85em;padding:4px 12px;border:1px solid #3b82f6;background:#fff;color:#3b82f6;border-radius:4px;cursor:pointer}
+.btn-seed-followup:hover{background:#3b82f6;color:#fff}
+/* ── One flowing figure gallery (Fable §4.5, Task V2) ──────────────────
+   The native gallery, embedded-HTML previews, and latest-run charts all
+   render as the same `.figure-card`: a bordered figure container + a muted
+   caption-row footer (source chip + title + optional run link), instead of
+   three differently-chrome'd sections under their own headings. The three
+   async mounts stay separate (`#native-gallery-panel`, the embed cards,
+   `#viz-charts-panel`) but each is a flex column with the same gap, so they
+   read as one continuous gallery. */
+.figure-gallery{display:flex;flex-direction:column;gap:16px}
+.figure-mount{display:flex;flex-direction:column;gap:16px}
+.charts-panel{display:flex;flex-direction:column;gap:16px}
+.figure-card{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#fff}
+.figure-media-frame{display:block;width:100%;border:0;background:#fff}
+.figure-media-frame--native{height:480px}
+.figure-media-frame--embed{min-height:200px}
+/* SVGs/PNGs scale to fit their card; preserves aspect ratio so a 1400×484
+   chart shrinks instead of overflowing horizontally + clipping. */
+.figure-card svg,.figure-card img.chart-img{display:block;width:100%;max-width:100%;height:auto}
+/* Loom figure SVGs (with <foreignObject> HTML that WebKit won't scale when
+   inlined) are rendered as <img> data-URIs by study-detail.js so the browser
+   rasterizes + scales the whole figure. max-width shrinks a too-wide figure;
+   no width:100%, so small figures keep their native size instead of upscaling. */
+.figure-card img.figure-svg-img{display:block;max-width:100%;height:auto}
+.figure-desc{margin:8px 12px 0;font-size:0.85em;color:#475569}
+.figure-caption-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 12px;font-size:0.85em;color:#475569;border-top:1px solid #f1f5f9;background:#f8fafc}
+.figure-source-chip{font-size:0.68em;text-transform:uppercase;letter-spacing:0.05em;padding:1px 8px;border-radius:9999px;background:#e2e8f0;color:#64748b;flex-shrink:0}
+.figure-title{font-weight:600;color:#334155;flex:1;min-width:100px}
+.figure-run-link,.figure-open-link{font-size:0.85em;color:#2563eb;text-decoration:none;white-space:nowrap;cursor:pointer}
+.figure-run-link:hover,.figure-open-link:hover{text-decoration:underline}
+.chart-caption{font-size:0.83em;color:#475569;margin:8px 12px 0;line-height:1.4}
+/* findings */
+.findings-section{padding:14px 16px;background:#fafbff;border:1px solid #c7d2fe;border-radius:8px}
+.finding-card{padding:12px 14px;margin:10px 0;border:1px solid #e2e8f0;border-left:5px solid #6366f1;border-radius:6px;background:#fff}
+.finding-card.finding-status-confirms{border-left-color:#10b981}
+.finding-card.finding-status-partial{border-left-color:#f59e0b}
+.finding-card.finding-status-contradicts{border-left-color:#dc2626}
+.finding-card.finding-status-novel{border-left-color:#8b5cf6}
+/* C2: compact ledger row (<summary>) + native <details> evidence drawer */
+.finding-details{border:none}
+.finding-details>summary{list-style:none;cursor:pointer}
+.finding-details>summary::-webkit-details-marker{display:none}
+.finding-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.finding-chip{font-size:0.78em;color:#475569;background:#f1f5f9;padding:2px 8px;border-radius:9999px;white-space:nowrap}
+.finding-drawer{margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0}
+.finding-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.finding-status-glyph{font-size:1.2em;width:24px;text-align:center}
+.finding-status-confirms .finding-status-glyph{color:#10b981}
+.finding-status-partial .finding-status-glyph{color:#f59e0b}
+.finding-status-contradicts .finding-status-glyph{color:#dc2626}
+.finding-status-novel .finding-status-glyph{color:#8b5cf6}
+.finding-id{font-family:ui-monospace,monospace;font-size:0.78em;color:#475569;background:#f1f5f9;padding:1px 6px;border-radius:3px}
+.finding-kind{font-size:0.7em;text-transform:uppercase;letter-spacing:0.05em;padding:1px 8px;border-radius:9999px;background:#e0e7ff;color:#3730a3;font-weight:500}
+.finding-status-text{font-size:0.78em;color:#64748b;margin-left:auto;font-style:italic}
+.finding-statement{font-size:1em;line-height:1.5;font-weight:500;color:#0f172a;margin:4px 0 8px 0}
+.finding-claim{flex:1;min-width:200px;margin:0}
+.finding-evidence,.finding-expected{font-size:0.86em;color:#475569;padding:6px 10px;background:#f8fafc;border-left:3px solid #94a3b8;border-radius:3px;margin:6px 0;line-height:1.5}
+.finding-exp-summary{font-size:0.9em;color:#475569;padding:6px 10px;background:#fafbff;border-left:3px solid #6366f1;border-radius:3px;margin:6px 0;line-height:1.5}
+.finding-explanation{font-size:0.92em;color:#1e293b;margin:6px 0;line-height:1.5}
+.finding-explanation em{color:#475569;font-style:normal;font-weight:600}
+.finding-expert{margin:6px 0;padding:6px 10px;background:#fafafa;border:1px solid #e2e8f0;border-radius:4px}
+.finding-expert summary{cursor:pointer;font-size:0.85em;color:#475569;font-weight:500}
+.finding-expert-quote{border-left:3px solid #6366f1;margin:6px 0 4px 0;padding:6px 10px;background:#fafbff;font-style:italic;color:#1e1b4b;font-size:0.92em;line-height:1.5}
+.finding-expert-note{font-size:0.88em;color:#475569;margin-top:4px;font-style:italic}
+.finding-next{padding:6px 10px;background:#f0fdf4;border-left:3px solid #10b981;border-radius:3px;font-size:0.9em;margin-top:8px;line-height:1.5}
+.finding-next strong{color:#065f46}
+/* discovery implications */
+.di-group{margin:14px 0}
+.di-group h3{margin:0 0 6px 0;font-size:0.95em}
+.di-uncertainties{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0}
+.di-unc{flex:1;min-width:220px}
+.di-unc h4{margin:0 0 4px 0;font-size:0.88em}
+.di-unc-resolved h4{color:#065f46}
+.di-unc-remaining h4{color:#92400e}
+.di-unc ul{margin:0 0 0 18px;padding:0;font-size:0.9em;line-height:1.45}
+.di-card{padding:10px 14px;margin:8px 0;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:4px;background:#f8fafc;font-size:0.92em}
+.di-card-stmt{font-size:0.98em;line-height:1.5}
+.di-card-why{margin:4px 0 0 0;color:#475569;line-height:1.45}
+.di-card-line{margin:4px 0 0 0;font-size:0.88em;color:#475569;line-height:1.4}
+.di-lbl{color:#475569;font-weight:600;font-size:0.85em}
+.di-mech-card{border-left-color:#a855f7;background:#faf5ff}
+.di-mech-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.di-update-chip{font-size:0.7em;text-transform:uppercase;letter-spacing:0.04em;padding:1px 8px;border-radius:9999px;background:#e0e7ff;color:#3730a3}
+.di-conf-change{font-size:0.78em;color:#475569;font-family:ui-monospace,monospace}
+.di-approval-badge{font-size:0.68em;text-transform:uppercase;letter-spacing:0.04em;padding:1px 8px;border-radius:9999px;background:#fef3c7;color:#92400e}
+.di-fup-card{border-left-color:#10b981;background:#f0fdf4}
+.di-gain-high{background:#d1fae5;color:#065f46}
+.di-gain-medium{background:#fef3c7;color:#92400e}
+.di-gain-low{background:#e5e7eb;color:#374151}
+.di-chip{font-size:0.7em;padding:1px 8px;border-radius:9999px;background:#e2e8f0;color:#475569}
+
+/* ── Dark theme ──────────────────────────────────────────────────────
+   Same idiom as vivarium_workbench/static/style.css's own dark block:
+   var(--token) for structural neutrals, rgba(hue,alpha) + a reused light
+   fg-tint per semantic family (green=passed/confirms, amber=needs_calib/
+   gated/blocked-phase, red=failed/contradicts, blue=simulate/supporting/
+   info, indigo=design/effort, purple=stale/waived/novel, pink=evaluate).
+   Solid saturated dot-fills (emerald/amber/red/purple on .status-step
+   .dot / .act-gate-dot) are left unchanged — small solid marks already
+   read fine on dark, same call already made for .ptrack-fill. */
+:root[data-theme="dark"] .study-kind-tag{background:var(--surface-3);color:var(--text-muted)}
+:root[data-theme="dark"] .study-kind-tag.study-kind-biological{background:rgba(22,163,74,0.16);color:#86efac}
+:root[data-theme="dark"] .study-kind-tag.study-kind-computational{background:rgba(59,130,246,0.16);color:#93c5fd}
+:root[data-theme="dark"] .study-kind-tag.study-kind-theoretical{background:rgba(124,58,237,0.16);color:#c4b5fd}
+:root[data-theme="dark"] .study-question-headline{color:var(--text)}
+:root[data-theme="dark"] .study-question-headline .q-glyph{color:var(--text-muted);background:var(--surface-3)}
+:root[data-theme="dark"] .status-detail-axis{color:var(--text-muted)}
+:root[data-theme="dark"] .status-chip{background:var(--surface-3);color:var(--text)}
+:root[data-theme="dark"] .gate-status-blocked{background:var(--surface-3);color:var(--text-muted)}
+:root[data-theme="dark"] .gate-status-needs_calibration{background:rgba(245,158,11,0.15);color:#fcd34d}
+:root[data-theme="dark"] .gate-status-passed{background:rgba(22,163,74,0.16);color:#86efac}
+:root[data-theme="dark"] .gate-status-failed{background:rgba(220,38,38,0.16);color:#fca5a5}
+:root[data-theme="dark"] .gate-status-stale{background:rgba(124,58,237,0.16);color:#c4b5fd}
+:root[data-theme="dark"] .status-step{color:var(--text-muted)}
+:root[data-theme="dark"] .status-step .dot{background:var(--border-2);box-shadow:inset 0 0 0 1px var(--border)}
+:root[data-theme="dark"] .status-step.set{color:var(--text)}
+:root[data-theme="dark"] .status-step .step-val{color:var(--text-muted)}
+:root[data-theme="dark"] .status-step.gate-status-blocked .dot{background:var(--text-muted);box-shadow:none}
+:root[data-theme="dark"] .status-step.gate-state-not-assessed .dot{background:var(--border-2);box-shadow:inset 0 0 0 1px var(--border)}
+:root[data-theme="dark"] .status-chip.gate-state-not-assessed{background:var(--surface-3);color:var(--text)}
+:root[data-theme="dark"] .status-chip.gate-state-passed{background:rgba(22,163,74,0.16);color:#86efac}
+:root[data-theme="dark"] .status-chip.gate-state-passed-with-conditions{background:rgba(245,158,11,0.15);color:#fcd34d}
+:root[data-theme="dark"] .status-chip.gate-state-blocked{background:rgba(220,38,38,0.16);color:#fca5a5}
+:root[data-theme="dark"] .status-chip.gate-state-waived{background:rgba(124,58,237,0.16);color:#c4b5fd}
+:root[data-theme="dark"] .gate-computed-chip{background:rgba(59,130,246,0.16);border-color:rgba(59,130,246,0.4);color:#93c5fd}
+:root[data-theme="dark"] .gate-divergence-chip-inline{background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.35);color:#fcd34d}
+:root[data-theme="dark"] .status-stepper-more{color:var(--text-muted)}
+:root[data-theme="dark"] .status-stepper-body{border-top-color:var(--border-faint)}
+:root[data-theme="dark"] .phase-pill{background:rgba(99,102,241,0.16);color:#a5b4fc}
+:root[data-theme="dark"] .phase-design{background:rgba(99,102,241,0.16);color:#a5b4fc}
+:root[data-theme="dark"] .phase-build{background:rgba(245,158,11,0.15);color:#fcd34d}
+:root[data-theme="dark"] .phase-simulate{background:rgba(59,130,246,0.16);color:#93c5fd}
+:root[data-theme="dark"] .phase-evaluate{background:rgba(219,39,119,0.18);color:#f9a8d4}
+:root[data-theme="dark"] .phase-decide{background:rgba(22,163,74,0.16);color:#86efac}
+:root[data-theme="dark"] .classification-primary{background:rgba(220,38,38,0.16);color:#fca5a5}
+:root[data-theme="dark"] .classification-supporting{background:rgba(59,130,246,0.16);color:#93c5fd}
+:root[data-theme="dark"] .classification-diagnostic{background:rgba(245,158,11,0.15);color:#fcd34d}
+:root[data-theme="dark"] .classification-regression{background:var(--surface-3);color:var(--text-muted)}
+:root[data-theme="dark"] .sim-status-ready{background:rgba(22,163,74,0.16);color:#86efac}
+:root[data-theme="dark"] .sim-status-gated{background:rgba(245,158,11,0.15);color:#fcd34d}
+:root[data-theme="dark"] .sim-status-running{background:rgba(59,130,246,0.16);color:#93c5fd}
+:root[data-theme="dark"] .sim-status-ran{background:rgba(22,163,74,0.16);color:#86efac}
+:root[data-theme="dark"] .followup-card{border-color:var(--border);border-left-color:var(--text-muted);background:var(--surface-2)}
+:root[data-theme="dark"] .followup-card.followup-kind-existing{background:rgba(59,130,246,0.16)}
+:root[data-theme="dark"] .followup-card.followup-kind-infrastructure_fix{background:rgba(220,38,38,0.16)}
+:root[data-theme="dark"] .followup-card.followup-kind-calibration_task{background:rgba(245,158,11,0.15)}
+:root[data-theme="dark"] .followup-card.followup-kind-expert_question{background:rgba(124,58,237,0.16)}
+:root[data-theme="dark"] .followup-card.followup-kind-new{background:rgba(16,185,129,0.14)}
+:root[data-theme="dark"] .followup-kind{background:var(--surface-3);color:var(--text-muted)}
+:root[data-theme="dark"] .followup-effort{background:rgba(99,102,241,0.16);color:#a5b4fc}
+:root[data-theme="dark"] .followup-status{background:var(--surface-3);color:var(--text-muted)}
+:root[data-theme="dark"] .followup-status.status-blocked{background:rgba(245,158,11,0.15);color:#fcd34d}
+:root[data-theme="dark"] .followup-status.status-done{background:rgba(22,163,74,0.16);color:#86efac}
+:root[data-theme="dark"] .followup-hypothesis{background:var(--surface-2);border-color:var(--border-2)}
+:root[data-theme="dark"] .btn-seed-followup{background:var(--surface-2);border-color:#3b82f6;color:#93c5fd}
+:root[data-theme="dark"] .figure-card{border-color:var(--border);background:var(--surface)}
+:root[data-theme="dark"] .figure-media-frame{background:var(--surface)}
+:root[data-theme="dark"] .figure-desc{color:var(--text-muted)}
+:root[data-theme="dark"] .figure-caption-row{color:var(--text-muted);border-top-color:var(--border-faint);background:var(--surface-2)}
+:root[data-theme="dark"] .figure-source-chip{background:var(--surface-3);color:var(--text-muted)}
+:root[data-theme="dark"] .figure-title{color:var(--text)}
+:root[data-theme="dark"] .figure-run-link,
+:root[data-theme="dark"] .figure-open-link{color:var(--link)}
+:root[data-theme="dark"] .chart-caption{color:var(--text-muted)}
+:root[data-theme="dark"] .findings-section{background:var(--surface-2);border-color:rgba(99,102,241,0.3)}
+:root[data-theme="dark"] .finding-card{border-color:var(--border);background:var(--surface)}
+:root[data-theme="dark"] .finding-chip{color:var(--text-muted);background:var(--surface-3)}
+:root[data-theme="dark"] .finding-drawer{border-top-color:var(--border-2)}
+:root[data-theme="dark"] .finding-id{color:var(--text-muted);background:var(--surface-3)}
+:root[data-theme="dark"] .finding-kind{background:rgba(99,102,241,0.16);color:#a5b4fc}
+:root[data-theme="dark"] .finding-status-text{color:var(--text-muted)}
+:root[data-theme="dark"] .finding-statement{color:var(--text)}
+:root[data-theme="dark"] .finding-evidence,
+:root[data-theme="dark"] .finding-expected{color:var(--text-muted);background:var(--surface-2);border-left-color:var(--text-muted)}
+:root[data-theme="dark"] .finding-exp-summary{color:var(--text-muted);background:var(--surface-2)}
+:root[data-theme="dark"] .finding-explanation{color:var(--text)}
+:root[data-theme="dark"] .finding-explanation em{color:var(--text-muted)}
+:root[data-theme="dark"] .finding-expert{background:var(--surface-2);border-color:var(--border)}
+:root[data-theme="dark"] .finding-expert summary{color:var(--text-muted)}
+:root[data-theme="dark"] .finding-expert-quote{background:var(--surface-2);color:var(--text)}
+:root[data-theme="dark"] .finding-expert-note{color:var(--text-muted)}
+:root[data-theme="dark"] .finding-next{background:rgba(16,185,129,0.14)}
+:root[data-theme="dark"] .finding-next strong{color:#6ee7b7}
+:root[data-theme="dark"] .di-unc-resolved h4{color:#6ee7b7}
+:root[data-theme="dark"] .di-unc-remaining h4{color:#fcd34d}
+:root[data-theme="dark"] .di-card{border-color:var(--border);border-left-color:var(--text-muted);background:var(--surface-2)}
+:root[data-theme="dark"] .di-card-why{color:var(--text-muted)}
+:root[data-theme="dark"] .di-card-line{color:var(--text-muted)}
+:root[data-theme="dark"] .di-lbl{color:var(--text-muted)}
+:root[data-theme="dark"] .di-mech-card{background:rgba(124,58,237,0.16)}
+:root[data-theme="dark"] .di-update-chip{background:rgba(99,102,241,0.16);color:#a5b4fc}
+:root[data-theme="dark"] .di-conf-change{color:var(--text-muted)}
+:root[data-theme="dark"] .di-approval-badge{background:rgba(245,158,11,0.15);color:#fcd34d}
+:root[data-theme="dark"] .di-fup-card{background:rgba(16,185,129,0.14)}
+:root[data-theme="dark"] .di-gain-high{background:rgba(22,163,74,0.16);color:#86efac}
+:root[data-theme="dark"] .di-gain-medium{background:rgba(245,158,11,0.15);color:#fcd34d}
+:root[data-theme="dark"] .di-gain-low{background:var(--surface-3);color:var(--text-muted)}
+:root[data-theme="dark"] .di-chip{background:var(--surface-3);color:var(--text-muted)}
+</style>
+
+<style>
+/* ── Study Overview redesign: narrative order + progressive disclosure ── */
+.is-hidden{display:none !important}
+.narrative-field{margin:6px 0}
+.add-field-btn{background:none;border:1px dashed #cbd5e1;color:#64748b;font-size:0.82em;
+  padding:4px 12px;border-radius:6px;cursor:pointer;transition:border-color .12s,color .12s,background .12s}
+.add-field-btn:hover{border-color:#3b82f6;color:#3b82f6;background:#eff6ff}
+.conclusion-block{border-top:2px solid #e2e8f0;padding-top:14px;margin-top:22px}
+/* Markdown-rendered conclusion blob: flows full-width (reflows authored hard-wraps), keeps paragraphs + ordered list. */
+.conclusion-md{color:#1e293b}
+.conclusion-md > :first-child{margin-top:0}
+.conclusion-md > :last-child{margin-bottom:0}
+.conclusion-md p{margin:0 0 10px}
+.conclusion-md ol,.conclusion-md ul{margin:0 0 10px;padding-left:22px}
+.conclusion-md li{margin:2px 0}
+.conclusion-md code{background:#eef2f7;padding:1px 4px;border-radius:3px;font-size:0.92em}
+.conclusion-md pre{background:#eef2f7;padding:8px 10px;border-radius:4px;overflow-x:auto;white-space:pre-wrap}
+.conclusion-insight{font-size:1.02em;line-height:1.55;color:#1e293b;margin:2px 0 12px;font-weight:500}
+.computed-tag{display:inline-block;font-size:0.68em;font-weight:600;text-transform:uppercase;
+  letter-spacing:0.04em;color:#64748b;background:#f1f5f9;border:1px solid #e2e8f0;
+  padding:1px 7px;border-radius:9999px;margin-left:8px;vertical-align:middle}
+.conclusion-tags{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.tag-control{display:inline-flex;align-items:center;gap:6px}
+.tag-k{font-size:0.72em;text-transform:uppercase;letter-spacing:0.05em;color:#94a3b8;font-weight:600}
+.tag-select,.tag-input{font-size:0.85em;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px;background:#fff}
+.tag-input{min-width:220px}
+:root[data-theme="dark"] .add-field-btn{border-color:var(--border-2);color:var(--text-muted)}
+:root[data-theme="dark"] .add-field-btn:hover{border-color:rgba(59,130,246,.5);color:#93c5fd;background:rgba(59,130,246,0.16)}
+:root[data-theme="dark"] .conclusion-block{border-top-color:var(--border)}
+:root[data-theme="dark"] .conclusion-md{color:var(--text)}
+:root[data-theme="dark"] .conclusion-md code{background:var(--surface-3)}
+:root[data-theme="dark"] .conclusion-md pre{background:var(--surface-3)}
+:root[data-theme="dark"] .conclusion-insight{color:var(--text)}
+:root[data-theme="dark"] .computed-tag{color:var(--text-muted);background:var(--surface-3);border-color:var(--border)}
+:root[data-theme="dark"] .tag-k{color:var(--text-muted)}
+:root[data-theme="dark"] .tag-select,
+:root[data-theme="dark"] .tag-input{border-color:var(--border-2);background:var(--field);color:var(--text)}
+</style>
+<section class="study-tab-panel active" data-kind="overview" id="panel-overview">
+  <div class="study-overview">
+
+    
+    
+    
+
+    
+    
+
+    
+    
+    
+
+    <div class="ctr-block">
+      <h2 class="overview-label ctr-h">Claim</h2>
+      <p class="ctr-text">`run.repro_fig5` is implemented and wired correctly: it sweeps a seeded
+ensemble of `run_full_model` over Fig-5&#39;s viral-load scenarios, maps
+every observable onto `targets/fig5.json`&#39;s exact keys, ensemble-means
+per load via `bands.aggregate_replicas`, filters each load&#39;s own
+scenario-tagged band subset (`_fig5_target_subset`, verified to raise
+`ValueError` rather than silently mixing scenarios when a load has no
+tagged entries), and evaluates via `_evaluate_fig5_subset`, producing a
+well-formed `{&#34;by_load&#34;: {load: {...}}, &#34;lethal_threshold&#34;: ...,
+&#34;band_eval&#34;: {...}, &#34;loads&#34;:..., &#34;replicas&#34;:..., &#34;cells_per_side&#34;:...,
+&#34;steps&#34;:...}` dict (verified by `tests/test_influenza_full_model.py::
+test_repro_fig5_viral_load_sweep`). THIS STUDY DOES NOT CLAIM FIG-5 IS
+REPRODUCED. At the reduced scale this task&#39;s fast test uses
+(`loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0`),
+per-load `band_eval[&#34;passed&#34;]` is False for both loads (per-observable
+n_in/6 and worst_miss reported in `report.key_metrics` above) -- expected
+given the ~69x smaller epithelial population and the ~0.068-simulated-day
+run duration vs. the target&#39;s 0.0-15-day checkpoint window, not a
+mechanism defect. The MONOTONE dose-response direction this reduced
+test&#39;s own assertion checks (`uninfected_final_frac(load=10000)=0.0 &lt;=
+uninfected_final_frac(load=1)=0.611`) holds. The paper-scale 50-replica,
+all-5-load, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required
+before any `reproduced` verdict for Fig 5, and `conclusion_verdicts.
+biological_validation` stays PENDING here.
+</p>
+      
+      <div class="ctr-context">`run.repro_fig5` sweeps the Task-9.1 capstone driver (`run_full_model`,
+every Increment 0-8 mechanism in one source-ordered per-MCS loop) over
+Sego-2022 Fig-5&#39;s initial-viral-load scenarios (a uniform virus-field IC
+at 1x/10x/100x/1000x/10000x the ODE-calibrated dose, zero pre-infected
+cells, at 10000 epithelial cells / 50 replicas at paper scale) and
+compares each load&#39;s ensemble mean against that load&#39;s own digitized
+acceptance-band subset (`targets/fig5.json`, filtered per load by the
+scenario-grouping guard `_fig5_target_subset` -- the guard the Task-9.0
+review flagged as load-bearing, since the raw file interleaves all 5
+loads&#39; bands in one flat list per observable). At the REDUCED scale this
+task&#39;s fast pytest test uses (`loads=(1,10000), replicas=1,
+cells_per_side=12, steps=15, seed0=0` -- 144 epithelial cells over ~0.068
+simulated days, only 2 of the paper&#39;s 5 loads swept), neither tested
+load&#39;s ensemble lands fully in-band against its own fig5 band subset
+(`band_eval[&#34;passed&#34;]=False` for both) -- driven by population-scale (144
+vs 10000 cells) and the sharply truncated run duration (~0.068 vs up to 15
+simulated days). UNITS FIX (Task-9.3-review MUST-FIX, this update, F-04):
+a prior version of this study attributed part of that gap to a
+&#34;virus-field concentration-units mismatch&#34;; that was actually a
+structural raw-sum-vs-mean BUG in `repro_fig5`&#39;s observable mapping
+(`run_full_model`&#39;s raw per-lattice-site sum was fed straight to
+extracellular_virus instead of the per-site concentration
+`targets/fig5.json` digitizes). Fixed by reporting the spatial-mean
+concentration (`sum(field_conc)/n_lattice_sites`); extracellular_virus is
+now fully in-band at load=10000 and 4/6 at load=1 (worst_miss ~1200 -&gt; 0.0
+and 0.208 respectively) -- it is no longer a miss driver at either load.
+The qualitative mechanism this task&#39;s reduced-scale test IS built to check --
+a MONOTONE, more-virus-worse-outcome dose-response -- holds cleanly:
+seeding a higher initial viral load (10000x) leaves the ensemble with
+ZERO surviving uninfected cells (0/144) by this short run&#39;s end, vs 88/144
+(61%) surviving at the lowest tested load (1x). `lethal_threshold`
+(the smallest tested load crossing 50% uninfected loss) comes out as
+10000, the same load Sego-2022&#39;s own Sec. 3.3 identifies as where the
+spatial model trends toward lethal outcomes -- a DIRECTIONAL echo of the
+paper&#39;s finding, not a magnitude or threshold-VALUE reproduction (only 2
+of the paper&#39;s 5 loads were tested here, so this reduced run cannot
+establish whether THIS model&#39;s own threshold sits between 1x and 10000x
+the way the paper&#39;s does between 1000x and 10000x). THIS STUDY DOES NOT
+CLAIM FIG-5 IS REPRODUCED: the paper-scale 50-replica, all-5-load,
+10000-cell, ~15-day ensemble (`repro_fig5`&#39;s own docstring documents this
+as `replicas=50, cells_per_side=35, steps≈3086`) is the Mac-mini Phase-B
+follow-up that will actually set the `reproduced` verdict for Fig 5. No
+band in `targets/fig5.json` was edited and no model constant was tuned
+toward a better-looking number.
+</div>
+      
+    </div>
+
+    <div class="ctr-block">
+      <h2 class="overview-label ctr-h">Test</h2>
+      <p class="ctr-text">Implement `run.repro_fig5(*, loads=(1,10,100,1000,10000), replicas=3,
+cells_per_side=35, steps=240, seed0=0) -&gt; dict` (Task 9.3): for each
+`load`, loop `replicas` seeds through `run.run_full_model(
+cells_per_side=cells_per_side, steps=steps, seed=seed0+load_idx*replicas+r,
+init_viral_load=load, init_infection_frac=None)`; map each run&#39;s
+`counts`/`fields`/`ode` sections onto `targets/fig5.json`&#39;s exact 4
+observable keys (`_FIG5_OBSERVABLE_MAP`); ensemble-mean via
+`bands.aggregate_replicas`; filter that load&#39;s own band subset from
+fig5.json&#39;s multi-scenario observable lists (`_fig5_target_subset`,
+raising `ValueError` rather than silently mixing scenarios if a load has
+no matching entries); evaluate via `_evaluate_fig5_subset`. Add
+`tests/test_influenza_full_model.py::test_repro_fig5_viral_load_sweep`
+(reduced: `loads=(1,10000), replicas=1, cells_per_side=12, steps=15`)
+asserting the by_load dict has exactly the tested loads as keys, the
+monotone dose-response holds (`uninfected_final_frac(10000) &lt;=
+uninfected_final_frac(1) + 1e-9`), and `band_eval` is present -- NOT
+that the bands pass, since reduced scale is not expected to. Run that
+same reduced config directly (not the pytest assertions alone) to report
+the actual per-load, per-observable band_eval numbers in this study
+honestly.
+</p>
+      
+      <div class="ctr-meta">
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>repro-fig5-viral-load</code></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">`run.repro_fig5(loads=(1,10000), replicas=1, cells_per_side=12,
+steps=15, seed0=0)` must return `by_load` keyed by exactly `{1,
+10000}`, a non-more-surviving-uninfected dose-response
+(`uninfected_final_frac(10000) &lt;= uninfected_final_frac(1) + 1e-9`),
+and a `band_eval` key. Does NOT assert either load&#39;s `band_eval
+[&#34;passed&#34;]` -- reduced scale is not expected to pass the
+paper-scale-digitized bands.
+</span></div>
+      </div>
+      
+    </div>
+
+    <div class="ctr-block">
+      <h2 class="overview-label ctr-h">Result</h2>
+      <p class="ctr-text">load=10000&#39;s uninfected_cells/antibodies land FULLY in-band (6/6 each, worst_miss 0) while load=1&#39;s do not (4/6 and 5/6) -- but this is a scale/duration coincidence, not evidence load=10000 is individually better-calibrated: at load=10000 the model&#39;s uninfected count collapses to 0 within the first record (near-total, near-instant infection at this reduced 144-cell scale and uniform-IC seeding), and fig5.json&#39;s own load=10000 bands are the WIDEST and most permissive of any load&#39;s (e.g. t_days=3: lo=50,hi=3000; t_days=15: lo=1,hi=300) precisely because the paper itself reports the highest replica-to-replica spread at the lethal-threshold dose (Sec. 3.3) -- a flat-extrapolated near-zero value happens to sit inside that wide band at every checkpoint. load=1&#39;s bands are comparatively tighter and its reduced-run infected fraction (56/144 ~ 39% infected by t~0.068 days) is already far above the target&#39;s load=1 trajectory (infected_cells stays in the 1-8 range even at t_days=15). The honest read: the DIRECTION of the dose-response (more initial virus -&gt; more, faster infection -&gt; fewer surviving uninfected cells) is correctly reproduced by the wired mechanism; the MAGNITUDE/timing match to fig5&#39;s digitized bands is not, driven by population-scale (144 vs 10000 cells) and run-duration (~0.068 vs up to 15 simulated days) mismatch at this reduced config, not by an incorrect mechanism.
+UNITS FIX (Task-9.3-review MUST-FIX, this update, supersedes the prior &#34;extracellular-virus units mismatch&#34; reading below): the ~1200x extracellular_virus miss this study previously reported at BOTH loads was a STRUCTURAL BUG, not a real calibration/PFU-scale gap -- `repro_fig5` was mapping `run_full_model`&#39;s RAW per-lattice-site SUM of `field_conc` straight to `extracellular_virus`, while `targets/ fig5.json` digitizes that observable as a PER-SITE CONCENTRATION (its t=0 value for a given `viral_load_multiplier` IS that multiplier itself). Reporting the field&#39;s SPATIAL-MEAN concentration instead (`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run&#39;s own `params.dims`) resolves the sites-factor: extracellular_virus&#39;s worst_miss drops from ~1200 to 0.208 (load=1, still 4/6 in-band, not fully) and to 0.0 (load=10000, now FULLY IN-BAND, 6/6). A SMALL, HONEST RESIDUAL remains and is NOT tuned away: at t=0 the spatial-mean model value is ~0.375x the target (e.g. load=1 -&gt; mean 0.375 vs target 1.0; load=10000 -&gt; mean 3750 vs target 10000) -- both same order of magnitude as the target, not thousands of times off. This ~0.375 residual factor is the ratio of the seeded PATCH&#39;s site count to the FULL simulation domain&#39;s site count (the domain reserves margin/ separation sites around the patch for the immune-cell clusters and recruit reserve pool, per `run_full_model`&#39;s `margin_sites`/ `separation_sites`; the virus is seeded only under the patch, so averaging over the larger full-domain lattice dilutes the concentration by the patch/domain area ratio). This is a real, distinct, honestly flagged domain-geometry effect, not a units bug -- do not read it as evidence the units fix is incomplete or tune `margin_sites`/ `separation_sites` to close it.</p>
+      
+      
+    <div class="overview-section findings-section">
+      <h2 class="overview-label">🔬 Findings — what this study taught us</h2>
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">`run.repro_fig5` is wired correctly: it sweeps a seeded ensemble of
+`run_full_model` per initial viral load with a uniform virus-field
+IC, maps every observable onto `targets/fig5.json`&#39;s exact keys via
+`_FIG5_OBSERVABLE_MAP`, ensemble-means per load with
+`bands.aggregate_replicas`, filters each load&#39;s own scenario-tagged
+band subset via `_fig5_target_subset` (verified to raise `ValueError`
+rather than silently mixing scenarios when a load has no tagged
+entries -- the Task-9.0-review scenario-grouping guard), and produces
+a well-formed per-load and aggregate `band_eval` via
+`_evaluate_fig5_subset` -- the sweep-and-guard machinery itself is
+verified correct and reusable for the Mac-mini Phase-B paper-scale,
+all-5-load run.
+</span>
+            
+            <span class="finding-chip">via <code>repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-01</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> by_load keys == {1, 10000}; lethal_threshold=10000; top-level band_eval present with passed=False; uninfected_final_frac 0.6111 (load=1) -&gt; 0.0 (load=10000), monotone non-increasing · 
+              
+              via test <a href="#bt-repro_fig5" onclick="_gotoStudyTab('tests','bt-repro_fig5');return false;"><code>repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">The MONOTONE dose-response direction -- the qualitative mechanism
+this task&#39;s reduced-scale test is built to check, per the task
+brief&#39;s fidelity criterion -- holds cleanly: seeding a higher initial
+viral load never leaves MORE surviving uninfected cells than a lower
+load, at this reduced 144-cell, 1-replica, ~0.068-day scale. This is
+consistent with (though far smaller-scale than, and not a magnitude
+match for) the paper&#39;s own Sec. 3.3 qualitative narrative that higher
+viral-load multipliers drive progressively worse outcomes.
+</span>
+            
+            <span class="finding-chip">via <code>repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-02</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> uninfected_final_frac(load=1)=0.6111 (88/144), uninfected_final_frac(load=10000)=0.0 (0/144); infected_cells rises to 56/144 by load=1&#39;s final record vs 133/144 by load=10000&#39;s · 
+              
+              via test <a href="#bt-repro_fig5" onclick="_gotoStudyTab('tests','bt-repro_fig5');return false;"><code>repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-partial">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">◐</span>
+            <span class="finding-claim finding-statement">SUPERSEDED IN PART by F-04 (Task-9.3-review units fix, this update):
+this finding originally reported extracellular_virus missing hardest
+and identically at both loads (worst_miss ~1200) as a &#34;units
+mismatch&#34; attributed to the engine&#39;s virus-field concentration scale.
+That diagnosis was WRONG -- it was a structural raw-sum-vs-mean units
+BUG in `repro_fig5`&#39;s observable mapping (fixed, see F-04), not a
+genuine PFU-equivalent calibration gap. With the bug fixed,
+extracellular_virus is now among the BEST-matching observables (4/6
+at load=1, FULLY in-band at load=10000), and the dominant remaining
+miss driver is the population-count observables (infected_cells,
+uninfected_cells) at load=1 -- the same population-scale (144 vs.
+10000 cells) and run-duration (~0.068 vs. up to 15 simulated days)
+mismatch `repro_fig3b`&#39;s study documents for its own population
+counts, not a units or PFU-scale issue. This is the study&#39;s honest
+reported GAP (status: partial), not hidden behind the driver&#39;s
+structural correctness (F-01/F-02): at reduced scale, per-load
+`band_eval[&#34;passed&#34;]` is still False for every tested load. load=10000&#39;s
+uninfected_cells/antibodies/extracellular_virus land fully in-band, but
+as `report.main_insight` documents this partly reflects the paper&#39;s
+own widest, highest-spread bands at that load (Sec. 3.3) plus this
+reduced run&#39;s near-instant total-infection collapse, not
+individually-superior calibration at that load. NOT tuned away: no
+constant was adjusted and `targets/fig5.json` was not edited to
+narrow this gap.
+</span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-03</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">partial literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> load=1 band_eval passed=False (0/4 observables fully in-band); load=10000 band_eval passed=False (3/4 observables fully in-band, up from 2/4 -- see F-04); infected_cells (load=1, worst_miss 35.7) and uninfected_cells (load=1, worst_miss 5.57) are now the dominant misses, not extracellular_virus (see F-04). · 
+              
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×35.7 vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <div class="finding-card finding-kind-computational finding-status-confirms">
+        <details class="finding-details">
+          <summary class="finding-row">
+            <span class="finding-status-glyph">✓</span>
+            <span class="finding-claim finding-statement">UNITS FIX (Task-9.3-review MUST-FIX): `repro_fig5` (and
+`repro_fig3b`/`repro_fig7`) previously mapped `run_full_model`&#39;s
+&#34;fields&#34; section -- a RAW SUM of `world.field_conc(...)` over every
+lattice site, needed as-is by the §4 ODE coupling&#39;s V/F/C/L inputs --
+straight through to the field-typed target observables
+(extracellular_virus, type1_ifn, chemokines, il10), while
+`targets/{fig3b,fig5,fig7}.json` digitizes those as PER-SITE
+CONCENTRATIONS (fig5.json&#39;s t=0 extracellular_virus target for
+viral_load_multiplier=load IS load itself). The raw sum over-reports
+by ~n_lattice_sites (structurally worse at paper scale, more lattice
+sites), which is exactly what F-03 originally (mis)diagnosed as a
+PFU-equivalent calibration gap. `_map_full_model_observables`
+(`pbg_cpm_studies/influenza/run.py`) now converts only the 4
+field-typed observables to the SPATIAL-MEAN concentration
+(`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run&#39;s
+own `params.dims`) at the repro-observable-mapping layer -- NOT in
+`run_full_model`&#39;s own recording, which Increments 0-8 and the ODE
+coupling still rely on as a raw sum. This resolves the structural
+sites-factor: extracellular_virus&#39;s worst_miss drops by ~4 orders of
+magnitude at both tested loads, and load=10000&#39;s extracellular_virus
+is now fully in-band (was 0/6). An HONEST RESIDUAL remains, NOT tuned
+away: the spatial-mean model value at t=0 is consistently ~0.375x the
+target at both loads -- the ratio of the seeded patch&#39;s lattice-site
+count to the full simulation domain&#39;s lattice-site count
+(`run_full_model` reserves margin/separation sites around the patch
+for the immune-cell clusters and recruit reserve pool; the virus is
+seeded only under the patch, so averaging over the larger full-domain
+lattice dilutes it by the patch/domain area ratio). This is a
+distinct, real domain-geometry effect, honestly flagged for Phase-B,
+not evidence the units fix is incomplete, and no constant was tuned
+and no band was widened to close it. Verified by the new fast
+regression test
+`test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum`
+(`tests/test_influenza_full_model.py`).
+</span>
+            
+            <span class="finding-chip">via <code>test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum</code></span>
+            
+          </summary>
+          <div class="finding-drawer">
+            <div class="finding-header">
+              <span class="finding-id">F-04</span>
+              <span class="finding-kind">computational</span>
+              <span class="finding-status-text">confirms literature</span>
+            </div>
+            
+            
+            <div class="finding-evidence">
+              <strong>observed:</strong> extracellular_virus worst_miss: load=1 1199 -&gt; 0.208, load=10000 1196 -&gt; 0.0 (now fully in-band); t=0 spatial-mean model value ~0.375x target at both loads (e.g. load=1: mean=0.375 vs target=1.0; load=10000: mean=3750 vs target=10000), same order of magnitude · 
+              
+              via test <a href="#bt-test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum" onclick="_gotoStudyTab('tests','bt-test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum');return false;"><code>test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum</code></a> · 
+              
+              
+              
+            </div>
+            
+            
+            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
+              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
+              
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+          </div>
+        </details>
+      </div>
+      
+      
+    </div>
+    
+      
+      
+      
+      <div class="ctr-meta ctr-assess">
+        
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Confidence</span>
+          <span class="ctr-badge ctr-badge-provisional">Provisional</span>
+          <span class="ctr-vch">biology&nbsp;PENDING</span>
+          <span class="ctr-vch">insight&nbsp;PENDING</span>
+        </div>
+        
+        
+      </div>
+      
+    </div>
+
+    <div id="feedback-tracked-panel"></div>
+
+  </div>
+</section>
+
+
+
+<section class="study-tab-panel" data-kind="compose" id="panel-compose" hidden>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+    <h2 class="overview-label" style="margin:0">Model composition</h2>
+    
+    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'repro-fig5-viral-load', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+  </div>
+
+  
+  
+  <div id="model-composite-cards" class="model-composite-cards" data-study="repro-fig5-viral-load"
+       data-study-config="">
+    <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
+  </div>
+
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  <div class="overview-section" id="model-section">
+    <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
+    
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.full_model" data-model-overrides='{"cells_per_side": 12, "loads": [1, 10000], "replicas": 1, "seed0": 0, "steps": 15}'>
+      <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <strong>repro-fig5-viral-load</strong>
+        
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.full_model</code>
+        <button type="button" class="action-btn" style="font-size:0.8em"
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.full_model')">🧬 explore &amp; run ↗</button>
+        
+      </div>
+      
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+        <input type="text" class="baseline-composite-input" data-baseline-name="repro-fig5-viral-load"
+               value="pbg_cpm_studies.composites.influenza.full_model" placeholder="pkg.composites.name"
+               style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
+        <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
+                data-baseline-name="repro-fig5-viral-load">Set composite</button>
+      </div>
+      <div class="baseline-composite-status muted" data-baseline-name="repro-fig5-viral-load" style="font-size:0.8em;margin-top:2px"></div>
+      
+      
+      
+      
+      
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+      
+      
+      
+      <div class="model-config-mount" style="margin-top:8px">
+        <p class="muted" style="font-size:0.85em;margin:0">Loading configuration…</p></div>
+      
+      
+      
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:0.8em">
+        
+        
+        
+        <span class="cond-pill"><span class="cond-pill-k">status</span>=completed</span>
+      </div>
+      
+    </div>
+    
+    
+  </div>
+  
+
+  
+  
+
+  
+  <div class="overview-section">
+    <h3>Model change</h3>
+    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.full_model</code></p>
+    
+    
+    <p><strong>New state variables:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code>repro_fig5 per-load ensemble-mean series per fig5 observable key</code></li><li><code>per-load band_eval (in_band/n_checked/n_in/worst_miss)</code></li><li><code>lethal_threshold</code></li>
+    </ul>
+    
+    
+    <p><strong>New parameters:</strong></p>
+    <ul style="margin:0 0 8px 18px">
+      <li><code></code></li><li><code></code></li><li><code></code></li>
+    </ul>
+    
+    
+    
+    <p class="muted" style="font-size:0.88em">`run.repro_fig5` is a driver-level function (`pbg_cpm_studies/
+influenza/run.py`), not a new dashboard-loadable composite; it drives
+`run.run_full_model` directly (a raw `cpm_core.World` loop, same as
+every other Increment 9 driver), reusing `pbg_cpm_studies.composites.
+influenza.full_model` (Task 9.1&#39;s composite wrapper) as this study&#39;s
+`base_model` for provenance/report-card purposes. The composite wrapper
+itself is unchanged by this task.
+</p>
+  </div>
+  
+
+  
+  
+  
+  
+
+
+</section>
+
+
+
+<section class="study-tab-panel" data-kind="simulate" id="panel-simulate" hidden>
+
+<div class="overview-section" id="simulations-section">
+  <h2>Simulations</h2>
+  <div id="study-sim-table" style="overflow-x:auto"><p class="muted" style="margin:0">Loading…</p></div>
+  <div id="study-run-detail" style="margin-top:14px"></div>
+</div>
+
+</section>
+
+
+<section class="study-tab-panel" data-kind="results" id="panel-results" hidden>
+
+<div class="overview-section" id="results-section">
+  <h2>Results</h2>
+  <p class="muted">What came back from this study's runs — a per-store preview of the latest run, plus the raw emitter store (zarr/parquet/runs.db) for every run.</p>
+
+  <h4>Latest run preview</h4>
+  <p class="muted" style="font-size:0.9em">Per-store sparkline + first/last/min/max from the most recent run's emitted trajectory. This is a downsampled PREVIEW, not the full data — use the per-store or Download-all links for the complete arrays.</p>
+  <div id="results-preview" data-study="repro-fig5-viral-load">
+    <p class="empty-message">Loading results preview…</p>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:22px">
+    <span class="muted" id="exports-downloads" style="margin-right:auto;font-weight:600">Raw simulation data</span>
+    <button type="button" id="raw-data-download-all" class="btn-mini" style="display:none"
+            onclick="_downloadAllRawExports()">⬇ Download all raw data</button>
+  </div>
+  <div id="raw-data-list"><p class="empty-message">Loading runs…</p></div>
+</div>
+
+</section>
+
+
+<section class="study-tab-panel" data-kind="analyses" id="panel-analyses" hidden>
+
+<div class="overview-section" id="analyses-results-section">
+  <h2>Analyses</h2>
+  <p class="muted">Result files written by this study's analysis steps.</p>
+
+  <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+    <span class="muted" style="margin-right:auto;font-weight:600">Analysis result files</span>
+    <a id="data-download-all" class="btn-mini" style="display:none"
+       href="/api/study-analysis-zip?study=repro-fig5-viral-load">Download all (.zip)</a>
+  </div>
+  <div id="data-files" data-study="repro-fig5-viral-load">
+    <p class="empty-message">Loading result files…</p>
+  </div>
+</div>
+
+</section>
+
+<section class="study-tab-panel" data-kind="readouts" id="panel-readouts" hidden>
+  <div class="observables-section">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <h3 class="section-title" style="margin-right:auto">Readouts</h3>
+    </div>
+    <p class="muted">The Design-time emit <strong>contract</strong>: what the emitter is
+    configured to persist, which store paths it declares, and the shape of what lands on
+    disk. No observed values here — see Results for what actually came back from a run.</p>
+
+    <h4>Emitter &amp; config</h4>
+    <p class="muted" style="font-size:0.9em">The emitter class, its write-path module, emit
+    interval/buffer, output location, and emit scope — from
+    <code>lib/emitters.py</code> and this study's (or the workspace's)
+    <code>runtime.default_emitter</code>.</p>
+    <div id="readouts-emitter" data-study="repro-fig5-viral-load">
+      <p class="empty-message">Loading emitter configuration…</p>
+    </div>
+
+    <h4>Emitted paths</h4>
+    <p class="muted" style="font-size:0.9em">Each row is an emitter <code>store_path</code>
+    the composite will save; authored entries in <code>study.yaml</code> add names,
+    descriptions, and units on top.</p>
+
+    
+    <div id="readouts-download" style="margin:0 0 16px 0"></div>
+
+    <div id="readouts-table" data-study="repro-fig5-viral-load">
+      <p class="empty-message">Loading readouts from the composite emit plan…</p>
+    </div>
+
+    <h4>Outputs &amp; shapes</h4>
+    <p class="muted" style="font-size:0.9em">Store path, dtype, shape
+    <code>(n_steps, …)</code>, units, and a best-effort byte estimate for each emitted
+    leaf.</p>
+    <div id="readouts-shapes" data-study="repro-fig5-viral-load">
+      <p class="empty-message">Loading output shapes…</p>
+    </div>
+
+    
+    <details style="margin-top: 1.4em;">
+      <summary class="muted">How observables tie to Expected Behavior</summary>
+      <p style="font-size: 0.9em;">Observables can be referenced by name in an
+      <code>expected_behavior[i].measure</code> block (e.g. <code>kind: bulk_count, id:
+      "MONOMER0-160[c]"</code>). When the dashboard validates a study, it cross-checks
+      that every <code>measure</code> resolves to a declared observable, or to a
+      built-in helper.</p>
+    </details>
+    
+  </div>
+</section>
+
+<section class="study-tab-panel" data-kind="visualize" id="panel-visualize" hidden>
+
+  <div class="overview-section study-figures figure-gallery" id="visualize-section">
+
+    
+    
+    <div class="viz-actions-row" style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'repro-fig5-viral-load')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
+    </div>
+    
+
+    <div id="native-gallery-panel" class="figure-mount"><p class="empty-message">Loading figures…</p></div>
+
+    
+    
+    
+    <div class="figure-card embed-viz-card">
+      <iframe src="/viva-cpm/dashboard/workspace/studies/repro-fig5-viral-load/viz/repro-fig5.html"
+              class="figure-media-frame figure-media-frame--embed"
+              loading="lazy" title="Fig-5 repro"
+              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
+              ></iframe>
+      
+      <div class="figure-caption-row">
+        <span class="figure-source-chip">embed</span>
+        <span class="figure-title">Fig-5 repro</span>
+        
+        <a href="/viva-cpm/dashboard/workspace/studies/repro-fig5-viral-load/viz/repro-fig5.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
+      </div>
+    </div>
+    
+    
+
+    <div id="viz-charts-panel" class="charts-panel figure-mount"></div>
+
+    
+    <p id="figures-empty-message" class="empty-message" style="display:none">No figures yet.</p>
+  </div>
+</section>
+
+<section class="study-tab-panel" data-kind="tests" id="panel-tests" hidden>
+  <h2>Tests</h2>
+  <p class="muted" style="margin:0 0 12px 0"><strong>The bar.</strong> What must be true for this model to count as correct — the acceptance criteria, their bands, and the report cards that grade them.</p>
+
+  
+  
+  
+  <div class="overview-section expectations-band" id="expectations-band">
+    <h3 class="section-title">Expectations
+      <span class="muted" style="font-size:0.85em;font-weight:normal">— from literature, mapped to the model observable that measures each</span>
+    </h3>
+    <ul class="literature-anchor-list" style="list-style:none;padding-left:0">
+    
+      
+      <li class="literature-anchor-card expectation-item">
+        <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>Sego 2022 Fig. 5 / Sec. 3.3, p.9: the spatial CPM model trends toward lethal outcomes (near-total uninfected-cell loss) only near a ~1000x increase over the ODE-calibrated initial viral dose (multiplier 10000), while multipliers 1/10/100/1000 remain non-lethal across all 50 replicas -- a spatial-vs-ODE disagreement, since the ODE model alone predicts lethal outcomes from multiplier 10 upward (Fig. 4/5 disagreement).</span>
+          
+        </div>
+        <div class="anchor-observable">
+          <em>Model observable:</em> <code>run.repro_fig5&#39;s per-load ensemble (mapped to targets/fig5.json&#39;s exact observable keys, evaluated per load via _fig5_target_subset/_evaluate_fig5_subset) at REDUCED scale (loads=(1,10000), replicas=1, cells_per_side=12, steps=15): band_eval[&#39;passed&#39;]=False for both loads (population-scale/run-duration/virus-units mismatch, per report.key_metrics); the qualitative monotone dose-response direction holds (uninfected_final_frac 0.611 at load=1 -&gt; 0.0 at load=10000), a directional echo of the paper&#39;s own lethal-threshold-near-10000x narrative, NOT a magnitude or threshold-value reproduction (only 2 of 5 loads tested).</code>
+        </div>
+        
+        <div class="anchor-source"><em>Source:</em> Sego et al. 2022, Fig. 5, p.9 (digitized by eye from log-scale panels, approximate) via pbg_cpm_studies/influenza/targets/fig5.json</div>
+        
+      </li>
+    
+    </ul>
+  </div>
+  
+
+  
+  
+  
+
+  
+  <div class="tests-gate-summary" id="tests-gate-summary"><p class="empty-message">Loading gate summary…</p></div>
+
+  
+
+  
+  
+
+  
+  
+
+  <div class="behavioral-tests-section" style="margin-top:22px">
+    <h3 class="section-title">Behavioral tests</h3>
+    <div class="tests-header">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <button id="run-tests-btn" class="btn-primary">Run tests</button>
+        <div class="tests-summary muted" id="tests-summary">— no test results yet —</div>
+      </div>
+      <div class="tests-config" style="margin-top: 6px;">
+        <span class="badge">auto_discover: <code id="tests-auto-discover">true</code></span>
+        <span class="badge">data_source: <code id="tests-data-source">latest_run</code></span>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  <ul class="expected-behavior-list" id="tests-list" style="list-style:none; padding-left:0; margin-top: 12px;">
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response"
+        data-classification="primary"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-primary">primary</span>
+        <strong style="font-size: 0.9em;">repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">`run.repro_fig5(loads=(1,10000), replicas=1, cells_per_side=12,
+steps=15, seed0=0)` must return `by_load` keyed by exactly `{1,
+10000}`, a non-more-surviving-uninfected dose-response
+(`uninfected_final_frac(10000) &lt;= uninfected_final_frac(1) + 1e-9`),
+and a `band_eval` key. Does NOT assert either load&#39;s `band_eval
+[&#34;passed&#34;]` -- reduced scale is not expected to pass the
+paper-scale-digitized bands.
+</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 1.0</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: by_load keys == {1, 10000}; lethal_threshold=10000; top-level band_eval present (passed=False); uninfected_final_frac 0.6111 (load=1) -&gt; 0.0 (load=10000), monotone non-increasing.</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_full_model.py::test_repro_fig5_viral_load_sweep</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "repro-fig5-reduced-scale", "kind": "repro_fig5_wellformed_and_monotone_dose_response", "stat": "final"}
+pass_if: {"op": "eq", "value": true}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+  </ul>
+  
+  </div>
+</section>
+
+
+<section class="study-tab-panel" data-kind="audit" id="panel-audit" hidden>
+  <h2>Audit</h2>
+  <p class="muted" style="margin:0 0 12px 0"><strong>Is the bar sound?</strong> Whether the tests themselves are rigorous and matched to the problem — sufficiency, where the model was sourced, and the rigor + reproducibility scorecards.</p>
+
+  <div class="checks-band">
+    <div class="check-group check-group-sufficiency" id="audit-sufficiency" data-check-group="sufficiency">
+      <p class="empty-message">Loading sufficiency checks…</p>
+    </div>
+
+    <div class="check-group check-group-quality" id="check-group-quality" data-check-group="quality" style="margin-top:16px">
+      <p class="empty-message">Loading quality checks…</p>
+    </div>
+
+    <div class="check-group check-group-reproducibility" id="check-group-reproducibility" data-check-group="reproducibility" style="margin-top:16px">
+      <p class="empty-message">Loading reproducibility checks…</p>
+    </div>
+
+    
+    <div class="check-group check-group-sourcing" id="audit-sourcing" data-check-group="sourcing" style="margin-top:16px">
+      <p class="empty-message">Loading sourcing…</p>
+    </div>
+  </div>
+</section>
+
+
+<section class="study-tab-panel" data-kind="build" id="panel-build" hidden>
+  <h2>Build</h2>
+  <p class="muted" style="margin:0 0 12px 0"><strong>Was it earned?</strong> The agentic model-building loop that iterated the model to clear the bar — the draft, the frozen tests, the iteration-by-iteration trajectory, and the result (or an honest give-up).</p>
+
+  <div id="build-loop-state"><p class="empty-message">Loading loop provenance…</p></div>
+</section>
+
+<section class="study-tab-panel" data-kind="conclusions" id="panel-conclusions" hidden>
+
+  
+  
+  
+  
+  
+
+  
+  <div class="overview-section"><h2 class="overview-label">Verdict &amp; conclusion</h2>
+    
+    <p class="muted small verdict-attribution" style="margin:0 0 8px 0" title="actor kind: unattributed">
+      <span class="actor-glyph">○</span> unattributed
+    </p>
+
+    
+    
+    
+
+    <div class="overview-section narrative-card" data-narrative-card="conclusion_verdicts" style="margin-bottom:18px">
+      <h3 class="overview-label">⚖️ Verdicts — three-track outcome
+        <span class="narrative-card-hint">(regression / empirical / explanatory)</span>
+      </h3>
+      <div class="narrative-grid">
+        <label class="narrative-row">
+          <span class="narrative-label">Regression compatibility</span>
+          <span class="narrative-input verdict-badge-computed" data-verdict-track="regression_compatibility"
+                title="Computed from run status (read-only)"
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
+          <span class="muted small" style="margin-left:6px">computed from run status</span>
+        </label>
+        <label class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Regression basis</span>
+          <textarea class="narrative-input narrative-textarea" rows="2"
+                    data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">All 6 tests in `tests/test_influenza_full_model.py` pass (5 pre-existing Task 9.1/9.2 tests + this task&#39;s new `test_repro_fig5_viral_load_sweep`); no Increment 0-8 driver, composite, `bands.py`, or params.yaml constant is modified by this task, and `targets/fig5.json` is read-only. UPDATE (Task-9.3-review units fix, this update) -- all 9 tests in `tests/test_influenza_full_model.py` pass, including the new `test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum` regression test; only `run.py`&#39;s repro-observable-mapping layer changed (`_map_full_model_observables`), `run_full_model`&#39;s own field recording, `bands.py`, and `targets/fig5.json` are unchanged.</textarea>
+        </label>
+        <label class="narrative-row">
+          <span class="narrative-label">Empirical validation</span>
+          <span class="narrative-input verdict-badge-computed" data-verdict-track="biological_validation"
+                title="Computed from the gate evaluator (read-only)"
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+          <span class="muted small" style="margin-left:6px">computed from gate evaluator</span>
+        </label>
+        <label class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Empirical basis</span>
+          <textarea class="narrative-input narrative-textarea" rows="2"
+                    data-narrative-path="conclusion_verdicts.biological_validation.basis"
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This study validates that `run.repro_fig5`&#39;s per-load sweep, scenario-grouping guard, and band-evaluation MACHINERY is wired correctly (F-01), that the monotone dose-response direction holds at reduced scale (F-02), and honestly reports the reduced-scale per-load band comparison result (F-03: both tested loads fail per-load band containment) -- but it explicitly does NOT attempt the paper-scale 50-replica, all-5-load ensemble Fig-5 reproduction requires. Do NOT read PENDING here as a passing or failing reproduction verdict at paper scale; that verdict is set by the Mac-mini Phase-B follow-up run, not by this task.</textarea>
+        </label>
+        <label class="narrative-row">
+          <span class="narrative-label">Explanatory gain</span>
+          <span class="narrative-input verdict-badge-computed" data-verdict-track="explanatory_gain"
+                title="Computed from interpretation-tier findings (read-only)"
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+          <span class="muted small" style="margin-left:6px">computed from interpretation-tier findings</span>
+        </label>
+        <label class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Explanatory basis</span>
+          <textarea class="narrative-input narrative-textarea" rows="2"
+                    data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No alternative mechanism or model variant is being compared at this task; deferred to the paper-scale reproduction run where a meaningful comparison against the paper&#39;s own reported spatial-vs-ODE disagreement at high viral load (Sec. 3.3, Fig 4/5) becomes possible.</textarea>
+        </label>
+      </div>
+    </div>
+
+    
+    
+    
+
+    
+    
+    <div class="decide-section" style="margin-top:18px">
+      <h3 class="overview-label">Conclusion</h3>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p><code>run.repro_fig5</code> (Task 9.3) IS IMPLEMENTED AND WIRED CORRECTLY, INCLUDING
+THE SCENARIO-GROUPING GUARD (<code>_fig5_target_subset</code>, verified both to
+filter correctly and to raise loudly on an untagged load): it sweeps a
+seeded ensemble of <code>run_full_model</code> per initial viral load, maps every
+observable onto <code>targets/fig5.json</code>'s exact keys, ensemble-means per load,
+and evaluates EACH load against ONLY that load's own scenario-tagged band
+subset, verified by <code>tests/test_influenza_full_model.py:: test_repro_fig5_viral_load_sweep</code>. FIG-5 IS NOT REPRODUCED AT THE REDUCED
+SCALE THIS TASK'S FAST TEST USES, AND THIS STUDY DOES NOT CLAIM IT IS: at
+<code>loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0</code> (144
+epithelial cells vs. the target's 10000; only 2 of the paper's 5 viral
+loads swept; ~0.068 simulated days vs. the target's 0.0-15-day checkpoint
+window), per-load <code>band_eval[&quot;passed&quot;]</code> is False for both tested loads
+(see <code>report.key_metrics</code> for the full per-observable breakdown). The
+MONOTONE dose-response direction this reduced test's own assertion checks
+holds cleanly (<code>uninfected_final_frac</code>: 0.6111 at load=1 -&gt; 0.0 at
+load=10000) -- the qualitative mechanism fidelity criterion the task
+brief specifies for this reduced scale, distinct from and not a substitute
+for per-load band containment at paper scale. THE PAPER-SCALE 50-REPLICA,
+ALL-5-LOAD, 35x35-CELL (10000-cell), ~15-SIMULATED-DAY ENSEMBLE
+(documented in <code>repro_fig5</code>'s own docstring, including the corrected
+<code>steps≈3086</code> for the full 15-day window, as the Mac-mini Phase-B
+follow-up) IS REQUIRED BEFORE ANY <code>reproduced</code> VERDICT FOR FIG 5 CAN BE
+SET. This study's own verdict stays <code>documented</code>, and
+<code>conclusion_verdicts.biological_validation</code> stays PENDING. No band was
+widened, no constant was tuned, and <code>targets/fig5.json</code> was not edited to
+make any number in this report look better than it is.</p>
+<p>UNITS FIX UPDATE (Task-9.3-review MUST-FIX, this update, see F-04):
+extracellular_virus is no longer the dominant miss -- the structural
+raw-sum-vs-mean units bug this study previously (mis)read as a
+PFU-equivalent scale mismatch is fixed, and extracellular_virus now lands
+fully in-band at load=10000 and 4/6 at load=1 (worst_miss 0.208-0.0, down
+from ~1200 at both loads). FIXING THE UNITS DOES NOT MAKE FIG-5
+REPRODUCED -- both loads' <code>band_eval[&quot;passed&quot;]</code> is still False, now driven
+by population-count observables (infected_cells/uninfected_cells) at
+load=1, the same population-scale/run-duration mismatch already
+documented above; this study's verdict and
+<code>conclusion_verdicts.biological_validation</code> are UNCHANGED (documented/
+PENDING).</p>
+</div>
+    </div>
+    
+    
+
+  </div>
+
+  
+  
+  <div class="overview-section"><h2 class="overview-label">Plan &amp; assumptions</h2>
+
+    
+
+    
+    <div class="overview-section">
+      <h3 class="overview-label">Key assumptions</h3>
+      <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
+        <li style="margin:2px 0">REDUCED-SCALE REPORT, NOT PAPER-SCALE REPRODUCTION -- every band_eval number in this study.yaml comes from the exact `loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0` config this task&#39;s fast pytest test uses, run directly to produce these numbers honestly, NOT from any paper-scale (50-replica, all-5-load, 10000-cell) run. The Mac-mini Phase-B follow-up (documented in `repro_fig5`&#39;s own docstring) is the run that will set any `reproduced` verdict.</li><li style="margin:2px 0">ONLY 2 OF 5 LOADS SWEPT AT REDUCED SCALE -- `loads=(1,10000)`, chosen to keep the reduced test&#39;s fast dose-response assertion meaningful (the largest available load-ratio contrast) without paying for a 5-load sweep in the fast test suite; loads 10/100/1000 are exercised only by `repro_fig5`&#39;s default signature (`loads=(1,10,100,1000, 10000)`), not by this study&#39;s reported numbers, and are NOT swept at paper scale until the Mac-mini Phase-B follow-up.</li><li style="margin:2px 0">RUN-DURATION MISMATCH -- the reduced config&#39;s 15 records x `mcs_per_step=7` x `s_per_mcs=60` = 6300s = ~0.068 simulated days falls far short of `targets/fig5.json`&#39;s checkpoint window (0.0-15.0 days); `bands.series_in_band`&#39;s flat extrapolation carries the model&#39;s near-t=0 (or, for load=10000, near-instant-collapse) value out to every later checkpoint, which mechanically drives most of the reported misses -- a documented property of this reduced config, not a bug in `bands.series_in_band` (Task 9.0&#39;s, unmodified here).</li><li style="margin:2px 0">POPULATION-SCALE MISMATCH -- `cells_per_side=12` gives 144 epithelial cells vs. `targets/fig5.json`&#39;s `scenario.total_epithelial_cells=10000` (`cells_per_side=35`, `patch_mm=1.0` at paper scale); raw population counts (uninfected/infected cells) cannot match the target&#39;s absolute magnitudes at this reduced population even with perfectly calibrated rate constants.</li><li style="margin:2px 0">EXTRACELLULAR-VIRUS UNITS BUG, FIXED (Task-9.3-review MUST-FIX, this update, see F-04) -- SUPERSEDES the prior bullet&#39;s &#34;units mismatch&#34; reading: the ~1200x extracellular_virus miss at both tested loads was a structural raw-sum-vs-mean bug in `repro_fig5`&#39;s observable mapping (`run_full_model`&#39;s raw lattice sum fed straight to a per-site-concentration target), not a PFU-equivalent calibration gap. Fixed by reporting the spatial-mean concentration (`sum(field_conc)/n_lattice_sites`); extracellular_virus now lands fully in-band at load=10000 (worst_miss 0.0) and 4/6 at load=1 (worst_miss 0.208). An HONEST RESIDUAL remains, not tuned away: the t=0 spatial-mean is consistently ~0.375x the target at both loads -- the seeded patch&#39;s lattice-site-count / full-simulation-domain&#39;s lattice-site-count ratio (the domain reserves margin/separation sites around the patch for the immune-cell clusters and recruit reserve pool; virus is seeded only under the patch, diluting the full-domain mean) -- a real, distinct domain-geometry effect, flagged for Phase-B, not a units bug.</li><li style="margin:2px 0">INHERITED CALIBRATION-PENDING ITEMS from `run_full_model` (Task 9.1, unchanged here) -- the documented `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` chemotaxis engine-unit correction (Increment 7), and reduced-eta near-inert recruitment/nearby-killing subsystems flagged in Task 9.1&#39;s own docstring -- carried forward, not resolved by this task.</li><li style="margin:2px 0">`targets/fig5.json` WAS NOT EDITED and no model constant was tuned to narrow the reduced-scale gap reported here -- per the task brief&#39;s explicit instruction, a miss is reported honestly, not concealed.</li><li style="margin:2px 0">SCENARIO-GROUPING GUARD IS LOAD-BEARING (per the Task-9.0 review, restated here per the task brief) -- `_fig5_target_subset` filters `targets/fig5.json`&#39;s observable lists to ONLY the requested load&#39;s `viral_load_multiplier`-tagged entries before any band comparison, and raises `ValueError` (never silently falls back to the unfiltered, multi-scenario list) if a load has zero matching entries for any observable; verified directly (not just via the pytest assertions) in this task&#39;s implementation work -- see task-9.3-report.md.</li>
+      </ul>
+    </div>
+    
+
+    
+
+  </div>
+  
+
+  
+  <div class="overview-section"><h2 class="overview-label">Evidence</h2>
+
+    
+    
+    
+    
+    <div class="decide-section">
+      <h3 class="overview-label">Latest run outcomes</h3>
+      <div style="font-size:0.88em;color:#64748b;margin-bottom:8px">
+        baseline · seed ? ·
+        ?s simulated ·
+        ? history rows ·
+        started ?
+      </div>
+      
+      
+      
+      <p class="muted" style="margin:0;font-size:0.9em">
+        <strong>2</strong> test outcomes
+        — <span style="color:#065f46;font-weight:600">1 PASS</span> ·
+        <span style="color:#991b1b;font-weight:600">0 FAIL</span>.
+        Per-test outcomes (measured value · evaluator · band) are canonical on the
+        <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline">Tests tab →</a>.
+      </p>
+      
+    </div>
+    
+    
+
+  </div>
+
+  
+  <div class="overview-section"><h2 class="overview-label">Follow-ups &amp; decisions</h2>
+
+    
+    
+
+    
+    
+    
+    <div class="overview-section" id="discovery-implications-section" style="margin-top:18px">
+      <h3 class="overview-label">Discovery implications</h3>
+      <p class="muted" style="margin:0 0 10px 0;font-size:0.88em">Where this study's results leave the mechanism model — and what to investigate next.</p>
+
+      
+
+      
+
+      
+
+      
+      
+      
+      <div class="di-group">
+        <h3>Follow-up study proposals
+          <span class="muted" style="font-weight:normal;font-size:0.82em">(discovered)</span>
+          <span class="muted" style="font-weight:normal;font-size:0.85em">(3)</span></h3>
+        <p class="muted" style="margin:0 0 8px 0;font-size:0.85em">Click <strong>➕ Add to investigation</strong> to spawn a new study node in the investigation graph.</p>
+        <div class="followup-list">
+          
+          
+          <div class="di-card di-fup-card">
+            <div class="followup-header">
+              <strong class="followup-title">Mac-mini Phase-B: paper-scale 50-replica, all-5-load repro_fig5 sweep (cells_per_side=35, steps≈3086)</strong>
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="followup-actions" style="margin-top:8px">
+              <button class="btn-seed-followup"
+                      onclick="_seedFollowupProposal('repro-fig5-viral-load', "incr9-phaseb-fig5-paper-scale-sweep")">➕ Add to investigation</button>
+            </div>
+          </div>
+          
+          
+          <div class="di-card di-fup-card">
+            <div class="followup-header">
+              <strong class="followup-title">RESOLVED (Task-9.3-review MUST-FIX, this update, see F-04): the extracellular_virus miss was a units BUG, not a PFU-scale calibration gap -- fixed by reporting spatial-mean concentration instead of the raw lattice sum</strong>
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="followup-actions" style="margin-top:8px">
+              <button class="btn-seed-followup"
+                      onclick="_seedFollowupProposal('repro-fig5-viral-load', "incr9-fig5-virus-units-calibration")">➕ Add to investigation</button>
+            </div>
+          </div>
+          
+          
+          <div class="di-card di-fup-card">
+            <div class="followup-header">
+              <strong class="followup-title">Increment 9: investigate the ~0.375x patch/full-domain-area dilution residual left in extracellular_virus after the Task-9.3-review units fix</strong>
+              
+              
+              
+              
+            </div>
+            
+            
+            <div class="followup-actions" style="margin-top:8px">
+              <button class="btn-seed-followup"
+                      onclick="_seedFollowupProposal('repro-fig5-viral-load', "incr9-fig5-virus-domain-dilution-residual")">➕ Add to investigation</button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+    
+
+    
+    
+    
+    
+
+  </div>
+
+  
+  
+
+</section>
+
+</main>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "f0201d29765bdebdb73c09c4a1a16285a5a334ae", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/f0201d29765bdebdb73c09c4a1a16285a5a334ae", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-19 16:53 UTC"} };</script>
+<script src="/viva-cpm/dashboard/assets/data-source.js"></script>
+<script>
+window._studyName = "repro-fig5-viral-load";
+window._study = null;  // populated by _bootstrapStudy() in study-detail.js
+
+// Save handler for the Conditions → Model settings editable rows.
+// POSTs to /api/study-expert-input-set (route kept for back-compat)
+// which patches study.yaml in place.
+// On success: flashes "saved" + updates the row's data-current attribute.
+// On failure: flashes the error (HTTP body) for ~5s.
+function _saveExpertInput(studyName, eiName, btn) {
+  var row = btn.closest('tr');
+  var input = row && row.querySelector('.cond-ei-input');
+  var flash = row && row.querySelector('.cond-ei-flash');
+  if (!input || !flash) return;
+  var raw = (input.value || '').trim();
+  // Coerce numeric inputs so yaml carries the right type
+  var val = raw;
+  if (input.type === 'number' && raw !== '') {
+    var n = Number(raw);
+    if (!isNaN(n)) val = n;
+  } else if (raw === '') {
+    val = null;
+  }
+  btn.disabled = true;
+  flash.className = 'cond-ei-flash';
+  flash.style.display = '';
+  flash.textContent = 'saving…';
+  fetch('/api/study/' + encodeURIComponent(studyName), {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({expert_input: {name: eiName, current: val}}),
+  }).then(function(r) {
+    return r.text().then(function(t) { return {ok: r.ok, status: r.status, body: t}; });
+  }).then(function(res) {
+    if (res.ok) {
+      flash.className = 'cond-ei-flash saved';
+      flash.textContent = '✓ saved';
+      setTimeout(function() { flash.style.display = 'none'; }, 2500);
+    } else {
+      flash.className = 'cond-ei-flash error';
+      flash.textContent = '✗ ' + (res.body || ('HTTP ' + res.status));
+    }
+  }).catch(function(err) {
+    flash.className = 'cond-ei-flash error';
+    flash.textContent = '✗ ' + String(err);
+  }).finally(function() {
+    btn.disabled = false;
+  });
+}
+
+// ── Seed a child study from this study's discovery_implications /
+//    follow_up_studies and make it appear in the investigation graph ──────
+// Both POST /api/study-seed-followup. On success they flash an inline
+// confirmation on the clicked button, then refresh the surface the user is
+// in: when embedded inside the investigation iframe, ask the parent to
+// re-render the investigation detail (and reload as a fallback); standalone,
+// reload the page so the seeded child is reflected.
+//
+// NOTE: these are defined AFTER /study-detail.js loads (see the script order
+// below) so they take precedence over the legacy _seedFollowupStudy there,
+// which navigates away instead of refreshing the embedded investigation.
+function _flashSeedBtn(btn, text, ok) {
+  if (!btn) return;
+  btn.textContent = text;
+  btn.style.borderColor = ok ? '#10b981' : '#dc2626';
+  btn.style.color = ok ? '#065f46' : '#991b1b';
+}
+function _afterSeedRefresh() {
+  // Embedded inside the investigation iframe → refresh the parent's graph.
+  if (window.parent && window.parent !== window) {
+    try {
+      if (window.parent._refreshInvestigationDetail) {
+        window.parent._refreshInvestigationDetail();
+        return;
+      }
+    } catch (e) { /* cross-origin or missing — fall through to reload */ }
+    try { window.parent.location.reload(); return; } catch (e) { /* fall through */ }
+  }
+  location.reload();
+}
+function _seedFollowup(payload, btn) {
+  var orig = btn ? btn.textContent : null;
+  if (btn) { btn.disabled = true; _flashSeedBtn(btn, '… seeding', true); }
+  fetch('/api/study-seed-followup', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+  }).then(function(r) {
+    return r.json().then(function(d) { return {ok: r.ok, status: r.status, body: d}; })
+      .catch(function() { return {ok: r.ok, status: r.status, body: {}}; });
+  }).then(function(res) {
+    if (!res.ok || (res.body && res.body.error)) {
+      _flashSeedBtn(btn, '✗ ' + ((res.body && res.body.error) || ('HTTP ' + res.status)), false);
+      if (btn) btn.disabled = false;
+      return;
+    }
+    _flashSeedBtn(btn, '✓ added', true);
+    setTimeout(_afterSeedRefresh, 600);
+  }).catch(function(err) {
+    _flashSeedBtn(btn, '✗ ' + String(err), false);
+    if (btn) btn.disabled = false;
+  });
+}
+function _seedFollowupStudy(parent, idx) {
+  _seedFollowup({parent: parent, followup_idx: idx}, window.event && window.event.target);
+}
+function _seedFollowupProposal(parent, proposalId) {
+  _seedFollowup({parent: parent, proposal_id: proposalId}, window.event && window.event.target);
+}
+window._seedFollowupStudy = _seedFollowupStudy;
+window._seedFollowupProposal = _seedFollowupProposal;
+</script>
+<script src="/viva-cpm/dashboard/assets/configure-run.js"></script>
+<script src="/viva-cpm/dashboard/assets/sim-table.js"></script>
+<!-- composite-card.js: shared composite-card renderer (extracted from
+     walkthrough.js, study-spine-reorg Task 6) — the Model tab uses
+     _renderCompositeCardFull to show the SAME rich card the Modules/
+     Composites view uses, with full semantic detail (config schema +
+     declared observables). Loaded before study-detail.js, which calls it. -->
+<!-- loom-embed.js: _openCompositeLoomInline + helpers (from walkthrough.js,
+     which this iframe does NOT load). composite-card.js's _pcardToggleSec needs
+     it to MOUNT a composite's loom — without it, opening a composite from a
+     Model card stays stuck on "Resolving composite…". -->
+<script src="/viva-cpm/dashboard/assets/loom-embed.js"></script>
+<script src="/viva-cpm/dashboard/assets/composite-card.js"></script>
+<script src="/viva-cpm/dashboard/assets/study-detail.js"></script>
+<script>
+// Re-assert the refresh-aware seed handlers AFTER study-detail.js (which
+// defines its own navigate-away _seedFollowupStudy). The embedded
+// investigation view prefers staying in place over a full navigation.
+window._seedFollowupStudy = _seedFollowupStudy;
+window._seedFollowupProposal = _seedFollowupProposal;
+</script>
+<script>
+(function () {
+  // Task 8: the Configure & Run mount and the remote-run (smsvpctest) panel
+  // were both removed from the Simulate tab — launching now lives entirely
+  // in the header buttons (Reproduce / Run current spec). This block used
+  // to also mount ConfigureRun into the (now-deleted) mount div and, in an
+  // else-if, relabel the remote-run card via window._initRemoteRunPinned()
+  // if pinned mode was enabled; Fable A #7 deleted that now-fully-dormant
+  // remote-run subsystem from study-detail.js (its DOM anchors — the
+  // #remote-run-panel/-btn/-progress mounts — never existed in this
+  // template to begin with), so the else-if branch is gone too. Only the
+  // still-relevant header-button snapshot handling remains below, now
+  // unconditional (it used to be gated behind a lookup of that deleted div).
+  //
+  // Read-only bundle: there's no live backend to run on — hide the header
+  // run buttons in a published read-only snapshot (reproducible-rerun-spine
+  // Task 4 / G2: both equally inert with no live backend to launch against).
+  if (window.__DASH_CONFIG__ && window.__DASH_CONFIG__.mode === "snapshot") {
+    var reproduceBtn = document.getElementById("study-reproduce");
+    if (reproduceBtn) reproduceBtn.style.display = "none";
+    var runCurrentBtn = document.getElementById("study-run-current-spec");
+    if (runCurrentBtn) runCurrentBtn.style.display = "none";
+  }
+})();
+</script>
+</body>
+</html>
