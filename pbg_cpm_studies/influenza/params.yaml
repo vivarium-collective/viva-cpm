@@ -408,6 +408,148 @@ macrophage:               # macrophage cell type (Increment 5, RE-SCOPED from ch
     `update_populations` calls `inflow_by_type`/`outflow_by_type` using the Poisson-like stepwise
     `inflow_rate_by_type`/`outflow_rate_by_type` above (recruitment/attrition), each success/failure
     again going through `new_immune_cell_by_type`'s same max-Virus-site placement search."
+chemokine:                # chemokine field + macrophage secretion (Increment 6)
+  source: "CC3D source (ImmuneModel/ImmuneModelInputs.py, ImmuneModel/ImmuneModelLib.py
+            `immune_model_string()`, Simulation/ViralInfectionVTMSteppables.py
+            `ChemokineSecretionSteppable`, ~lines 1453-1502) via
+            docs/cc3d-reference/sego2022-parameters.md §5/§10; s_to_mcs=60 s/MCS,
+            um_to_lat_width=2 um/site, exp_cell_diameter=10um, dim.z=2 (lattice z-thickness)"
+  diffusion_lat2_per_mcs: 15.60770650326941     # unitless D, lattice^2/MCS
+  # = exp_chemo_decay * exp_chemo_dl^2 * s_to_mcs / um_to_lat_width^2, where
+  #   exp_chemo_decay = chemo_decay_ODE(8.99003894588318 /day) / 86400 = 1.0405137668846273e-04 /s,
+  #   exp_chemo_dl = exp_cell_diameter(10um) * 10.0 = 100um (diffusion_length_cell_diam below).
+  # Source: ImmuneModelInputs.py `chemo_dc` (fed to CC3DML GlobalDiffusionConstant "chemo_dc").
+  # Matches brief's approx 15.601; full-precision literal recorded here.
+  decay_per_mcs: 0.006243082601307764           # unitless decay, 1/MCS
+  # = (chemo_decay_ODE / 86400) * s_to_mcs. Source: ImmuneModelInputs.py `chemo_decay`
+  # (fed to CC3DML GlobalDecayConstant "chemo_decay"). Matches brief's approx 6.240e-3.
+  diffusion_length_cell_diam: 10                # source `exp_chemo_dl` = exp_cell_diameter*10.0
+  b_c: 0.055837931184998614      # macrophage chemokine base-secretion coefficient, AS LITERALLY
+  # APPLIED in ChemokineSecretionSteppable.step (`b_c = self.im_steppable.get_model_val('b_c') *
+  # self.dim.z`), i.e. cellularized AND dim.z(=2)-multiplied, same convention as virus.secretion_g_vi/
+  # ifn.secretion_g_fp (divide by 2 for a single-layer/z=1 field).
+  # Derivation chain:
+  #   1. ODE-calibrated rate b_c = 40.203310453199 /day (source ImmuneModel/ImmuneModelLib.py,
+  #      `immune_model_string()`'s per-cell literal: `b_c = 40.203310453199 * s_t`, the cellularized
+  #      model instantiated with real scale_time from ViralInfectionVTMSteppables.py:1140/1544 --
+  #      NOT the organism-scale `immune_model_string_ode()`/`immune_model_string_old()` copies).
+  #   2. -> per-MCS: b_c_percell_per_mcs = 40.203310453199 * s_t, s_t = s_to_mcs/86400 = 6.944444e-4
+  #      day/MCS = 0.027918965592499307.
+  #   3. -> ChemokineSecretionSteppable.step multiplies by `self.dim.z = 2` BEFORE applying
+  #      `sec_amount = b_c * sig_1/(sig_1 + (g_1*L_loc+g_2)/(L_loc+d_2))` (see il10.sig_1/g_1/g_2/d_2
+  #      for the shared Hill-regulation constants and the exact formula):
+  #      0.027918965592499307 * 2 = 0.055837931184998614, recorded here.
+  # SCENARIO-INDEPENDENT: b_c's Antimony literal has no s_v (population) factor, only s_t -- a single
+  # canonical value applies across both the 0.3mm and 1.0mm patch scenarios (unlike g_1/g_2 in the
+  # shared Hill term, see il10: below, which DO carry an s_v factor).
+  hill_regulation: "see il10.sig_1/il10.g_1/il10.g_2/il10.d_2 -- the SAME Hill-regulation constants
+    (shared Antimony parameters, one ODE-solver instance) gate BOTH chemokine and IL-10 macrophage
+    secretion; NOT duplicated here to avoid two sources of truth for one shared mechanism."
+il10:                     # IL-10 field + macrophage/uninfected-cell secretion (Increment 6)
+  source: "CC3D source (ImmuneModel/ImmuneModelInputs.py, ImmuneModel/ImmuneModelLib.py
+            `immune_model_string()`, Simulation/ViralInfectionVTMSteppables.py
+            `IL10SecretionSteppable`, ~lines 1504-1571) via
+            docs/cc3d-reference/sego2022-parameters.md §5/§10; s_to_mcs=60 s/MCS,
+            um_to_lat_width=2 um/site, exp_cell_diameter=10um, tot_ec_ODE=250000,
+            cell_volume=25 sites^2, dim.z=2 (lattice z-thickness)"
+  diffusion_lat2_per_mcs: 4.900981940788802     # unitless D, lattice^2/MCS
+  # = exp_il10_decay * exp_il10_dl^2 * s_to_mcs / um_to_lat_width^2, where
+  #   exp_il10_decay = il10_decay_ODE(2.82296559789435 /day) / 86400 = 3.2673212938592015e-05 /s,
+  #   exp_il10_dl = exp_cell_diameter(10um) * 10.0 = 100um (diffusion_length_cell_diam below,
+  #   source comment: "assumed same as chemokines").
+  # Source: ImmuneModelInputs.py `il10_dc` (fed to CC3DML GlobalDiffusionConstant "il10_dc").
+  # Matches brief's approx 4.901; full-precision literal recorded here.
+  decay_per_mcs: 0.001960392776315521           # unitless decay, 1/MCS
+  # = (il10_decay_ODE / 86400) * s_to_mcs. Source: ImmuneModelInputs.py `il10_decay`
+  # (fed to CC3DML GlobalDecayConstant "il10_decay"). Matches brief's approx 1.960e-3.
+  # CROSS-CHECK: il10_decay_ODE(2.82296559789435) is numerically IDENTICAL to the Antimony model's
+  # `mu_l` raw literal (ImmuneModelLib.py `immune_model_string()`: `mu_l = 2.82296559789435 * s_t`)
+  # -- i.e. the field's global decay rate and the ODE's uninfected-cell IL-10 secretion-rate
+  # coefficient mu_l (below) share the same calibrated /day constant. Confirms mu_l below by an
+  # independent source path (ImmuneModelInputs.py vs. ImmuneModelLib.py).
+  diffusion_length_cell_diam: 10                # source `exp_il10_dl` = exp_cell_diameter*10.0
+  b_l: 0.0032274634998434447     # macrophage IL-10 base-secretion coefficient, AS LITERALLY APPLIED
+  # in IL10SecretionSteppable.step (`b_l = self.im_steppable.get_model_val('b_l') * self.dim.z`),
+  # i.e. cellularized AND dim.z(=2)-multiplied (divide by 2 for a single-layer/z=1 field).
+  # Derivation: ODE-calibrated b_l = 2.32377371988728 /day (ImmuneModelLib.py `immune_model_string()`:
+  # `b_l = 2.32377371988728 * s_t`) -> per-MCS b_l_percell_per_mcs = 2.32377371988728 * s_t
+  # (s_t=6.944444e-4 day/MCS) = 0.0016137317499217224 -> * dim.z(=2) = 0.0032274634998434447.
+  # SCENARIO-INDEPENDENT (no s_v factor in the Antimony literal).
+  b_lh: 0.00092755887778863      # uninfected-cell IL-10 base-secretion coefficient, AS LITERALLY
+  # APPLIED in the "Uninfected cell secretion" block (`b_lh = self.im_steppable.get_model_val('b_lh')
+  # * self.dim.z`; `sec_amount = mu_l * b_lh * (1 - resist)`, applied per UNINFECTED cell): i.e.
+  # dim.z(=2)-multiplied. Derivation: ODE-calibrated b_lh = 0.000463779438894315, a FLAT Antimony
+  # literal with NO s_t/s_v/s_l scaling factor at all (ImmuneModelLib.py `immune_model_string()`:
+  # `b_lh = 0.000463779438894315`) -> * dim.z(=2) = 0.00092755887778863.
+  # NOTE (do not conflate): the SAME raw `b_lh` (WITHOUT dim.z) is ALSO used at mcs==0 for the field's
+  # uniform initial condition (`amount_init = b_lh*(1-mean_resist)*num_epithelial/(dim.x*dim.y)`,
+  # IL10SecretionSteppable.step) -- that IC use is a DIFFERENT literal (no dim.z factor) and is
+  # DEFERRED, not recorded as an engine key here; see "Deferred" note below.
+  mu_l: 0.001960392776315521     # uninfected-cell IL-10 secretion RATE coefficient (per-MCS, NO
+  # dim.z factor): `mu_l = self.im_steppable.get_model_val('mu_l')` (no *self.dim.z multiplication,
+  # unlike b_lh immediately above -- confirmed from the source line-by-line). Combined as
+  # `sec_amount = mu_l * b_lh * (1 - resist)` per UNINFECTED cell, secreted via
+  # `secreteInsideCell(cell, sec_amount / cell.volume)`.
+  # Derivation: ODE-calibrated mu_l = 2.82296559789435 /day (ImmuneModelLib.py `immune_model_string()`:
+  # `mu_l = 2.82296559789435 * s_t`) -> per-MCS mu_l_per_mcs = 2.82296559789435 * s_t
+  # (s_t=6.944444e-4 day/MCS) = 0.001960392776315521. SCENARIO-INDEPENDENT (no s_v factor).
+  # Numerically identical to il10_decay above (same raw /day constant, see CROSS-CHECK note there).
+  sig_1: "DYNAMIC -- Sigma1 is an Antimony ASSIGNMENT RULE, not a fixed parameter: `Sigma1 := a_11*T
+    + a_12*D` (ImmuneModel/ImmuneModelLib.py `immune_model_string()` line ~62), where T (a TNF-like
+    population ODE state) and D = tot_cell - H - I (dying/damage-associated tissue state) are BOTH
+    live ODE-solver state variables, not literals. ChemokineSecretionSteppable/IL10SecretionSteppable
+    read it fresh each step via `sig_1 = self.im_steppable.get_model_val('Sigma1')`. IMPORTANT: this
+    means a single numeric sig_1 literal CANNOT be honestly recorded here without fabricating a value
+    -- it requires the full immune-model ODE/SBML solver's live T/D state, which this increment does
+    NOT implement (same deferred category as macrophage.recruitment's Hill term on C, and the global
+    boundary secretion / IL-10 IC items below). Recorded here as documentation (formula + the raw
+    a_11/a_12 coefficients below) rather than a fabricated scalar, per the brief's 'do not fabricate
+    constants' instruction; the key is present (satisfies the required-keys contract) but is NOT an
+    engine-usable numeric constant until the ODE solver is wired in a later increment."
+  sig_1_a_11: 0.00061091213762049      # raw Antimony coefficient of T in `Sigma1 := a_11*T + a_12*D`
+  # (ImmuneModelLib.py `immune_model_string()` line ~68; flat literal, no s_t/s_v/s_l scaling).
+  sig_1_a_12: 0.0000192792875130612    # raw Antimony coefficient of D in `Sigma1 := a_11*T + a_12*D`
+  # (ImmuneModelLib.py `immune_model_string()` line ~69; flat literal, no s_t/s_v/s_l scaling).
+  g_1: 498.217901666102           # RAW (pre-cellularization) Antimony literal coefficient, BEFORE the
+  # `* s_v` (population-scale) factor: ImmuneModelLib.py `immune_model_string()` line ~72,
+  # `g_1 = 498.217901666102 * s_v`. Recorded as the raw ODE-calibrated coefficient (bare key name
+  # `g_1` per the brief/test) because g_1 is SCENARIO-DEPENDENT (s_v = eta varies by patch size) --
+  # same convention as macrophage.recruitment's `*_raw` values, which this section mirrors in spirit
+  # (the test only requires the key be present, not the cellularized number). Cellularized
+  # (s_v=eta, scenario-dependent per scaling.eta_0p3mm/eta_1p0mm):
+  #   0.3mm patch (eta=0.0049): g_1 = 498.217901666102 * 0.0049 = 2.4412677181638998
+  #   1.0mm patch (eta=0.04):   g_1 = 498.217901666102 * 0.04   = 19.928716066644082
+  g_2: 5462.05818489935           # RAW (pre-cellularization) literal, BEFORE `* s_v * s_l`:
+  # ImmuneModelLib.py line ~73, `g_2 = 5462.05818489935 * s_v * s_l`. SCENARIO-DEPENDENT (s_v) AND
+  # s_l-scaled (s_l = 1/(tot_ec_ODE*cell_volume) = 1.6e-7, population-independent factor).
+  # Cellularized (s_l=1.6e-7, s_v=eta):
+  #   0.3mm patch (eta=0.0049): g_2 = 5462.05818489935 * 0.0049 * 1.6e-7 = 4.28225361696109e-06
+  #   1.0mm patch (eta=0.04):   g_2 = 5462.05818489935 * 0.04   * 1.6e-7 = 3.495717238335584e-05
+  d_2: 428.253164311871           # RAW (pre-cellularization) literal, BEFORE `* s_l`:
+  # ImmuneModelLib.py line ~74, `d_2 = 428.253164311871 * s_l`. SCENARIO-INDEPENDENT (only s_l, no
+  # s_v) -- a single cellularized value applies across both patch scenarios:
+  #   d_2 (cellularized, s_l=1.6e-7) = 428.253164311871 * 1.6e-7 = 6.852050628989936e-05
+  hill_regulation_formula: "sec_amount = b_{c,l} * sig_1 / (sig_1 + (g_1*L_loc + g_2) / (L_loc + d_2)),
+    L_loc = local mean IL-10 concentration seen by the macrophage cell
+    (il10_secretor.amountSeenByCell(cell)/cell.volume). IDENTICAL form gates BOTH
+    ChemokineSecretionSteppable (b_c above) and IL10SecretionSteppable (b_l here) -- same
+    sig_1/g_1/g_2/d_2 read from the SAME immune-model ODE-solver instance each step (one shared
+    Hill-regulation mechanism, not two independent ones). Source: ChemokineSecretionSteppable.step
+    / IL10SecretionSteppable.step, both ~identical 5-line 'Macrophage secretion / Local' blocks
+    (Simulation/ViralInfectionVTMSteppables.py lines 1482-1490 and 1544-1552)."
+  deferred:
+    global_boundary_secretion: "BOTH ChemokineSecretionSteppable and IL10SecretionSteppable have a
+      'Global' block (after the per-cell 'Local' block shown above) that writes a num_macro-scaled,
+      domain-uniform secretion amount into 8 XML boundary elements (chemo_secr0..7 / il10_secr0..7)
+      via the SAME Hill-regulation form applied to num_macro (nearby-surrogate macrophage count) and
+      the ODE solver's total-L state -- population/eta-scaled (loc_to_global = scale_vol/scale_loc),
+      out of scope for this increment (Increment 8 per the brief); NOT recorded as a params.yaml key."
+    il10_initial_condition: "IL10SecretionSteppable.step, mcs==0 branch: `L = b_lh*(1-mean_resist)*
+      num_epithelial/(dim.x*dim.y)`, used to set `self.field.il10[...] = amount_init` -- a UNIFORM
+      field write at t=0 across the whole domain. Skipped: viva-cpm's field engine (as used by prior
+      increments) has no field-write API for this task to call; the raw b_lh (WITHOUT dim.z, distinct
+      from the b_lh key above) and the formula are documented here for whoever wires field
+      initialization in a later increment."
 scenarios:
   source: "Sego 2022 Section 3"
   initial_viral_load: [1, 10, 100, 1000, 10000]

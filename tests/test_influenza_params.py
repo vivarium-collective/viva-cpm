@@ -74,3 +74,13 @@ def test_params_carry_macrophage_section():
     assert m["lambda_volume"] == 9
     assert m["recruitment"]["chemokine_driven"] is True
     assert m["recruitment"]["hill_coefficient_h_m"] == 3
+
+
+def test_params_carry_chemokine_and_il10_sections():
+    p = params.load_params(); c = p["chemokine"]; l = p["il10"]
+    for k in ("diffusion_lat2_per_mcs","decay_per_mcs","diffusion_length_cell_diam","b_c","source"):
+        assert k in c, f"chemokine missing {k}"
+    assert c["diffusion_length_cell_diam"] == 10
+    for k in ("diffusion_lat2_per_mcs","decay_per_mcs","diffusion_length_cell_diam","b_l","b_lh","mu_l","sig_1","g_1","g_2","d_2","source"):
+        assert k in l, f"il10 missing {k}"
+    assert l["diffusion_length_cell_diam"] == 10
