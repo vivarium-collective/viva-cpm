@@ -572,6 +572,260 @@ il10:                     # IL-10 field + macrophage/uninfected-cell secretion (
       increments) has no field-write API for this task to call; the raw b_lh (WITHOUT dim.z, distinct
       from the b_lh key above) and the formula are documented here for whoever wires field
       initialization in a later increment."
+nk:                       # NK cell type: chemotaxis + contact-killing of infected cells (Increment 7)
+  source: "CC3D source (ImmuneModel/ImmuneModelInputs.py, ImmuneModel/ImmuneModelLib.py
+            `immune_model_string()`, Simulation/ViralInfectionVTMSteppables.py
+            `ChemotaxisSteppable`/`ContactKillingSteppable` (~lines 212-319),
+            Simulation/ViralInfectionVTM.xml `<Plugin Name=\"Contact\">`) re-fetched per
+            docs/cc3d-reference/sego2022-source-notes.md; s_to_mcs=60 s/MCS,
+            tot_ec_ODE=250000 (== scaling.ode_epithelial_population above, shared/not duplicated)"
+  chemotaxis_v_nk: 5000            # chemotaxis lambda, up the CHEMOKINE field (NOT virus)
+  # Source: ImmuneModel/ImmuneModelInputs.py `chemotaxis_v_nk = 5E3`, paired with
+  # `chemotaxis_f_nk = "chemo"` (same file) -- "chemo" is the chemokine field's internal field name
+  # (same field wired by chemokine: above / ChemokineSecretionSteppable). Applied in
+  # `ChemotaxisSteppable.__update_chemotaxis_lambda` (Simulation/ViralInfectionVTMSteppables.py
+  # ~line 336/344-351), same saturating per-cell-COM lambda mechanism as chemotaxis.nk_chemokine /
+  # macrophage.chemotaxis_v_macro above (`cd.setLambda(chemotaxis_v_nk / (1.0 + concentration))`,
+  # concentration = chemokine field value AT the NK cell's own COM): this key duplicates
+  # chemotaxis.nk_chemokine under the nk section per the brief's required key name.
+  chemotaxis_field: "chemokine"    # NOT virus -- confirmed `chemotaxis_f_nk = "chemo"` in source
+  volume_sites: 25                 # target volume, unitless lattice sites (5x5) -- IDENTICAL to
+  # epithelial/macrophage. Source: `new_immune_cell()` (Simulation/ViralInfectionVTMSteppables.py
+  # ~line 1288-1291) reads the plain Simulation-level `cell_volume`(=25)/`volume_lm`(=9) constants
+  # for EVERY immune type (macrophage/NK/CD8+) -- same finding as macrophage.volume_sites above.
+  # NOTE: `ImmuneModel/ImmuneModelInputs.py` separately defines `cell_volume_nk = cell_diam_nk**2`
+  # (cell_diam_nk = exp_cell_diam_nk(10um)/um_to_lat_width(2) = 5 sites -> cell_volume_nk = 25,
+  # numerically identical) but this is NOT the symbol `new_immune_cell()` reads for cell creation --
+  # it is used only as the `__type_target_vol[NKCELL]` bookkeeping entry
+  # (`ImmuneModelSteppable.__init__`, ~line 1064-1066), same pattern as macrophage's
+  # `cell_volume_macro`. Confirmed same numeric value (25) either way.
+  lambda_volume: 9                 # volume constraint multiplier (source `volume_lm`, same file)
+  adhesion:                        # literal Contact J rows for NKcell, from ViralInfectionVTM.xml
+    source: "Simulation/ViralInfectionVTM.xml <Plugin Name=\"Contact\">, NKcell rows"
+    medium_nkcell: 10.0
+    uninfected_nkcell: 20.0
+    infected_nkcell: 10.0
+    infectedreleasing_nkcell: 10.0
+    dying_nkcell: 20.0
+    macrophage_nkcell: 10.0
+    nkcell_nkcell: 25.0            # homotypic immune -- matches paper's collapsed "homotypic=25"
+    nkcell_cd8tcell: 25.0          # heterotypic immune -- source-literal DISCREPANCY vs. paper's
+    # collapsed "heterotypic immune=10" (docs/cc3d-reference/sego2022-parameters.md §7.3,
+    # "discrepancy #3": NK<->CD8+ is NOT heterotypic-reduced in the source, unlike Macrophage<->NK /
+    # Macrophage<->CD8+, both of which ARE 10.0 and DO match the paper). Use the source-literal 25.0.
+  g_ik: 2.1401636386747083e-08     # per-MCS NK killing-rate coefficient, cellularized, POPULATION-
+  # INDEPENDENT (no s_v/s_l factor in the Antimony literal -- same pattern as cell_death.mu_i_per_mcs
+  # / virus.secretion_g_vi's raw ODE rate): a single canonical value applies across both the 0.3mm
+  # and 1.0mm patch scenarios.
+  # Derivation: ODE-calibrated g_ik = 0.0000308183563969158 /day (source
+  # ImmuneModel/ImmuneModelLib.py, `immune_model_string()`'s per-cell literal, line ~107:
+  # `g_ik = 0.0000308183563969158 * s_t` -- the cellularized model instantiated with real
+  # scale_time from ViralInfectionVTMSteppables.py:1140, NOT the organism-scale
+  # `immune_model_string_ode()`/`immune_model_string_old()` copies of the same symbol, which use a
+  # DIFFERENT scaling: `immune_model_string_ode()` line ~313 has `g_ik = ...* s_t / s_v`).
+  # -> per-MCS: g_ik_per_mcs = 0.0000308183563969158 * s_t, s_t = s_to_mcs/86400 = 6.944444e-4
+  #    day/MCS (as in all prior increments) = 2.1401636386747083e-08. Consumed by killing.* below
+  # (source ContactKillingSteppable.start()/step(), ~lines 212-319).
+  killing:                         # ContactKillingSteppable -- local (surface-contact) kill term
+    source: "Simulation/ViralInfectionVTMSteppables.py `ContactKillingSteppable` (~lines 212-319),
+              `.start()` (~229-252) precomputes coefficients, `.step()` (~254-318) applies them"
+    tot_ec_ODE_ref: "scaling.ode_epithelial_population"   # = 250000; recorded ONCE there (shared
+    # across virus/ifn/cell_death/allee/nk/cd8), referenced here rather than duplicated -- per the
+    # brief's "record tot_ec_ODE once (shared)" instruction.
+    pr_cf_nk_loc: 0.005350409096686771   # = g_ik * tot_ec_ODE (250000), the precomputed LOCAL
+    # killing-probability coefficient. Source: `ContactKillingSteppable.start()`, line 238:
+    # `self.pr_cf_nk_loc = g_ik * tot_ec_ODE` (only set when `local_ratio_nk > 0`, which it is:
+    # scaling.local_fraction_nk = 0.75).
+    kill_rate_formula_local: "kill_rate = g_ik * tot_ec_ODE * srf_nk * cell_resist / cell.volume"
+    # == "pr_cf_nk_loc * srf_nk * cell_resist / cell.volume" (pr_cf_nk_loc already bakes in
+    # g_ik*tot_ec_ODE, see above). Literal from `ContactKillingSteppable.step()`, line ~305:
+    # `kill_rate = self.pr_cf_nk_loc * srf_nk * cell_resist / cell.volume`, then
+    # `pr_contact_kill = ul_rate_to_prob(kill_rate)` = `1 - exp(-kill_rate)`. `srf_nk` = summed
+    # common-interface surface area with all NKCELL-type CPM neighbors that MCS (`step()` ~lines
+    # 295-302, `self.get_cell_neighbor_data_list(cell)`), for `cell in
+    # cell_list_by_type(INFECTED, INFECTEDRELEASING)`.
+    kill_rate_resist_direct: true  # DISCREPANCY #7 (docs/cc3d-reference/sego2022-parameters.md §7.7),
+    # CONFIRMED at this exact source location: `ContactKillingSteppable.step()` multiplies
+    # `kill_rate` by `cell_resist` DIRECTLY (`cell.dict[ImmuneModelLib.im_resist_key]`, read as-is,
+    # line 276/305/313) -- NOT `(1 - cell_resist)` -- unlike EVERY other resistance consumer in the
+    # source (ViralCellDeathSteppable, RecoverySteppable, ChemokineSecretionSteppable,
+    # IL10SecretionSteppable, all of which use `(1 - resist)`, see resistance: section above). Not
+    # resolved as a bug here -- recorded as the literal source behavior actually run to produce the
+    # paper's results (see resistance.formula's note for the general convention this is the one
+    # exception to).
+    nearby_term_deferred: "DEFERRED to Increment 8 (well-mixed population term, no spatial contact
+      required): ContactKillingSteppable ALSO applies a population-scaled 'nearby' killing term,
+      independent of the local surface-contact term above and evaluated FIRST each step (step()
+      ~lines 261-283, before the 'Local killing' block): `pr_cf_nk_nb = g_ik / pop_scale_factor`
+      (start(), line 250, only set when `local_ratio_nk < 1.0`, which it is: 0.75), then per-MCS
+      `pr_cf_nk = pr_cf_nk_nb * num_nk` where `num_nk = self.im_steppable.num_immune_nearby_by_type(
+      NKCELL)` (a well-mixed 'nearby but not locally-placed' NK count, NOT a spatial CPM neighbor
+      count -- see macrophage.recruitment's local_ratio note: only local_ratio_nk=0.75 of the
+      ODE-predicted NK population is placed as an actual CPM cell, the remaining 0.25 is tracked only
+      as this well-mixed 'nearby' surrogate count), and `pr_death = ul_rate_to_prob(pr_cf_nk *
+      cell_resist)` -- SAME resist-DIRECT convention as the local term above (not `1-resist`).
+      `pop_scale_factor = ImmuneModelLib.get_pop_scale_factor(num_epithelial_alive)` (start(), line
+      247-248, computed from the LIVE epithelial cell count each run start, distinct from the fixed
+      eta=num_epithelial/tot_ec_ODE scenario constants in scaling: above). NOT wired into the viva-cpm
+      engine by this task -- requires the well-mixed 'nearby' population bookkeeping
+      (`num_immune_nearby_by_type`) that Increment 7 does not implement; matches the brief's explicit
+      deferral instruction (`g_i/pop_scale*num_nearby`, well-mixed, Increment 8)."
+  recruitment:                     # Hill-driven inflow/outflow of NK cells (Table 2 "local immune type"
+    # row) -- CHEMOKINE(C)-driven inflow (same field as chemotaxis, r1 term), plus a homeostatic
+    # replenishment term (r2) -- structurally identical to macrophage.recruitment. STUBBED (brief:
+    # "record but STUB") -- requires the immune-model ODE/SBML solver instance, not implemented by
+    # this or any prior increment.
+    chemokine_driven: true
+    stub_reason: "inflow term r1 depends on the chemokine field C (same solver-state mean read by
+                   macrophage.recruitment.r1); recruitment is not wired into the viva-cpm engine by
+                   this task -- values are recorded for whichever increment wires the ODE solver."
+    inflow_formula: "inflow_rate = b_kc * hill_equation(C, a_kc, h_k) + mu_k * b_k"
+    outflow_formula: "outflow_rate = G_ki + mu_k"
+    # Source: Simulation/ViralInfectionVTMSteppables.py `ImmuneModelSteppable.inflow_rate_by_type`/
+    # `.outflow_rate_by_type` (~lines 1183-1200): `if _type_int == self.NKCELL: r1 = self.__rr["b_kc"]
+    # * nCoVUtils.hill_equation(self.__rr["C"], self.__rr["a_kc"], self.__rr["h_k"]); r2 =
+    # self.__rr["mu_k"] * self.__rr["b_k"]; return r1 + r2` for inflow; `return self.__rr["G_ki"] +
+    # self.__rr["mu_k"]` for outflow. `G_ki` is a live ODE-solver state variable (Antimony model,
+    # default-initialized to 0 in `immune_model_string()` line ~214: `G_ki = 0`, then dynamically
+    # updated by the solver during a real run) -- NOT a fixed literal, same "requires the live ODE
+    # solver" category as il10.sig_1 above; not recorded as a numeric constant here.
+    hill_equation_formula: "hill_equation(val, diss_cf, hill_cf) = 1 / (1 + (diss_cf/val)**hill_cf), 0 if val==0"
+    # Same shared utility as macrophage.recruitment.hill_equation_formula (nCoVToolkit/nCoVUtils.py).
+    hill_coefficient_h_k: 2          # Hill exponent, dimensionless. Source ImmuneModelLib.py
+    # `immune_model_string()`: `h_k = 2` (unscaled constant, no s_t/s_v factor) -- NOTE: different
+    # from macrophage's h_m=3 and CD8's h_e=3 (see cd8.recruitment below).
+    b_kc_raw_per_day: 212683.830671333     # dissociation-numerator coefficient, ODE-calibrated /day
+    a_kc_raw: 1356.29443420953             # Hill dissociation constant, ODE-calibrated (chemokine units)
+    mu_k_raw_per_day: 2.20226570821557     # outflow homeostatic-decay rate coefficient, ODE-calibrated /day
+    hs_nk_ODE: 225.999183404974            # homeostatic NK count, ODE (organism) scale (source
+    # ImmuneModelLib.py `immune_model_string(hs_nk=225.999183404974, ...)` default arg, `b_k = {hs_nk}`)
+    # Source ImmuneModelLib.py `immune_model_string()`: `b_kc = 212683.830671333 * s_t * s_v`,
+    # `a_kc = 1356.29443420953 * s_v`, `mu_k = 2.20226570821557 * s_t`, `b_k = {hs_nk}` (templated
+    # per-run analogous to macrophage's `b_m`/`hs_macro`, ImmuneModelLib.py `get_homeostatic_pops`).
+    # Cellularized values NOT computed here (same "record but STUB" scope as the brief specifies;
+    # mirror macrophage.recruitment's *_raw convention -- a later increment computes the per-scenario
+    # cellularized numbers when the recruitment mechanism is actually wired).
+  local_fraction_nk: 0.75          # == scaling.local_fraction_nk above; source
+  # ImmuneModel/ImmuneModelInputs.py `local_ratio_nk = 0.75` -- fraction of the ODE-predicted NK
+  # population placed as actual CPM cells ("local") vs. held as the well-mixed "nearby" surrogate
+  # count consumed by killing.nearby_term_deferred above.
+cd8:                      # CD8+ T cell type: chemotaxis + contact-killing of infected cells (Increment 7)
+  source: "CC3D source (ImmuneModel/ImmuneModelInputs.py, ImmuneModel/ImmuneModelLib.py
+            `immune_model_string()`, Simulation/ViralInfectionVTMSteppables.py
+            `ChemotaxisSteppable`/`ContactKillingSteppable` (~lines 212-319),
+            Simulation/ViralInfectionVTM.xml `<Plugin Name=\"Contact\">`) re-fetched per
+            docs/cc3d-reference/sego2022-source-notes.md; s_to_mcs=60 s/MCS,
+            tot_ec_ODE=250000 (== scaling.ode_epithelial_population above, shared/not duplicated)"
+  chemotaxis_v_cd8: 10000          # chemotaxis lambda, up the CHEMOKINE field -- 2x the NK value
+  # (matches paper's Sec. 2.3 text: CD8+ sensitivity "twice that of NK cells"; already cross-validated
+  # in docs/cc3d-reference/sego2022-parameters.md §4, no discrepancy).
+  # Source: ImmuneModel/ImmuneModelInputs.py `chemotaxis_v_cd8 = 10E3`, paired with
+  # `chemotaxis_f_cd8 = "chemo"` (same file, same chemokine field as NK). Applied in
+  # `ChemotaxisSteppable.__update_chemotaxis_lambda`, same saturating per-cell-COM lambda mechanism:
+  # `cd.setLambda(chemotaxis_v_cd8 / (1.0 + concentration))`. Duplicates chemotaxis.cd8_chemokine
+  # under the cd8 section per the brief's required key name.
+  chemotaxis_field: "chemokine"    # NOT virus -- confirmed `chemotaxis_f_cd8 = "chemo"` in source
+  volume_sites: 25                 # target volume, unitless lattice sites (5x5) -- IDENTICAL to
+  # epithelial/macrophage/NK. Source: `new_immune_cell()` reads the plain Simulation-level
+  # `cell_volume`(=25)/`volume_lm`(=9) constants for EVERY immune type (same finding as
+  # macrophage.volume_sites/nk.volume_sites above). `ImmuneModel/ImmuneModelInputs.py` separately
+  # defines `cell_volume_cd8 = cell_diam_cd8**2` (= 25, numerically identical) but it is NOT the
+  # symbol `new_immune_cell()` reads for cell creation -- bookkeeping-only in `__type_target_vol`
+  # (same pattern as macrophage/nk).
+  lambda_volume: 9                 # volume constraint multiplier (source `volume_lm`, same file)
+  adhesion:                        # literal Contact J rows for CD8Tcell, from ViralInfectionVTM.xml
+    source: "Simulation/ViralInfectionVTM.xml <Plugin Name=\"Contact\">, CD8Tcell rows"
+    medium_cd8tcell: 10.0
+    uninfected_cd8tcell: 20.0
+    infected_cd8tcell: 10.0
+    infectedreleasing_cd8tcell: 10.0
+    dying_cd8tcell: 20.0
+    macrophage_cd8tcell: 10.0
+    nkcell_cd8tcell: 25.0          # heterotypic immune -- SAME source-literal DISCREPANCY as
+    # nk.adhesion.nkcell_cd8tcell above (docs/cc3d-reference/sego2022-parameters.md §7.3,
+    # "discrepancy #3"; recorded on both sides since the pair is symmetric, matching the adhesion:/
+    # macrophage.adhesion cross-referencing convention already used in this file).
+    cd8tcell_cd8tcell: 25.0        # homotypic immune -- matches paper's collapsed "homotypic=25"
+  g_ie: 6.840166937615132e-07      # per-MCS CD8+ killing-rate coefficient, cellularized, POPULATION-
+  # INDEPENDENT (no s_v/s_l factor in the Antimony literal, same as nk.g_ik).
+  # Derivation: ODE-calibrated g_ie = 0.000984984039016579 /day (source
+  # ImmuneModel/ImmuneModelLib.py, `immune_model_string()`'s per-cell literal, line ~108:
+  # `g_ie = 0.000984984039016579 * s_t` -- the cellularized model, NOT the organism-scale
+  # `immune_model_string_ode()` copy, line ~314, which uses `g_ie = ... * s_t / s_v` instead).
+  # -> per-MCS: g_ie_per_mcs = 0.000984984039016579 * s_t, s_t = 6.944444e-4 day/MCS
+  #    = 6.840166937615132e-07. Consumed by killing.* below (source ContactKillingSteppable,
+  # same steppable/mechanism as nk.killing above, with g_ie/srf_cd8 in place of g_ik/srf_nk).
+  killing:                         # ContactKillingSteppable -- local (surface-contact) kill term
+    source: "Simulation/ViralInfectionVTMSteppables.py `ContactKillingSteppable` (~lines 212-319),
+              `.start()` (~229-252) precomputes coefficients, `.step()` (~254-318) applies them"
+    tot_ec_ODE_ref: "scaling.ode_epithelial_population"   # = 250000; shared, see nk.killing.tot_ec_ODE_ref
+    pr_cf_cd8_loc: 0.1710041734403783    # = g_ie * tot_ec_ODE (250000), the precomputed LOCAL
+    # killing-probability coefficient. Source: `ContactKillingSteppable.start()`, line 240:
+    # `self.pr_cf_cd8_loc = g_ie * tot_ec_ODE` (only set when `local_ratio_cd8 > 0`, which it is:
+    # scaling.local_fraction_cd8 = 0.75).
+    kill_rate_formula_local: "kill_rate = g_ie * tot_ec_ODE * srf_cd8 * cell_resist / cell.volume"
+    # == "pr_cf_cd8_loc * srf_cd8 * cell_resist / cell.volume". Literal from
+    # `ContactKillingSteppable.step()`, line ~313: `kill_rate = self.pr_cf_cd8_loc * srf_cd8 *
+    # cell_resist / cell.volume`, then `pr_contact_kill = ul_rate_to_prob(kill_rate)`. `srf_cd8` =
+    # summed common-interface surface area with all CD8TCELL-type CPM neighbors that MCS (step()
+    # ~lines 295-302), for `cell in cell_list_by_type(INFECTED, INFECTEDRELEASING)`. Evaluated AFTER
+    # the NK local-kill check in the same loop iteration (`continue`s past CD8 if NK already killed
+    # the cell that MCS -- see nk.killing.kill_rate_formula_local's step() ordering).
+    kill_rate_resist_direct: true  # DISCREPANCY #7, CONFIRMED at the SAME source location as
+    # nk.killing.kill_rate_resist_direct -- `ContactKillingSteppable.step()` multiplies `kill_rate`
+    # by `cell_resist` DIRECTLY (line 313), not `(1 - cell_resist)`. Same exception, same steppable,
+    # same `cell.dict[ImmuneModelLib.im_resist_key]` read (line 276) shared by both the NK and CD8+
+    # branches within one `for cell in cell_list_by_type(INFECTED, INFECTEDRELEASING):` loop.
+    nearby_term_deferred: "DEFERRED to Increment 8 (well-mixed population term), SAME structure as
+      nk.killing.nearby_term_deferred: `pr_cf_cd8_nb = g_ie / pop_scale_factor` (start(), line 252,
+      only set when local_ratio_cd8 < 1.0, which it is: 0.75), per-MCS `pr_cf_cd8 = pr_cf_cd8_nb *
+      num_cd8` (`num_cd8 = self.im_steppable.num_immune_nearby_by_type(CD8TCELL)`), `pr_death =
+      ul_rate_to_prob(pr_cf_cd8 * cell_resist)` -- resist-DIRECT, evaluated BEFORE the local term
+      (step() ~lines 268-288, same ordering as the NK nearby term). NOT wired into the viva-cpm engine
+      by this task; matches the brief's explicit deferral instruction."
+  recruitment:                     # Hill-driven inflow/outflow of CD8+ T cells (Table 2 "local immune
+    # type" row) -- APC(P)-DRIVEN inflow (NOT chemokine-driven, unlike macrophage/NK -- see
+    # chemokine_driven: false below), no separate homeostatic r2 term. STUBBED (brief: "record but
+    # STUB") -- requires the immune-model ODE/SBML solver instance, not implemented by this or any
+    # prior increment.
+    chemokine_driven: false        # CONFIRMED: CD8+ inflow depends on P (antigen-presenting-cell/APC
+    # field mean, an ODE-solver state, NOT the chemokine field C) -- structurally DIFFERENT from
+    # macrophage/NK, whose inflow r1 term is genuinely chemokine(C)-driven. Flagged explicitly since
+    # the brief's framing ("NK/CD8 chemotax up the CHEMOKINE field... recruitment Hill params") could
+    # be misread as implying CD8 recruitment is also chemokine-gated -- it is not; CD8's CHEMOTAXIS
+    # is chemokine-driven (chemotaxis_v_cd8 above), but its RECRUITMENT/inflow is APC-driven. Also
+    # unlike macrophage/NK, CD8's inflow_rate_by_type has NO r2 homeostatic-replenishment term (see
+    # inflow_formula below) -- CD8+ has no fixed non-zero homeostatic population baseline analogous
+    # to b_m/b_k.
+    stub_reason: "inflow term depends on the APC field mean P (live ODE-solver state, same category
+                   as il10.sig_1/nk.recruitment's G_ki); recruitment is not wired into the viva-cpm
+                   engine by this task -- values are recorded for whichever increment wires the ODE
+                   solver and the APC/P field."
+    inflow_formula: "inflow_rate = b_ep * hill_equation(P, a_ep, h_e)"
+    outflow_formula: "outflow_rate = B_ei + mu_e"
+    # Source: Simulation/ViralInfectionVTMSteppables.py `ImmuneModelSteppable.inflow_rate_by_type`/
+    # `.outflow_rate_by_type` (~lines 1183-1200): `if _type_int == self.CD8TCELL: return
+    # self.__rr["b_ep"] * nCoVUtils.hill_equation(self.__rr["P"], self.__rr["a_ep"], self.__rr["h_e"])`
+    # for inflow (single term, no `+ r2`); `return self.__rr["B_ei"] + self.__rr["mu_e"]` for outflow.
+    # `B_ei` is a live ODE-solver state variable (default-initialized to 0 in `immune_model_string()`
+    # line ~213: `B_ei = 0`, dynamically updated during a real run) -- same "requires the live ODE
+    # solver" category as nk.recruitment's `G_ki`; not recorded as a numeric constant here.
+    hill_equation_formula: "hill_equation(val, diss_cf, hill_cf) = 1 / (1 + (diss_cf/val)**hill_cf), 0 if val==0"
+    hill_coefficient_h_e: 3          # Hill exponent, dimensionless. Source ImmuneModelLib.py
+    # `immune_model_string()`: `h_e = 3` (unscaled constant) -- same value as macrophage's h_m=3,
+    # different from NK's h_k=2.
+    b_ep_raw_per_day: 101318.358506851     # dissociation-numerator coefficient, ODE-calibrated /day
+    a_ep_raw: 14522.3188063909             # Hill dissociation constant, ODE-calibrated (APC/P units)
+    mu_e_raw_per_day: 0.441073272611722    # outflow homeostatic-decay rate coefficient, ODE-calibrated /day
+    # Source ImmuneModelLib.py `immune_model_string()`: `b_ep = 101318.358506851 * s_t * s_v`,
+    # `a_ep = 14522.3188063909 * s_v`, `mu_e = 0.441073272611722 * s_t`. No `b_e`/`hs_cd8` homeostatic
+    # population constant exists in the source (confirmed: CD8's inflow_formula has no `+ r2` term,
+    # unlike macrophage/NK) -- CD8+ has no fixed homeostatic baseline analogous to b_m/b_k.
+    # Cellularized values NOT computed here (record-but-STUB scope, mirrors nk.recruitment).
+  local_fraction_cd8: 0.75         # == scaling.local_fraction_cd8 above; source
+  # ImmuneModel/ImmuneModelInputs.py `local_ratio_cd8 = 0.75` -- fraction of the ODE-predicted CD8+
+  # population placed as actual CPM cells ("local") vs. held as the well-mixed "nearby" surrogate
+  # count consumed by killing.nearby_term_deferred above.
 scenarios:
   source: "Sego 2022 Section 3"
   initial_viral_load: [1, 10, 100, 1000, 10000]
