@@ -5,7 +5,9 @@ from matplotlib.figure import Figure
 
 from cpm.schema import load_world
 from pbg_cpm_studies.influenza import sheet, viz
-from pbg_cpm_studies.influenza.run import run_virus_infection, run_virus_infection_with_ifn
+from pbg_cpm_studies.influenza.run import (
+    run_virus_infection, run_virus_infection_with_ifn, run_global_coupling,
+)
 
 
 def test_sheet_snapshot_figure_returns_figure_with_axes():
@@ -367,3 +369,40 @@ def test_cytotoxic_killing_figure_overlays_control_and_no_killing_results():
     inf_ydata_by_line = [list(line.get_data()[1]) for line in ax_infected.lines]
     assert on_result["n_infected"] in inf_ydata_by_line
     assert no_killing_result["n_infected"] in inf_ydata_by_line
+
+
+def test_global_coupling_figure_returns_figure_with_two_axes():
+    """Task 8.6: mechanism figure for `run.run_global_coupling(...)` (Tasks
+    8.1-8.5) -- the hybrid Price-2015 global ODE (10 integrated systemic
+    species) coupled bidirectionally to the spatial CPM model. Panel (a):
+    systemic-species trajectories (TNF `T`, ROS `X`, antibody `A`, APC `P`)
+    over MCS. Panel (b): spatial cell-count aggregates (I/M/K/E) over MCS,
+    plus the Task-8.3 dynamic `sig_1` series (on a twin axis, different
+    scale). A small, fast real run (side=30, steps=8, seed=0) -- non-vacuous:
+    plotted data must match the driver's actual return series/keys."""
+    result = run_global_coupling(side=30, steps=8, seed=0)
+
+    fig = viz.global_coupling_figure(result)
+
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) >= 2
+    ax_ode, ax_spatial = fig.axes[0], fig.axes[1]
+
+    # panel (a): systemic ODE species (T/X/A/P) vs MCS -- non-vacuous,
+    # matching the driver's actual "ode" series.
+    assert len(ax_ode.lines) >= 4
+    ode_ydata_by_line = [list(line.get_data()[1]) for line in ax_ode.lines]
+    for sp in ("T", "X", "A", "P"):
+        assert result["ode"][sp] in ode_ydata_by_line
+
+    # panel (b): spatial aggregates I/M/K/E -- non-vacuous, matching the
+    # driver's actual "spatial" series.
+    assert len(ax_spatial.lines) >= 4
+    spatial_ydata_by_line = [list(line.get_data()[1]) for line in ax_spatial.lines]
+    for sp in ("I", "M", "K", "E"):
+        assert result["spatial"][sp] in spatial_ydata_by_line
+
+    # sigma1 (Task 8.3's dynamic sig_1 series) is rendered somewhere in the
+    # figure too (e.g. a twin axis on the spatial panel) -- non-vacuous.
+    all_ydata = [list(line.get_data()[1]) for ax in fig.axes for line in ax.lines]
+    assert result["sigma1"] in all_ydata

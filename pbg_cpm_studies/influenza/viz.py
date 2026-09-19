@@ -217,6 +217,91 @@ def macrophage_response_figure(run_result: dict, control_result: dict | None = N
     return fig
 
 
+def global_coupling_figure(run_result: dict) -> Figure:
+    """Render a two-panel MINIMAL mechanism figure (Increment 8, Task 8.6)
+    for a `run.run_global_coupling(...)` result (Tasks 8.1-8.5): the hybrid
+    Price-2015 global ODE (the 10 systemic/integrated species `{NB, N, T, X,
+    A, B, P, W, G, O}`, `price_ode.GlobalODE`) integrated once per MCS and
+    coupled BIDIRECTIONALLY to the spatial CPM patch -- discrepancy #9's
+    documented hybrid correction (only these 10 states are integrated; the
+    spatialized species `{H, I, M, E, K, L, C, F, V, DH}` are read from the
+    CPM world each MCS as ODE *inputs*, never integrated). This task's three
+    Increment-5/6/7 stubs are RESOLVED here: sig_1 is now DYNAMIC (Task 8.3,
+    `a_11*T + a_12*D`, ODE TNF + spatial dead count, discrepancy #11's
+    saturating IL-10-inhibited Michaelis secretion form, replacing the static
+    Increment-6 `params.il10.sig_1_stub`); recruitment is ODE-driven (Task
+    8.4, asymmetric chemokine/APC Hill inflows, discrepancy #12: CD8+ is
+    APC(`P`)-driven with NO homeostatic baseline, unlike macrophage/NK); and
+    NK/CD8 cytotoxic killing now includes a well-mixed NEARBY-population term
+    (Task 8.5) alongside the Increment-7 LOCAL contact term.
+
+    Panel (a) -- systemic-species trajectories: TNF (`T`), ROS (`X`),
+    antibody (`A`), and APC (`P`) vs MCS, from `run_result["ode"]` (the
+    ACTUAL scipy-LSODA-integrated ODE state each MCS). Panel (b) -- spatial
+    aggregates: infected (`I`), macrophage (`M`), NK (`K`), and CD8+ (`E`)
+    cell counts vs MCS, from `run_result["spatial"]`, PLUS the Task-8.3
+    dynamic `sig_1` series (`run_result["sigma1"]`) on a twin y-axis (its
+    scale is orders of magnitude different from the cell counts -- see the
+    caveat below).
+
+    HONEST CAVEAT (central finding, NOT a quantitative Fig-3B reproduction --
+    that is Increment 9): at this reduced-scale patch (tiny `eta` ~1.4e-4 by
+    default), the coupling MAGNITUDES are not yet calibrated even though the
+    mechanisms are wired correctly and source-faithful. Dynamic sig_1
+    collapses the Michaelis secretion-scale factor to ~1e-5-1e-7 versus the
+    static Increment-6 stub's ~0.5-0.975 (task-8.3-report.md); ODE-driven
+    recruitment gives no integer population growth at default scale within a
+    short run (baseline-dominated only, task-8.4-report.md); the nearby
+    killing term is too weak to fire via natural recruitment buildup alone
+    within a feasible step budget (task-8.5-report.md). This figure renders
+    whatever series `run_result` contains -- it does not itself assert
+    field-vs-ODE unit-scale calibration, which is deferred to Increment 9.
+
+    This is a minimal in-package stub, NOT the polished viz system under
+    `pbg_cpm_studies/visualizations/` (owned by a peer session). Returns a
+    `matplotlib.figure.Figure` (not shown/saved)."""
+    mcs = run_result["mcs"]
+    ode = run_result["ode"]
+    spatial = run_result["spatial"]
+    sigma1 = run_result["sigma1"]
+
+    fig = Figure(figsize=(11, 4.4))
+    ax_ode, ax_spatial = fig.subplots(1, 2)
+
+    for sp, label, color in (
+        ("T", "T (TNF)", "firebrick"),
+        ("X", "X (ROS)", "darkorange"),
+        ("A", "A (antibody)", "seagreen"),
+        ("P", "P (APC)", "steelblue"),
+    ):
+        ax_ode.plot(mcs, ode[sp], label=label, color=color)
+    ax_ode.set_title("Systemic ODE species vs MCS (Price-2015 hybrid, once/MCS)")
+    ax_ode.set_xlabel("MCS")
+    ax_ode.set_ylabel("ODE state value")
+    ax_ode.legend(fontsize="small")
+
+    for sp, label, color in (
+        ("I", "I (infected)", "firebrick"),
+        ("M", "M (macrophage)", "steelblue"),
+        ("K", "K (NK)", "darkorange"),
+        ("E", "E (CD8+)", "seagreen"),
+    ):
+        ax_spatial.plot(mcs, spatial[sp], label=label, color=color)
+    ax_spatial.set_title("Spatial cell counts + dynamic sig_1 vs MCS")
+    ax_spatial.set_xlabel("MCS")
+    ax_spatial.set_ylabel("cell count")
+    ax_spatial.legend(fontsize="small", loc="upper left")
+
+    ax_sigma1 = ax_spatial.twinx()
+    ax_sigma1.plot(mcs, sigma1, label="sigma1 = a11*T + a12*D (dynamic, Task 8.3)",
+                   color="dimgray", linestyle="--")
+    ax_sigma1.set_ylabel("sigma1 (macrophage secretion-scale driver)")
+    ax_sigma1.legend(fontsize="small", loc="upper right")
+
+    fig.tight_layout()
+    return fig
+
+
 def signaling_fields_figure(run_result: dict) -> Figure:
     """Render a two-panel MINIMAL mechanism figure (Increment 6, Task 6.2)
     for a `run.run_macrophage_signaling(...)` result (Task 6.1): (a) the

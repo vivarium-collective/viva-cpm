@@ -420,3 +420,82 @@ def cytotoxic_response(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_
     return cytotoxic_response_composite_document(
         seed=seed, chemotaxis_v_macro=chemotaxis_v_macro,
         chemotaxis_v_nk=chemotaxis_v_nk, chemotaxis_v_cd8=chemotaxis_v_cd8)
+
+
+# ---------------------------------------------------------------------------
+# Increment 8 (Task 8.6): global-coupling live-demo composite. Same
+# limitation as ``cytotoxic_response`` above, now compounded further: a
+# plain declarative ``CPMProcess`` has no per-MCS `price_ode.GlobalODE`
+# integration step (Task 8.1), no spatial->ODE aggregate push / ODE->spatial
+# dynamic sig_1 feedback (Tasks 8.2/8.3), no ODE-driven recruitment
+# inflow/outflow (Task 8.4), and no NK/CD8 LOCAL+NEARBY cytotoxic killing
+# (Task 8.5) -- none of these are expressible in this declarative spec
+# format (custom per-MCS Python over ``price_ode.GlobalODE``/`recruitment`/
+# `killing`, not a CPMProcess config). This composite reproduces ONLY the
+# Task-7.1 three-cluster scenario geometry + the virus/chemokine field
+# stack + NK/CD8/macrophage chemotaxis wiring (identical to
+# ``cytotoxic_response`` above); it does NOT reproduce or claim the global
+# ODE coupling, dynamic sig_1, recruitment, or nearby-killing mechanisms --
+# those come directly from ``run.run_global_coupling`` (Tasks 8.1-8.5, a raw
+# ``cpm_core.World`` + ``price_ode.GlobalODE`` loop), not from this
+# composite. See that study's ``model_change.notes`` and
+# ``pbg_cpm_studies/influenza/viz.py::global_coupling_figure``, which render
+# ``run.run_global_coupling``'s actual output, not this composite's.
+# ---------------------------------------------------------------------------
+
+
+def global_coupling_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
+                                        n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
+                                        n_nk=DEMO_N_NK, n_cd8=DEMO_N_CD8,
+                                        margin_sites=DEMO_CYTOTOXIC_MARGIN_SITES,
+                                        separation_sites=DEMO_CYTOTOXIC_SEPARATION_SITES, seed=DEMO_SEED,
+                                        chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO,
+                                        chemotaxis_v_nk=DEMO_CHEMOTAXIS_V_NK,
+                                        chemotaxis_v_cd8=DEMO_CHEMOTAXIS_V_CD8) -> dict:
+    """Reuses ``cytotoxic_response_composite_document`` verbatim -- see the
+    module note above for why the global-ODE coupling/recruitment/killing
+    mechanisms (Tasks 8.1-8.5) are not expressible in this declarative
+    composite format."""
+    return cytotoxic_response_composite_document(
+        epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
+        margin_sites=margin_sites, separation_sites=separation_sites, seed=seed,
+        chemotaxis_v_macro=chemotaxis_v_macro, chemotaxis_v_nk=chemotaxis_v_nk,
+        chemotaxis_v_cd8=chemotaxis_v_cd8)
+
+
+@composite_generator(
+    name="global_coupling", default_n_steps=60,
+    description=(
+        "Influenza-sego2022 Increment 8: live-demo/dashboard wrapper for the "
+        "Task-7.1 three-cluster scenario (epithelial/infection patch | "
+        "macrophage cluster | NK+CD8 cluster) + virus/chemokine field stack "
+        "+ macrophage/NK/CD8 chemotaxis wiring -- SCENARIO GEOMETRY ONLY. "
+        "Does NOT implement the Task 8.1-8.5 hybrid Price-2015 global ODE "
+        "(10 systemic species), the spatial<->ODE bidirectional coupling, "
+        "dynamic sig_1 secretion feedback, ODE-driven recruitment, or the "
+        "NK/CD8 nearby-population killing term -- none are expressible in "
+        "this declarative composite format (custom per-MCS Python over "
+        "price_ode.GlobalODE/recruitment/killing). See "
+        "run.run_global_coupling and viz.global_coupling_figure for the "
+        "actual coupled mechanism and its measured (calibration-pending) "
+        "numbers."
+    ),
+    parameters={
+        "chemotaxis_v_macro": {"type": "float", "default": DEMO_CHEMOTAXIS_V_MACRO,
+                               "description": "macrophage chemotaxis strength on the virus field"},
+        "chemotaxis_v_nk": {"type": "float", "default": DEMO_CHEMOTAXIS_V_NK,
+                            "description": "NK chemotaxis strength on the chemokine field (0.0 = lambda=0 control)"},
+        "chemotaxis_v_cd8": {"type": "float", "default": DEMO_CHEMOTAXIS_V_CD8,
+                             "description": "CD8+ chemotaxis strength on the chemokine field (0.0 = lambda=0 control)"},
+        "seed": {"type": "int", "default": DEMO_SEED,
+                 "description": "RNG seed for the scenario build"},
+    },
+)
+def global_coupling(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
+                    chemotaxis_v_nk: float = DEMO_CHEMOTAXIS_V_NK,
+                    chemotaxis_v_cd8: float = DEMO_CHEMOTAXIS_V_CD8,
+                    seed: int = DEMO_SEED) -> dict:
+    return global_coupling_composite_document(
+        seed=seed, chemotaxis_v_macro=chemotaxis_v_macro,
+        chemotaxis_v_nk=chemotaxis_v_nk, chemotaxis_v_cd8=chemotaxis_v_cd8)

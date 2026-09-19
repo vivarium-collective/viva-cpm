@@ -21,7 +21,8 @@ import math
 
 import numpy as np
 
-from . import allee, build, fields, immune, killing, sheet, signaling, transitions, types
+from . import (allee, build, fields, immune, killing, price_ode, recruitment,
+               sheet, signaling, transitions, types)
 from .params import load_params
 from .resistance import cell_resistance
 
@@ -31,6 +32,71 @@ from .resistance import cell_resistance
 # immune-cell contact must be excluded from `srf_total`/`srf_uninfected`,
 # not just tallied by `world.cell_contact_area_by_type`'s raw dict.
 _EPITHELIAL_TYPES = (types.H, types.I, types.D)
+
+# Task 8.4 recruitment reserve pool: the engine can only create cells
+# PRE-finalize (`World.add_cell`/`seed_block` error after finalize -- see
+# `crates/cpm-py/src/lib.rs`), so ODE-driven inflow cannot mint brand-new CPM
+# cells mid-run the way the source's `new_immune_cell_by_type` does. Instead we
+# pre-seed a pool of DORMANT reserve cells (this distinct type, which secretes
+# nothing and is never counted as M/K/E) parked in the domain's Medium margins;
+# an inflow event ACTIVATES one via `set_cell_type(id, target_type)` (it then
+# counts + secretes like any recruited cell), and an outflow event `remove_cells`
+# an active cell. Reserve cells are parked in an interior reservoir rather than
+# placed at the lesion (the source seeds onto Medium near the target field's
+# peak) -- an engine-imposed geometry approximation, documented in
+# task-8.4-report.md; this task's observable is the POPULATION COUNT (no killing
+# consumes placement until Task 8.5), for which reservoir vs lesion placement is
+# immaterial.
+RECRUIT_RESERVE_TYPE = 7
+
+
+def _seed_recruit_pool(world, spec, *, pool_per_type, targets, target_volume,
+                       lambda_volume):
+    """Pre-seed (BEFORE `world.finalize`) `pool_per_type` dormant reserve cells
+    (`RECRUIT_RESERVE_TYPE`) per target immune type, packed into the Medium
+    strips above and below the scenario's occupied bounding box. Returns
+    ``{target_type: [reserve_cell_id, ...]}`` -- FIFO queues an inflow event pops
+    from to activate a cell of that type. Raises if the strips can't hold the
+    requested pool (caller keeps `pool_per_type` small enough to fit)."""
+    nx, ny, _nz = spec["potts"]["dims"]
+    blocks = [c["seed_block"] for c in spec["cells"]]
+    content_y0 = min(b[1] for b in blocks)
+    content_y1 = max(b[4] for b in blocks)
+
+    side = int(round(target_volume ** 0.5))
+    pitch = side + 2  # 2-site Medium gap between reserves (matches cluster gap)
+
+    # Candidate (x0, y0) block origins in the top strip [1, content_y0) and the
+    # bottom strip (content_y1, ny), left-to-right then top-to-bottom.
+    def _strip_origins(y_lo, y_hi):
+        origins = []
+        y = y_lo
+        while y + side <= y_hi:
+            x = 1
+            while x + side <= nx - 1:
+                origins.append((x, y))
+                x += pitch
+            y += pitch
+        return origins
+
+    origins = _strip_origins(1, content_y0 - 1) + _strip_origins(content_y1 + 1, ny - 1)
+    need = pool_per_type * len(targets)
+    if len(origins) < need:
+        raise ValueError(
+            f"recruit reserve pool needs {need} slots but only {len(origins)} fit "
+            f"in the {nx}x{ny} domain's Medium margins; reduce recruit_pool_per_type")
+
+    pool: dict[int, list[int]] = {t: [] for t in targets}
+    slot = 0
+    for t in targets:
+        for _ in range(pool_per_type):
+            x0, y0 = origins[slot]
+            slot += 1
+            cid = world.add_cell(RECRUIT_RESERVE_TYPE, float(target_volume),
+                                 float(lambda_volume), 0.0, 0.0)
+            world.seed_block(cid, x0, y0, 0, x0 + side, y0 + side, 1)
+            pool[t].append(cid)
+    return pool
 
 
 def _epithelial_contact_totals(world, cid):
@@ -973,5 +1039,475 @@ def run_cytotoxic_response(*, epithelial_cells_per_side: int = 4, n_infected: in
         "margin_sites": margin_sites, "separation_sites": separation_sites,
         "seed": seed, "steps": steps, "mcs_per_update": mcs_per_update,
         "field_warmup": field_warmup,
+    }
+    return result
+
+
+def run_global_coupling(*, num_epithelial: int | None = None, side: int = 30,
+                        steps: int = 20, seed: int = 17, with_immune: bool = True,
+                        seed_infection_frac: float = 0.05, mcs_per_step: int = 1,
+                        with_recruitment: bool = True,
+                        recruit_pool_per_type: int = 40,
+                        recruit_zero_signal: bool = False,
+                        enable_nearby_killing: bool = True,
+                        initial_K_nb: float = 0.0, initial_E_nb: float = 0.0,
+                        **scenario_kw) -> dict:
+    """Task 8.2 crux driver: wire the SPATIAL->ODE direction of the Sego-2022
+    hybrid coupling (dossier Sec.4a). Each MCS, advance the CPM world one step,
+    read the spatial aggregates (cell counts by type + z-normalized field
+    integrals + the resistance-weighted infected-load terms B_ei/G_ki), feed
+    them as ``inputs`` into the Task-8.1 :class:`price_ode.GlobalODE`, integrate
+    one MCS (``rr.timestep()`` cadence, dt = 60 s), and record the global
+    species + spatial trajectories.
+
+    Scenario (reused verbatim from Increments 6/7): a small non-confluent
+    epithelial patch with ``n_infected`` cells seeded infected (the virus +
+    type-I IFN sources) and a macrophage cluster secreting chemokine + IL-10
+    (`immune.build_macrophage_scenario_spec` when ``with_immune=False``);
+    ``with_immune=True`` adds the Increment-7 NK + CD8 cytotoxic cluster
+    (`immune.build_cytotoxic_scenario_spec`). No infection transitions (H->I)
+    are wired here; Task 8.4 wires ODE-driven recruitment (inflow/outflow of
+    M/K/E, see ``with_recruitment``) and Task 8.5 (this task) wires NK/CD8
+    cytotoxic killing of infected cells (LOCAL contact term, reused from
+    Increment 7, PLUS the well-mixed NEARBY-population term, see
+    ``enable_nearby_killing`` and `_apply_cytotoxic_killing` below) on top of
+    the loop this task establishes: the spatial->ODE push, AND (Task 8.3) the
+    ODE->spatial sig_1 secretion feedback. The base field secretion
+    (virus/IFN from I cells, chemokine/IL-10 from M/H cells) and the
+    Increment-6 IL-10-Hill macrophage secretion regulation are the existing
+    physics; this driver only READS the resulting aggregates and feeds in the
+    dynamic ``sig_1`` (it does not reimplement field/secretion physics or the
+    Michaelis functional form -- dossier §4b(i)).
+
+    Task 8.5 killing (each MCS, AFTER ``_apply_secretion_scales``, for every
+    id still in ``infected_ids``): total cytotoxic death rate = the Task-7.2
+    LOCAL contact term (`killing.contact_kill_rate`, via `world.
+    cell_contact_area_by_type`, summed over NK + CD8+ contact, reused exactly
+    as `run_cytotoxic_response`'s killing step) PLUS the well-mixed NEARBY
+    term (`killing.nearby_kill_rate`, this task) for NK and CD8+, driven by
+    the Task-8.4 nearby ODE surrogates ``state["K_nb"]``/``state["E_nb"]`` (as
+    of the end of the PRECEDING MCS's recruitment step -- this MCS's own
+    recruitment runs later, after the ODE step, same causal-ordering
+    convention as ``sig_1_dynamic``). ``Pr = 1 - exp(-total_rate)``
+    (`recruitment.ul_rate_to_prob`), ONE combined draw per infected cell (a
+    documented simplification of the source's four separate per-term
+    Bernoulli draws -- `ContactKillingSteppable.step()`, dossier §4b(iii) --
+    adopted per the brief's exact wiring spec: summing all four rates before
+    a single ``1 - exp(-total_rate)`` draw). A kill sets the cell -> ``types.
+    D`` and removes it from ``infected_ids``. ``enable_nearby_killing=False``
+    keeps the LOCAL term only (Increment-7 behavior) -- an on/off control
+    used to isolate the NEARBY term's own contribution to clearance
+    (task-8.5-report.md).
+
+    ``initial_K_nb``/``initial_E_nb`` (both default ``0.0``, a no-op):
+    override the Task-8.4 nearby-surrogate ODE state's INITIAL CONDITION
+    (``state["K_nb"]``/``state["E_nb"]``, ``0.0`` at the healthy IC) --
+    a documented TEST SEAM, not a source parameter. At this engine's default
+    small-patch scale (``eta`` tiny), the NEARBY term is empirically too weak
+    to produce an observable effect within any FAST step budget via the
+    natural Task-8.4 recruitment buildup alone (mirrors the already-flagged
+    ``NK_CD8_CHEMOTAXIS_ENGINE_SCALE`` weak-effect-at-default-scale finding,
+    task-7.1-report.md) -- this override lets a test set a large synthetic
+    nearby population directly to exercise the `killing.nearby_kill_rate`
+    wiring itself (task-8.5-report.md), without tuning the rate formula or
+    any recruitment constant.
+
+    **DH-input fix (load-bearing, from the Task-8.2 review):** a cell killed
+    by this step is an infected cell (I -> D), i.e. dead-from-INFECTED (the
+    source's ``DI``, see `price_ode.derived_inputs`'s ``DI = tot - H - I -
+    DH``) -- NOT dead-from-HEALTHY (``DH``). This driver has no H -> D
+    mechanism (no ROS/Allee death wired here), so every ``types.D`` cell in
+    this driver is dead-from-infected; the spatial->ODE ``DH`` input is
+    therefore the raw ``types.D`` count MINUS the ids this step has killed
+    (tracked in ``dead_from_infected_ids``, persists across MCS), not the raw
+    count itself -- else ``DH`` would over-count and (via `price_ode.
+    derived_inputs`'s ``DI = tot - H - I - DH``) ``DI`` would under-count,
+    suppressing the APC-production term ``dP/dt``'s ``g_pi*DI`` driver.
+
+    ``side`` is the nominal square epithelial-patch edge in lattice sites; the
+    scenario's ``epithelial_cells_per_side`` is ``round(side/CELL_SIDE_SITES)``
+    and, when ``num_epithelial is None``, the ODE reference population
+    ``tot_cell`` is taken as the ACTUAL epithelial (H+I) cell count in the built
+    scenario -- so ``D = tot_cell - H - I = 0`` at MCS 0 (no spurious dead
+    epithelium injected into Sigma1). Defaults are deliberately small/fast;
+    paper-scale is Increment 9.
+
+    HOMEOSTATIC-SEEDING CHOICE (load-bearing carry-forward from Task 8.1): the
+    ODE's healthy fixed point encodes tissue-resident immune homeostasis at
+    populations ``b_m, b_k`` (~= eta * homeostatic_pops_ode). This driver feeds
+    the TRUE spatial M/K/E counts (it does NOT clamp them to ``max(., b_m)``).
+    At these small ``side`` defaults ``eta`` is tiny so ``b_k`` is far below the
+    seeded NK count -- the initial (IC) IFN-gamma ``G`` was built with ``K=b_k``,
+    so feeding the larger spatial ``K`` makes ``G`` step up over MCS 1. This is
+    the expected Increment-8 coupling artifact the brief flags (recruitment in
+    Task 8.4 will grow the ODE populations to match); it is recorded, not
+    masked. See task-8.2-report.md.
+
+    Returns per-MCS series (one entry per MCS, index 0 = the first stepped MCS):
+      - "mcs": MCS index (1..steps)
+      - "ode": {sp: [...]} for each of the 10 integrated states
+        (NB, N, T, X, A, B, P, W, G, O)
+      - "spatial": {"H","I","M","K","E","DH","V","F","C","L": [...]} -- the fed-in
+        spatial aggregates (counts and z-normalized field integrals)
+      - "sigma1": [a_11*T + a_12*D] each MCS (T from the ODE, D from spatial
+        counts) -- Task 8.3: this is the DYNAMIC sig_1 actually fed into
+        `_apply_secretion_scales` (macrophage chemokine + IL-10 Michaelis
+        secretion gate, `signaling.macrophage_secretion_scale`), replacing
+        the static Increment-6 stub (`params.il10.sig_1_stub`). Causal
+        ordering: MCS N's secretion scale uses the sig_1 computed from MCS
+        (N-1)'s freshly-integrated ODE state + spatial dead count (MCS 0 uses
+        D=0, T=the healthy IC's T=0.0) -- the ODE step for MCS N itself runs
+        AFTER MCS N's world.step/secretion, so same-MCS sig_1 isn't causally
+        available.
+      - "params": the scenario/run knobs, for the report.
+    """
+    params = load_params()
+    a_rf = float(params["resistance"]["a_rf"])
+    # Task 8.3: sig_1 (the first element) is the STATIC Increment-6 stub --
+    # discarded here. Only the Hill-shape constants g_1/g_2/d_2 are reused;
+    # `_apply_secretion_scales` below is fed the DYNAMIC sig_1 instead
+    # (a_11*T + a_12*D, computed each MCS).
+    _, g_1, g_2, d_2 = fields.il10_hill_constants()
+    # Task 8.5 killing coefficients: the SAME population-independent per-MCS
+    # coefficients `run_cytotoxic_response` uses for the LOCAL term (`nk.
+    # g_ik`/`cd8.g_ie`), also the `g_i` the NEARBY term's `killing.
+    # nearby_kill_rate` divides by `eta` (dossier §4b(iii)) -- NOT `consts
+    # ["g_ki"]`/`consts["b_ei"]` below, which are the DIFFERENT eta-scaled
+    # coefficients driving the Task-8.4 recruitment outflow terms G_ki/B_ei.
+    g_ik = float(params["nk"]["g_ik"])
+    g_ie = float(params["cd8"]["g_ie"])
+    tot_ec = float(params["scaling"]["ode_epithelial_population"])
+
+    eps = max(1, int(round(side / sheet.CELL_SIDE_SITES)))
+    n_epi_cells = eps * eps
+    n_infected = max(1, int(round(seed_infection_frac * n_epi_cells)))
+    n_infected = min(n_infected, n_epi_cells)
+
+    if with_immune:
+        spec = immune.build_cytotoxic_scenario_spec(
+            epithelial_cells_per_side=eps, n_infected=n_infected, seed=seed,
+            **scenario_kw)
+    else:
+        spec = immune.build_macrophage_scenario_spec(
+            epithelial_cells_per_side=eps, n_infected=n_infected, seed=seed,
+            **scenario_kw)
+
+    cell_type_by_idx = [c["type"] for c in spec["cells"]]  # spec index i -> cell id i+1
+    infected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.I]
+    macrophage_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.M]
+    uninfected_ids = [i + 1 for i, t in enumerate(cell_type_by_idx) if t == types.H]
+    n_epithelial_actual = sum(1 for t in cell_type_by_idx if t in (types.H, types.I))
+
+    # ODE reference population (tot_cell). Default: the ACTUAL epithelial count,
+    # so D = tot - H - I = 0 at MCS 0 (no spurious dead epithelium in Sigma1).
+    tot_cell = int(num_epithelial) if num_epithelial is not None else n_epithelial_actual
+    # eta = num_epithelial / tot_ec_ODE (`scaling.eta_0p3mm`/`eta_1p0mm`'s
+    # general form, dossier §4b(iii)) -- the Task-8.5 NEARBY killing term's
+    # population-scale divisor; also recorded in "params" below (unchanged
+    # value/definition from before this task).
+    eta = tot_cell / price_ode.ODE_EPITHELIAL_POPULATION
+
+    world = build.world_from_spec(spec, finalize=False)
+    virus_fi = fields.add_virus_field(world)
+    ifn_fi = fields.add_ifn_field(world)
+    chemo_fi = fields.add_chemokine_field(world)
+    il10_fi = fields.add_il10_field(world)
+
+    # Task 8.4: pre-seed the dormant recruitment reserve pool BEFORE finalize
+    # (the only time the engine allows new cells -- see RECRUIT_RESERVE_TYPE).
+    # Targets = the immune types the scenario actually builds (macrophage-only
+    # scenario has no NK/CD8 clusters, so it pools only macrophages).
+    recruit_targets = [types.M, types.K, types.E] if with_immune else [types.M]
+    reserve_pool: dict[int, list[int]] = {}
+    if with_recruitment:
+        mv = int(params["macrophage"]["volume_sites"])
+        mlv = float(params["macrophage"]["lambda_volume"])
+        # Reserve cells are inert loners: give them a modest Medium adhesion so
+        # they hold shape and stay parked (they never chemotax/secrete while
+        # dormant). One J vs each existing type + self is enough.
+        for t in range(0, RECRUIT_RESERVE_TYPE):
+            world.set_contact(RECRUIT_RESERVE_TYPE, t, 10.0)
+        world.set_contact(RECRUIT_RESERVE_TYPE, RECRUIT_RESERVE_TYPE, 25.0)
+        reserve_pool = _seed_recruit_pool(
+            world, spec, pool_per_type=recruit_pool_per_type, targets=recruit_targets,
+            target_volume=mv, lambda_volume=mlv)
+
+    world.finalize(int(spec["potts"]["seed"]))
+
+    dim_z = world.dims()[2]  # z=1 in this reproduction; §4a divides integrals by dim.z
+
+    # Task-8.1 ODE: resolve constants at this tot_cell, seed the healthy IC.
+    consts = price_ode.resolve_constants(params["price_ode"], num_epithelial=tot_cell)
+    ode = price_ode.GlobalODE(consts, num_epithelial=tot_cell)
+    state = price_ode.initial_state(consts, num_epithelial=tot_cell, v0=0.0)
+    # Task 8.5 test seam (see docstring, "initial_K_nb/initial_E_nb"
+    # paragraph): both default 0.0 (== `price_ode.initial_state`'s own
+    # healthy-IC value, a no-op).
+    if initial_K_nb:
+        state["K_nb"] = float(initial_K_nb)
+    if initial_E_nb:
+        state["E_nb"] = float(initial_E_nb)
+    b_ei = consts["b_ei"]
+    g_ki = consts["g_ki"]
+    a_11, a_12 = consts["a_11"], consts["a_12"]
+
+    # Task 8.4 recruitment: a dedicated seeded RNG stream (offset unused by any
+    # other stream in this module) keeps the inflow Poisson draws + outflow
+    # Bernoulli draws deterministic and independent of the Potts RNG.
+    recruit_rng = np.random.default_rng(seed + 900)
+    _lr = params["coupling"]["recruitment"]["local_ratios"]
+    local_ratio = {types.M: float(_lr["macro"]), types.K: float(_lr["nk"]),
+                   types.E: float(_lr["cd8"])}
+    # (target_type, inflow_fn(driver, consts), outflow_fn(load, consts),
+    #  driver-picker, load-picker, nearby-surrogate key) -- discrepancy #12:
+    # macrophage/NK are chemokine(C)-driven, CD8 is APC(P)-driven; CD8 inflow
+    # has NO homeostatic baseline. Drivers are read fresh each MCS below.
+    def _recruit_step(C_field, P_ode, G_ki_now, B_ei_now):
+        """Run one MCS of ODE-driven recruitment (AFTER the ODE step, per the
+        source's post-`rr.timestep()` `update_populations`). Mutates the world
+        (activate reserves / remove cells) and the ODE nearby surrogates in
+        `state`; returns the six per-type inflow/outflow rates for recording.
+
+        `recruit_zero_signal` forces the Hill DRIVER fields (C, P) to 0 -- the
+        no-signal control that isolates each law's signal-driven Hill term from
+        its (signal-independent) homeostatic baseline. G_ki/B_ei (infected-load
+        outflow terms) are spatial state, not the recruitment signal, so they
+        are NOT zeroed."""
+        C_sig = 0.0 if recruit_zero_signal else C_field
+        P_sig = 0.0 if recruit_zero_signal else P_ode
+
+        rates = {
+            "macro_inflow": recruitment.macrophage_inflow(C_sig, consts),
+            "nk_inflow": recruitment.nk_inflow(C_sig, consts),
+            "cd8_inflow": recruitment.cd8_inflow(P_sig, consts),
+            "macro_outflow": recruitment.macrophage_outflow(consts),
+            "nk_outflow": recruitment.nk_outflow(G_ki_now, consts),
+            "cd8_outflow": recruitment.cd8_outflow(B_ei_now, consts),
+        }
+        by_type = {
+            types.M: (rates["macro_inflow"], rates["macro_outflow"], "M_nb"),
+            types.K: (rates["nk_inflow"], rates["nk_outflow"], "K_nb"),
+            types.E: (rates["cd8_inflow"], rates["cd8_outflow"], "E_nb"),
+        }
+        for t, (inflow, outflow, nb_key) in by_type.items():
+            lr = local_ratio[t]
+            # --- LOCAL fraction -> CPM cells --------------------------------
+            # Outflow: remove each active cell with prob ul_rate_to_prob(lr*out)
+            # (source `outflow_by_type`). Removed cells' voxels go to Medium AND
+            # are relabelled to the reserve type so they stop counting/secreting.
+            pr_out = recruitment.ul_rate_to_prob(lr * outflow)
+            if pr_out > 0.0:
+                active = [cid for cid, ct in enumerate(world.cell_types())
+                          if ct == t and cid != 0]
+                to_remove = [cid for cid in active if recruit_rng.random() < pr_out]
+                if to_remove:
+                    world.remove_cells(to_remove)
+                    for cid in to_remove:
+                        world.set_cell_type(cid, RECRUIT_RESERVE_TYPE)
+            # Inflow: Poisson draw at lr*inflow, activate that many reserves
+            # (capped by the pool; extra draws fail, matching the source's
+            # `try_add` failure when no Medium/cell is available).
+            n_local = recruitment.poisson_inflow_count(lr * inflow, recruit_rng)
+            pool_t = reserve_pool.get(t, [])
+            for _ in range(n_local):
+                if not pool_t:
+                    break
+                world.set_cell_type(pool_t.pop(0), t)
+            # --- NEARBY fraction -> ODE surrogate (M_nb/K_nb/E_nb) ----------
+            # (1-lr) of the inflow accrues into the well-mixed nearby surrogate
+            # rather than placing a CPM cell (dossier Sec.4b(ii) / brief); it
+            # attrits at the full outflow rate. Continuous (these are ODE
+            # populations). Macrophage lr=1.0 -> no nearby accrual.
+            nearby_in = (1.0 - lr) * inflow
+            state[nb_key] = state[nb_key] * (1.0 - recruitment.ul_rate_to_prob(outflow)) + nearby_in
+        return rates
+
+    def _apply_secretion_scales(sig_1_dynamic):
+        # Increment-6 IL-10-Hill macrophage secretion regulation (existing
+        # physics, same as run_macrophage_signaling), now driven by the
+        # Task-8.3 DYNAMIC sig_1 = a_11*T + a_12*D (ODE TNF + spatial dead
+        # count) instead of the static Increment-6 stub: local IL-10
+        # self-limits the macrophage's chemokine + IL-10 release; uninfected
+        # cells' IL-10 is (1-resist)-gated (unaffected by sig_1).
+        for cid in macrophage_ids:
+            l_loc = world.field_mean_at_cell(il10_fi, cid)
+            scale = signaling.macrophage_secretion_scale(l_loc, sig_1_dynamic, g_1, g_2, d_2)
+            world.set_cell_secretion_scale(chemo_fi, cid, scale)
+            world.set_cell_secretion_scale(il10_fi, cid, scale)
+        for cid in uninfected_ids:
+            f_bar = world.field_mean_at_cell(ifn_fi, cid)
+            resist = cell_resistance(f_bar, a_rf)
+            world.set_cell_secretion_scale(il10_fi, cid, signaling.uninfected_il10_scale(resist))
+
+    # Task 8.5 kill-draw RNG: a dedicated stream/offset (unused by any other
+    # RNG in this function -- `recruit_rng` above uses seed+900) so kill
+    # draws don't correlate with the recruitment inflow/outflow draws or the
+    # Potts RNG (set at `world.finalize`).
+    kill_rng = np.random.default_rng(seed + 800)
+    # DH-input fix (see this function's docstring, "DH-input fix" paragraph):
+    # ids of cells killed BY THIS STEP (dead-from-INFECTED, source `DI`), kept
+    # so the spatial->ODE `DH` (dead-from-HEALTHY) input below can exclude
+    # them -- this driver has no other death mechanism, so every `types.D`
+    # cell is one of these.
+    dead_from_infected_ids: set[int] = set()
+
+    def _apply_cytotoxic_killing():
+        """Task 8.5: for every id still in `infected_ids`, combine the
+        Task-7.2 LOCAL contact term (`killing.contact_kill_rate`, NK + CD8+,
+        via `world.cell_contact_area_by_type` -- reused exactly as
+        `run_cytotoxic_response`'s killing step) with the well-mixed NEARBY
+        term (`killing.nearby_kill_rate`, this task, using `state["K_nb"]`/
+        `state["E_nb"]`, gated by `enable_nearby_killing`) into ONE total
+        rate, draw death with `Pr = 1 - exp(-total_rate)`
+        (`recruitment.ul_rate_to_prob`), and on a kill: `world.set_cell_type
+        (cid, types.D)`, drop `cid` from `infected_ids`, record it in
+        `dead_from_infected_ids`. See this function's module-level docstring
+        for the full derivation/causal-ordering note."""
+        if not infected_ids:
+            return
+        cell_volumes = world.cell_volumes()
+        for cid in list(infected_ids):
+            contact = world.cell_contact_area_by_type(cid)
+            srf_nk = contact.get(types.K, 0)
+            srf_cd8 = contact.get(types.E, 0)
+            f_bar = world.field_mean_at_cell(ifn_fi, cid)
+            resist = cell_resistance(f_bar, a_rf)
+            cell_volume = cell_volumes[cid]
+
+            total_rate = (
+                killing.contact_kill_rate(srf_nk, resist, g_ik, tot_ec, cell_volume)
+                + killing.contact_kill_rate(srf_cd8, resist, g_ie, tot_ec, cell_volume)
+            )
+            if enable_nearby_killing:
+                total_rate += (
+                    killing.nearby_kill_rate(g_ik, eta, state["K_nb"], resist)
+                    + killing.nearby_kill_rate(g_ie, eta, state["E_nb"], resist)
+                )
+
+            if kill_rng.random() < 1.0 - math.exp(-total_rate):
+                world.set_cell_type(cid, types.D)
+                infected_ids.remove(cid)
+                dead_from_infected_ids.add(cid)
+
+    result = {
+        "mcs": [],
+        "ode": {sp: [] for sp in price_ode.INTEGRATED_STATES},
+        "spatial": {k: [] for k in ("H", "I", "M", "K", "E", "DH", "V", "F", "C", "L")},
+        "sigma1": [],
+        # Task 8.4: per-MCS recruited populations (LOCAL CPM counts M/K/E, NEARBY
+        # ODE surrogates M_nb/K_nb/E_nb) + the driving inflow rates, for the
+        # report/trajectory. Absent when with_recruitment=False.
+        "recruit": ({"M": [], "K": [], "E": [], "M_nb": [], "K_nb": [], "E_nb": [],
+                     "macro_inflow_rate": [], "nk_inflow_rate": [], "cd8_inflow_rate": [],
+                     "macro_outflow_rate": [], "nk_outflow_rate": [], "cd8_outflow_rate": []}
+                    if with_recruitment else None),
+    }
+
+    # Task-8.3: sig_1 seed BEFORE MCS 1 -- D = tot_cell - H - I = 0 at MCS 0
+    # (the same invariant the module docstring already documents for the
+    # recorded sigma1 series), T = the healthy-IC ODE state's T (0.0 per
+    # §2.5). This is the dynamic sig_1 the FIRST `_apply_secretion_scales`
+    # call below uses; each subsequent MCS uses the sig_1 computed from the
+    # PRECEDING MCS's freshly-integrated ODE state + spatial dead count (the
+    # only causal ordering available: this MCS's secretion is set before this
+    # MCS's own ODE step runs).
+    sig_1_dynamic = a_11 * state["T"] + a_12 * 0.0
+
+    for mcs in range(1, steps + 1):
+        world.step(mcs_per_step)
+        _apply_secretion_scales(sig_1_dynamic)
+        # Task 8.5: NK/CD8 cytotoxic killing (LOCAL + NEARBY), BEFORE reading
+        # this MCS's spatial aggregates below, so I/DH reflect any kills that
+        # just happened this MCS (see this function's docstring).
+        _apply_cytotoxic_killing()
+
+        # --- read spatial aggregates (§4a) ---
+        types_now = world.cell_types()
+        H = sum(1 for t in types_now[1:] if t == types.H)
+        I = sum(1 for t in types_now[1:] if t == types.I)
+        M = sum(1 for t in types_now[1:] if t == types.M)
+        K = sum(1 for t in types_now[1:] if t == types.K)
+        E = sum(1 for t in types_now[1:] if t == types.E)
+        # Task 8.5 DH-input fix: raw `types.D` count MINUS the ids Task 8.5's
+        # killing has itself killed (dead-from-INFECTED, source `DI`) -- this
+        # driver has no other death mechanism, so every `types.D` cell here IS
+        # one of `dead_from_infected_ids`, and DH (dead-from-HEALTHY) stays 0.
+        # See this function's docstring, "DH-input fix" paragraph.
+        D_total = sum(1 for t in types_now[1:] if t == types.D)
+        DH = D_total - len(dead_from_infected_ids)
+
+        V = float(sum(world.field_conc(virus_fi))) / dim_z
+        F = float(sum(world.field_conc(ifn_fi))) / dim_z
+        C = float(sum(world.field_conc(chemo_fi))) / dim_z
+        L = float(sum(world.field_conc(il10_fi))) / dim_z
+
+        # resistance-weighted infected load: B_ei = Σ_infected(resist)*b_ei,
+        # G_ki = Σ_infected(resist)*g_ki (§4a, ImmuneModelSteppable :1300-1306).
+        sum_resist = 0.0
+        for cid in infected_ids:
+            f_bar = world.field_mean_at_cell(ifn_fi, cid)
+            sum_resist += cell_resistance(f_bar, a_rf)
+        B_ei = sum_resist * b_ei
+        G_ki = sum_resist * g_ki
+
+        inputs = dict(H=H, I=I, M=M, K=K, E=E, DH=DH,
+                      V=V, F=F, C=C, L=L, B_ei=B_ei, G_ki=G_ki)
+
+        # --- integrate one MCS (dt = 60 s) ---
+        state = ode.step(state, inputs, dt_seconds=60.0)
+
+        # --- Task 8.4: ODE-driven recruitment (AFTER the ODE step, using the
+        # freshly-integrated APC P + this MCS's chemokine field C and infected-
+        # load terms) -- seeds/removes CPM immune cells + updates nearby
+        # surrogates. Its effect on the M/K/E counts is seen by the NEXT MCS's
+        # spatial->ODE push (source ordering: update_populations follows
+        # rr.timestep()). ---
+        if with_recruitment:
+            rates = _recruit_step(C, state["P"], G_ki, B_ei)
+            types_after = world.cell_types()
+            result["recruit"]["M"].append(sum(1 for t in types_after[1:] if t == types.M))
+            result["recruit"]["K"].append(sum(1 for t in types_after[1:] if t == types.K))
+            result["recruit"]["E"].append(sum(1 for t in types_after[1:] if t == types.E))
+            result["recruit"]["M_nb"].append(state["M_nb"])
+            result["recruit"]["K_nb"].append(state["K_nb"])
+            result["recruit"]["E_nb"].append(state["E_nb"])
+            result["recruit"]["macro_inflow_rate"].append(rates["macro_inflow"])
+            result["recruit"]["nk_inflow_rate"].append(rates["nk_inflow"])
+            result["recruit"]["cd8_inflow_rate"].append(rates["cd8_inflow"])
+            result["recruit"]["macro_outflow_rate"].append(rates["macro_outflow"])
+            result["recruit"]["nk_outflow_rate"].append(rates["nk_outflow"])
+            result["recruit"]["cd8_outflow_rate"].append(rates["cd8_outflow"])
+
+        # Task 8.3: sig_1 = a_11*T + a_12*D (D from spatial counts, T from the
+        # ODE state just integrated) -- recorded AND carried into next MCS's
+        # `_apply_secretion_scales` call above, replacing the static
+        # Increment-6 stub as the macrophage chemokine/IL-10 secretion driver.
+        D = tot_cell - H - I
+        sig_1_dynamic = a_11 * state["T"] + a_12 * D
+        sigma1 = sig_1_dynamic
+
+        result["mcs"].append(mcs)
+        for sp in price_ode.INTEGRATED_STATES:
+            result["ode"][sp].append(state[sp])
+        for k, v in inputs.items():
+            if k in result["spatial"]:
+                result["spatial"][k].append(v)
+        result["sigma1"].append(sigma1)
+
+    result["params"] = {
+        "side": side, "epithelial_cells_per_side": eps,
+        "num_epithelial": tot_cell, "n_epithelial_actual": n_epithelial_actual,
+        "n_infected": n_infected, "seed_infection_frac": seed_infection_frac,
+        "with_immune": with_immune, "steps": steps, "seed": seed,
+        "mcs_per_step": mcs_per_step, "eta": eta,
+        "b_m": consts["b_m"], "b_k": consts["b_k"], "b_p": consts["b_p"],
+        "with_recruitment": with_recruitment,
+        "recruit_pool_per_type": recruit_pool_per_type if with_recruitment else 0,
+        "recruit_zero_signal": recruit_zero_signal,
+        "recruit_local_ratios": {"macro": local_ratio[types.M], "nk": local_ratio[types.K],
+                                 "cd8": local_ratio[types.E]},
+        "enable_nearby_killing": enable_nearby_killing,
+        "n_infected_final": len(infected_ids),
+        "dead_from_infected": len(dead_from_infected_ids),
     }
     return result

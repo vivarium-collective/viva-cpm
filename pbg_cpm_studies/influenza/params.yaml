@@ -831,3 +831,242 @@ scenarios:
   initial_viral_load: [1, 10, 100, 1000, 10000]
   initial_infection_fraction: [0.001, 0.005, 0.01, 0.05]
   patch_mm: [0.3, 1.0]
+
+price_ode:               # Price/Mochan-Keef et al. 2015 in-host ODE, hybrid-coupled per Sego 2022;
+  # authority: docs/cc3d-reference/sego2022-global-ode.md (extracted verbatim from CC3D
+  # ViralInfectionVTM source). See dossier Sec.1/Sec.6 discrepancy #9: this is a HYBRID coupling,
+  # not a free-standing 20-var ODE -- only integrated_states below are actually integrated.
+  # Citation (workspace/references/papers.bib intentionally NOT modified -- Task 8.0 scope is
+  # limited to params.yaml/tests/dossier): Price, I., Mochan-Keef, E.D., Swigon, D., Ermentrout,
+  # G.B., Lukens, S., Toapanta, F.R., Ross, T.M., Clermont, G. (2015). "The inflammatory response
+  # to influenza A virus (H1N1): An experimental and mathematical study." J. Theor. Biol. 374,
+  # 83-93. (Cellularized by Sego et al. 2022, J. Theor. Biol. 532:110918.)
+  source: "ImmuneModel/ImmuneModelLib.py:immune_model_string (lines 45-229)"   # spatial-coupling model, the one actually integrated
+  reference_full_ode: "ImmuneModel/ImmuneModelLib.py:immune_model_string_ode (lines 232-410)"  # side-by-side reference only, NOT the spatial driver -- discrepancy #9
+  model_name: "FluODE_20vars"                                # ImmuneModelLib.py:14
+  integrated_states: [NB, N, T, X, A, B, P, W, G, O]          # uncommented eqns, lines 164-187
+  integrated_nearby_surrogates: [M_nb, K_nb, E_nb]            # lines 220,223,226
+  spatialized_states: [H, I, M, E, K, L, C, F, V, DH]         # overwritten from CPM/fields each step, dossier Sec.4a
+  hill_exponents: {h_m: 3, h_x: 2, h_k: 2, h_e: 3, h_o: 2}    # dossier Sec.2.3, lines 48-52 / 254-258
+
+  integrator:                          # dossier Sec.5
+    solver: "roadrunner_cvode"         # add_free_floating_antimony, ViralInfectionVTMSteppables.py:1147 -- this reproduction approximates with scipy LSODA (Task 8.1+), not libRoadRunner/CVODE
+    step_size: 1                       # ImmuneModelInputs.py:24  im_step_size
+    steps_per_mcs: 1                   # ImmuneModelSteppable freq=1, rr.timestep() once/MCS, :1078
+    seconds_per_mcs: 60                # ViralInfectionVTMModelInputs.py:31  s_to_mcs (dt = 1 min biological time per MCS)
+
+  scaling:                             # dossier Sec.3 -- eta/theta cellularization coefficients
+    ode_epithelial_population: 250000            # ImmuneModelInputs.py:27  tot_ec_ODE
+    eta_formula: "num_epithelial / 250000"       # get_pop_scale_factor, ImmuneModelLib.py:592-594  (eta == scale_vol == s_v)
+    eta_at_175: 0.0049                           # shipped 175x175 domain (ViralInfectionVTM.xml:19), 35^2=1225 cells
+    eta_at_500_1mm: 0.04                         # commented 500x500 domain (paper's 1mm patch, xml:20), 100^2=10000 cells
+    theta: 1.6e-7                                # scale_loc == s_l == 1/tot_ec_ODE/cell_volume = 1/(250000*25), generate_ode_model_instance:1142
+    s_t_formula: "s_to_mcs/86400"                # scale_time == s_t; = 6.9444e-4 day/MCS
+    cell_volume: 25                              # ViralInfectionVTMModelInputs.py:45
+    loc_to_global: "s_v/s_l"                     # ChemokineSecretionSteppable:1476
+
+  # -- rate constants: calibrated ODE-scale base value + cellularization scale token, dossier Sec.2.4
+  # (verbatim spatial-coupling model, ImmuneModelLib.py:immune_model_string lines 68-158).
+  # scale tokens: null (dimensionless), s_t, s_v, s_l, s_t*s_v, s_t/s_v, s_t/s_l, s_v*s_l, s_t*s_l/s_v,
+  # s_t/s_v/s_v, plus 1/s_l and 1/s_v (a_v, g_pi -- pure inverse scaling, no s_t factor; not among the
+  # brief's enumerated tokens but present verbatim in the dossier table -- see task report).
+  # Templated (b_m, b_k, b_p, V0): base is null; see `formula` (dossier Sec.2.5/Sec.3).
+  constants:
+    a_11: {base: 0.00061091213762049, scale: null}  # :68
+    mu_i: {base: 4.05042485998488, scale: s_t}
+    a_12: {base: 0.0000192792875130612, scale: null}  # :69
+    g_vi: {base: 278.068781202644, scale: s_t}
+    a_21: {base: 1.45266909729275, scale: s_v}  # :70
+    g_vh: {base: 0.0000121539069969014, scale: s_t/s_l}
+    a_22: {base: 1478.77349187226, scale: s_v}  # :71
+    g_va: {base: 0.00109087356190614, scale: s_t/s_v}
+    g_1: {base: 498.217901666102, scale: s_v}
+    g_v: {base: 197.445019092656, scale: s_t}
+    g_2: {base: 5462.05818489935, scale: s_v*s_l}
+    a_v: {base: 9.33445943442858, scale: 1/s_l}
+    d_2: {base: 428.253164311871, scale: s_l}
+    mu_v: {base: 0.412015488642712, scale: s_t}
+    b_mc: {base: 13620.4859808076, scale: s_t*s_v}
+    b_fi: {base: 0.196756617697923, scale: s_t}
+    a_mc: {base: 574.707608135459, scale: s_v}
+    b_fp: {base: 0.221363566856883, scale: s_t*s_l/s_v}
+    mu_m: {base: 0.242202409519884, scale: s_t}
+    g_fi: {base: 0.00181375452827859, scale: s_t/s_l}
+    b_m: {base: null, scale: templated, formula: "homeostatic_pops_ode.macro * eta (Sec.2.5: b_m = hs_macro_ODE * s_v, template {hs_macro})"}
+    mu_f: {base: 112.230629642229, scale: s_t}
+    b_t: {base: 61.1099298442215, scale: s_t}
+    a_rf: {base: 53.2223922879035, scale: s_l}  # :120
+    k_1: {base: 0.919560555407162, scale: null}
+    b_k: {base: null, scale: templated, formula: "homeostatic_pops_ode.nk * eta (Sec.2.5: b_k = hs_nk_ODE * s_v, template {hs_nk})"}
+    k_2: {base: 251.401895880346, scale: s_v}
+    b_kc: {base: 212683.830671333, scale: s_t*s_v}
+    d_1: {base: 57.0468005728478, scale: s_v}
+    a_kc: {base: 1356.29443420953, scale: s_v}
+    mu_t: {base: 559.245454719045, scale: s_t}
+    g_ki: {base: 8.83835904194133e-09, scale: s_t/s_v}
+    b_l: {base: 2.32377371988728, scale: s_t}  # :84
+    mu_k: {base: 2.20226570821557, scale: s_t}
+    mu_l: {base: 2.82296559789435, scale: s_t}
+    b_go: {base: 0.00267078457036687, scale: s_t}
+    b_lh: {base: 0.000463779438894315, scale: null}
+    a_go: {base: 0.701154807175855, scale: s_v}
+    b_c: {base: 40.203310453199, scale: s_t}  # :87
+    b_gk: {base: 1.61001492527962, scale: s_t}
+    mu_c: {base: 8.99003894588318, scale: s_t}
+    a_gk: {base: 11.3762919738437, scale: s_v}
+    b_nt: {base: 1831199.07978509, scale: s_t*s_v}
+    mu_g: {base: 89.9382159197401, scale: s_t}
+    a_nt: {base: 177.556178464038, scale: s_v}
+    p_0: {base: 6246.50442297409, scale: s_t*s_v}
+    a_nl: {base: 0.0466177133703488, scale: null}
+    g_pv: {base: 52.361340187773, scale: null}
+    g_nc: {base: 1565.77531103506, scale: s_t}
+    a_pv: {base: 953.016291300287, scale: s_v}
+    a_nc: {base: 199.135063775527, scale: s_v}
+    g_pi: {base: 0.0000216210269485218, scale: 1/s_v}
+    mu_n: {base: 0.776781658388633, scale: s_t}
+    g_p: {base: 0.00973849483459614, scale: null}
+    b_xn: {base: 609.739684621594, scale: s_t*s_v}
+    b_pg: {base: 0.126601176697398, scale: null}
+    a_xn: {base: 27277.1658907811, scale: s_v}
+    a_pg: {base: 902.666448958217, scale: s_v}
+    g_xi: {base: 0.0000390938622570566, scale: s_t/s_v}
+    mu_p: {base: 0.46572454272428, scale: s_t}
+    g_xh: {base: 4.60945452030246e-07, scale: s_t/s_v}
+    b_p: {base: null, scale: templated, formula: "homeostatic_pops_ode.apc * eta (Sec.2.5: b_p = hs_apc_ODE * s_v, template {hs_apc})"}
+    mu_x: {base: 235.25392576208, scale: s_t}
+    b_ep: {base: 101318.358506851, scale: s_t*s_v}
+    b_h: {base: 0.0000851174198534486, scale: s_t}
+    a_ep: {base: 14522.3188063909, scale: s_v}
+    theta: {base: 13217.8105366859, scale: s_v}
+    b_ei: {base: 2.87556725383114e-07, scale: s_t/s_v}
+    g_hv: {base: 1.41324585239137e-06, scale: s_t/s_l}
+    mu_e: {base: 0.441073272611722, scale: s_t}
+    g_hx: {base: 29.0380758578089, scale: s_t}
+    b_op: {base: 317070.082528766, scale: s_t*s_v}
+    a_hx: {base: 15.6825240521184, scale: s_v}
+    a_op: {base: 14823.8275674019, scale: s_v}
+    a_ix: {base: 0.0611971734649656, scale: s_v}
+    mu_o: {base: 0.921060461394949, scale: s_t}
+    g_ix: {base: 4.6524853526203, scale: s_t}
+    b_wo: {base: 0.0092284656047177, scale: s_t}
+    g_ik: {base: 0.0000308183563969158, scale: s_t}  # :107
+    a_wo: {base: 1987.31111667007, scale: s_v}
+    g_ie: {base: 0.000984984039016579, scale: s_t}  # :108
+    mu_w: {base: 0.936640894395778, scale: s_t}
+    b_b: {base: 9.99860060276184, scale: s_t*s_v}
+    b_bp: {base: 1.05601614882507e-06, scale: s_t/s_v/s_v}
+    b_0: {base: 56777.3326082613, scale: s_v}
+    mu_b: {base: 0.405022167434195, scale: s_t}
+    b_a: {base: 0.00487789881403722, scale: s_t*s_v}
+    b_ab: {base: 0.0685940586330701, scale: s_t}
+    g_av: {base: 0.000159387382062868, scale: s_t/s_v}
+    mu_a: {base: 5.43215036471264, scale: s_t}
+    V0: {base: null, scale: templated, formula: "Virus field total integral at ODE-instance build time (get_field_secretor(Virus).totalFieldIntegral(), template {v_ini})"}
+
+  homeostatic_pops_ode:                # get_homeostatic_pops, ImmuneModelLib.py:597-616 -- calibrated ODE-scale (organism-scale) homeostatic populations
+    macro: 21347.2655837073
+    nk: 225.999183404974
+    apc: 2064.80195826911
+    neutro_blood: 0
+    neutro: 0
+    # cellularized: multiply each by eta (scaling.eta_formula) to get b_m/b_k/b_p at patch scale
+    # (e.g. at eta_at_175: b_m ~= 0.0049*21347.3 ~= 104.6, b_k ~= 0.0049*226.0 ~= 1.107, b_p ~= 0.0049*2064.8 ~= 10.12)
+
+  initial_conditions:                  # dossier Sec.2.5, lines 190-229 -- Antimony IC expressions as
+    # strings (they reference other constants/rules; evaluated by the ODE-instance loader in Task 8.1)
+    NB: "{hs_neutro_blood}"            # default 0
+    N: "{hs_neutro}"                   # default 0
+    M: "b_m"                           # = hs_macro (cellularized)
+    L: "b_lh*(1-R)*tot_cell"
+    T: 0
+    X: 0
+    A: "(b_a + b_ab*B)/mu_a"
+    C: 0
+    I: 0
+    H: "tot_cell"
+    F: "b_fp*b_p/mu_f"
+    V: "V0"
+    DH: 0
+    E: "b_ep/mu_e * b_p^h_e/(b_p^h_e+a_ep^h_e)"
+    B: "(b_b + b_bp*b_p*W*b_0)/(b_bp*b_p*W + mu_b)"
+    K: "b_k"                           # = hs_nk (cellularized)
+    P: "b_p"                           # = hs_apc (cellularized)
+    W: "b_p/mu_w * O*b_wo/(O+a_wo)"
+    G: "(b_go*W/(a_go+W)*O + b_gk*W/(a_gk+W)*K)/mu_g"
+    O: "b_op/mu_o * b_p^h_o/(b_p^h_o+a_op^h_o)"
+    B_ei: 0                            # homogenized spatial-coupling var, default 0, overwritten each step
+    G_ki: 0                            # homogenized spatial-coupling var, default 0, overwritten each step
+    M_ratio: 0.0                       # nearby surrogates, set at init by init_fresh_immune_model()
+    M_nb: 0
+    K_ratio: 0.0
+    K_nb: 0.0
+    E_ratio: 0.0
+    E_nb: 0.0
+    # at-init seeding of infection (ImmuneModelSteppable.init_fresh_immune_model, lines 1099-1105):
+    # if v0 == 0, I <- int(num_epithelial * frac_init_infected) and H <- H - I (frac_init_infected = 0.05, ImmuneModelInputs.py:34)
+
+coupling:                              # dossier Sec.4 -- bidirectional SPATIAL<->ODE coupling map
+  spatial_to_ode:                      # Sec.4a -- fed into the ODE every MCS via set_model_val, ImmuneModelSteppable.step:1070-1086
+    H: "count(UNINFECTED)"                          # __update_cell_counts, :1311
+    I: "count(INFECTEDRELEASING)"                   # :1311
+    M: "num_immune_by_type(MACROPHAGE)"             # :1312
+    K: "num_immune_by_type(NKCELL)"                 # :1312
+    E: "num_immune_by_type(CD8TCELL)"                # :1312
+    DH: "count(DYING & dead_healthy)"                # :1313
+    V: "Virus_field_integral / dim.z"                # __update_field_integrals, :1315-1317
+    F: "type1interferon_field_integral / dim.z"      # :1315-1317
+    C: "chemo_field_integral / dim.z"                # :1315-1317
+    L: "il10_field_integral / dim.z"                 # :1315-1317
+    B_ei: "sum_infected(resist) * b_ei"              # __update_spatial_data, :1300-1304
+    G_ki: "sum_infected(resist) * g_ki"              # :1305-1306
+
+  sig_1:                                # Sec.4b(i) -- RESOLVED (Increment 5/6 stub); discrepancy #11:
+    # the secretion driven by sig_1 is a saturating Michaelis form, NOT a plain linear source.
+    definition: "Sigma1 = a_11*T + a_12*D"           # ImmuneModelLib.py:62 (algebraic assignment rule)
+    D: "tot_cell - H - I"                            # :61 (total dead epithelial)
+    drives: [chemo_secretion, il10_secretion]
+    secretion_form_local: "b * sig_1 / (sig_1 + (g_1*il10_local + g_2)/(il10_local + d_2))"   # :1489/:1551 -- per-macrophage local term
+    secretion_form_global: "b/(dimx*dimy*dimz) * num_macro_nearby * sig_1 / (sig_1 + (g_1*L + g_2_g)/(L + d_2_g))"  # :1499/:1561 -- well-mixed nearby term
+    g_2_g: "g_2 * loc_to_global"                     # :1497
+    d_2_g: "d_2 * loc_to_global"                     # :1498
+    b_chemo: {base: 40.203310453199, scale: s_t}     # b_c, :87 -- b_c/b_l further multiplied by dim.z in the steppable (:1483/:1545)
+    b_il10: {base: 2.32377371988728, scale: s_t}     # b_l, :84
+
+  recruitment:                          # Sec.4b(ii) -- RESOLVED; hill(v,a,h) = 1/(1+(a/v)^h)
+    macrophage:
+      inflow: "b_mc*hill(C, a_mc, h_m) + mu_m*b_m"   # :1185-1187
+      outflow: "mu_m"                                # :1198
+      field: chemo
+    nk:
+      inflow: "b_kc*hill(C, a_kc, h_k) + mu_k*b_k"   # :1189-1191
+      outflow: "G_ki + mu_k"                         # :1200
+      field: chemo
+    cd8:
+      inflow: "b_ep*hill(P, a_ep, h_e)"              # :1193 -- NO homeostatic baseline term (unlike macrophage/NK) -- discrepancy #12
+      outflow: "B_ei + mu_e"                         # :1202
+      field: apc_P                                   # asymmetric: recruitment driven by APC(P), NOT chemokine -- discrepancy #12
+    local_ratios: {macro: 1.0, nk: 0.75, cd8: 0.75}  # ImmuneModelInputs.py:39-44
+    seeding_fraction: 0.01                           # new_immune_cell_by_type, :1240
+
+  nearby_killing:                       # Sec.4b(iii) -- RESOLVED
+    nk: "ul_rate_to_prob( (g_ik/eta) * num_nk_nearby * cell_resist )"    # ContactKillingSteppable, :250,265,280
+    cd8: "ul_rate_to_prob( (g_ie/eta) * num_cd8_nearby * cell_resist )"  # :252,270,285
+    local_nk: "ul_rate_to_prob( g_ik*tot_ec_ODE * srf_nk * cell_resist / cell_volume )"    # :238,305
+    local_cd8: "ul_rate_to_prob( g_ie*tot_ec_ODE * srf_cd8 * cell_resist / cell_volume )"  # :240,313
+    g_ik: {base: 0.0000308183563969158, scale: s_t}  # :107
+    g_ie: {base: 0.000984984039016579, scale: s_t}   # :108
+    note: "multiplies cell_resist DIRECTLY, unlike every other resistance consumer which uses the complement -- discrepancy #7"
+
+  resistance:                           # Sec.3
+    form: "rho = f_bar / (a_rf + f_bar)"             # update_resistance, :1450 -- consumers use (1 - rho), EXCEPT nearby/local killing above
+    a_rf: {base: 53.2223922879035, scale: s_l}       # :120 (theta-scaled)
+
+  other_ode_to_spatial:                 # Sec.4b -- loop-closing couplings, not previously stubbed
+    ros_death_uninfected: "ul_rate_to_prob(g_hx*hill(X,a_hx,h_x))"     # OxidationAgentModelSteppable, :1369
+    ros_death_infected: "ul_rate_to_prob(g_ix*hill(X,a_ix,h_x))"       # :1370
+    antibody_virus_clearance: "virus_decay += g_va * A * dim.z"        # ViralSecretionSteppable, :202
+    apc_type1ifn_source: "b_fp * P"                                    # Type1InterferonSecretionSteppable, :1420
+    infected_apoptosis: "ul_rate_to_prob(mu_i*(1-resist))"             # ViralCellDeathSteppable, :125
+    allee_death: "b_h*tot_ec_ODE ... theta/num_epithelial"             # RecoverySteppable, :1601-1602
+    type2_ifn_G_route: "indirect only -- amplifies dP/dt via b_pg*G/(a_pg+G); no diffusive spatial field"  # immune_model_string_ode line 383
