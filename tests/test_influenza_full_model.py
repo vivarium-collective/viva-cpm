@@ -76,6 +76,24 @@ def test_repro_fig7_infection_fraction_sweep():
     assert "band_eval" in r
 
 
+def test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum():
+    # Task-9.3-review MUST-FIX regression (units bug): `run_full_model`'s
+    # "fields" section is a RAW SUM over the lattice, but `targets/fig5.json`
+    # digitizes extracellular_virus as a PER-SITE CONCENTRATION -- at t=0 for
+    # viral_load_multiplier=load, the target value IS `load` itself. Before
+    # the fix, `repro_fig5` fed the raw sum straight through
+    # (`load * n_patch_sites` ~ 3600x too large at cells_per_side=12,
+    # confirmed by direct measurement: worst_miss=1198.67 for load=1).
+    # `_map_full_model_observables` now divides field-typed observables by
+    # `n_lattice_sites` (`params.dims` product) before mapping, so the
+    # ensemble's t=0 extracellular_virus must land within an order of
+    # magnitude of `load`, not thousands of times larger.
+    load = 1000.0
+    r = run.repro_fig5(loads=(load,), replicas=1, cells_per_side=12, steps=2, seed0=0)
+    t0_virus = r["by_load"][load]["ensemble"]["extracellular_virus"][0][1]
+    assert 0.01 * load < t0_virus < 10 * load
+
+
 def test_fig7_target_subset_scenario_grouping_guard():
     # Fast unit test for the scenario-grouping guard itself (Task-9.3-review
     # gap: the fig5 guard was only verified interactively, not in pytest).

@@ -2067,6 +2067,46 @@ _FIG3B_OBSERVABLE_MAP = {
 }
 
 
+# Task-9.3-review MUST-FIX (units bug): `run_full_model`'s "fields" section
+# records the RAW SUM of `world.field_conc(...)` over every lattice site
+# (needed as-is by the §4 ODE coupling, whose V/F/C/L inputs divide only by
+# `dim_z` -- an areal-density convention, NOT a per-site concentration; see
+# `run_full_model`'s `_ode_couple`). `targets/{fig3b,fig5,fig7}.json`'s
+# field-typed observables (extracellular_virus, type1_ifn, chemokines, il10)
+# are digitized as PER-SITE CONCENTRATIONS -- e.g. fig5.json's t=0
+# `extracellular_virus` target for viral_load_multiplier=``load`` is
+# ``load`` itself, a concentration, while `run_full_model`'s raw sum at t=0
+# is ``load * n_patch_sites`` (thousands x too large). Converting the raw
+# sum to the lattice's SPATIAL-MEAN concentration (``sum / n_lattice_sites``,
+# ``n_lattice_sites = dim.x*dim.y*dim.z`` from this run's own
+# ``params.dims``) fixes the structural units mismatch. This conversion is
+# REPRO-OBSERVABLE-MAPPING-LAYER ONLY -- applied here, in the
+# `_FIG3B_OBSERVABLE_MAP`/`_FIG5_OBSERVABLE_MAP` application, never in
+# `run_full_model`'s own `fields[...]` recording (which Increments 0-8 and
+# the ODE coupling rely on staying a raw sum). Only the 4 FIELD-typed
+# observables (section == "fields") are converted; counts/ode sections pass
+# through unchanged -- they are already in the target's units.
+def _map_full_model_observables(result: dict, observable_map: dict) -> dict:
+    """Apply an observable map (`_FIG3B_OBSERVABLE_MAP`/`_FIG5_OBSERVABLE_MAP`)
+    to one `run_full_model` result ``result``, converting each FIELD-typed
+    observable (``section == "fields"``) from `run_full_model`'s raw
+    per-lattice-site sum to the spatial-mean concentration
+    (``value / n_lattice_sites``); counts/ode-typed observables pass through
+    unchanged. Returns ``{obs_name: [(t_days, value)]}``, the per-replica
+    mapped series `repro_fig3b`/`repro_fig5`/`repro_fig7` ensemble-mean via
+    `bands.aggregate_replicas`."""
+    n_lattice_sites = 1
+    for d in result["params"]["dims"]:
+        n_lattice_sites *= d
+    mapped = {}
+    for obs_name, (section, key) in observable_map.items():
+        series = list(zip(result["t_days"], result[section][key]))
+        if section == "fields":
+            series = [(t, v / n_lattice_sites) for t, v in series]
+        mapped[obs_name] = series
+    return mapped
+
+
 def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240,
                 seed0: int = 0) -> dict:
     """Increment 9 Task 9.2 -- the CAPSTONE `repro_fig3b` driver: run the full
@@ -2116,9 +2156,7 @@ def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240
         seed = seed0 + i
         r = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
                            init_infection_frac=0.05)
-        mapped = {}
-        for obs_name, (section, key) in _FIG3B_OBSERVABLE_MAP.items():
-            mapped[obs_name] = list(zip(r["t_days"], r[section][key]))
+        mapped = _map_full_model_observables(r, _FIG3B_OBSERVABLE_MAP)
         runs.append(mapped)
 
     ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
@@ -2329,9 +2367,7 @@ def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
             seed = seed0 + load_idx * replicas + r
             res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
                                  init_infection_frac=None, init_viral_load=float(load))
-            mapped = {}
-            for obs_name, (section, key) in _FIG5_OBSERVABLE_MAP.items():
-                mapped[obs_name] = list(zip(res["t_days"], res[section][key]))
+            mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
             runs.append(mapped)
 
         ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
@@ -2466,9 +2502,7 @@ def repro_fig7(*, fracs=(0.001, 0.005, 0.01, 0.05), replicas: int = 3,
             seed = seed0 + frac_idx * replicas + r
             res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
                                  init_infection_frac=float(frac), init_viral_load=None)
-            mapped = {}
-            for obs_name, (section, key) in _FIG5_OBSERVABLE_MAP.items():
-                mapped[obs_name] = list(zip(res["t_days"], res[section][key]))
+            mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
             runs.append(mapped)
 
         ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)

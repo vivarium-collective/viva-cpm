@@ -132,6 +132,25 @@ report:
     rounding degeneracy, not the mechanism's fidelity at that specific
     fraction -- a distinct, additional honesty caveat beyond
     `repro_fig5`'s scale/duration findings.
+
+    UNITS FIX CONFIRMATION (Task-9.3-review MUST-FIX, this update): this
+    study's own prior reasoning above is now CONFIRMED correct by direct
+    re-measurement. `repro_fig5`'s ~1200x extracellular_virus miss was
+    diagnosed and fixed as a structural raw-sum-vs-mean units bug in the
+    repro-observable mapping layer (`_map_full_model_observables`,
+    `pbg_cpm_studies/influenza/run.py`; see `repro-fig5-viral-load`'s F-04)
+    -- the same fix now applies to this study's `_FIG5_OBSERVABLE_MAP`-based
+    mapping too (fig7 reuses that map). Re-running this study's exact
+    reduced config (`fracs=(0.001,0.05), replicas=1, cells_per_side=12,
+    steps=15, seed0=0`) after the fix gives BYTE-IDENTICAL extracellular_virus
+    n_in/worst_miss to the pre-fix numbers reported above (5/6 worst_miss
+    0.33 at frac=0.001; 6/6 worst_miss 0.0 at frac=0.05) -- confirming this
+    study's own earlier read was right: `init_infection_frac` scenarios
+    (fig3b, fig7) never triggered the bug at reduced scale because the virus
+    field here builds up gradually via secretion from a handful of infected
+    cells rather than starting from a large uniform-load initial condition
+    (only `init_viral_load` scenarios, i.e. fig5, seed a large enough raw
+    field sum for the sites-factor to dominate at this reduced scale).
   caveat: >-
     CENTRAL HONEST CAVEAT (per the task brief, repeated here deliberately):
     this reduced-scale sweep (2 of the paper's 4 infection fractions, 1
@@ -532,17 +551,27 @@ findings:
       uninfected_cells worst_miss to 2.29 (the largest of any
       observable/fraction pair here) purely because the target expects
       infection to emerge and partially recede, not because the mechanism
-      is wrong. Unlike `repro_fig5`'s extracellular_virus finding (a
-      consistent ~1200x units-scale miss at every tested load), fig7's
-      extracellular_virus actually lands mostly/fully in-band here (5/6 at
-      frac=0.001, 6/6 at frac=0.05) -- this should NOT be read as the
-      fig3b/fig5 virus-field-units gap being resolved (it is not
-      investigated or fixed by this task, per the brief's explicit
-      instruction not to fix it here), but rather as a coincidence of this
-      reduced run's near-zero/low virus-field magnitudes landing inside
-      fig7.json's own bands at these particular fractions and this short
-      duration. NOT tuned away: no constant was adjusted and
-      `targets/fig7.json` was not edited to narrow this gap.
+      is wrong. Unlike `repro_fig5`'s ORIGINAL (now-fixed, see below)
+      extracellular_virus finding (a consistent ~1200x units-scale miss at
+      every tested load), fig7's extracellular_virus actually lands
+      mostly/fully in-band here (5/6 at frac=0.001, 6/6 at frac=0.05) --
+      this reduced run's near-zero/low virus-field magnitudes were never
+      near the sites-factor's regime, and this coincidence-of-scale reading
+      is unaffected by the units fix below. NOT tuned away: no constant was
+      adjusted and `targets/fig7.json` was not edited to narrow this gap.
+
+      UNITS FIX UPDATE (Task-9.3-review MUST-FIX, this update): the
+      `repro_fig5`/`repro_fig3b` "virus-field-units gap" this finding
+      deliberately left uninvestigated has now been diagnosed and fixed
+      (`repro-fig5-viral-load`'s F-04): it was a structural raw-sum-vs-mean
+      bug in the repro-observable mapping layer, not a genuine PFU-scale
+      calibration gap, fixed by reporting field observables as spatial-mean
+      concentration (`_map_full_model_observables`,
+      `pbg_cpm_studies/influenza/run.py`). This study's OWN
+      extracellular_virus numbers above are CONFIRMED UNCHANGED by direct
+      re-measurement after the fix (byte-identical n_in/worst_miss at both
+      fractions) -- this finding's original read (a scale coincidence, not a
+      units-bug escape) stands correct.
 
 conclusion: |
   `run.repro_fig7` (Task 9.4, the final task of the Increment-9 capstone
@@ -594,6 +623,13 @@ conclusion_verdicts:
       and `test_fig7_target_subset_scenario_grouping_guard`); no Increment
       0-8 driver, composite, `bands.py`, or params.yaml constant is
       modified by this task, and `targets/fig7.json` is read-only.
+      UPDATE (Task-9.3-review units fix, this update): all 9 tests in
+      `tests/test_influenza_full_model.py` pass, including the new
+      `test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum`
+      regression test; only `run.py`'s shared repro-observable-mapping
+      helper (`_map_full_model_observables`, used by `repro_fig3b`/
+      `repro_fig5`/`repro_fig7` alike) changed, confirmed to leave this
+      study's own reported numbers unchanged by direct re-measurement.
   biological_validation:
     result: PENDING
     basis: >-
@@ -647,11 +683,16 @@ biological_summary: |
   given the frac=0.001 degeneracy: this reduced config effectively compares
   ONE real infection scenario (0.05) against a no-infection baseline, not
   two genuine points on Fig-7's dose-response curve. Unlike
-  `repro_fig5`/`repro_fig3b`'s documented ~1200x extracellular_virus
+  `repro_fig5`/`repro_fig3b`'s ORIGINALLY documented ~1200x extracellular_virus
   units-scale miss, fig7's extracellular_virus lands mostly/fully in-band
   here (5/6 at frac=0.001, 6/6 at frac=0.05) -- reported as a coincidence
-  of this reduced run's low virus-field magnitudes, NOT as evidence the
-  units gap is resolved (not investigated here, per the brief). THIS STUDY
+  of this reduced run's low virus-field magnitudes, unaffected by the
+  Task-9.3-review units fix applied elsewhere in this update (see
+  `repro-fig5-viral-load` F-04): the raw-sum-vs-mean bug that fix resolves
+  never triggered here (`init_infection_frac` scenarios build the virus
+  field gradually via secretion, unlike fig5's large uniform-load initial
+  condition), confirmed by re-measurement after the fix (byte-identical
+  extracellular_virus numbers). THIS STUDY
   DOES NOT CLAIM FIG-7 IS REPRODUCED: the paper-scale 20-replica (fig7.json's
   own `scenario.replicas`), all-4-fraction, 10000-cell, ~15-day ensemble
   (`repro_fig7`'s own docstring documents this as `replicas=50` default
@@ -694,7 +735,7 @@ key_assumptions:
     counts (uninfected/infected cells) cannot match the target's absolute
     magnitudes at this reduced population even with perfectly calibrated
     rate constants.
-  - "EXTRACELLULAR-VIRUS RESULT DIFFERS FROM fig5/fig3b's DOCUMENTED UNITS GAP -- unlike `repro_fig5` (which missed extracellular_virus by ~1200x the band width at BOTH tested loads), this reduced fig7 run's extracellular_virus lands mostly/fully in-band (5/6 at frac=0.001, 6/6 at frac=0.05); this is reported as a likely coincidence of this reduced run's low virus-field magnitudes and fig7.json's own band widths at these fractions/duration, NOT as evidence the fig3b/fig5 virus-field-units mismatch is resolved -- that units question is out of scope for this task per the brief and is not investigated here."
+  - "EXTRACELLULAR-VIRUS RESULT DIFFERS FROM fig5/fig3b's ORIGINALLY DOCUMENTED UNITS GAP, NOW FIXED -- unlike `repro_fig5` (which originally missed extracellular_virus by ~1200x the band width at BOTH tested loads, a structural raw-sum-vs-mean bug fixed by the Task-9.3-review units fix, see `repro-fig5-viral-load` F-04), this reduced fig7 run's extracellular_virus lands mostly/fully in-band (5/6 at frac=0.001, 6/6 at frac=0.05); this was, and remains, a coincidence of this reduced run's low virus-field magnitudes and fig7.json's own band widths at these fractions/duration (init_infection_frac scenarios build the field gradually via secretion, never triggering the raw-sum sites-factor at this reduced scale) -- confirmed unchanged by direct re-measurement after the units fix, not merely assumed."
   - INHERITED CALIBRATION-PENDING ITEMS from `run_full_model` (Task 9.1,
     unchanged here) -- the documented `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x`
     chemotaxis engine-unit correction (Increment 7), and reduced-eta

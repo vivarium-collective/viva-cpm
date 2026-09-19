@@ -76,9 +76,12 @@ report:
     results (n_in/n_checked out of 6 digitized checkpoints each, worst_miss
     = largest relative out-of-band distance): load=1 -- uninfected_cells
     4/6 (worst_miss 5.57), infected_cells 0/6 (35.7), extracellular_virus
-    0/6 (1199), antibodies 5/6 (0.097); load=10000 -- uninfected_cells 6/6
-    (0, fully in-band), infected_cells 5/6 (0.037), extracellular_virus 0/6
-    (1196), antibodies 6/6 (0). NONE of these numbers were tuned to look
+    4/6 (worst_miss 0.208 -- was 0/6, worst_miss 1199, before the
+    Task-9.3-review units fix; see report.caveat), antibodies 5/6 (0.097);
+    load=10000 -- uninfected_cells 6/6
+    (0, fully in-band), infected_cells 5/6 (0.037), extracellular_virus 6/6
+    (worst_miss 0.0, FULLY IN-BAND -- was 0/6, worst_miss 1196, before the
+    units fix), antibodies 6/6 (0). NONE of these numbers were tuned to look
     better, and `targets/fig5.json` was NOT edited -- the band is the fixed
     oracle per the task brief.
   main_insight: >-
@@ -96,17 +99,41 @@ report:
     bands are comparatively tighter and its reduced-run infected fraction
     (56/144 ~ 39% infected by t~0.068 days) is already far above the
     target's load=1 trajectory (infected_cells stays in the 1-8 range even
-    at t_days=15), which the extracellular_virus miss (worst_miss ~1200 for
-    BOTH loads) corroborates: this engine's virus-field concentration units
-    are not on the same scale as the paper's reported extracellular-virus
-    values at ANY tested load, the same units mismatch fig3b's study
-    already flagged for that observable. The honest read: the DIRECTION of
+    at t_days=15). The honest read: the DIRECTION of
     the dose-response (more initial virus -> more, faster infection ->
     fewer surviving uninfected cells) is correctly reproduced by the wired
     mechanism; the MAGNITUDE/timing match to fig5's digitized bands is not,
     driven by population-scale (144 vs 10000 cells) and run-duration
     (~0.068 vs up to 15 simulated days) mismatch at this reduced config, not
     by an incorrect mechanism.
+
+    UNITS FIX (Task-9.3-review MUST-FIX, this update, supersedes the
+    prior "extracellular-virus units mismatch" reading below): the
+    ~1200x extracellular_virus miss this study previously reported at
+    BOTH loads was a STRUCTURAL BUG, not a real calibration/PFU-scale gap --
+    `repro_fig5` was mapping `run_full_model`'s RAW per-lattice-site SUM of
+    `field_conc` straight to `extracellular_virus`, while `targets/
+    fig5.json` digitizes that observable as a PER-SITE CONCENTRATION (its
+    t=0 value for a given `viral_load_multiplier` IS that multiplier
+    itself). Reporting the field's SPATIAL-MEAN concentration instead
+    (`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run's
+    own `params.dims`) resolves the sites-factor: extracellular_virus's
+    worst_miss drops from ~1200 to 0.208 (load=1, still 4/6 in-band, not
+    fully) and to 0.0 (load=10000, now FULLY IN-BAND, 6/6). A SMALL, HONEST
+    RESIDUAL remains and is NOT tuned away: at t=0 the spatial-mean model
+    value is ~0.375x the target (e.g. load=1 -> mean 0.375 vs target 1.0;
+    load=10000 -> mean 3750 vs target 10000) -- both same order of
+    magnitude as the target, not thousands of times off. This ~0.375
+    residual factor is the ratio of the seeded PATCH's site count to the
+    FULL simulation domain's site count (the domain reserves margin/
+    separation sites around the patch for the immune-cell clusters and
+    recruit reserve pool, per `run_full_model`'s `margin_sites`/
+    `separation_sites`; the virus is seeded only under the patch, so
+    averaging over the larger full-domain lattice dilutes the concentration
+    by the patch/domain area ratio). This is a real, distinct, honestly
+    flagged domain-geometry effect, not a units bug -- do not read it as
+    evidence the units fix is incomplete or tune `margin_sites`/
+    `separation_sites` to close it.
   caveat: >-
     CENTRAL HONEST CAVEAT (per the task brief, repeated here deliberately):
     this reduced-scale sweep (2 of the paper's 5 viral loads, 1 replica
@@ -132,18 +159,18 @@ report:
     `targets/fig5.json` was not touched to make this report's numbers look
     better.
   key_metrics:
-    - {name: band_eval_passed, value: false, note: "loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0 -- both per-load band evaluations fail (2 of 4 observables pass at load=10000; 0 of 4 pass at load=1)"}
+    - {name: band_eval_passed, value: false, note: "loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0 -- both per-load band evaluations fail (3 of 4 observables pass at load=10000, up from 2/4 pre-units-fix; 0 of 4 pass at load=1). See report.main_insight's UNITS FIX note: extracellular_virus is now fully in-band at load=10000 and 4/6 (was 0/6) at load=1."}
     - {name: lethal_threshold, value: 10000, note: "smallest tested load (of the 2 swept: 1, 10000) whose ensemble uninfected_final_frac <= 0.5; matches the paper's own qualitative Sec. 3.3 direction (lethal trend near 10000x) but is not a magnitude reproduction -- only 2 of the paper's 5 loads were swept at reduced scale"}
     - {name: monotone_dose_response, value: true, note: "uninfected_final_frac(load=10000)=0.0 <= uninfected_final_frac(load=1)=0.611 -- the reduced-scale test's own fidelity criterion, holds cleanly"}
     - {name: load1_uninfected_final_frac, value: 0.6111, note: "88/144 cells uninfected at t_days~0.068 (15 records)"}
     - {name: load10000_uninfected_final_frac, value: 0.0, note: "0/144 cells uninfected -- near-total infection within the first record at this reduced scale and uniform-IC seeding"}
     - {name: load1_uninfected_cells_n_in, value: "4/6", note: "worst_miss 5.57"}
     - {name: load1_infected_cells_n_in, value: "0/6", note: "worst_miss 35.7"}
-    - {name: load1_extracellular_virus_n_in, value: "0/6", note: "worst_miss 1199; engine virus-field units not on the paper's reported concentration scale, same issue fig3b's study flagged"}
+    - {name: load1_extracellular_virus_n_in, value: "4/6", note: "worst_miss 0.208 (was 0/6, worst_miss 1199, before the Task-9.3-review units fix: field observable now spatial-mean concentration, not run_full_model's raw lattice sum -- see report.main_insight). Honest residual: t=0 spatial-mean is ~0.375x the target (patch-area/full-domain-area dilution, not a units bug), same order of magnitude, not thousands x off."}
     - {name: load1_antibodies_n_in_soft, value: "5/6", note: "worst_miss 0.097; ODE-integrated A state, soft=true"}
     - {name: load10000_uninfected_cells_n_in, value: "6/6", note: "worst_miss 0.0 -- fully in-band, but a scale/duration+wide-band coincidence, see report.main_insight"}
     - {name: load10000_infected_cells_n_in, value: "5/6", note: "worst_miss 0.037"}
-    - {name: load10000_extracellular_virus_n_in, value: "0/6", note: "worst_miss 1196"}
+    - {name: load10000_extracellular_virus_n_in, value: "6/6", note: "worst_miss 0.0, FULLY IN-BAND (was 0/6, worst_miss 1196, before the units fix). Same ~0.375x residual dilution factor as load=1 at t=0 (mean=3750 vs target=10000), just inside this load's wider band."}
     - {name: load10000_antibodies_n_in_soft, value: "6/6", note: "worst_miss 0.0; soft=true"}
     - {name: reduced_run_sim_duration_days, value: 0.0681, note: "15 records x mcs_per_step=7 x s_per_mcs=60 / 86400; fig5 target checkpoints run 0.0-15.0 days -- bands.series_in_band flat-extrapolates the near-t=0 model value out to every later checkpoint"}
     - {name: reduced_vs_target_population, value: "144 vs 10000", note: "cells_per_side=12 -> 144 epithelial cells; targets/fig5.json scenario.total_epithelial_cells=10000 (cells_per_side=35 at paper scale, patch_mm=1.0)"}
@@ -345,13 +372,19 @@ readouts:
     units: n_in / n_checked (of 6 digitized checkpoints each)
     status: measured
     description: >-
+      UPDATED per the Task-9.3-review units fix (extracellular_virus now
+      spatial-mean concentration, not run_full_model's raw lattice sum):
       load=1: uninfected_cells 4/6 (worst_miss 5.57), infected_cells 0/6
-      (35.7), extracellular_virus 0/6 (1199), antibodies 5/6 (0.097,
+      (35.7), extracellular_virus 4/6 (worst_miss 0.208, was 0/6 worst_miss
+      1199 pre-fix), antibodies 5/6 (0.097,
       soft) -- load band_eval passed=False. load=10000: uninfected_cells
       6/6 (0, fully in-band), infected_cells 5/6 (0.037),
-      extracellular_virus 0/6 (1196), antibodies 6/6 (0, soft) -- load
-      band_eval passed=False (infected_cells + extracellular_virus miss).
-      Overall `band_eval["passed"]`=False.
+      extracellular_virus 6/6 (worst_miss 0.0, FULLY IN-BAND, was 0/6
+      worst_miss 1196 pre-fix), antibodies 6/6 (0, soft) -- load
+      band_eval passed=False (infected_cells still misses; extracellular_virus
+      no longer misses). Overall `band_eval["passed"]`=False (both loads
+      still fail on infected_cells/uninfected_cells/antibodies-at-load=1, a
+      population-scale/run-duration effect, not a units effect).
 
 behavior_tests:
   - name: repro_fig5 sweeps viral loads and returns a well-formed by_load/band_eval dict with the monotone dose-response
@@ -415,27 +448,76 @@ findings:
     mechanism_origin: engineered
     evidence:
       from_test: null
-      divergence_factor: 1199.0
-      observed: "load=1 band_eval passed=False (0/4 observables fully in-band); load=10000 band_eval passed=False (2/4 observables fully in-band); extracellular_virus worst_miss ~1200 at BOTH loads"
+      divergence_factor: 35.7
+      observed: "load=1 band_eval passed=False (0/4 observables fully in-band); load=10000 band_eval passed=False (3/4 observables fully in-band, up from 2/4 -- see F-04); infected_cells (load=1, worst_miss 35.7) and uninfected_cells (load=1, worst_miss 5.57) are now the dominant misses, not extracellular_virus (see F-04)."
     statement: |
-      This is the study's central honest finding, reported as a GAP (status:
-      partial), not hidden behind the driver's structural correctness
-      (F-01/F-02): at reduced scale (144 epithelial cells vs. the target's
-      10000; only 2 of the paper's 5 viral loads swept; ~0.068 simulated
-      days vs. the target's 0.0-15-day checkpoint window), per-load
-      `band_eval["passed"]` is False for every tested load. The
-      extracellular_virus observable misses hardest and identically at
-      both loads (worst_miss ~1200), the same units-mismatch this
-      investigation's `repro_fig3b` study already flagged for that
-      observable -- this engine's virus-field concentration units are not
-      on the paper's reported PFU-equivalent scale at ANY tested load, not
-      a load-specific defect. load=10000's uninfected_cells/antibodies land
-      fully in-band, but as `report.main_insight` documents this reflects
-      the paper's own widest, highest-spread bands at that load (Sec. 3.3)
-      plus this reduced run's near-instant total-infection collapse, not
+      SUPERSEDED IN PART by F-04 (Task-9.3-review units fix, this update):
+      this finding originally reported extracellular_virus missing hardest
+      and identically at both loads (worst_miss ~1200) as a "units
+      mismatch" attributed to the engine's virus-field concentration scale.
+      That diagnosis was WRONG -- it was a structural raw-sum-vs-mean units
+      BUG in `repro_fig5`'s observable mapping (fixed, see F-04), not a
+      genuine PFU-equivalent calibration gap. With the bug fixed,
+      extracellular_virus is now among the BEST-matching observables (4/6
+      at load=1, FULLY in-band at load=10000), and the dominant remaining
+      miss driver is the population-count observables (infected_cells,
+      uninfected_cells) at load=1 -- the same population-scale (144 vs.
+      10000 cells) and run-duration (~0.068 vs. up to 15 simulated days)
+      mismatch `repro_fig3b`'s study documents for its own population
+      counts, not a units or PFU-scale issue. This is the study's honest
+      reported GAP (status: partial), not hidden behind the driver's
+      structural correctness (F-01/F-02): at reduced scale, per-load
+      `band_eval["passed"]` is still False for every tested load. load=10000's
+      uninfected_cells/antibodies/extracellular_virus land fully in-band, but
+      as `report.main_insight` documents this partly reflects the paper's
+      own widest, highest-spread bands at that load (Sec. 3.3) plus this
+      reduced run's near-instant total-infection collapse, not
       individually-superior calibration at that load. NOT tuned away: no
       constant was adjusted and `targets/fig5.json` was not edited to
       narrow this gap.
+  - id: F-04
+    kind: computational
+    status: confirms
+    mechanism_origin: engineered
+    evidence:
+      from_test: test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum
+      divergence_factor: null
+      observed: "extracellular_virus worst_miss: load=1 1199 -> 0.208, load=10000 1196 -> 0.0 (now fully in-band); t=0 spatial-mean model value ~0.375x target at both loads (e.g. load=1: mean=0.375 vs target=1.0; load=10000: mean=3750 vs target=10000), same order of magnitude"
+    statement: |
+      UNITS FIX (Task-9.3-review MUST-FIX): `repro_fig5` (and
+      `repro_fig3b`/`repro_fig7`) previously mapped `run_full_model`'s
+      "fields" section -- a RAW SUM of `world.field_conc(...)` over every
+      lattice site, needed as-is by the §4 ODE coupling's V/F/C/L inputs --
+      straight through to the field-typed target observables
+      (extracellular_virus, type1_ifn, chemokines, il10), while
+      `targets/{fig3b,fig5,fig7}.json` digitizes those as PER-SITE
+      CONCENTRATIONS (fig5.json's t=0 extracellular_virus target for
+      viral_load_multiplier=load IS load itself). The raw sum over-reports
+      by ~n_lattice_sites (structurally worse at paper scale, more lattice
+      sites), which is exactly what F-03 originally (mis)diagnosed as a
+      PFU-equivalent calibration gap. `_map_full_model_observables`
+      (`pbg_cpm_studies/influenza/run.py`) now converts only the 4
+      field-typed observables to the SPATIAL-MEAN concentration
+      (`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run's
+      own `params.dims`) at the repro-observable-mapping layer -- NOT in
+      `run_full_model`'s own recording, which Increments 0-8 and the ODE
+      coupling still rely on as a raw sum. This resolves the structural
+      sites-factor: extracellular_virus's worst_miss drops by ~4 orders of
+      magnitude at both tested loads, and load=10000's extracellular_virus
+      is now fully in-band (was 0/6). An HONEST RESIDUAL remains, NOT tuned
+      away: the spatial-mean model value at t=0 is consistently ~0.375x the
+      target at both loads -- the ratio of the seeded patch's lattice-site
+      count to the full simulation domain's lattice-site count
+      (`run_full_model` reserves margin/separation sites around the patch
+      for the immune-cell clusters and recruit reserve pool; the virus is
+      seeded only under the patch, so averaging over the larger full-domain
+      lattice dilutes it by the patch/domain area ratio). This is a
+      distinct, real domain-geometry effect, honestly flagged for Phase-B,
+      not evidence the units fix is incomplete, and no constant was tuned
+      and no band was widened to close it. Verified by the new fast
+      regression test
+      `test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum`
+      (`tests/test_influenza_full_model.py`).
 
 conclusion: |
   `run.repro_fig5` (Task 9.3) IS IMPLEMENTED AND WIRED CORRECTLY, INCLUDING
@@ -466,10 +548,23 @@ conclusion: |
   widened, no constant was tuned, and `targets/fig5.json` was not edited to
   make any number in this report look better than it is.
 
+  UNITS FIX UPDATE (Task-9.3-review MUST-FIX, this update, see F-04):
+  extracellular_virus is no longer the dominant miss -- the structural
+  raw-sum-vs-mean units bug this study previously (mis)read as a
+  PFU-equivalent scale mismatch is fixed, and extracellular_virus now lands
+  fully in-band at load=10000 and 4/6 at load=1 (worst_miss 0.208-0.0, down
+  from ~1200 at both loads). FIXING THE UNITS DOES NOT MAKE FIG-5
+  REPRODUCED -- both loads' `band_eval["passed"]` is still False, now driven
+  by population-count observables (infected_cells/uninfected_cells) at
+  load=1, the same population-scale/run-duration mismatch already
+  documented above; this study's verdict and
+  `conclusion_verdicts.biological_validation` are UNCHANGED (documented/
+  PENDING).
+
 conclusion_verdicts:
   regression_compatibility:
     result: PASS
-    basis: All 6 tests in `tests/test_influenza_full_model.py` pass (5 pre-existing Task 9.1/9.2 tests + this task's new `test_repro_fig5_viral_load_sweep`); no Increment 0-8 driver, composite, `bands.py`, or params.yaml constant is modified by this task, and `targets/fig5.json` is read-only.
+    basis: "All 6 tests in `tests/test_influenza_full_model.py` pass (5 pre-existing Task 9.1/9.2 tests + this task's new `test_repro_fig5_viral_load_sweep`); no Increment 0-8 driver, composite, `bands.py`, or params.yaml constant is modified by this task, and `targets/fig5.json` is read-only. UPDATE (Task-9.3-review units fix, this update) -- all 9 tests in `tests/test_influenza_full_model.py` pass, including the new `test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum` regression test; only `run.py`'s repro-observable-mapping layer changed (`_map_full_model_observables`), `run_full_model`'s own field recording, `bands.py`, and `targets/fig5.json` are unchanged."
   biological_validation:
     result: PENDING
     basis: >-
@@ -507,11 +602,18 @@ biological_summary: |
   simulated days, only 2 of the paper's 5 loads swept), neither tested
   load's ensemble lands fully in-band against its own fig5 band subset
   (`band_eval["passed"]=False` for both) -- driven by population-scale (144
-  vs 10000 cells), the sharply truncated run duration (~0.068 vs up to 15
-  simulated days), and a virus-field concentration-units mismatch already
-  flagged by this investigation's `repro_fig3b` study (extracellular_virus
-  misses by the same order of magnitude at every tested load). The
-  qualitative mechanism this task's reduced-scale test IS built to check --
+  vs 10000 cells) and the sharply truncated run duration (~0.068 vs up to 15
+  simulated days). UNITS FIX (Task-9.3-review MUST-FIX, this update, F-04):
+  a prior version of this study attributed part of that gap to a
+  "virus-field concentration-units mismatch"; that was actually a
+  structural raw-sum-vs-mean BUG in `repro_fig5`'s observable mapping
+  (`run_full_model`'s raw per-lattice-site sum was fed straight to
+  extracellular_virus instead of the per-site concentration
+  `targets/fig5.json` digitizes). Fixed by reporting the spatial-mean
+  concentration (`sum(field_conc)/n_lattice_sites`); extracellular_virus is
+  now fully in-band at load=10000 and 4/6 at load=1 (worst_miss ~1200 -> 0.0
+  and 0.208 respectively) -- it is no longer a miss driver at either load.
+  The qualitative mechanism this task's reduced-scale test IS built to check --
   a MONOTONE, more-virus-worse-outcome dose-response -- holds cleanly:
   seeding a higher initial viral load (10000x) leaves the ensemble with
   ZERO surviving uninfected cells (0/144) by this short run's end, vs 88/144
@@ -559,7 +661,7 @@ key_assumptions:
     counts (uninfected/infected cells) cannot match the target's absolute
     magnitudes at this reduced population even with perfectly calibrated
     rate constants.
-  - "EXTRACELLULAR-VIRUS UNITS MISMATCH -- inherited from `repro_fig3b`'s own finding (this investigation, unmodified here): this engine's virus-field concentration is not on the paper's reported PFU-equivalent scale; extracellular_virus misses by ~1200x the band width at BOTH tested loads here, consistent (not load-specific) with that prior finding."
+  - "EXTRACELLULAR-VIRUS UNITS BUG, FIXED (Task-9.3-review MUST-FIX, this update, see F-04) -- SUPERSEDES the prior bullet's \"units mismatch\" reading: the ~1200x extracellular_virus miss at both tested loads was a structural raw-sum-vs-mean bug in `repro_fig5`'s observable mapping (`run_full_model`'s raw lattice sum fed straight to a per-site-concentration target), not a PFU-equivalent calibration gap. Fixed by reporting the spatial-mean concentration (`sum(field_conc)/n_lattice_sites`); extracellular_virus now lands fully in-band at load=10000 (worst_miss 0.0) and 4/6 at load=1 (worst_miss 0.208). An HONEST RESIDUAL remains, not tuned away: the t=0 spatial-mean is consistently ~0.375x the target at both loads -- the seeded patch's lattice-site-count / full-simulation-domain's lattice-site-count ratio (the domain reserves margin/separation sites around the patch for the immune-cell clusters and recruit reserve pool; virus is seeded only under the patch, diluting the full-domain mean) -- a real, distinct domain-geometry effect, flagged for Phase-B, not a units bug."
   - INHERITED CALIBRATION-PENDING ITEMS from `run_full_model` (Task 9.1,
     unchanged here) -- the documented `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x`
     chemotaxis engine-unit correction (Increment 7), and reduced-eta
@@ -572,7 +674,7 @@ literature_anchors:
   - expectation: "Sego 2022 Fig. 5 / Sec. 3.3, p.9: the spatial CPM model trends toward lethal outcomes (near-total uninfected-cell loss) only near a ~1000x increase over the ODE-calibrated initial viral dose (multiplier 10000), while multipliers 1/10/100/1000 remain non-lethal across all 50 replicas -- a spatial-vs-ODE disagreement, since the ODE model alone predicts lethal outcomes from multiplier 10 upward (Fig. 4/5 disagreement)."
     model_observable: "run.repro_fig5's per-load ensemble (mapped to targets/fig5.json's exact observable keys, evaluated per load via _fig5_target_subset/_evaluate_fig5_subset) at REDUCED scale (loads=(1,10000), replicas=1, cells_per_side=12, steps=15): band_eval['passed']=False for both loads (population-scale/run-duration/virus-units mismatch, per report.key_metrics); the qualitative monotone dose-response direction holds (uninfected_final_frac 0.611 at load=1 -> 0.0 at load=10000), a directional echo of the paper's own lethal-threshold-near-10000x narrative, NOT a magnitude or threshold-value reproduction (only 2 of 5 loads tested)."
     source: "Sego et al. 2022, Fig. 5, p.9 (digitized by eye from log-scale panels, approximate) via pbg_cpm_studies/influenza/targets/fig5.json"
-    status_in_workspace: "Driver wired and evaluable, scenario-grouping guard verified (F-01); monotone dose-response direction holds at reduced scale (F-02); per-load band containment reported honestly as a scale/duration-driven miss (F-03), NOT a reproduction claim. Paper-scale 50-replica, all-5-load ensemble is the Mac-mini Phase-B follow-up that will set the reproduced verdict."
+    status_in_workspace: "Driver wired and evaluable, scenario-grouping guard verified (F-01); monotone dose-response direction holds at reduced scale (F-02); per-load band containment reported honestly as a scale/duration-driven miss (F-03), NOT a reproduction claim; the prior structural units bug in extracellular_virus's observable mapping is fixed (F-04, Task-9.3-review) -- extracellular_virus is no longer a miss driver, a small honest domain-geometry residual (~0.375x) remains. Paper-scale 50-replica, all-5-load ensemble is the Mac-mini Phase-B follow-up that will set the reproduced verdict."
     cites: [sego2022influenza]
 
 gate_status: passed
@@ -615,8 +717,8 @@ runs:
       'Reduced-scale per-load band comparison -- per-observable in-band fraction':
         result: DOCUMENTED
         measured_value: 0.0
-        notes: "Both per-load band_eval['passed'] are False. load=1 n_in/6: uninfected_cells 4, infected_cells 0, extracellular_virus 0, antibodies 5. load=10000 n_in/6: uninfected_cells 6, infected_cells 5, extracellular_virus 0, antibodies 6. Reported honestly as a scale/duration-driven gap (task-9.3-report.md), NOT a Fig-5 reproduction claim; the paper-scale 50-replica, all-5-load ensemble is the Mac-mini Phase-B follow-up."
-        evaluated_by: "n/a -- ad hoc measurement reported in report.key_metrics and task-9.3-report.md"
+        notes: "UPDATED post units-fix (Task-9.3-review, F-04): both per-load band_eval['passed'] are still False. load=1 n_in/6: uninfected_cells 4, infected_cells 0, extracellular_virus 4 (was 0), antibodies 5. load=10000 n_in/6: uninfected_cells 6, infected_cells 5, extracellular_virus 6 (was 0, now FULLY in-band), antibodies 6. extracellular_virus's worst_miss dropped from ~1200 to 0.208 (load=1) / 0.0 (load=10000) -- the structural raw-sum-vs-mean units bug is fixed; the remaining misses (infected_cells, uninfected_cells at load=1) are population-scale/run-duration effects, reported honestly (task-9.4b-report.md), NOT a Fig-5 reproduction claim; the paper-scale 50-replica, all-5-load ensemble is the Mac-mini Phase-B follow-up."
+        evaluated_by: "n/a -- ad hoc measurement reported in report.key_metrics and task-9.4b-report.md"
 
 discovery_implications:
   followup_study_proposals:
@@ -624,8 +726,12 @@ discovery_implications:
       title: "Mac-mini Phase-B: paper-scale 50-replica, all-5-load repro_fig5 sweep (cells_per_side=35, steps≈3086)"
       motivation: "This task's reduced-scale sweep (144 cells, 1 replica, 2 of 5 loads, ~0.068 simulated days) can only check the qualitative dose-response direction, not magnitude/threshold-value fidelity -- only the paper-scale (10000 cells, 50 replicas, all 5 loads, ~15 simulated days) ensemble repro_fig5's own docstring documents can actually test Fig-5 reproduction, including whether THIS model's own lethal threshold lands near 10000x the way the paper's does, and set the reproduced verdict for this study."
     - id: incr9-fig5-virus-units-calibration
-      title: "Increment 9: reconcile the engine virus-field concentration scale with fig5.json's/fig3b.json's reported extracellular_virus magnitudes"
-      motivation: "extracellular_virus misses fig5's bands by the same ~1000x order of magnitude at BOTH tested loads here, consistent with repro_fig3b's own finding for the same observable -- this looks like a units/scale mismatch between this engine's virus-field integral and the paper's reported PFU-equivalent values, not a per-load or per-figure mechanism defect, and is worth investigating BEFORE the expensive Phase-B paper-scale runs so their extracellular_virus comparison isn't wasted on the same fixable units gap."
+      title: "RESOLVED (Task-9.3-review MUST-FIX, this update, see F-04): the extracellular_virus miss was a units BUG, not a PFU-scale calibration gap -- fixed by reporting spatial-mean concentration instead of the raw lattice sum"
+      status: resolved
+      motivation: "ORIGINAL (superseded): extracellular_virus missed fig5's bands by the same ~1000x order of magnitude at BOTH tested loads, consistent with repro_fig3b's own finding for the same observable, and was read as a units/scale mismatch between this engine's virus-field integral and the paper's reported PFU-equivalent values. RESOLUTION: it was a structural raw-sum-vs-mean bug in the repro-observable mapping layer (fixed in `_map_full_model_observables`, pbg_cpm_studies/influenza/run.py); extracellular_virus is now fully in-band at load=10000 and 4/6 at load=1. A small honest residual (~0.375x, domain-geometry dilution from margin/separation sites around the seeded patch) remains and is tracked as a NEW follow-up below, not this proposal."
+    - id: incr9-fig5-virus-domain-dilution-residual
+      title: "Increment 9: investigate the ~0.375x patch/full-domain-area dilution residual left in extracellular_virus after the Task-9.3-review units fix"
+      motivation: "After the units fix (F-04), extracellular_virus's t=0 spatial-mean model value is consistently ~0.375x the target at every tested load (e.g. load=1: mean=0.375 vs target=1.0) -- the ratio of the seeded patch's lattice-site count to the full simulation domain's lattice-site count (run_full_model reserves margin/separation sites around the patch for the immune-cell clusters and recruit reserve pool). Worth investigating at Phase-B paper scale whether this residual shrinks (larger patch, relatively smaller margin) or persists, and whether the paper's own digitization implicitly assumes a patch-only mean rather than a full-domain mean -- NOT a reason to tune margin_sites/separation_sites or widen a band to close it."
 
 conditions:
   baseline:
