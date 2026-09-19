@@ -167,20 +167,32 @@ def virus_infection(core=None, patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO
 
 
 # ---------------------------------------------------------------------------
-# Increment 5 (Task 5.2): macrophage-response live-demo composite. Wraps the
-# Task-5.1 non-confluent 2D-approximation scenario
-# (``immune.build_macrophage_scenario_spec``) + virus field, with macrophage
+# Increment 5 (Task 5.2, updated for Task 5.1's fix round 1 -- commit
+# 4092d7c): macrophage-response live-demo composite. Wraps the Task-5.1
+# non-confluent 2D-approximation scenario (``immune.
+# build_macrophage_scenario_spec``) + virus field, with macrophage
 # (``inf_types.M``) chemotaxis wired DECLARATIVELY via the field's
 # ``chemotaxis`` list (the same ``cpm.schema.load_world`` convention
 # ``pbg_cpm_studies.composites.chemotaxis.build_spec`` uses), rather than the
 # ``World.set_chemotaxis``/``immune.set_macrophage_chemotaxis`` post-hoc call
 # ``run.run_macrophage_response`` makes on a live ``cpm_core.World``.
 #
+# Geometry (fix round 1): BOTH the epithelial/infection patch and the
+# macrophage cluster sit in the domain's INTERIOR (each >= margin_sites from
+# every noflux wall, separated by separation_sites of open Medium) -- not a
+# domain corner. An earlier version pinned the macrophage cluster in a corner
+# diagonally opposite the infection, which biased the lambda=0 control's
+# thermal/wall drift to net-point roughly toward the infection (a confound);
+# interior placement removes that bias, matching ``run.
+# run_macrophage_response``'s current scenario (see immune.py's docstring /
+# task-5.1-report.md's fix note).
+#
 # Dashboard/live-demo wrapper ONLY -- the measured localization numbers cited
-# by the macrophage-response study (mean distance to infection 26.3 -> 18.2
-# with chemotaxis on vs 26.3 -> 30.6 with the lambda=0 control, seed=17) come
-# directly from ``run.run_macrophage_response``, which ALSO warms the virus
-# field up via ``World.advance_fields`` before stepping and records
+# by the macrophage-response study (chemotaxis-on closes the mean distance to
+# the infection in 5/5 tried seeds, mean change -13.39 sites, vs a near-
+# isotropic lambda=0 control, mean change -0.85 sites) come directly from
+# ``run.run_macrophage_response`` across multiple seeds, which ALSO warms the
+# virus field up via ``World.advance_fields`` before stepping and records
 # ``mean_distance_to_infection``/``macrophage_com`` each update -- a plain
 # CPMProcess has neither of those readouts, so this composite reproduces
 # neither the warmup nor the localization measurement, only the scenario
@@ -190,22 +202,29 @@ def virus_infection(core=None, patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO
 DEMO_MACROPHAGE_CELLS_PER_SIDE = 4
 DEMO_N_INFECTED = 1
 DEMO_N_MACROPHAGES = 6
-DEMO_MARGIN_SITES = 20
+DEMO_MARGIN_SITES = 30
+DEMO_SEPARATION_SITES = 25
 DEMO_CHEMOTAXIS_V_MACRO = 5000.0  # params.yaml macrophage.chemotaxis_v_macro; pass 0.0 for the control
 
 
 def build_macrophage_response_spec(*, epithelial_cells_per_side: int = DEMO_MACROPHAGE_CELLS_PER_SIDE,
                                    n_infected: int = DEMO_N_INFECTED,
                                    n_macrophages: int = DEMO_N_MACROPHAGES,
-                                   margin_sites: int = DEMO_MARGIN_SITES, seed: int = DEMO_SEED,
+                                   margin_sites: int = DEMO_MARGIN_SITES,
+                                   separation_sites: int = DEMO_SEPARATION_SITES,
+                                   seed: int = DEMO_SEED,
                                    chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO) -> dict:
     """A ``load_world`` spec for the Task-5.1 macrophage scenario + virus
-    field, with macrophage (``inf_types.M``) chemotaxis on the virus field
-    wired via the field's ``chemotaxis`` list. ``chemotaxis_v_macro=0.0``
-    reproduces the lambda=0 control (no directed chemotaxis)."""
+    field -- both the epithelial/infection patch and the macrophage cluster
+    placed in the domain's INTERIOR (unbiased lambda=0-control geometry, see
+    module note above) -- with macrophage (``inf_types.M``) chemotaxis on
+    the virus field wired via the field's ``chemotaxis`` list.
+    ``chemotaxis_v_macro=0.0`` reproduces the lambda=0 control (no directed
+    chemotaxis)."""
     spec = immune.build_macrophage_scenario_spec(
         epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
-        n_macrophages=n_macrophages, margin_sites=margin_sites, seed=seed)
+        n_macrophages=n_macrophages, margin_sites=margin_sites,
+        separation_sites=separation_sites, seed=seed)
     field_entry = fields.virus_field_spec_entry()
     field_entry["chemotaxis"] = [{"type": inf_types.M, "lambda": float(chemotaxis_v_macro)}]
     spec["fields"] = [field_entry]
@@ -214,11 +233,13 @@ def build_macrophage_response_spec(*, epithelial_cells_per_side: int = DEMO_MACR
 
 def macrophage_response_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
                                             n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
-                                            margin_sites=DEMO_MARGIN_SITES, seed=DEMO_SEED,
+                                            margin_sites=DEMO_MARGIN_SITES,
+                                            separation_sites=DEMO_SEPARATION_SITES, seed=DEMO_SEED,
                                             chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO) -> dict:
     spec = build_macrophage_response_spec(
         epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
-        n_macrophages=n_macrophages, margin_sites=margin_sites, seed=seed,
+        n_macrophages=n_macrophages, margin_sites=margin_sites,
+        separation_sites=separation_sites, seed=seed,
         chemotaxis_v_macro=chemotaxis_v_macro)
     return {
         "cpm": {
@@ -240,14 +261,17 @@ def macrophage_response_composite_document(*, epithelial_cells_per_side=DEMO_MAC
 
 
 @composite_generator(
-    name="macrophage_response", default_n_steps=30,
+    name="macrophage_response", default_n_steps=40,
     description=(
         "Influenza-sego2022 Increment 5: macrophage (type M) chemotaxis up the "
         "virus field toward the infection, over the Task-5.1 non-confluent "
-        "2D-approximation scenario. Live-demo/dashboard wrapper -- the measured "
-        "localization numbers (26.3 -> 18.2 sites, chemotaxis on, seed=17) come "
-        "from run.run_macrophage_response, not this composite. "
-        "chemotaxis_v_macro=0.0 reproduces the lambda=0 control."
+        "2D-approximation scenario (both clusters placed in the domain interior, "
+        "an unbiased lambda=0-control geometry). Live-demo/dashboard wrapper -- "
+        "the measured localization numbers (chemotaxis-on closes the distance in "
+        "5/5 tried seeds, mean -13.39 sites, vs a near-isotropic lambda=0 control, "
+        "mean -0.85 sites) come from run.run_macrophage_response across multiple "
+        "seeds, not this composite. chemotaxis_v_macro=0.0 reproduces the "
+        "lambda=0 control."
     ),
     parameters={
         "chemotaxis_v_macro": {"type": "float", "default": DEMO_CHEMOTAXIS_V_MACRO,

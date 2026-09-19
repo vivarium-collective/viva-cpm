@@ -170,10 +170,12 @@ def macrophage_response_figure(run_result: dict, control_result: dict | None = N
     """Render a two-panel MINIMAL mechanism figure (Increment 5, Task 5.2) for
     a `run.run_macrophage_response(...)` result (Task 5.1): (a) macrophages'
     mean centre-of-mass distance to the infection centroid vs update index --
-    the falsifiable localization claim (measured seed=17: 26.3 -> 18.2, -31%,
-    with chemotaxis on; 26.3 -> 30.6, drifting away, with the lambda=0
-    control -- task-5.1-report.md); (b) the macrophage centre-of-mass
-    trajectory (x vs y over the run), with start/end markers.
+    the falsifiable localization claim (measured across 5 seeds, interior-
+    placed scenario: chemotaxis on reduces the distance in 5/5 seeds, mean
+    change -13.39 sites, vs a near-isotropic lambda=0 control, mean change
+    -0.85 sites -- task-5.1-report.md's fix-round-1 section); (b) the
+    macrophage centre-of-mass trajectory (x vs y over the run, one seed),
+    with start/end markers.
 
     If `control_result` (a second `run_macrophage_response(...)` result, e.g.
     the lambda=0 control) is also passed, panel (a) overlays both distance
