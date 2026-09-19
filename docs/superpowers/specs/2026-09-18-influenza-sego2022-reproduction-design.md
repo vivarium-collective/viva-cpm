@@ -153,7 +153,9 @@ Allee). Study `epithelial-fate`: death/recovery balance, critical contact area.
 Target: Table 2; Fig 4A lesion recovery.
 
 **Increment 5 — Chemokine + IL-10 fields.** Chemokine field (10-cell-diam,
-macrophage-released, TNF-gated), IL-10 field (2-cell-diam). Study
+macrophage-released, TNF-gated), IL-10 field (10-cell-diam — source
+`exp_il10_dl`, "assumed same as chemokines"; the "2-cell-diam" earlier estimate
+was superseded by the source extraction). Study
 `signaling-fields`: field profiles. Target: Fig 6 chemokines/IL-10.
 
 **Increment 6 — Macrophage response.** Macrophage inflow, log-chemotaxis up
