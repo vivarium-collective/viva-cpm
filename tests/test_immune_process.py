@@ -96,3 +96,58 @@ def test_macrophage_deposits_chemokine_when_sig1_positive():
     scale = macrophage_secretion_scale(0.0, sig_1, g_1, g_2, d_2)
     expected_chemo = b_c_per_site * cell_sites * scale
     assert deposits[0][4] == pytest.approx(expected_chemo)
+
+
+def test_recruitment_grows_agents_uncapped():
+    # NOTE: like the tests above, `core=pb.allocate_core()` is required
+    # (deviation from the brief's illustrative snippet, same as Task 2.1/2.2).
+    #
+    # A large macrophage inflow driver, applied every update for 50 updates,
+    # must grow the macrophage agent count well beyond any fixed reserve-pool
+    # cap (`run_full_model`'s pool is a handful of cells per type) -- proving
+    # recruitment here mints agents UNCAPPED, the point of Task 2.3.
+    p = ImmuneProcess({"seed": 4}, core=pb.allocate_core())
+    agents = [{"id": 1, "type": int(types.M), "x": 5.0, "y": 5.0}]
+    drivers = {"macro_inflow": 5.0, "nk_inflow": 0.0, "cd8_inflow": 0.0,
+               "macro_outflow": 0.0, "nk_outflow": 0.0, "cd8_outflow": 0.0}
+    for _ in range(50):
+        out = p.update({"chemo_field": [0.0] * 400, "virus_field": [0.0] * 400,
+                        "dims": [20, 20, 1],
+                        "immune_agents": agents, "epithelial_positions": {}, "infected_ids": [],
+                        "sig_1": 0.0, "recruit_drivers": drivers, "margin_box": [1, 1, 19, 19],
+                        "apply_recruitment": True}, 1.0)
+        agents = out["immune_agents"]
+    n_macro = sum(1 for a in agents if a["type"] == int(types.M))
+    assert n_macro > 100   # far beyond the old pool_per_type cap
+
+
+def test_recruitment_noop_when_apply_recruitment_false():
+    # Recruitment must be gated on `apply_recruitment`: a driver that would
+    # otherwise clearly grow the population leaves the agent count unchanged
+    # when the flag is falsy/absent (Composite-controlled cadence gate).
+    p = ImmuneProcess({"seed": 5}, core=pb.allocate_core())
+    agents = [{"id": 1, "type": int(types.M), "x": 5.0, "y": 5.0}]
+    drivers = {"macro_inflow": 5.0, "nk_inflow": 0.0, "cd8_inflow": 0.0,
+               "macro_outflow": 0.0, "nk_outflow": 0.0, "cd8_outflow": 0.0}
+    out = p.update({"chemo_field": [0.0] * 400, "virus_field": [0.0] * 400,
+                    "dims": [20, 20, 1],
+                    "immune_agents": agents, "epithelial_positions": {}, "infected_ids": [],
+                    "sig_1": 0.0, "recruit_drivers": drivers, "margin_box": [1, 1, 19, 19],
+                    "apply_recruitment": False}, 1.0)
+    assert len(out["immune_agents"]) == 1
+
+
+def test_recruitment_outflow_removes_agents():
+    # A large outflow rate on an existing population of macrophages, with no
+    # inflow, must shrink the agent count (proximity/killing/secretion don't
+    # otherwise change agent count).
+    p = ImmuneProcess({"seed": 6}, core=pb.allocate_core())
+    agents = [{"id": i, "type": int(types.M), "x": 5.0, "y": 5.0} for i in range(1, 21)]
+    drivers = {"macro_inflow": 0.0, "nk_inflow": 0.0, "cd8_inflow": 0.0,
+               "macro_outflow": 5.0, "nk_outflow": 0.0, "cd8_outflow": 0.0}
+    out = p.update({"chemo_field": [0.0] * 400, "virus_field": [0.0] * 400,
+                    "dims": [20, 20, 1],
+                    "immune_agents": agents, "epithelial_positions": {}, "infected_ids": [],
+                    "sig_1": 0.0, "recruit_drivers": drivers, "margin_box": [1, 1, 19, 19],
+                    "apply_recruitment": True}, 1.0)
+    assert len(out["immune_agents"]) < 20

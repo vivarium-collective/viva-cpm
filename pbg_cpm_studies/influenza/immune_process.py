@@ -3,9 +3,9 @@ agents (macrophages, NK cells, CD8+ T cells) that chemotax up a diffusive
 field gradient, kill nearby infected epithelial cells (NK/CD8), and secrete
 chemokine/IL-10 (macrophages).
 
-Task 2.1 shipped agent state + chemotaxis only. This revision (Task 2.2)
-adds the other two off-lattice mechanisms; agent RECRUITMENT (spawning new
-agents) is still deferred to Task 2.3 and is NOT implemented here.
+Task 2.1 shipped agent state + chemotaxis only. Task 2.2 added the other two
+off-lattice mechanisms (killing, secretion). This revision (Task 2.3) adds
+ODE-DRIVEN RECRUITMENT (spawning/removing agents) -- see "Recruitment" below.
 
 Why the process re-samples the whole field itself (rather than requesting a
 point sample from the CPM engine, as `EpitheliumProcess`'s `field_at_cell`
@@ -89,6 +89,61 @@ deposited amounts are multiplied by `cell_sites` here. This is
 source-faithful (it matches the on-lattice per-macrophage total mass), NOT a
 tuning change -- no constant changes value, only the point-vs-whole-cell
 accounting is corrected.
+
+## Recruitment (Task 2.3)
+
+`run_full_model` (`run.py`'s `_recruit_step`) activates new CPM cells from a
+fixed-size RESERVE POOL per type (`pool_t.pop(0)`): a Poisson-drawn inflow
+count in excess of the remaining pool simply fails to seed (a hard cap). Off-
+lattice agents here don't occupy CPM lattice sites, so there is no pool/seat
+limit to draw from -- every `recruitment.poisson_inflow_count` draw becomes a
+newly minted agent. This is the intended difference from `run_full_model`
+and the core fix this refactor exists to make: it lets the immune
+population actually reach the ODE's predicted equilibrium instead of
+saturating a small fixed pool.
+
+Per type (M/K/E), each `update()` call for which `apply_recruitment` is
+truthy:
+  - **Outflow (remove):** each existing agent of that type is removed with
+    probability `recruitment.ul_rate_to_prob(local_ratio * outflow)`
+    (`state["recruit_drivers"]`'s `*_outflow` rate).
+  - **Inflow (spawn):** `recruitment.poisson_inflow_count(local_ratio *
+    inflow, self.recruit_rng)` new agents of that type are minted at
+    uniform-random positions inside `state["margin_box"]` (`[x0, y0, x1,
+    y1]`), each with a fresh id from a monotonic counter (`self.
+    _next_agent_id`) held on the process. No cap.
+  - Outflow is applied before inflow for a given type, per-type in M, K, E
+    order -- matching `_recruit_step`'s own within-type and across-type
+    ordering (so the two implementations' RNG-consumption *shape* agrees,
+    even though the two processes draw from independent RNG streams and are
+    not expected to reproduce identical outcomes).
+
+**`local_ratio` = 1.0 for all three types (design decision, not a rate
+tuning):** `params["coupling"]["recruitment"]["local_ratios"]` (macro=1.0,
+nk=0.75, cd8=0.75) splits each type's ODE inflow into a LOCAL fraction
+(seeded as an actual CPM cell) and a NEARBY fraction (accrued into a
+well-mixed ODE surrogate population, `M_nb`/`K_nb`/`E_nb` in `run.py`). That
+split exists *because* `run_full_model`'s local fraction is capped by a
+small reserve pool -- the nearby surrogate is a bookkeeping device so
+inflow the pool has no room for isn't silently discarded. Uncapped agents
+remove the reason for that split entirely, so per the spec ("with agents
+uncapped, local_ratio -> 1.0") this process ignores the nk=0.75/cd8=0.75
+entries and uses `local_ratio = 1.0` for M, K, and E alike, sending the
+FULL ODE-predicted inflow/outflow to spatial agents with no nearby
+surrogate. This changes how much of a fixed rate becomes a spatial agent
+vs. an ODE bookkeeping number; it does NOT change any inflow/outflow RATE
+constant or formula (`recruitment.macrophage_inflow` etc. are called
+unmodified, on drivers computed upstream and passed in via
+`recruit_drivers`).
+
+`self.recruit_rng = np.random.default_rng(seed + 900)` is a dedicated RNG
+stream (offset convention matches `run_full_model`'s `recruit_rng`) so
+recruitment draws never share/correlate with the movement-noise (`self.rng`)
+or kill-draw (`self.kill_rng`) streams. `self._next_agent_id` is lazily
+seeded on the FIRST `update()` call, above the max id present in that
+call's `immune_agents` (so ids picked up from upstream composite-provided
+initial agents are never collided with), then increments monotonically
+across all subsequent calls on this same process instance.
 """
 from __future__ import annotations
 
@@ -97,7 +152,7 @@ import math
 import numpy as np
 from process_bigraph import Process
 
-from . import types
+from . import recruitment, types
 from .fields import il10_hill_constants
 from .killing import contact_kill_rate
 from .params import load_params
@@ -164,6 +219,13 @@ class ImmuneProcess(Process):
         # share/correlate with the movement-noise draws above.
         self.kill_rng = np.random.default_rng(int(config["seed"]) + 500)
         self.kill_radius = float(config["kill_radius"])
+        # Dedicated recruitment RNG stream (Task 2.3; offset convention
+        # matches run_full_model's `recruit_rng = np.random.default_rng(seed
+        # + 900)`) -- see module docstring "Recruitment" section.
+        self.recruit_rng = np.random.default_rng(int(config["seed"]) + 900)
+        # Monotonic new-agent-id counter; lazily seeded above the max id seen
+        # on the FIRST update() call (see module docstring).
+        self._next_agent_id: int | None = None
 
         params = load_params()
         # Killing-rate coefficients (source constants, unchanged) -- see this
@@ -192,6 +254,10 @@ class ImmuneProcess(Process):
             "epithelial_positions": "map[list]",  # cell-id-str -> [x, y]
             "infected_ids": "list[integer]",
             "sig_1": "float",
+            # Task 2.3 inputs (recruitment):
+            "recruit_drivers": "map[float]",  # macro/nk/cd8 in/outflow rates
+            "margin_box": "list",  # [x0, y0, x1, y1] spawn region
+            "apply_recruitment": "boolean",  # cadence gate set by Composite
         }
 
     def outputs(self):
@@ -210,13 +276,23 @@ class ImmuneProcess(Process):
         infected_ids = list(state.get("infected_ids") or [])
         sig_1 = float(state.get("sig_1", 0.0))
 
+        # Task 2.3: lazily seed the new-agent-id counter above the max id
+        # present on the FIRST update() call this process instance sees (see
+        # module docstring "Recruitment" section) -- before any early return,
+        # so recruitment can spawn even from a zero-agent start.
+        if self._next_agent_id is None:
+            existing_ids = [int(a.get("id", 0)) for a in agents]
+            self._next_agent_id = (max(existing_ids) + 1) if existing_ids else 1
+
         if not agents:
-            return {"immune_agents": [], "immune_kills": [], "field_deposit": []}
+            updated = self._apply_recruitment([], state)
+            return {"immune_agents": updated, "immune_kills": [], "field_deposit": []}
 
         dims = state.get("dims") or [0, 0, 1]
         nx, ny = int(dims[0]), int(dims[1])
         if nx <= 0 or ny <= 0:
-            return {"immune_agents": agents, "immune_kills": [], "field_deposit": []}
+            updated = self._apply_recruitment(agents, state)
+            return {"immune_agents": updated, "immune_kills": [], "field_deposit": []}
 
         chemo = np.asarray(state.get("chemo_field") or [], dtype=float).reshape(ny, nx)
         virus = np.asarray(state.get("virus_field") or [], dtype=float).reshape(ny, nx)
@@ -278,8 +354,69 @@ class ImmuneProcess(Process):
                 if amount_il10 > 0.0:
                     field_deposit.append([3, x, y, 0, amount_il10])
 
+        # --- Task 2.3: ODE-driven recruitment (uncapped spawn/remove) ---
+        updated = self._apply_recruitment(updated, state)
+
         return {
             "immune_agents": updated,
             "immune_kills": sorted(killed),
             "field_deposit": field_deposit,
         }
+
+    def _apply_recruitment(self, agents: list, state: dict) -> list:
+        """Task 2.3: mint/remove immune agents directly, UNCAPPED, driven by
+        the ODE's per-MCS inflow/outflow rates. No-op unless
+        ``state["apply_recruitment"]`` is truthy (the Composite sets this so
+        recruitment runs at the right cadence, see Task 3.3) or
+        ``state["margin_box"]`` is missing. See module docstring
+        "Recruitment" section for the full rationale, including why
+        ``local_ratio`` is 1.0 for every type here."""
+        if not state.get("apply_recruitment"):
+            return agents
+        margin_box = state.get("margin_box")
+        if not margin_box:
+            return agents
+
+        drivers = state.get("recruit_drivers") or {}
+        x0, y0, x1, y1 = (float(v) for v in margin_box)
+        lo_x, hi_x = min(x0, x1), max(x0, x1)
+        lo_y, hi_y = min(y0, y1), max(y0, y1)
+
+        # local_ratio=1.0 for all types -- see module docstring "Recruitment"
+        # section (uncapped agents remove the reason for the
+        # local/nearby-surrogate split; this is a design decision, not a
+        # tuning change to any rate).
+        local_ratio = 1.0
+
+        # (type, inflow_rate, outflow_rate) in M, K, E order -- matches
+        # run.py's `_recruit_step` per-type ordering (see module docstring).
+        by_type = [
+            (types.M, float(drivers.get("macro_inflow", 0.0)),
+             float(drivers.get("macro_outflow", 0.0))),
+            (types.K, float(drivers.get("nk_inflow", 0.0)),
+             float(drivers.get("nk_outflow", 0.0))),
+            (types.E, float(drivers.get("cd8_inflow", 0.0)),
+             float(drivers.get("cd8_outflow", 0.0))),
+        ]
+
+        updated = list(agents)
+        for agent_type, inflow, outflow in by_type:
+            t = int(agent_type)
+
+            # --- Outflow: remove each existing agent of this type w.p. ---
+            pr_out = recruitment.ul_rate_to_prob(local_ratio * outflow)
+            if pr_out > 0.0:
+                updated = [
+                    a for a in updated
+                    if int(a.get("type", 0)) != t or self.recruit_rng.random() >= pr_out
+                ]
+
+            # --- Inflow: spawn fresh agents at random margin-box positions ---
+            n_new = recruitment.poisson_inflow_count(local_ratio * inflow, self.recruit_rng)
+            for _ in range(n_new):
+                new_x = float(self.recruit_rng.uniform(lo_x, hi_x))
+                new_y = float(self.recruit_rng.uniform(lo_y, hi_y))
+                updated.append({"id": self._next_agent_id, "type": t, "x": new_x, "y": new_y})
+                self._next_agent_id += 1
+
+        return updated
