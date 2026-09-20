@@ -182,6 +182,22 @@ impl World {
         self.world_ref().field_mean_at_cell(field_idx, cell_id)
     }
 
+    /// Concentration of field `field_idx` at site (x, y, z); out-of-range
+    /// coordinates are clamped to the domain rather than panicking.
+    fn field_value_at(&self, field_idx: usize, x: usize, y: usize, z: usize) -> f64 {
+        let (nx, ny, nz) = (self.dims[0], self.dims[1], self.dims[2]);
+        let (x, y, z) = (x.min(nx - 1), y.min(ny - 1), z.min(nz - 1));
+        self.world_ref().field_value_at(field_idx, x + y * nx + z * nx * ny)
+    }
+
+    /// Add `amount` to field `field_idx`'s concentration at site (x, y, z);
+    /// out-of-range coordinates are clamped to the domain rather than panicking.
+    fn field_add_source_at(&mut self, field_idx: usize, x: usize, y: usize, z: usize, amount: f64) {
+        let (nx, ny, nz) = (self.dims[0], self.dims[1], self.dims[2]);
+        let (x, y, z) = (x.min(nx - 1), y.min(ny - 1), z.min(nz - 1));
+        self.world_mut().field_add_source_at(field_idx, x + y * nx + z * nx * ny, amount);
+    }
+
     /// Per-cell contact-area-by-type: dict[cell_type -> contact-area] of how
     /// much of `cell_id`'s surface contacts each neighbor cell type (MEDIUM=0
     /// included). Contact area uses the configured (Moore) neighborhood, the
