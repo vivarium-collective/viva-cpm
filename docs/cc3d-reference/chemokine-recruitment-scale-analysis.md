@@ -1,0 +1,90 @@
+# Where the immune response diverges: the chemokine→recruitment loop gain
+
+**Context.** After the Increment-13 fixes (reserve-pool uncapping + recruitment
+applied every MCS, PR #60), paper-scale fig3b macrophages rose ~20× (9 → 176 at
+3.5 d) but still land ~2× below the fig3b lower band (M 380, target 700). This
+note traces *why*, and concludes the remaining gap is **not** a mis-scaled
+constant — so it must not be closed by tuning.
+
+## The chain, measured (cells_per_side=35, bootstrap, seed 0)
+
+Recruitment inflow is `b_mc·hill(C, a_mc, h_m) + μ_m·b_m` — a chemokine(`C`)-driven
+Hill on a homeostatic baseline. At fig3b scale `a_mc = 2.82`, so recruitment
+half-saturates only when `C ≳ 2.82`.
+
+Measured realized chemokine field `C` (= `chemo_field_integral / dim_z`, the exact
+quantity fed to recruitment):
+
+| t (d) | M | C | C/a_mc | hill(C) | inflow | M_eq = inflow/μ_m |
+|------|----|------|-------|---------|--------|------|
+| 0.2 | 16 | 0.22 | 0.08 | 0.001 | 0.0176 | 105 |
+| 0.5 | 23 | 0.34 | 0.12 | 0.002 | 0.0177 | 105 |
+| 0.8 | 29 | 0.73 | 0.26 | 0.017 | 0.0184 | 109 |
+
+`C` never approaches `a_mc`, so `hill(C) ≈ 0` — **recruitment runs on the
+homeostatic baseline only** (M_eq ≈ 105), which is exactly where the macrophage
+count settles. The chemokine term is inert because `C` is ~5–10× too small.
+
+## Why C is small: the macrophage secretion scale
+
+Chemokine is secreted by macrophages at `b_c·M·scale`, where (source
+`ImmuneModelLib`, dossier §4)
+
+```
+scale = sig_1 / (sig_1 + (g_1·L + g_2)/(L + d_2)),   sig_1 = a_11·T + a_12·D
+```
+
+Instrumenting the actual per-macrophage calls (14 644 samples over a 0.58-day
+run):
+
+- per-macrophage local IL-10 `L ≈ 0` (median 0.0000, max 1e-4) → the ratio term
+  sits at its floor `g_2/d_2 = 0.062`
+- `sig_1 ≈ 0.0006` (median), max ~0.024 even at total epithelial death
+  (`a_12·D`, D≤1225, a_12 = 1.93e-5; the `a_11·T` term is negligible, T~0.03)
+- ⇒ **applied secretion scale ≈ 0.0025** (median), i.e. macrophage chemokine
+  output is throttled to ~0.3% because `sig_1 ≪ g_2/d_2`.
+
+So the loop is: little dead tissue → tiny `sig_1` → throttled chemokine → `C ≪
+a_mc` → baseline-only recruitment → few macrophages → little chemokine. It only
+opens up as `D` grows, and by then (in our ROS-dominated model) the infection has
+already cleared.
+
+## This is source-faithful scaling, not a bug
+
+The tempting "fix" is to rescale `a_11`/`a_12` (recorded `scale: null`) or the
+IL-10 constants. **That would be fudging.** The cellularization is self-consistent:
+
+- `sig_1 = a_11·T + a_12·D`. The ODE integrates `T, D` in cellularized units
+  (`resolve_constants(num_epithelial = tot_cell = 1225)`), so `T_cell ≈ s_v·T_src`
+  and `D_cell = D_src·s_v` (1225 = 250000·s_v). Hence `sig_1_cell ≈ s_v·sig_1_src`.
+- The ratio floor `g_2/d_2 = il10.g_2·s_v / il10.d_2` also carries one `s_v`
+  (source floor 12.6 → 0.062, ×s_v).
+
+Both numerator and denominator scale by the same `s_v`, so
+`scale = sig_1/(sig_1+ratio)` is **scale-invariant** — the source sees the same
+throttled secretion (source-equiv sig_1 ≈ 0.12 vs ratio floor 12.6 → scale ≈
+0.01). `a_11`/`a_12` are correctly `scale: null` (dossier lines 152–153), and
+`g_1`/`a_mc`/`g_2` carry their documented `s_v` factors. There is no isolated
+mis-scaled constant.
+
+## Conclusion — where viva-cpm actually diverges
+
+The ~2× immune shortfall is **emergent loop gain + timing**, not a broken constant:
+
+1. **Geometry (2D vs CC3D z=2).** Local IL-10 `L ≈ 0` at macrophages and the
+   chemokine field are 2D-diluted. CC3D's immune cells live in a z=2 layer with a
+   different local-field environment; the same secretion scale acting in that
+   geometry, with macrophages packed off the epithelial plane, plausibly yields a
+   higher realized `C` per macrophage. **This is the lever the planned z=2
+   engine change addresses** — not because it removes a *space cap* (that cap is
+   not binding; M=176 ≪ pool 438), but because it changes the field/local-IL-10
+   geometry that sets the loop gain.
+2. **ROS-vs-immune death balance.** Chemokine builds only as `D` grows, but the
+   ROS(X) pathway kills the tissue and clears infection before the recruitment
+   feedback fully engages, capping the chemokine driver. Stronger immunity then
+   *reduces* ODE oxidant X → less ROS death → more survivors, which is why
+   uninfected@3.5d = 157 vs the paper's ~2. The two divergences are coupled.
+
+**Recommendation:** do not tune the chemokine/secretion constants. Pursue the z=2
+geometry and the ROS-vs-immune death balance together, since they set the same
+loop.
