@@ -119,3 +119,58 @@ low, so cytotoxic immunity can't influence epithelial fate and ROS necessarily
 dominates. The count is set by the chemokine loop gain, whose only source-faithful
 lever is the **z=2 geometry** (local-IL-10/chemokine environment + immune-cell
 density). Constant tuning is ruled out on both fronts.
+
+## Task 3.4: the Composite driver removes the reserve-pool cap (off-lattice agents)
+
+The chain above explains why `run_full_model`'s macrophage count under-shoots
+the fig3b *target*. Separately, `run_full_model` also imposes a *mechanical*
+ceiling of its own, independent of loop gain: immune cells are on-lattice CPM
+cells activated one-at-a-time from a fixed-size `RECRUIT_RESERVE_TYPE` reserve
+pool (`run.py`'s Task-8.4 module note) -- once the pool of dormant reserve
+cells is exhausted, further ODE-predicted inflow silently fails to seed, no
+matter how strong the recruitment signal gets. Default `run_full_model`
+args cap the macrophage population at `n_macrophages(4) + recruit_pool_per_type(6)
+= 10`, *regardless of tissue scale*, unless the caller hand-tunes a bigger
+pool (as `bootstrap_immune_config` does for the paper-scale fig3b runs).
+
+The `influenza-immune-process-composite` epic (Increments this task closes)
+replaces on-lattice immune CPM cells with OFF-LATTICE `ImmuneProcess` agents
+(chemotaxing, killing, secreting, and recruiting via the same ODE-driven
+rate functions in `recruitment.py`, but with no CPM lattice slot to run out
+of -- see `immune_process.py`'s "Recruitment" docstring section). Task 3.4
+verifies this end to end:
+
+- **Epithelial parity** (`test_composite_epithelial_parity_reduced_scale`):
+  at `cells_per_side=8, steps=15, seed=2, init_infection_frac=0.1`, the
+  composite's terminal DEAD count (1) matches `run_full_model`'s reference
+  (0) within tolerance (delta 1 <= max(3, int(0.15*1))=3) -- no debugging or
+  suppressed immune influence was needed; at this reduced scale/short window
+  both drivers stay almost entirely in the infection/no-death regime and the
+  one-cell gap is consistent with the composite's immune agents landing one
+  proximity kill the reference run's locked-at-seed-count NK/CD8 did not.
+- **Uncapped growth** (`test_composite_immune_not_pool_capped`): at
+  `cells_per_side=48, steps=35, mcs_per_step=7 (238 raw MCS), seed=1,
+  init_infection_frac=0.05`, the composite's macrophage count rises from its
+  seeded 6 to a measured max of **14** --
+  `[6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8,
+  10, 10, 10, 12, 12, 12, 13, 14, 14, 14]` -- comfortably clearing
+  `run_full_model`'s default 10-cell ceiling at ANY scale (the pool cap is a
+  fixed constant, not a fraction of tissue size). This is the direct proof
+  the mechanical reserve-pool cap this epic exists to remove is gone.
+
+  Two smaller scales were tried first and rejected as too noisy to
+  demonstrate uncapping cleanly (not because they failed, but because
+  reduced-scale recruitment inflow is itself "near-inert", per
+  `run_full_model`'s own docstring): `cells_per_side=12/steps=40` (the
+  brief's original example) never left the seeded 5-6 macrophage band over
+  273 raw MCS (expected inflow < 1 agent at that scale); `cells_per_side=24/
+  steps=175` (1044 raw MCS) only reached max=10, inside Poisson-draw
+  outflow/inflow noise at that rate. The ODE's macrophage inflow baseline
+  term `mu_m*b_m` scales with `b_m ~ cells_per_side**2` but per-record
+  simulation cost only grows sub-quadratically with `cells_per_side` in this
+  composite (immune agents are off-lattice, so the CPM lattice only needs to
+  hold the epithelial patch + a margin box, not on-lattice immune clusters),
+  so a bigger `cells_per_side` with fewer raw MCS reaches a decisive signal
+  faster than a smaller `cells_per_side` run for longer -- `cells_per_side=48`
+  was the scale where this trade-off paid off within a practical test
+  runtime (~140s).
