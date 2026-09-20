@@ -118,12 +118,30 @@ executive:
     lands 0/12 observables in-band at every digitized checkpoint;
     repro-fig5/repro-fig7's monotone dose-response DIRECTION holds (higher
     dose → not-more-surviving uninfected fraction) but no individual
-    dose's band is contained. The paper-scale ensembles (repro-fig3b:
-    50 replicas/35×35 cells/~3.5 days; repro-fig5: 50 replicas/35×35
-    cells/~15 days; repro-fig7: 20 replicas/35×35 cells/~15 days — the
-    Mac-mini Phase-B follow-up) are the outstanding step before any
-    `reproduced` verdict for Figs 3B/5/7. This investigation does NOT
-    claim reproduction achieved.
+    dose's band is contained. PHASE B (paper-scale, Mac mini) then RAN for
+    fig3b and drove three source-faithful calibration fixes (Increments
+    10-12): ROS-driven epithelial death (the paper's dominant killer, absent
+    from Incr 0-9), randomly-scattered initial infection (the Fig-3B/7
+    "fraction" scenario, vs a single central lesion), and the
+    extracellular-virus tissue-concentration units correction. TOGETHER these
+    took paper-scale fig3b (35×35 cells, 720 steps, 4 replicas, ~3.5 days) from
+    wildly off to CLOSE: infected-cell worst-miss 83 → 2.75, uninfected
+    7.5 → 2.2, dead 6.8 → 1.0 (7/8 checkpoints in-band); 49/96 checkpoints
+    in-band overall (antibodies 8/8, type-I IFN 7/8, dead 7/8). The model now
+    reproduces Fig 3B's TRAJECTORY SHAPE + ENDPOINT (dead → 1217/1225 vs the
+    target's 1223), with the immune/systemic layer validated. The one residual
+    is a systematic ~0.5-DAY TEMPORAL LAG (infection peaks ~day 1.5 vs the
+    paper's ~day 0.5); closing it further would require tuning the
+    already-source-value infection-spread constants (`g_hv`/virus
+    secretion/decay) to fit the figure, which this reproduction deliberately
+    does NOT do. HONEST STATUS: a CLOSE, SOURCE-FAITHFUL reproduction of Fig 3B
+    (right shape + endpoint, most observables in-band or within ~2-3
+    band-widths) with a documented ~0.5-day lag — NOT a full band pass
+    (`band_eval.passed` stays False, which requires every checkpoint of every
+    observable in-band). The full 50-replica ensemble (final numbers) and
+    fig5/fig7 at paper scale are in-progress/follow-up. This investigation does
+    NOT claim a full quantitative reproduction; it claims a close,
+    honestly-bounded, source-faithful one.
   verdict_status: in-progress
   verdict_detail: |
     Member study parameter-provenance (Design phase, documentation-only)
