@@ -1700,6 +1700,28 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
         margin_sites=margin_sites, separation_sites=separation_sites, seed=seed,
         **scenario_kw)
 
+    # Calibration (Incr 11): the Sego Fig-3B/7 "initial infection FRACTION"
+    # scenario seeds the infected cells RANDOMLY SCATTERED across the epithelial
+    # patch, NOT as the single central lesion `build_cytotoxic_scenario_spec`
+    # places (that builder was written for the immune-LOCALIZATION studies,
+    # which need one lesion for a chemotaxis target). A central lesion makes
+    # infection spread as ONE slow front from the middle (~1-day lag, the
+    # "single orange blob" artifact); scattering `n_infected` seeds across the
+    # sheet gives the fast, sheet-wide spread the paper shows (uninfected
+    # 1164->300 by day 1). Re-scatter here for the init_infection_frac scenario.
+    if init_infection_frac is not None and n_infected > 0:
+        epi_idx = [i for i, c in enumerate(spec["cells"])
+                   if c["type"] in (types.H, types.I)]
+        for i in epi_idx:
+            spec["cells"][i]["type"] = types.H
+        if epi_idx:
+            scatter_rng = np.random.default_rng(seed + 7)
+            chosen = scatter_rng.choice(np.array(epi_idx),
+                                        size=min(n_infected, len(epi_idx)),
+                                        replace=False)
+            for i in chosen:
+                spec["cells"][int(i)]["type"] = types.I
+
     world = build.world_from_spec(spec, finalize=False)
     virus_fi = fields.add_virus_field(world)
     ifn_fi = fields.add_ifn_field(world)
