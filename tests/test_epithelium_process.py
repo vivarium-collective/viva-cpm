@@ -31,3 +31,33 @@ def test_epithelium_process_exposes_all_fields_and_deposits():
     # depositing chemokine (field idx 2) at a point then reading it back rises
     p.update({"fates": {}, "field_deposit": [[2, 20, 20, 0, 5.0]]}, 1.0)
     assert p.world.field_value_at(2, 20, 20, 0) > 0.0
+
+
+def test_epithelium_process_fates_deplete_living_epithelium():
+    spec = _spec()
+    core = pb.allocate_core()
+    p = EpitheliumProcess({"spec": spec, "mcs_per_update": 1, "n_fields": 4,
+                           "enable": ["infection", "ifn", "death", "ros", "allee"]},
+                          core=core)
+    # feed a large ROS X so ROS death fires
+    living0 = None
+    D = 0
+    H = I = 0
+    for _ in range(25):
+        out = p.update({"fates": {}, "field_deposit": [],
+                        "ode_state": {"X": 50.0}, "immune_kills": []}, 1.0)
+        H, I, D = out["counts"]["H"], out["counts"]["I"], out["counts"]["D"]
+        living0 = living0 if living0 is not None else H + I
+    assert D > 0 and (H + I) < living0
+
+
+def test_epithelium_process_emits_ode_inputs():
+    spec = _spec()
+    core = pb.allocate_core()
+    p = EpitheliumProcess({"spec": spec, "mcs_per_update": 1, "n_fields": 4}, core=core)
+    out = p.update({"fates": {}, "field_deposit": [[0, 20, 20, 0, 50.0]],
+                    "ode_state": {"X": 0.0}, "immune_kills": []}, 1.0)
+    ode_inputs = out["ode_inputs"]
+    assert set(ode_inputs.keys()) == {
+        "H", "I", "DH", "V", "F", "C", "L", "B_ei", "G_ki"}
+    assert ode_inputs["V"] > 0.0
