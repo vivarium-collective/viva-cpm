@@ -539,6 +539,26 @@ discovery_implications:
     - id: incr9-fig3b-intermediate-scale-diagnostic
       title: "Increment 9: intermediate-scale run to separate population-scale from run-duration effects on the fig3b band comparison"
       motivation: "This study's report.main_expert_question: running the full cells_per_side=35 patch with few replicas but a duration between the reduced test's ~0.09 days and the paper-scale ~3.5 days could isolate whether population-scale or run-duration dominates the reduced-scale miss, informing how much confidence to put in Phase-B before committing the expensive 50-replica run."
+    - id: phaseb-fig3b-calibration-progress
+      title: "Phase-B paper-scale fig3b calibration (Increments 10-11): ROS death + scattered infection"
+      motivation: >-
+        The Mac-mini paper-scale fig3b diagnostic (cells_per_side=35, steps=720,
+        4 replicas, ~3.5 days) was RUN and drove two source-faithful calibration
+        fixes. Increment 10 wired ROS-driven epithelial death (source
+        OxidationAgentModelSteppable, the paper's dominant killer, absent from
+        Incr 0-9). Increment 11 scattered the initial infection across the sheet
+        (the Fig-3B 'infection fraction' scenario) rather than the single central
+        lesion the immune-localization scenario builder seeded. TOGETHER they took
+        the epithelial trajectory from wildly off to close: infected_cells
+        worst-miss 83 -> 2.75, uninfected 7.5 -> 2.2, dead 6.8 -> 1.0 (now 7/8
+        checkpoints in-band); 49/96 total checkpoints in-band (antibodies 8/8,
+        type1_ifn 7/8, dead 7/8). band_eval.passed is still False (the flag needs
+        EVERY checkpoint of EVERY observable in-band) -- NOT a reproduced claim;
+        remaining fine-tuning: uninfected/infected timing (~2.5 band-widths),
+        the extracellular_virus units/domain-dilution residual (0.5), immune-cell
+        magnitudes, and replica count (4 vs the target bands' 50). verdict stays
+        documented/PENDING. This 4-replica result was measured directly on the
+        mini, not fabricated."
 
 conditions:
   baseline:
