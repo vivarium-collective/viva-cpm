@@ -1,7 +1,7 @@
 import numpy as np
 import process_bigraph as pb
 from pbg_cpm_studies.influenza.epithelium_process import EpitheliumProcess
-from pbg_cpm_studies.influenza import build, immune
+from pbg_cpm_studies.influenza import build, immune, types
 
 
 def _spec():
@@ -113,3 +113,116 @@ def test_epithelium_process_chemokine_gates_uninfected_il10_secretion():
     assert L_off > 0.0
     assert L_on >= 0.0
     assert L_on < L_off
+
+
+# --- Task 1.4: Phase-1 parity gate --------------------------------------
+
+
+def _matching_scene(*, cells_per_side, seed, init_infection_frac,
+                    n_macrophages=4, n_nk=4, n_cd8=4,
+                    margin_sites=10, separation_sites=8):
+    """Build the EXACT scene `run.run_full_model` builds for the
+    `init_infection_frac` scenario branch (run.py:1726-1787): the same
+    `immune.build_cytotoxic_scenario_spec` call (matching run_full_model's
+    own defaults for the immune-cluster kwargs it doesn't vary in this
+    parity test), then the SAME init_infection_frac re-scatter -- reset
+    every epithelial cell to H, then re-infect `n_infected` of them chosen
+    by `np.random.default_rng(seed + 7).choice(...)` -- so an
+    EpitheliumProcess built from this spec sees the identical initial
+    lesion (and, via `spec["potts"]["seed"] == seed`, the identical Potts
+    RNG stream) as run_full_model's own world.
+    """
+    tot_cell = cells_per_side * cells_per_side
+    n_infected = int(round(float(init_infection_frac) * tot_cell))
+    n_infected = max(0, min(n_infected, tot_cell))
+
+    spec = immune.build_cytotoxic_scenario_spec(
+        epithelial_cells_per_side=cells_per_side, n_infected=n_infected,
+        n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
+        margin_sites=margin_sites, separation_sites=separation_sites, seed=seed)
+
+    if init_infection_frac is not None and n_infected > 0:
+        epi_idx = [i for i, c in enumerate(spec["cells"])
+                   if c["type"] in (types.H, types.I)]
+        for i in epi_idx:
+            spec["cells"][i]["type"] = types.H
+        if epi_idx:
+            scatter_rng = np.random.default_rng(seed + 7)
+            chosen = scatter_rng.choice(np.array(epi_idx),
+                                        size=min(n_infected, len(epi_idx)),
+                                        replace=False)
+            for i in chosen:
+                spec["cells"][int(i)]["type"] = types.I
+    return spec
+
+
+def _drive_epithelium_process(*, cells_per_side, steps, seed, init_infection_frac,
+                              enable, mcs_per_step=7):
+    """Build the same scene `run_full_model` builds (`_matching_scene`),
+    construct an `EpitheliumProcess` with matching config, and step it
+    `mcs_per_step` MCS per record for `steps - 1` records -- mirroring
+    `run_full_model`'s own outer loop (`_record(0)` is the seeded initial
+    state with no MCS advanced, then `for i in range(1, steps): step
+    mcs_per_step MCS; _record(i)`, run.py:2148-2154), so the LAST record
+    here (index `steps - 1`) lines up MCS-for-MCS with `r["counts"][...
+    ][-1]`. `immune_kills=[]` and `ode_state={"X": 0.0}` keep the
+    immune-kill merge and ROS death pipeline stages inert (both are also
+    absent from `enable` in the Task 1.4 parity test, so this is belt and
+    suspenders) for a clean epithelial-only comparison.
+
+    Returns `(dead_final, H_series, I_series, D_series)` -- the H/I/D
+    counts recorded after each of the `steps - 1` update() calls.
+    """
+    core = pb.allocate_core()
+    spec = _matching_scene(cells_per_side=cells_per_side, seed=seed,
+                           init_infection_frac=init_infection_frac)
+    p = EpitheliumProcess({
+        "spec": spec, "mcs_per_update": 1, "mcs_per_step": mcs_per_step,
+        "n_fields": 4, "enable": list(enable),
+    }, core=core)
+
+    H_series, I_series, D_series = [], [], []
+    for _ in range(1, steps):
+        out = p.update({"fates": {}, "field_deposit": [],
+                        "ode_state": {"X": 0.0}, "immune_kills": []}, 1.0)
+        H_series.append(out["counts"]["H"])
+        I_series.append(out["counts"]["I"])
+        D_series.append(out["counts"]["D"])
+    dead_final = D_series[-1] if D_series else 0
+    return dead_final, H_series, I_series, D_series
+
+
+def test_epithelium_process_parity_with_run_full_model_epithelial_only():
+    # ACHIEVED PARITY (2026-09-20, this seed + 3 additional seed/scale
+    # combos probed during development -- see task-1.4-report.md):
+    # dead_proc == dead_ref EXACTLY (|delta| = 0, tolerance = 2) -- the
+    # per-record dead-count series matches run_full_model's `counts.dead`
+    # series element-for-element, not just the final value. With
+    # "killing"/"ros"/"ode"/"recruitment"/"macrophage"/"nk_cd8" all off and
+    # immune_kills=[]/X=0.0, the two drivers consume IDENTICAL RNG streams
+    # (infect_rng/death_rng/allee_rng seeded seed+1/+2/+3, world Potts RNG
+    # seeded from the shared spec["potts"]["seed"] == seed) over the
+    # IDENTICAL scene and MCS cadence, so exact agreement is expected, not
+    # just "within tolerance".
+    from pbg_cpm_studies.influenza import run
+    enable = ["infection", "ifn", "death", "allee"]   # ros/ode/immune off for a clean parity
+    r = run.run_full_model(cells_per_side=8, steps=20, seed=3,
+                           init_infection_frac=0.1, enable=enable)
+    dead_ref = r["counts"]["dead"][-1]
+    dead_proc, H, I, D = _drive_epithelium_process(
+        cells_per_side=8, steps=20, seed=3, init_infection_frac=0.1, enable=enable)
+
+    tol = max(2, int(0.1 * max(dead_ref, 1)))
+    assert abs(dead_proc - dead_ref) <= tol
+    # the achieved delta, logged for visibility when this test is run -v
+    assert abs(dead_proc - dead_ref) == 0
+
+    # Element-for-element series parity (the whole point of the gate --
+    # not just the final scalar). run_full_model's counts series index 0 is
+    # the seeded initial state (before any MCS); indices 1..steps-1 are
+    # after each record's mcs_per_step MCS -- exactly the records
+    # `_drive_epithelium_process`'s H/I/D series holds one-to-one, hence the
+    # `[1:]` slice.
+    assert H == r["counts"]["uninfected"][1:]
+    assert I == r["counts"]["infected"][1:]
+    assert D == r["counts"]["dead"][1:]
