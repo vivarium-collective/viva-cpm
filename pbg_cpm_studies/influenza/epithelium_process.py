@@ -49,10 +49,14 @@ from .resistance import cell_resistance
 from .run import _EPITHELIAL_TYPES, _epithelial_contact_totals
 
 # Mirrors run_full_model's `enable` set (task-1.3-brief.md): this task only
-# implements the EPITHELIAL-side tokens. "chemokine"/"macrophage"/"nk_cd8"/
-# "recruitment"/"ode"/"recruitment" (macrophage secretion scale, chemotaxis
-# wiring, ODE stepping) are out of scope for Task 1.3 -- deferred to the
-# later ImmuneProcess/ODE-process tasks (see task-1.3-report.md "Deviations").
+# implements the EPITHELIAL-side tokens by default. "macrophage"/"nk_cd8"/
+# "recruitment"/"ode" (chemotaxis wiring, ODE stepping) are entirely out of
+# scope for Task 1.3 -- deferred to the later ImmuneProcess/ODE-process
+# tasks. "chemokine" IS understood (it gates the macrophage-independent
+# uninfected-H IL-10 secretion loop, matching run.py:1999-2010's nesting --
+# see `_epithelial_fates`), but is NOT in the default set, matching the
+# brief's literal 6-token default; pass it explicitly in `enable` to turn
+# that IL-10 secretion on (see task-1.3-report.md "Deviations"/fix log).
 _DEFAULT_ENABLE = ("infection", "ifn", "death", "ros", "allee", "killing")
 
 
@@ -232,9 +236,12 @@ class EpitheliumProcess(CPMProcess):
         consuming a precomputed `immune_kills` list (the future
         agent-based ImmuneProcess's decision), merged right after infection
         and before resistance/apoptosis (task-1.3-brief.md Interfaces).
-        Macrophage-driven chemokine/IL-10 secretion scale ("chemokine" in
-        the source `enable`) is out of scope for this task -- deferred, see
-        module docstring and task-1.3-report.md.
+        The macrophage secretion-scale HALF of the source's "chemokine"
+        block (sig_1-dependent chemokine/IL-10 secretion by macrophage
+        cells) is out of scope for this task -- deferred, see module
+        docstring and task-1.3-report.md. The uninfected-H IL-10 gate half
+        of that same block IS implemented, gated by "chemokine" in
+        `self.enable` exactly like the source (run.py:1999-2010).
         """
         world = self.world
         n_cells = self.n_cells
@@ -272,16 +279,22 @@ class EpitheliumProcess(CPMProcess):
                     resist_at_cell[cid] = cell_resistance(f_bar, self.a_rf)
         self.resist_at_cell = resist_at_cell
 
-        # (4) field-secretion scales. Virus release by infected gated (1-rho);
-        # uninfected IL-10 gated (1-rho). Macrophage-driven chemokine/IL-10
-        # scale (dynamic sig_1) is NOT implemented here (out of scope, see
-        # class docstring) -- macrophage-independent only.
+        # (4) field-secretion scales. Virus release by infected gated (1-rho),
+        # UNCONDITIONAL (matches run.py: not nested under "chemokine").
+        # Uninfected IL-10 gate (1-rho) IS nested under "chemokine" in the
+        # source (run.py:1999-2010, same block as the macrophage secretion
+        # loop -- verified by indentation) -- gated here identically. The
+        # macrophage-driven chemokine/IL-10 scale itself (dynamic sig_1) is
+        # still NOT implemented (out of scope, see class docstring); only
+        # the macrophage-independent H-cell IL-10 gate is, under the same
+        # "chemokine" token the source uses for that whole block.
         for cid in self.infected_ids:
             world.set_cell_secretion_scale(0, cid, 1.0 - resist_at_cell[cid])
-        for cid in range(1, n_cells + 1):
-            if current_types[cid] == types.H:
-                world.set_cell_secretion_scale(
-                    3, cid, signaling.uninfected_il10_scale(resist_at_cell[cid]))
+        if "chemokine" in self.enable:
+            for cid in range(1, n_cells + 1):
+                if current_types[cid] == types.H:
+                    world.set_cell_secretion_scale(
+                        3, cid, signaling.uninfected_il10_scale(resist_at_cell[cid]))
 
         # (5) chemotaxis: persistent engine setting, applied inside world.step
         # (not wired by this task -- see module docstring).
