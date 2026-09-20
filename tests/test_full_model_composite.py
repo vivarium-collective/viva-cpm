@@ -24,6 +24,32 @@ def test_full_model_composite_builds_and_steps():
     comp.run(1)   # one interval, no exception
 
 
+def test_full_model_composite_epithelium_enables_chemokine_il10_gate():
+    """Source-faithfulness fix (final review round): the composite's
+    epithelium node previously carried no `enable` config at all, silently
+    falling to `EpitheliumProcess._DEFAULT_ENABLE`, which OMITS "chemokine"
+    -- so the uninfected-H IL-10 gate (`EpitheliumProcess._epithelial_fates`,
+    gated by `"chemokine" in self.enable`) was always off, unlike
+    `run_full_model`'s default (`run.py`'s `_FULL_MODEL_SUBSYSTEMS`, which
+    includes "chemokine"). Proves the fix at both the document level (the
+    config the composite ships) and the constructed-instance level (what
+    `EpitheliumProcess.initialize` actually resolves it to)."""
+    from pbg_cpm_studies.composites.influenza import FULL_MODEL_EPITHELIUM_ENABLE
+
+    assert "chemokine" in FULL_MODEL_EPITHELIUM_ENABLE
+
+    doc = full_model_composite_document(cells_per_side=6, seed=1, init_infection_frac=0.1)
+    assert "chemokine" in doc["epithelium"]["config"]["enable"]
+
+    core = build_core()
+    comp = Composite({"state": doc}, core=core)
+    epi_proc = comp.state["epithelium"]["instance"]
+    assert "chemokine" in epi_proc.enable
+    # And the rest of the epithelial-fate pipeline stays active alongside it.
+    for token in ("infection", "ifn", "death", "ros", "allee", "killing"):
+        assert token in epi_proc.enable
+
+
 def test_run_full_model_composite_shape_and_decline():
     from pbg_cpm_studies.influenza import run
     r = run.run_full_model_composite(cells_per_side=8, steps=12, seed=1, init_infection_frac=0.1)

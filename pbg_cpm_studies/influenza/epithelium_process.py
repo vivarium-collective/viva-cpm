@@ -162,6 +162,11 @@ class EpitheliumProcess(CPMProcess):
         # the whole field crosses the store boundary once per update).
         out["chemo_field"] = "overwrite[list]"
         out["virus_field"] = "overwrite[list]"
+        # IL-10 field (index 3) -- so ImmuneProcess can sample the local IL-10
+        # concentration at each macrophage agent, matching run_full_model's
+        # `world.field_mean_at_cell(il10_fi, cid)` self-limiting feedback
+        # (source-faithfulness fix; see immune_process.py's Secretion section).
+        out["il10_field"] = "overwrite[list]"
         out["dims"] = "overwrite[list]"
         out["counts"] = "overwrite[map[integer]]"
         # Controller ruling R3 (task-1.3-brief.md): the spatial->ODE inputs a
@@ -218,6 +223,7 @@ class EpitheliumProcess(CPMProcess):
         # field indices (per fields.py order): 0=virus 1=ifn 2=chemokine 3=il10
         base["chemo_field"] = list(self.world.field_conc(2)) if self.n_fields > 2 else []
         base["virus_field"] = list(self.world.field_conc(0)) if self.n_fields > 0 else []
+        base["il10_field"] = list(self.world.field_conc(3)) if self.n_fields > 3 else []
         base["dims"] = list(self.world.dims())
 
         H = sum(1 for t in types_now[1:] if t == types.H)

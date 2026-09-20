@@ -98,6 +98,73 @@ def test_macrophage_deposits_chemokine_when_sig1_positive():
     assert deposits[0][4] == pytest.approx(expected_chemo)
 
 
+def test_macrophage_secretion_self_limits_with_local_il10():
+    """Source-faithfulness fix (final review round): `run_full_model` samples
+    the IL-10 field at each macrophage's own cell (`world.field_mean_at_cell
+    (il10_fi, cid)`) and feeds it into `macrophage_secretion_scale`, which is
+    monotone DECREASING in local IL-10 (self-limiting secretion). Previously
+    `ImmuneProcess` hardcoded `il10_local = 0.0` (the Hill term's maximum,
+    unself-limited value) -- this proves the fix: a macrophage sitting in a
+    NON-ZERO local IL-10 field must secrete LESS chemokine than the exact
+    same agent in an all-zero IL-10 field, all else (sig_1, position, RNG
+    seed) held identical."""
+    nx, ny = 30, 10
+    sig_1 = 0.02
+    agents = [{"id": 1, "type": int(types.M), "x": 10.0, "y": 5.0}]
+    base_kwargs = {
+        "chemo_field": [0.0] * (nx * ny), "virus_field": [0.0] * (nx * ny),
+        "dims": [nx, ny, 1], "immune_agents": agents,
+        "epithelial_positions": {}, "infected_ids": [], "sig_1": sig_1,
+    }
+
+    p_zero = ImmuneProcess({"seed": 3}, core=pb.allocate_core())
+    out_zero = p_zero.update({**base_kwargs, "il10_field": [0.0] * (nx * ny)}, 1.0)
+
+    p_nonzero = ImmuneProcess({"seed": 3}, core=pb.allocate_core())
+    il10_field = [5.0] * (nx * ny)  # uniform, well above the Hill's d_2 scale
+    out_nonzero = p_nonzero.update({**base_kwargs, "il10_field": il10_field}, 1.0)
+
+    chemo_zero = [d for d in out_zero["field_deposit"] if d[0] == 2]
+    chemo_nonzero = [d for d in out_nonzero["field_deposit"] if d[0] == 2]
+    assert chemo_zero and chemo_nonzero
+    assert chemo_nonzero[0][4] < chemo_zero[0][4], (
+        f"expected non-zero local IL-10 to REDUCE macrophage chemokine "
+        f"secretion (self-limiting feedback): zero-IL10={chemo_zero[0][4]!r} "
+        f"nonzero-IL10={chemo_nonzero[0][4]!r}")
+
+    # Cross-check against the shared Hill-scale helper directly, at the exact
+    # sampled value (agent sits at integer site (10, 5) -> il10_local = 5.0).
+    _, g_1, g_2, d_2 = il10_hill_constants()
+    scale_zero = macrophage_secretion_scale(0.0, sig_1, g_1, g_2, d_2)
+    scale_nonzero = macrophage_secretion_scale(5.0, sig_1, g_1, g_2, d_2)
+    assert scale_nonzero < scale_zero
+    params = load_params()
+    cell_sites = int(params["cpm"]["cell_sites"])
+    b_c_per_site = (float(params["chemokine"]["b_c"]) / 2.0) / cell_sites
+    assert chemo_zero[0][4] == pytest.approx(b_c_per_site * cell_sites * scale_zero)
+    assert chemo_nonzero[0][4] == pytest.approx(b_c_per_site * cell_sites * scale_nonzero)
+
+
+def test_macrophage_secretion_defaults_to_zero_il10_when_field_absent():
+    """Backward-compat: a caller that doesn't wire `il10_field` at all (e.g.
+    an older driver/test) must fall back to the pre-fix `il10_local = 0.0`
+    behavior, not raise."""
+    nx, ny = 30, 10
+    sig_1 = 0.02
+    p = ImmuneProcess({"seed": 3}, core=pb.allocate_core())
+    agents = [{"id": 1, "type": int(types.M), "x": 10.0, "y": 5.0}]
+    out = p.update({"chemo_field": [0.0] * (nx * ny), "virus_field": [0.0] * (nx * ny),
+                    "dims": [nx, ny, 1], "immune_agents": agents,
+                    "epithelial_positions": {}, "infected_ids": [], "sig_1": sig_1}, 1.0)
+    deposits = [d for d in out["field_deposit"] if d[0] == 2]
+    _, g_1, g_2, d_2 = il10_hill_constants()
+    scale = macrophage_secretion_scale(0.0, sig_1, g_1, g_2, d_2)
+    params = load_params()
+    cell_sites = int(params["cpm"]["cell_sites"])
+    b_c_per_site = (float(params["chemokine"]["b_c"]) / 2.0) / cell_sites
+    assert deposits[0][4] == pytest.approx(b_c_per_site * cell_sites * scale)
+
+
 def test_recruitment_grows_agents_uncapped():
     # NOTE: like the tests above, `core=pb.allocate_core()` is required
     # (deviation from the brief's illustrative snippet, same as Task 2.1/2.2).

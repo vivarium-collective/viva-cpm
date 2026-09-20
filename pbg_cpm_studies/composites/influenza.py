@@ -39,6 +39,7 @@ from process_bigraph.composite_generator import composite_generator
 
 from ..influenza import fields, immune, price_ode, sheet
 from ..influenza import types as inf_types
+from ..influenza.epithelium_process import _DEFAULT_ENABLE as _EPITHELIUM_DEFAULT_ENABLE
 from ..influenza.params import load_params
 
 CPM_ADDR = "local:!cpm.processes.cpm_process.CPMProcess"
@@ -46,6 +47,21 @@ INFECTION_ADDR = "local:!pbg_cpm_studies.influenza.infection_process.InfectionPr
 EPITHELIUM_ADDR = "local:!pbg_cpm_studies.influenza.epithelium_process.EpitheliumProcess"
 IMMUNE_ADDR = "local:!pbg_cpm_studies.influenza.immune_process.ImmuneProcess"
 ODE_ADDR = "local:!pbg_cpm_studies.influenza.ode_process.SystemicODEProcess"
+
+# Source-faithfulness fix (final-review gap): `run_full_model`'s default
+# `enable` (`run.py`'s `_FULL_MODEL_SUBSYSTEMS`) includes "chemokine", which
+# gates the uninfected-H IL-10 secretion loop inside
+# `EpitheliumProcess._epithelial_fates` (see that module's docstring). The
+# composite's epithelium node must enable the SAME epithelial-relevant token
+# set or that H-cell IL-10 source is silently off, breaking the IL-10
+# negative-feedback loop macrophage secretion depends on
+# (`ImmuneProcess.macrophage_secretion_scale`). `EpitheliumProcess` itself
+# only inspects a subset of `_FULL_MODEL_SUBSYSTEMS`'s tokens (it has no
+# "macrophage"/"nk_cd8"/"recruitment"/"ode" logic -- those are handled by
+# `ImmuneProcess`/`SystemicODEProcess` elsewhere in this composite), so the
+# full epithelium-relevant set is exactly its own `_DEFAULT_ENABLE` plus the
+# one token it additionally understands but excludes by default: "chemokine".
+FULL_MODEL_EPITHELIUM_ENABLE = tuple(_EPITHELIUM_DEFAULT_ENABLE) + ("chemokine",)
 
 # modest live-demo aggregate (full-scale 1mm^2 throughput is characterized
 # separately by tests/test_influenza_perf.py, not run live from the dashboard)
@@ -520,6 +536,7 @@ def full_model_composite_document(*, cells_per_side: int = DEMO_FULL_MODEL_CELLS
         "immune_agents": immune_agents,
         "chemo_field": [],
         "virus_field": [],
+        "il10_field": [],
         "dims": [],
         "positions": [],
         "types": [],
@@ -549,6 +566,11 @@ def full_model_composite_document(*, cells_per_side: int = DEMO_FULL_MODEL_CELLS
                 "mcs_per_update": mcs_per_step,
                 "mcs_per_step": mcs_per_step,
                 "secretory_types": [inf_types.I],
+                # Source-faithfulness fix: matches run_full_model's default
+                # epithelial subsystem set INCLUDING "chemokine" (see
+                # FULL_MODEL_EPITHELIUM_ENABLE docstring above) so the
+                # uninfected-H IL-10 gate is active, same as run_full_model.
+                "enable": list(FULL_MODEL_EPITHELIUM_ENABLE),
             },
             "inputs": {
                 "fates": ["fates"],
@@ -562,6 +584,7 @@ def full_model_composite_document(*, cells_per_side: int = DEMO_FULL_MODEL_CELLS
                 "field_at_cell_all": ["field_at_cell_all"],
                 "chemo_field": ["chemo_field"],
                 "virus_field": ["virus_field"],
+                "il10_field": ["il10_field"],
                 "dims": ["dims"],
                 "counts": ["counts"],
                 "ode_inputs": ["ode_inputs"],
@@ -574,6 +597,7 @@ def full_model_composite_document(*, cells_per_side: int = DEMO_FULL_MODEL_CELLS
             "inputs": {
                 "chemo_field": ["chemo_field"],
                 "virus_field": ["virus_field"],
+                "il10_field": ["il10_field"],
                 "dims": ["dims"],
                 "immune_agents": ["immune_agents"],
                 "epithelial_positions": ["epithelial_positions"],

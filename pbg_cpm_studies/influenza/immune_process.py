@@ -71,10 +71,15 @@ is added once, undivided, via `field_add_source_at`, so no `dt` term
 applies here. `g_1`, `g_2`, `d_2` come from `fields.il10_hill_constants()`
 (unchanged); `sig_1` is NOT the stub in that tuple -- it is read fresh each
 update from the `sig_1` input (the dynamic ODE value, per the brief). Local
-IL-10 (`L_local`) is fixed at `0.0`: this process does not yet receive an
-`il10_field` input (out of Task 2.2 scope per the brief -- macrophage agents
-are themselves an IL-10 SOURCE, not yet a consumer of the diffused field
-here), so the Hill self-regulation term sees no local IL-10 buildup.
+IL-10 (`L_local`) is sampled from the `il10_field` input (source-faithfulness
+fix, final review round) at the macrophage agent's own nearest lattice site
+-- the SAME `(ix, iy)` nearest-site convention already used for the
+chemotaxis gradient sample above, reused here rather than re-derived. This
+mirrors `run_full_model`'s `world.field_mean_at_cell(il10_fi, cid)` local
+IL-10 read, so the Hill self-regulation term self-limits macrophage
+secretion as IL-10 builds up locally, exactly as the source does (previously
+this was hardcoded to `0.0`, the Hill term's MAXIMUM/unself-limited value --
+a source-faithfulness gap, now closed).
 
 **Whole-cell flux, not one pixel (controller ruling R4, fix round 1):** an
 off-lattice macrophage AGENT represents one WHOLE CPM cell. On-lattice
@@ -259,6 +264,10 @@ class ImmuneProcess(Process):
         return {
             "chemo_field": "list",
             "virus_field": "list",
+            # IL-10 field (index 3), sampled at each macrophage agent's
+            # nearest lattice site for the self-limiting secretion Hill term
+            # (source-faithfulness fix -- see "Secretion" docstring section).
+            "il10_field": "list",
             "dims": "list",
             "immune_agents": "list",
             # Task 2.2 inputs (killing + secretion):
@@ -312,6 +321,14 @@ class ImmuneProcess(Process):
 
         chemo = np.asarray(state.get("chemo_field") or [], dtype=float).reshape(ny, nx)
         virus = np.asarray(state.get("virus_field") or [], dtype=float).reshape(ny, nx)
+        # IL-10 field for macrophage self-limiting secretion (see "Secretion"
+        # docstring section). Tolerate a missing/empty input (e.g. a caller
+        # not yet wiring `il10_field`, or existing tests) by falling back to
+        # an all-zero field -- same as the previous hardcoded `il10_local =
+        # 0.0` default, just field-shaped instead of a bare constant.
+        il10_raw = state.get("il10_field")
+        il10 = (np.asarray(il10_raw, dtype=float).reshape(ny, nx)
+               if il10_raw else np.zeros((ny, nx)))
 
         updated = []
         killed: set[int] = set()
@@ -358,7 +375,12 @@ class ImmuneProcess(Process):
 
             # --- Task 2.2: macrophage chemokine/IL-10 secretion ---
             if agent_type == int(types.M):
-                il10_local = 0.0  # no il10_field input yet, see module docstring
+                # Source-faithfulness fix (final review round): sample the
+                # IL-10 field at this agent's own nearest lattice site (same
+                # (ix, iy) already computed above for the chemotaxis
+                # gradient), matching run_full_model's per-cell
+                # `field_mean_at_cell(il10_fi, cid)` local IL-10 read.
+                il10_local = float(il10[iy, ix])
                 scale = macrophage_secretion_scale(
                     il10_local, sig_1, self.g_1, self.g_2, self.d_2)
                 # Whole-cell flux (controller ruling R4, fix round 1): see this

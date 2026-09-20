@@ -2255,7 +2255,7 @@ def run_full_model_composite(*, cells_per_side: int, steps: int, seed: int,
     store = {
         "fates": {}, "field_deposit": [], "ode_state": {}, "immune_kills": [],
         "immune_agents": list(doc["immune_agents"]),
-        "chemo_field": [], "virus_field": [], "dims": [],
+        "chemo_field": [], "virus_field": [], "il10_field": [], "dims": [],
         "ode_inputs": {}, "immune_counts": {},
         "recruit_drivers": {}, "sig_1": 0.0,
         "margin_box": doc["margin_box"],
@@ -2336,6 +2336,12 @@ def run_full_model_composite(*, cells_per_side: int, steps: int, seed: int,
             }, 1)
             store["chemo_field"] = epi_out["chemo_field"]
             store["virus_field"] = epi_out["virus_field"]
+            # Source-faithfulness fix (final review round): thread the IL-10
+            # field from the epithelium's output to the immune input every
+            # MCS too, same as chemo_field/virus_field -- so ImmuneProcess's
+            # macrophage secretion self-limits on the CURRENT local IL-10
+            # reading, matching run_full_model's field_mean_at_cell read.
+            store["il10_field"] = epi_out["il10_field"]
             store["dims"] = epi_out["dims"]
             store["ode_inputs"] = epi_out["ode_inputs"]
             # `fates` is an external-override input hook with no producer in
@@ -2364,6 +2370,7 @@ def run_full_model_composite(*, cells_per_side: int, steps: int, seed: int,
             imm_out = imm_proc.update({
                 "chemo_field": store["chemo_field"],
                 "virus_field": store["virus_field"],
+                "il10_field": store["il10_field"],
                 "dims": store["dims"],
                 "immune_agents": store["immune_agents"],
                 "epithelial_positions": epithelial_positions,
