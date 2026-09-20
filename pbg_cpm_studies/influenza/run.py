@@ -2156,14 +2156,24 @@ def _map_full_model_observables(result: dict, observable_map: dict) -> dict:
     unchanged. Returns ``{obs_name: [(t_days, value)]}``, the per-replica
     mapped series `repro_fig3b`/`repro_fig5`/`repro_fig7` ensemble-mean via
     `bands.aggregate_replicas`."""
-    n_lattice_sites = 1
-    for d in result["params"]["dims"]:
-        n_lattice_sites *= d
+    # FIELD observables -> spatial-mean CONCENTRATION over the TISSUE (the
+    # epithelial patch), NOT the full simulated domain. The domain includes
+    # empty medium + immune-cluster regions that carry ~no virus and would
+    # dilute a per-domain mean by the tissue/domain area ratio (the "0.375x /
+    # 0.5" residual the Incr-8/9 fig5 study flagged is exactly that ratio). The
+    # physically meaningful extracellular-virus concentration in the tissue
+    # divides the field sum by the tissue site count = num_epithelial *
+    # cell_volume: for the init_viral_load scenario this makes t=0 virus =
+    # `load` exactly (the target's own t=0 value). Incr 12 units correction;
+    # run_full_model's raw-sum field recording + the ODE's own sum/dim.z coupling
+    # are unchanged.
+    cell_volume = float(load_params()["price_ode"]["scaling"]["cell_volume"])
+    n_tissue_sites = max(1.0, float(result["params"]["tot_cell"]) * cell_volume)
     mapped = {}
     for obs_name, (section, key) in observable_map.items():
         series = list(zip(result["t_days"], result[section][key]))
         if section == "fields":
-            series = [(t, v / n_lattice_sites) for t, v in series]
+            series = [(t, v / n_tissue_sites) for t, v in series]
         mapped[obs_name] = series
     return mapped
 
