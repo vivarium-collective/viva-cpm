@@ -45,6 +45,16 @@ impl Field {
         self.cell_scale.get(&cell_id).copied().unwrap_or(1.0)
     }
 
+    /// Concentration at a single lattice site.
+    pub fn value_at(&self, site: usize) -> f64 {
+        self.conc[site] as f64
+    }
+
+    /// Add `amount` to a single lattice site's concentration.
+    pub fn add_source_at(&mut self, site: usize, amount: f64) {
+        self.conc[site] += amount as f32;
+    }
+
     /// One explicit forward-Euler diffusion+decay sub-step over the whole lattice.
     pub fn diffuse_step(&mut self, lattice: &Lattice) {
         let n = self.conc.len();
@@ -175,6 +185,17 @@ impl World {
 
     pub fn field_conc(&self, field_idx: usize) -> Vec<f32> {
         self.fields[field_idx].conc.clone()
+    }
+
+    /// Concentration of field `field_idx` at a single flat lattice `site`.
+    pub fn field_value_at(&self, field_idx: usize, site: usize) -> f64 {
+        self.fields[field_idx].value_at(site)
+    }
+
+    /// Add `amount` to field `field_idx`'s concentration at a single flat
+    /// lattice `site`.
+    pub fn field_add_source_at(&mut self, field_idx: usize, site: usize, amount: f64) {
+        self.fields[field_idx].add_source_at(site, amount);
     }
 
     pub fn field_mean_at_cell(&self, field_idx: usize, cell_id: CellId) -> f64 {

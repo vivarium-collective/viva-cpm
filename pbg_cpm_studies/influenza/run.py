@@ -2172,6 +2172,250 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
     return result
 
 
+# ===========================================================================
+# Task 3.3 (influenza-immune-process-composite epic): run_full_model_composite
+# -- drives the `full_model` process-bigraph Composite (Task 3.2:
+# `composites.influenza.full_model_composite_document`) and returns the SAME
+# result-dict shape as `run_full_model` above. Does NOT touch `run_full_model`
+# itself, which remains the source-faithful reference the capstone
+# reproduction studies use; this is the declarative-Composite alternative the
+# epic is building toward (parity gate: Task 3.4).
+# ===========================================================================
+
+def run_full_model_composite(*, cells_per_side: int, steps: int, seed: int,
+                             init_infection_frac: float | None = None,
+                             init_viral_load: float | None = None,
+                             mcs_per_step: int = 7, s_per_mcs: float = 60.0) -> dict:
+    """Drive the `full_model` process-bigraph Composite (`EpitheliumProcess` +
+    `ImmuneProcess` + `SystemicODEProcess`, wired by
+    `composites.influenza.full_model_composite_document`) through `steps`
+    records, returning the same result-dict shape `run_full_model` does
+    (`mcs`, `t_days`, `counts`, `fields`, `ode`, `params`).
+
+    ``init_viral_load`` is NOT YET supported by `full_model_composite_document`
+    (only `init_infection_frac` scenarios are wired there) -- passing it
+    raises `NotImplementedError`; deferred to a later task alongside the
+    remaining `run_full_model`-parity gaps (Task 3.4).
+
+    Cadence (task-3.3-brief.md): the cell-scale processes (`EpitheliumProcess`,
+    `ImmuneProcess`) advance ONE raw MCS at a time, `mcs_per_step` times per
+    record; `SystemicODEProcess` couples ONCE per record (`dt_seconds =
+    mcs_per_step * s_per_mcs`), matching `run_full_model`'s own coupling
+    cadence. This driver steps each process's `update()` directly (not via
+    `Composite.run()`'s interval scheduler) so it can, BETWEEN every single
+    MCS -- before `ImmuneProcess.update()` runs -- compute `infected_ids` /
+    `epithelial_positions` from the epithelium's just-produced `types`/
+    `positions` outputs and write them into the driver's local store. This is
+    the CRITICAL fix Task 3.2 deferred here: `full_model_composite_document`
+    seeds both stores empty and leaves them unwired, so immune KILLING is a
+    silent no-op in the raw document -- wiring them here every MCS is what
+    makes killing actually fire (see task-3.3-report.md for verification).
+    `apply_recruitment` is likewise driven True every MCS here (not once per
+    record), the corrected cadence per the brief.
+    """
+    if init_viral_load is not None:
+        raise NotImplementedError(
+            "run_full_model_composite: init_viral_load is not yet supported "
+            "by full_model_composite_document (init_infection_frac scenarios "
+            "only) -- deferred alongside the remaining run_full_model parity "
+            "gaps (Task 3.4).")
+
+    from ..composites.influenza import full_model_composite_document
+    from ..core import build_core
+    import process_bigraph as pb
+
+    doc_kwargs = dict(cells_per_side=cells_per_side, seed=seed,
+                      mcs_per_step=mcs_per_step, s_per_mcs=s_per_mcs)
+    if init_infection_frac is not None:
+        doc_kwargs["init_infection_frac"] = init_infection_frac
+    doc = full_model_composite_document(**doc_kwargs)
+
+    # Drive the epithelium ONE raw MCS per manual `update()` call below (not
+    # `mcs_per_step` MCS per call, the document's own default) -- this is what
+    # lets the driver refresh `infected_ids`/`epithelial_positions`/
+    # recruitment cadence every MCS instead of only once per record.
+    doc["epithelium"]["config"]["mcs_per_step"] = 1
+
+    core = build_core()
+    # Composite(...) builds + validates the document and instantiates every
+    # process (calling `initialize()` on each, so `epi_proc.world` already
+    # holds the seeded initial scene below) -- but the document has no Step/
+    # emitter nodes, so nothing is lost by never calling `comp.run()`: every
+    # subsequent advance below calls each process's `update()` directly,
+    # threading a local `store` dict through in place of the Composite's own
+    # scheduler (the brief's documented fallback when per-process interval
+    # scheduling can't express this cadence).
+    comp = pb.Composite({"state": doc}, core=core)
+    epi_proc = comp.state["epithelium"]["instance"]
+    imm_proc = comp.state["immune"]["instance"]
+    ode_proc = comp.state["ode"]["instance"]
+
+    tot_cell = int(cells_per_side) * int(cells_per_side)
+
+    store = {
+        "fates": {}, "field_deposit": [], "ode_state": {}, "immune_kills": [],
+        "immune_agents": list(doc["immune_agents"]),
+        "chemo_field": [], "virus_field": [], "il10_field": [], "dims": [],
+        "ode_inputs": {}, "immune_counts": {},
+        "recruit_drivers": {}, "sig_1": 0.0,
+        "margin_box": doc["margin_box"],
+        "apply_recruitment": True,
+    }
+
+    def _epithelial_counts():
+        types_now = epi_proc.world.cell_types()
+        H = sum(1 for t in types_now[1:] if t == types.H)
+        I = sum(1 for t in types_now[1:] if t == types.I)
+        D = sum(1 for t in types_now[1:] if t == types.D)
+        return H, I, D
+
+    def _immune_counts(agents):
+        M = sum(1 for a in agents if int(a.get("type", 0)) == types.M)
+        K = sum(1 for a in agents if int(a.get("type", 0)) == types.K)
+        E = sum(1 for a in agents if int(a.get("type", 0)) == types.E)
+        return M, K, E
+
+    def _field_sums():
+        # RAW per-lattice-site sums (NOT the `ode_inputs` V/F/C/L, which are
+        # `sum / dim_z`) -- matches `run_full_model`'s own `fields` section
+        # exactly (its `_record`: `sum(world.field_conc(...))`, see
+        # run.py:~1943-1946 and the units-bug note at run.py:~2204-2222).
+        w = epi_proc.world
+        return (float(sum(w.field_conc(0))), float(sum(w.field_conc(1))),
+               float(sum(w.field_conc(2))), float(sum(w.field_conc(3))))
+
+    result = {
+        "mcs": [], "t_days": [],
+        "counts": {k: [] for k in ("uninfected", "infected", "dead",
+                                   "macrophage", "nk", "cd8")},
+        "fields": {k: [] for k in ("virus", "ifn", "chemo", "il10")},
+        "ode": {sp: [] for sp in
+                tuple(price_ode.INTEGRATED_STATES) + ("H", "I", "M", "K", "E", "DH")},
+    }
+
+    def _record(i, ode_state, immune_counts, dead_from_healthy):
+        H, I, D = _epithelial_counts()
+        M, K, E = immune_counts
+        mcs_now = i * mcs_per_step
+        result["mcs"].append(mcs_now)
+        result["t_days"].append(mcs_now * s_per_mcs / 86400.0)
+        result["counts"]["uninfected"].append(H)
+        result["counts"]["infected"].append(I)
+        result["counts"]["dead"].append(D)
+        result["counts"]["macrophage"].append(M)
+        result["counts"]["nk"].append(K)
+        result["counts"]["cd8"].append(E)
+        virus, ifn, chemo, il10 = _field_sums()
+        result["fields"]["virus"].append(virus)
+        result["fields"]["ifn"].append(ifn)
+        result["fields"]["chemo"].append(chemo)
+        result["fields"]["il10"].append(il10)
+        for sp in price_ode.INTEGRATED_STATES:
+            result["ode"][sp].append(float(ode_state.get(sp, 0.0)))
+        result["ode"]["H"].append(float(H))
+        result["ode"]["I"].append(float(I))
+        result["ode"]["M"].append(float(M))
+        result["ode"]["K"].append(float(K))
+        result["ode"]["E"].append(float(E))
+        result["ode"]["DH"].append(float(dead_from_healthy))
+
+    # Record 0: the seeded INITIAL state, before any process update() call --
+    # `epi_proc.world` already reflects the built+finalized (unstepped) scene
+    # from `Composite(...)`'s `initialize()` pass, and `ode_proc.state` is its
+    # own seeded IC (`price_ode.initial_state`), matching `run_full_model`'s
+    # `_record(0)` convention (mcs=0, before any transition).
+    _record(0, ode_proc.state, _immune_counts(store["immune_agents"]), 0.0)
+
+    for i in range(1, steps):
+        for _ in range(mcs_per_step):
+            epi_out = epi_proc.update({
+                "fates": store["fates"],
+                "field_deposit": store["field_deposit"],
+                "ode_state": store["ode_state"],
+                "immune_kills": store["immune_kills"],
+            }, 1)
+            store["chemo_field"] = epi_out["chemo_field"]
+            store["virus_field"] = epi_out["virus_field"]
+            # Source-faithfulness fix (final review round): thread the IL-10
+            # field from the epithelium's output to the immune input every
+            # MCS too, same as chemo_field/virus_field -- so ImmuneProcess's
+            # macrophage secretion self-limits on the CURRENT local IL-10
+            # reading, matching run_full_model's field_mean_at_cell read.
+            store["il10_field"] = epi_out["il10_field"]
+            store["dims"] = epi_out["dims"]
+            store["ode_inputs"] = epi_out["ode_inputs"]
+            # `fates` is an external-override input hook with no producer in
+            # this document (task-3.2-report.md); nothing ever populates it.
+
+            # CRITICAL (Task 3.2's deferred hard requirement): compute
+            # `infected_ids`/`epithelial_positions` from the epithelium's
+            # just-produced `types`/`positions` outputs and write them into
+            # the store BEFORE `ImmuneProcess.update()` runs this MCS -- the
+            # raw composite document leaves these unwired/empty, which makes
+            # immune killing a silent no-op (see task-3.2-report.md
+            # "epithelial_positions/infected_ids: DEFERRED to Task 3.3").
+            # `ImmuneProcess`'s killing loop looks up
+            # `epithelial_positions.get(str(cid))` for `cid in infected_ids`
+            # (immune_process.py's `update()`), so the map only needs the
+            # INFECTED cells' positions, keyed by their str(cell id).
+            types_now = epi_out["types"]
+            positions_now = epi_out["positions"]
+            infected_ids = [cid for cid in range(1, len(types_now))
+                            if types_now[cid] == types.I]
+            epithelial_positions = {
+                str(cid): [float(positions_now[cid][0]), float(positions_now[cid][1])]
+                for cid in infected_ids
+            }
+
+            imm_out = imm_proc.update({
+                "chemo_field": store["chemo_field"],
+                "virus_field": store["virus_field"],
+                "il10_field": store["il10_field"],
+                "dims": store["dims"],
+                "immune_agents": store["immune_agents"],
+                "epithelial_positions": epithelial_positions,
+                "infected_ids": infected_ids,
+                "sig_1": store["sig_1"],
+                "recruit_drivers": store["recruit_drivers"],
+                "margin_box": store["margin_box"],
+                # Recruitment cadence fix (Task 3.2 deferred this too): apply
+                # every MCS, not once per record -- see class docstring above.
+                "apply_recruitment": store["apply_recruitment"],
+            }, 1)
+            store["immune_agents"] = imm_out["immune_agents"]
+            store["immune_kills"] = imm_out["immune_kills"]
+            store["field_deposit"] = imm_out["field_deposit"]
+            store["immune_counts"] = imm_out["immune_counts"]
+
+        ode_inputs = store["ode_inputs"]
+        ode_out = ode_proc.update({
+            "H": ode_inputs.get("H", 0.0), "I": ode_inputs.get("I", 0.0),
+            "DH": ode_inputs.get("DH", 0.0),
+            "V": ode_inputs.get("V", 0.0), "F": ode_inputs.get("F", 0.0),
+            "C": ode_inputs.get("C", 0.0), "L": ode_inputs.get("L", 0.0),
+            "B_ei": ode_inputs.get("B_ei", 0.0), "G_ki": ode_inputs.get("G_ki", 0.0),
+            "M": store["immune_counts"].get("M", 0), "K": store["immune_counts"].get("K", 0),
+            "E": store["immune_counts"].get("E", 0),
+        }, mcs_per_step)
+        store["ode_state"] = ode_out["ode_state"]
+        store["recruit_drivers"] = ode_out["recruit_drivers"]
+        store["sig_1"] = ode_out["sig_1"]
+
+        _record(i, store["ode_state"],
+               (store["immune_counts"].get("M", 0), store["immune_counts"].get("K", 0),
+                store["immune_counts"].get("E", 0)),
+               ode_inputs.get("DH", 0.0))
+
+    result["params"] = {
+        "cells_per_side": cells_per_side, "tot_cell": tot_cell,
+        "steps": steps, "seed": seed, "s_per_mcs": s_per_mcs,
+        "mcs_per_step": mcs_per_step,
+        "init_infection_frac": init_infection_frac, "init_viral_load": init_viral_load,
+        "dims": list(store["dims"]) if store["dims"] else list(epi_proc.dims),
+    }
+    return result
+
+
 # Task 9.2 (this task): maps `run_full_model`'s returned series onto the
 # `targets/fig3b.json` observable keys -- the EXACT names as they appear in
 # that JSON's "observables" dict (some differ from `run_full_model`'s own

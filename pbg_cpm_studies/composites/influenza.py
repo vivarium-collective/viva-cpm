@@ -37,12 +37,31 @@ from __future__ import annotations
 import numpy as np
 from process_bigraph.composite_generator import composite_generator
 
-from ..influenza import fields, immune, sheet
+from ..influenza import fields, immune, price_ode, sheet
 from ..influenza import types as inf_types
+from ..influenza.epithelium_process import _DEFAULT_ENABLE as _EPITHELIUM_DEFAULT_ENABLE
 from ..influenza.params import load_params
 
 CPM_ADDR = "local:!cpm.processes.cpm_process.CPMProcess"
 INFECTION_ADDR = "local:!pbg_cpm_studies.influenza.infection_process.InfectionProcess"
+EPITHELIUM_ADDR = "local:!pbg_cpm_studies.influenza.epithelium_process.EpitheliumProcess"
+IMMUNE_ADDR = "local:!pbg_cpm_studies.influenza.immune_process.ImmuneProcess"
+ODE_ADDR = "local:!pbg_cpm_studies.influenza.ode_process.SystemicODEProcess"
+
+# Source-faithfulness fix (final-review gap): `run_full_model`'s default
+# `enable` (`run.py`'s `_FULL_MODEL_SUBSYSTEMS`) includes "chemokine", which
+# gates the uninfected-H IL-10 secretion loop inside
+# `EpitheliumProcess._epithelial_fates` (see that module's docstring). The
+# composite's epithelium node must enable the SAME epithelial-relevant token
+# set or that H-cell IL-10 source is silently off, breaking the IL-10
+# negative-feedback loop macrophage secretion depends on
+# (`ImmuneProcess.macrophage_secretion_scale`). `EpitheliumProcess` itself
+# only inspects a subset of `_FULL_MODEL_SUBSYSTEMS`'s tokens (it has no
+# "macrophage"/"nk_cd8"/"recruitment"/"ode" logic -- those are handled by
+# `ImmuneProcess`/`SystemicODEProcess` elsewhere in this composite), so the
+# full epithelium-relevant set is exactly its own `_DEFAULT_ENABLE` plus the
+# one token it additionally understands but excludes by default: "chemokine".
+FULL_MODEL_EPITHELIUM_ENABLE = tuple(_EPITHELIUM_DEFAULT_ENABLE) + ("chemokine",)
 
 # modest live-demo aggregate (full-scale 1mm^2 throughput is characterized
 # separately by tests/test_influenza_perf.py, not run live from the dashboard)
@@ -398,61 +417,266 @@ def systemic_ode(core=None, patch_mm: float = DEMO_PATCH_MM, seed: int = DEMO_SE
 # ===========================================================================
 # full_model -- composition of all five biological subsystems
 # ===========================================================================
-# The complete multiscale scene: epithelium + viral infection + innate + cytotoxic
-# immune cells + the systemic ODE compartment. The full per-MCS mechanism
-# (infection/death/Allee transitions, per-cell IL-10-Hill secretion, the hybrid
-# Price-2015 ODE + dynamic sig_1, ODE-driven recruitment, NK/CD8 contact+nearby
-# killing) runs in run.run_full_model -- which the capstone reproduction studies
-# (repro-fig3b / repro-fig5 / repro-fig7) drive and measure against the digitized
-# Fig 3B/5/7 acceptance bands. This composite carries the full spatial scene.
+# Task 3.2 (influenza-immune-process-composite epic): unlike subsystems 1-5
+# above -- which wrap the on-lattice CPMProcess directly and leave the full
+# per-MCS mechanism to run.run_full_model's custom Python loop -- full_model
+# now wires three REAL process-bigraph Processes (EpitheliumProcess,
+# ImmuneProcess, SystemicODEProcess; Phases 1-3 of this epic) into one
+# runnable Composite DOCUMENT. This is the "swappable" architecture the epic
+# targets: the mechanism itself (fate transitions, off-lattice immune-agent
+# chemotaxis/killing/secretion/recruitment, the Price-2015 ODE) now lives
+# inside the processes, not a bespoke driver loop -- `run.run_full_model`
+# remains the source-faithful reference the capstone reproduction studies
+# (repro-fig3b/5/7) use; this composite is the new declarative alternative,
+# not (yet) a drop-in replacement for it (see docstring below for what is
+# deferred to Task 3.3/3.4).
+
+DEMO_FULL_MODEL_CELLS_PER_SIDE = DEMO_MACROPHAGE_CELLS_PER_SIDE
+# margin_sites/separation_sites/mcs_per_step/s_per_mcs match run_full_model's
+# own defaults (run.py:1614-1623), not immune.py's build_cytotoxic_scenario_
+# spec's larger standalone defaults (30/25) -- this composite is meant to be
+# the same scenario run_full_model builds.
+DEMO_FULL_MODEL_MARGIN_SITES = 10
+DEMO_FULL_MODEL_SEPARATION_SITES = 8
+DEMO_FULL_MODEL_MCS_PER_STEP = 7
+DEMO_S_PER_MCS = 60.0
 
 
-def full_model_composite_document(*, epithelial_cells_per_side=DEMO_MACROPHAGE_CELLS_PER_SIDE,
-                                  n_infected=DEMO_N_INFECTED, n_macrophages=DEMO_N_MACROPHAGES,
-                                  n_nk=DEMO_N_NK, n_cd8=DEMO_N_CD8,
-                                  margin_sites=DEMO_CYTOTOXIC_MARGIN_SITES,
-                                  separation_sites=DEMO_CYTOTOXIC_SEPARATION_SITES, seed=DEMO_SEED,
-                                  chemotaxis_v_macro=DEMO_CHEMOTAXIS_V_MACRO,
-                                  chemotaxis_v_nk=DEMO_CHEMOTAXIS_V_NK,
-                                  chemotaxis_v_cd8=DEMO_CHEMOTAXIS_V_CD8) -> dict:
-    """The complete spatial scene (all immune subsystems); the full mechanism +
-    the systemic ODE run in run.run_full_model (see module note). Reuses the
-    ``cytotoxic_immunity`` scene as the spatial substrate for all subsystems."""
-    return cytotoxic_immunity_composite_document(
-        epithelial_cells_per_side=epithelial_cells_per_side, n_infected=n_infected,
+def full_model_composite_document(*, cells_per_side: int = DEMO_FULL_MODEL_CELLS_PER_SIDE,
+                                  seed: int = DEMO_SEED,
+                                  init_infection_frac: float = DEMO_INIT_INFECTED_FRAC,
+                                  n_macrophages: int = DEMO_N_MACROPHAGES,
+                                  n_nk: int = DEMO_N_NK, n_cd8: int = DEMO_N_CD8,
+                                  margin_sites: int = DEMO_FULL_MODEL_MARGIN_SITES,
+                                  separation_sites: int = DEMO_FULL_MODEL_SEPARATION_SITES,
+                                  mcs_per_step: int = DEMO_FULL_MODEL_MCS_PER_STEP,
+                                  s_per_mcs: float = DEMO_S_PER_MCS) -> dict:
+    """Task 3.2: the process-bigraph Composite document wiring EpitheliumProcess
+    + ImmuneProcess + SystemicODEProcess -- see task-3.2-report.md for the full
+    store/wiring map. Scene built the SAME way `run.run_full_model` does
+    (`immune.build_cytotoxic_scenario_spec` at `epithelial_cells_per_side=
+    cells_per_side`, then the `init_infection_frac` central-lesion ->
+    sheet-wide-scatter re-seed at `seed+7`, verbatim from run.py:1727-1787).
+
+    Two deliberate departures from `build_cytotoxic_scenario_spec`'s raw
+    output, both documented in the report:
+      - the epithelium node's CPM `spec` carries ONLY the H/I epithelial
+        cells (the scenario's M/K/E CPM-cell blocks are dropped) -- immune
+        cells are OFF-LATTICE `ImmuneProcess` agents here, replacing the
+        on-lattice M/K/E cells `run_full_model` uses, so keeping both would
+        double-count the immune population and leave inert, unchemotaxing
+        CPM cells sitting on the lattice (EpitheliumProcess never wires
+        `world.set_chemotaxis` for them).
+      - those dropped M/K/E cluster cells' seed_block centers instead seed
+        the initial `immune_agents` list (one off-lattice agent per CPM-cell
+        block the scenario would have placed), so the initial immune
+        population starts at the same scenario-designed cluster positions.
+    """
+    params = load_params()
+    tot_cell = int(cells_per_side) * int(cells_per_side)
+    n_infected = max(0, min(int(round(float(init_infection_frac) * tot_cell)), tot_cell))
+
+    spec = immune.build_cytotoxic_scenario_spec(
+        epithelial_cells_per_side=cells_per_side, n_infected=n_infected,
         n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
-        margin_sites=margin_sites, separation_sites=separation_sites, seed=seed,
-        chemotaxis_v_macro=chemotaxis_v_macro, chemotaxis_v_nk=chemotaxis_v_nk,
-        chemotaxis_v_cd8=chemotaxis_v_cd8)
+        margin_sites=margin_sites, separation_sites=separation_sites, seed=seed)
+
+    # Sheet-wide infection scatter (run.py:1776-1787, verbatim: `seed+7`,
+    # replaces the single central lesion `build_cytotoxic_scenario_spec`
+    # places with `n_infected` cells scattered across the whole patch).
+    if n_infected > 0:
+        epi_idx = [i for i, c in enumerate(spec["cells"])
+                   if c["type"] in (inf_types.H, inf_types.I)]
+        for i in epi_idx:
+            spec["cells"][i]["type"] = inf_types.H
+        if epi_idx:
+            scatter_rng = np.random.default_rng(seed + 7)
+            chosen = scatter_rng.choice(np.array(epi_idx),
+                                        size=min(n_infected, len(epi_idx)),
+                                        replace=False)
+            for i in chosen:
+                spec["cells"][int(i)]["type"] = inf_types.I
+
+    # Initial off-lattice immune_agents from the scenario's M/K/E cluster
+    # cell blocks (see docstring "departures"), BEFORE those cells are
+    # dropped from the epithelium's own spec below.
+    immune_agents = []
+    next_id = 1
+    for c in spec["cells"]:
+        if c["type"] in (inf_types.M, inf_types.K, inf_types.E):
+            x0, y0, _z0, x1, y1, _z1 = c["seed_block"]
+            immune_agents.append({
+                "id": next_id, "type": int(c["type"]),
+                "x": (x0 + x1) / 2.0, "y": (y0 + y1) / 2.0,
+            })
+            next_id += 1
+
+    epithelium_spec = dict(spec)
+    epithelium_spec["cells"] = [c for c in spec["cells"]
+                                if c["type"] in (inf_types.H, inf_types.I)]
+
+    nx, ny, _nz = spec["potts"]["dims"]
+    epithelial_side_sites = int(cells_per_side) * sheet.CELL_SIDE_SITES
+    # margin_box: the EXTERIOR-to-the-epithelial-patch region -- everything
+    # to the right of the patch (where build_cytotoxic_scenario_spec already
+    # places the macrophage + NK/CD8 clusters), inside the domain's own
+    # margin_sites wall clearance. Does not overlap the epithelial content
+    # region (x < margin_sites + epithelial_side_sites).
+    margin_box = [margin_sites + epithelial_side_sites, margin_sites,
+                 nx - margin_sites, ny - margin_sites]
+
+    consts = price_ode.resolve_constants(params["price_ode"], num_epithelial=tot_cell)
+
+    return {
+        # --- pre-initialized top-level stores (existing-composite convention) ---
+        "fates": {},
+        "field_deposit": [],
+        "ode_state": {},
+        "immune_kills": [],
+        "immune_agents": immune_agents,
+        "chemo_field": [],
+        "virus_field": [],
+        "il10_field": [],
+        "dims": [],
+        "positions": [],
+        "types": [],
+        "ode_inputs": {},
+        "immune_counts": {},
+        # epithelial_positions/infected_ids: the immune process needs the
+        # INFECTED cells' positions specifically, which requires filtering
+        # epithelium's flat `positions`/`types` list outputs by type -- not
+        # expressible as declarative store wiring (no process-bigraph
+        # transform/Step for it yet). Seeded empty and left UNWIRED to any
+        # process output here; deferred to Task 3.3's driver (see report).
+        "epithelial_positions": {},
+        "infected_ids": [],
+        "recruit_drivers": {},
+        "sig_1": 0.0,
+        "margin_box": margin_box,
+        # Recruitment cadence gating (matching run_full_model's per-MCS
+        # recruitment step) is a Task 3.3 driver concern; always-on here so
+        # the single-step wiring is exercised.
+        "apply_recruitment": True,
+
+        "epithelium": {
+            "_type": "process",
+            "address": EPITHELIUM_ADDR,
+            "config": {
+                "spec": epithelium_spec,
+                "mcs_per_update": mcs_per_step,
+                "mcs_per_step": mcs_per_step,
+                "secretory_types": [inf_types.I],
+                # Source-faithfulness fix: matches run_full_model's default
+                # epithelial subsystem set INCLUDING "chemokine" (see
+                # FULL_MODEL_EPITHELIUM_ENABLE docstring above) so the
+                # uninfected-H IL-10 gate is active, same as run_full_model.
+                "enable": list(FULL_MODEL_EPITHELIUM_ENABLE),
+            },
+            "inputs": {
+                "fates": ["fates"],
+                "field_deposit": ["field_deposit"],
+                "ode_state": ["ode_state"],
+                "immune_kills": ["immune_kills"],
+            },
+            "outputs": {
+                "types": ["types"],
+                "positions": ["positions"],
+                "field_at_cell_all": ["field_at_cell_all"],
+                "chemo_field": ["chemo_field"],
+                "virus_field": ["virus_field"],
+                "il10_field": ["il10_field"],
+                "dims": ["dims"],
+                "counts": ["counts"],
+                "ode_inputs": ["ode_inputs"],
+            },
+        },
+        "immune": {
+            "_type": "process",
+            "address": IMMUNE_ADDR,
+            "config": {"seed": seed},
+            "inputs": {
+                "chemo_field": ["chemo_field"],
+                "virus_field": ["virus_field"],
+                "il10_field": ["il10_field"],
+                "dims": ["dims"],
+                "immune_agents": ["immune_agents"],
+                "epithelial_positions": ["epithelial_positions"],
+                "infected_ids": ["infected_ids"],
+                "sig_1": ["sig_1"],
+                "recruit_drivers": ["recruit_drivers"],
+                "margin_box": ["margin_box"],
+                "apply_recruitment": ["apply_recruitment"],
+            },
+            "outputs": {
+                "immune_agents": ["immune_agents"],
+                "immune_kills": ["immune_kills"],
+                "field_deposit": ["field_deposit"],
+                "immune_counts": ["immune_counts"],
+            },
+        },
+        "ode": {
+            "_type": "process",
+            "address": ODE_ADDR,
+            "config": {
+                "consts": consts,
+                "num_epithelial": tot_cell,
+                # one ODE step per composite update = mcs_per_step raw MCS
+                # of epithelium time (matches EpitheliumProcess's own
+                # mcs_per_step granularity; run_full_model instead steps the
+                # ODE every single MCS -- a coarser cadence here, deferred/
+                # noted for Task 3.3, see report).
+                "dt_seconds": mcs_per_step * s_per_mcs,
+            },
+            "inputs": {
+                # H/I/DH/V/F/C/L/B_ei/G_ki: sub-path wiring into
+                # epithelium's `ode_inputs` map output (Task 3.2's key
+                # wiring decision -- verified to work, see report).
+                "H": ["ode_inputs", "H"],
+                "I": ["ode_inputs", "I"],
+                "DH": ["ode_inputs", "DH"],
+                "V": ["ode_inputs", "V"],
+                "F": ["ode_inputs", "F"],
+                "C": ["ode_inputs", "C"],
+                "L": ["ode_inputs", "L"],
+                "B_ei": ["ode_inputs", "B_ei"],
+                "G_ki": ["ode_inputs", "G_ki"],
+                # M/K/E: sub-path wiring into immune's `immune_counts` map
+                # output (Task 3.2 controller ruling R3 addendum).
+                "M": ["immune_counts", "M"],
+                "K": ["immune_counts", "K"],
+                "E": ["immune_counts", "E"],
+            },
+            "outputs": {
+                "ode_state": ["ode_state"],
+                "recruit_drivers": ["recruit_drivers"],
+                "sig_1": ["sig_1"],
+            },
+        },
+    }
 
 
 @composite_generator(
     name="full_model", default_n_steps=60,
     description=(
-        "Influenza-sego2022 -- the full multiscale model: the composition of all "
-        "five biological subsystems (epithelium + viral_infection + innate_immunity "
-        "+ cytotoxic_immunity + systemic_ode). This composite carries the complete "
-        "spatial scene; the full per-MCS mechanism (infection/death/Allee, per-cell "
-        "IL-10-Hill secretion, the hybrid Price-2015 ODE + dynamic sig_1, ODE-driven "
-        "recruitment, NK/CD8 contact+nearby killing) runs in run.run_full_model, "
-        "which the capstone reproduction studies (repro-fig3b/5/7) drive and measure "
-        "against the digitized Fig 3B/5/7 acceptance bands."
+        "Influenza-sego2022 -- Task 3.2 (influenza-immune-process-composite "
+        "epic): the process-bigraph Composite wiring EpitheliumProcess + "
+        "ImmuneProcess (off-lattice M/K/E agents) + SystemicODEProcess (the "
+        "Price-2015 global ODE) into one runnable document -- the declarative "
+        "'swappable' alternative to run.run_full_model's custom per-MCS driver "
+        "loop, which remains the source-faithful reference the capstone "
+        "reproduction studies (repro-fig3b/5/7) use."
     ),
     parameters={
-        "chemotaxis_v_macro": {"type": "float", "default": DEMO_CHEMOTAXIS_V_MACRO,
-                               "description": "macrophage chemotaxis strength on the virus field"},
-        "chemotaxis_v_nk": {"type": "float", "default": DEMO_CHEMOTAXIS_V_NK,
-                            "description": "NK chemotaxis strength on the chemokine field (0.0 = lambda=0 control)"},
-        "chemotaxis_v_cd8": {"type": "float", "default": DEMO_CHEMOTAXIS_V_CD8,
-                             "description": "CD8+ chemotaxis strength on the chemokine field (0.0 = lambda=0 control)"},
+        "cells_per_side": {"type": "int", "default": DEMO_FULL_MODEL_CELLS_PER_SIDE,
+                           "description": "epithelial patch side length in cells"},
         "seed": {"type": "int", "default": DEMO_SEED,
-                 "description": "RNG seed for the scenario build"},
+                 "description": "RNG seed for the scenario build + every process RNG stream"},
+        "init_infection_frac": {"type": "float", "default": DEMO_INIT_INFECTED_FRAC,
+                               "description": "fraction of epithelial cells seeded as I, scattered sheet-wide"},
     },
 )
-def full_model(core=None, chemotaxis_v_macro: float = DEMO_CHEMOTAXIS_V_MACRO,
-               chemotaxis_v_nk: float = DEMO_CHEMOTAXIS_V_NK,
-               chemotaxis_v_cd8: float = DEMO_CHEMOTAXIS_V_CD8,
-               seed: int = DEMO_SEED) -> dict:
+def full_model(core=None, cells_per_side: int = DEMO_FULL_MODEL_CELLS_PER_SIDE,
+               seed: int = DEMO_SEED,
+               init_infection_frac: float = DEMO_INIT_INFECTED_FRAC) -> dict:
     return full_model_composite_document(
-        seed=seed, chemotaxis_v_macro=chemotaxis_v_macro,
-        chemotaxis_v_nk=chemotaxis_v_nk, chemotaxis_v_cd8=chemotaxis_v_cd8)
+        cells_per_side=cells_per_side, seed=seed, init_infection_frac=init_infection_frac)
