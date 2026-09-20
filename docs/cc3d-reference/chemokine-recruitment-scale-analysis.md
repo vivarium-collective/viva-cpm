@@ -88,3 +88,34 @@ The ~2× immune shortfall is **emergent loop gain + timing**, not a broken const
 **Recommendation:** do not tune the chemokine/secretion constants. Pursue the z=2
 geometry and the ROS-vs-immune death balance together, since they set the same
 loop.
+
+## Follow-up: ROS-vs-immune death balance (ablation)
+
+To test whether ROS is over-weighted, the epithelial death was attributed by
+mechanism ablation (fig3b bootstrap, cells_per_side=35, seed 0, to t≈0.87 d; at
+this point M/K/E ≈ 29/4/2):
+
+| variant | un | inf | dead |
+|---|----|-----|------|
+| FULL | 889 | 168 | 168 |
+| NO_ROS | 518 | **564** | 143 |
+| NO_KILLING (NK/CD8 contact+nearby) | 886 | 180 | 159 |
+| NO_ROS_NO_KILLING | 515 | 579 | 131 |
+| ONLY_APOPTOSIS (no ros/kill/allee) | 473 | 535 | 217 |
+
+- **Removing ROS lets the infection run away** (inf 168 → 564): the ODE oxidant
+  `X` (neutrophil-`N`-driven, `dX/dt = b_xn·N/(N+a_xn) − g_xi·I·X − g_xh·H·X −
+  mu_x·X`) is the dominant infected-cell clearer — source-faithful (dossier §4b,
+  `OxidationAgentModelSteppable`; X is a **global scalar** in the source too, not
+  an immune-cell-local field).
+- **Removing spatial NK/CD8 killing changes almost nothing** (un 889 → 886):
+  at ~4 NK / ~2 CD8, cytotoxic killing is a bystander to epithelial fate. It
+  becomes material only at the hundreds-of-cells counts the paper reaches —
+  which we under-produce (§ above).
+
+**There is no ROS over-weighting to correct.** Both the chemokine-loop analysis
+and this ablation reduce to one root cause: the spatial immune count is ~2–4×
+low, so cytotoxic immunity can't influence epithelial fate and ROS necessarily
+dominates. The count is set by the chemokine loop gain, whose only source-faithful
+lever is the **z=2 geometry** (local-IL-10/chemokine environment + immune-cell
+density). Constant tuning is ruled out on both fronts.
