@@ -56,8 +56,8 @@ Each macrophage (`types.M`) agent deposits chemokine (field idx 2) and IL-10
 output (consumed by `EpitheliumProcess.field_add_source_at`, which truncates
 to integer lattice coordinates):
 
-    amount_chemo = b_c_per_site * scale
-    amount_il10  = b_l_per_site * scale
+    amount_chemo = b_c_per_site * cell_sites * scale
+    amount_il10  = b_l_per_site * cell_sites * scale
     scale = signaling.macrophage_secretion_scale(L_local, sig_1, g_1, g_2, d_2)
 
 `b_c_per_site`/`b_l_per_site` derive `params.yaml`'s `chemokine.b_c`/
@@ -75,6 +75,20 @@ IL-10 (`L_local`) is fixed at `0.0`: this process does not yet receive an
 `il10_field` input (out of Task 2.2 scope per the brief -- macrophage agents
 are themselves an IL-10 SOURCE, not yet a consumer of the diffused field
 here), so the Hill self-regulation term sees no local IL-10 buildup.
+
+**Whole-cell flux, not one pixel (controller ruling R4, fix round 1):** an
+off-lattice macrophage AGENT represents one WHOLE CPM cell. On-lattice
+(`run_full_model`/`fields.add_chemokine_field`/`add_il10_field`), that whole
+cell secretes its per-site rate (`b_c_per_site`/`b_l_per_site`) at EVERY one
+of its `cell_sites` (~25) occupied pixels each MCS -- its total per-MCS mass
+release is `cell_sites` times the single-pixel rate, not the single-pixel
+rate itself. Depositing only `b_c_per_site * scale` at the agent's one point
+would understate a macrophage's true secreted mass by ~25x, weakening the
+chemokine gradient the NK/CD8 recruitment loop chemotaxes up -- so both
+deposited amounts are multiplied by `cell_sites` here. This is
+source-faithful (it matches the on-lattice per-macrophage total mass), NOT a
+tuning change -- no constant changes value, only the point-vs-whole-cell
+accounting is corrected.
 """
 from __future__ import annotations
 
@@ -164,9 +178,9 @@ class ImmuneProcess(Process):
         # instead each update, see this module's docstring "Secretion"
         # section) plus the per-site chemokine/IL-10 base rates.
         _, self.g_1, self.g_2, self.d_2 = il10_hill_constants()
-        cell_sites = int(params["cpm"]["cell_sites"])
-        self.b_c_per_site = (float(params["chemokine"]["b_c"]) / 2.0) / cell_sites
-        self.b_l_per_site = (float(params["il10"]["b_l"]) / 2.0) / cell_sites
+        self.cell_sites = int(params["cpm"]["cell_sites"])
+        self.b_c_per_site = (float(params["chemokine"]["b_c"]) / 2.0) / self.cell_sites
+        self.b_l_per_site = (float(params["il10"]["b_l"]) / 2.0) / self.cell_sites
 
     def inputs(self):
         return {
@@ -255,8 +269,10 @@ class ImmuneProcess(Process):
                 il10_local = 0.0  # no il10_field input yet, see module docstring
                 scale = macrophage_secretion_scale(
                     il10_local, sig_1, self.g_1, self.g_2, self.d_2)
-                amount_chemo = self.b_c_per_site * scale
-                amount_il10 = self.b_l_per_site * scale
+                # Whole-cell flux (controller ruling R4, fix round 1): see this
+                # module's docstring "Secretion" section, final paragraph.
+                amount_chemo = self.b_c_per_site * self.cell_sites * scale
+                amount_il10 = self.b_l_per_site * self.cell_sites * scale
                 if amount_chemo > 0.0:
                     field_deposit.append([2, x, y, 0, amount_chemo])
                 if amount_il10 > 0.0:
