@@ -2123,7 +2123,16 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
         state.clear()
         state.update(new_state)
         if "recruitment" in enable:
-            _recruit_step(C, state["P"], G_ki, B_ei)
+            # Source `update_populations` runs recruitment EVERY MCS; the ODE
+            # couples once per record for speed (docstring above), so apply
+            # `mcs_per_step` MCS of recruitment here at the record's freshly-
+            # integrated ODE state. The inflow/outflow constants ARE calibrated
+            # in per-MCS units, so applying only one MCS per 7-MCS record
+            # throttled the immune response ~7x -- the fig3b macrophage plateau
+            # (~26 at 3.5 d vs the ~105 homeostatic / ~380 chemokine-saturated
+            # equilibrium) was this cadence, not the reserve-pool cap.
+            for _ in range(mcs_per_step):
+                _recruit_step(C, state["P"], G_ki, B_ei)
         # dynamic sig_1 for the next record's secretion (a_11*T + a_12*D).
         return a_11 * state["T"] + a_12 * (tot_cell - H - I)
 
