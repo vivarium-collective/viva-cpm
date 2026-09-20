@@ -30,7 +30,22 @@ _ODE_INPUT_FLOAT_KEYS = ("V", "F", "C", "L", "B_ei", "G_ki")
 
 class SystemicODEProcess(Process):
     config_schema = {
-        "consts": "map[float]",
+        # Task 3.2 fix: was "map[float]" -- bigraph_schema treats any
+        # underscore-prefixed dict key as reserved schema metadata and
+        # strips it (`bigraph_schema.strip_schema_keys` /
+        # `is_schema_key`), which a "map[...]" config value goes through
+        # when a real `Composite` realizes this process's config (unlike
+        # `test_ode_process.py`'s direct `SystemicODEProcess(...)`
+        # constructor call, which bypasses that pipeline entirely).
+        # `price_ode.resolve_constants` stashes derived helpers under
+        # underscore keys (`_s_t`, `_s_v`, `_s_l`) that `GlobalODE.__init__`
+        # requires -- through a Composite those got silently dropped,
+        # raising `KeyError: '_s_t'`. "tree" is not subject to the same
+        # per-key stripping (verified: a "tree"-typed config value keeps
+        # underscore keys intact through a full Composite realize), so it
+        # is used here instead; no value semantics change, `consts` is
+        # still consumed as a plain `dict[str, float]`.
+        "consts": "tree",
         "num_epithelial": "integer",
         "dt_seconds": {"_type": "float", "_default": 60.0},
     }

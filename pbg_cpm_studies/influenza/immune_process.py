@@ -181,6 +181,17 @@ _CELL_SITES = int(_params_at_import["cpm"]["cell_sites"])
 _DEFAULT_KILL_RADIUS = math.sqrt(_CELL_SITES)
 
 
+def _counts_by_type(agents: list) -> dict:
+    """Controller ruling R3 addendum (task-3.2-brief.md): agent counts by
+    type (M/K/E), the ODE's M/K/E inputs -- companion to
+    `EpitheliumProcess._ode_inputs`'s H/I/DH (see epithelium_process.py),
+    computed from the CURRENT (post-move/kill/recruitment) agent list."""
+    M = sum(1 for a in agents if int(a.get("type", 0)) == int(types.M))
+    K = sum(1 for a in agents if int(a.get("type", 0)) == int(types.K))
+    E = sum(1 for a in agents if int(a.get("type", 0)) == int(types.E))
+    return {"M": M, "K": K, "E": E}
+
+
 def _gradient_at(field2d: np.ndarray, ix: int, iy: int) -> tuple[float, float]:
     """Central-difference gradient of ``field2d`` (shape (ny, nx)) at the
     integer site ``(ix, iy)``, clamped at the domain edges (falls back to a
@@ -267,6 +278,9 @@ class ImmuneProcess(Process):
             "immune_kills": "overwrite[list[integer]]",
             # [field_idx, x, y, z, amount] point sources (Task 2.2).
             "field_deposit": "overwrite[list]",
+            # Agent counts by type (Task 3.2, controller ruling R3 addendum)
+            # -- feeds the ODE's M/K/E inputs.
+            "immune_counts": "overwrite[map[integer]]",
         }
 
     def update(self, state, interval):
@@ -286,13 +300,15 @@ class ImmuneProcess(Process):
 
         if not agents:
             updated = self._apply_recruitment([], state)
-            return {"immune_agents": updated, "immune_kills": [], "field_deposit": []}
+            return {"immune_agents": updated, "immune_kills": [], "field_deposit": [],
+                    "immune_counts": _counts_by_type(updated)}
 
         dims = state.get("dims") or [0, 0, 1]
         nx, ny = int(dims[0]), int(dims[1])
         if nx <= 0 or ny <= 0:
             updated = self._apply_recruitment(agents, state)
-            return {"immune_agents": updated, "immune_kills": [], "field_deposit": []}
+            return {"immune_agents": updated, "immune_kills": [], "field_deposit": [],
+                    "immune_counts": _counts_by_type(updated)}
 
         chemo = np.asarray(state.get("chemo_field") or [], dtype=float).reshape(ny, nx)
         virus = np.asarray(state.get("virus_field") or [], dtype=float).reshape(ny, nx)
@@ -361,6 +377,7 @@ class ImmuneProcess(Process):
             "immune_agents": updated,
             "immune_kills": sorted(killed),
             "field_deposit": field_deposit,
+            "immune_counts": _counts_by_type(updated),
         }
 
     def _apply_recruitment(self, agents: list, state: dict) -> list:

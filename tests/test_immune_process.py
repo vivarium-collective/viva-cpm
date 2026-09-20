@@ -137,6 +137,23 @@ def test_recruitment_noop_when_apply_recruitment_false():
     assert len(out["immune_agents"]) == 1
 
 
+def test_immune_counts_match_agent_list():
+    # Task 3.2 (controller ruling R3 addendum): `immune_counts` must report
+    # M/K/E counts by type from the CURRENT agent list -- the ODE's M/K/E
+    # inputs. No recruitment/movement drivers here, just a static agent mix.
+    p = ImmuneProcess({"seed": 7}, core=pb.allocate_core())
+    agents = (
+        [{"id": i, "type": int(types.M), "x": 5.0, "y": 5.0} for i in range(1, 3)]
+        + [{"id": i, "type": int(types.K), "x": 5.0, "y": 5.0} for i in range(3, 7)]
+        + [{"id": i, "type": int(types.E), "x": 5.0, "y": 5.0} for i in range(7, 8)]
+    )
+    out = p.update({"chemo_field": [0.0] * 400, "virus_field": [0.0] * 400,
+                    "dims": [20, 20, 1],
+                    "immune_agents": agents, "epithelial_positions": {}, "infected_ids": [],
+                    "sig_1": 0.0}, 1.0)
+    assert out["immune_counts"] == {"M": 2, "K": 4, "E": 1}
+
+
 def test_recruitment_outflow_removes_agents():
     # A large outflow rate on an existing population of macrophages, with no
     # inflow, must shrink the agent count (proximity/killing/secretion don't
