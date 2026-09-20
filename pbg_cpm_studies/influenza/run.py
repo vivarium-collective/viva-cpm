@@ -50,46 +50,83 @@ _EPITHELIAL_TYPES = (types.H, types.I, types.D)
 RECRUIT_RESERVE_TYPE = 7
 
 
-def _seed_recruit_pool(world, spec, *, pool_per_type, targets, target_volume,
-                       lambda_volume):
-    """Pre-seed (BEFORE `world.finalize`) `pool_per_type` dormant reserve cells
-    (`RECRUIT_RESERVE_TYPE`) per target immune type, packed into the Medium
-    strips above and below the scenario's occupied bounding box. Returns
-    ``{target_type: [reserve_cell_id, ...]}`` -- FIFO queues an inflow event pops
-    from to activate a cell of that type. Raises if the strips can't hold the
-    requested pool (caller keeps `pool_per_type` small enough to fit)."""
+def _recruit_pool_origins(spec, target_volume):
+    """Candidate ``(x0, y0)`` reserve-cell origins packed into the FOUR Medium
+    margin strips around the scenario's occupied bounding box: top + bottom (full
+    domain width) plus the left + right side gutters over the content y-band.
+
+    The side gutters (left of the epithelial patch, right of the far NK/CD8
+    cluster) are outer Medium only over the content y-band; they never touch the
+    separation channels BETWEEN clusters, so an activated reserve never seeds
+    inside a macrophage's chemotaxis path. Four strips roughly triple the
+    top/bottom-only capacity, letting a compact ``margin_sites`` (~40) hold the
+    several-hundred reserve cells the fig3b immune bootstrap needs without
+    inflating the domain. Ordering is top, bottom, left, right (each left-to-right
+    then top-to-bottom); the count is the pool capacity a margin choice affords."""
     nx, ny, _nz = spec["potts"]["dims"]
     blocks = [c["seed_block"] for c in spec["cells"]]
+    content_x0 = min(b[0] for b in blocks)
+    content_x1 = max(b[3] for b in blocks)
     content_y0 = min(b[1] for b in blocks)
     content_y1 = max(b[4] for b in blocks)
 
     side = int(round(target_volume ** 0.5))
     pitch = side + 2  # 2-site Medium gap between reserves (matches cluster gap)
 
-    # Candidate (x0, y0) block origins in the top strip [1, content_y0) and the
-    # bottom strip (content_y1, ny), left-to-right then top-to-bottom.
-    def _strip_origins(y_lo, y_hi):
+    def _strip_origins(x_lo, x_hi, y_lo, y_hi):
         origins = []
         y = y_lo
         while y + side <= y_hi:
-            x = 1
-            while x + side <= nx - 1:
+            x = x_lo
+            while x + side <= x_hi:
                 origins.append((x, y))
                 x += pitch
             y += pitch
         return origins
 
-    origins = _strip_origins(1, content_y0 - 1) + _strip_origins(content_y1 + 1, ny - 1)
-    need = pool_per_type * len(targets)
+    return (
+        _strip_origins(1, nx - 1, 1, content_y0 - 1)            # top (full width)
+        + _strip_origins(1, nx - 1, content_y1 + 1, ny - 1)     # bottom (full width)
+        + _strip_origins(1, content_x0 - 1, content_y0, content_y1 + 1)  # left gutter
+        + _strip_origins(content_x1 + 1, nx - 1, content_y0, content_y1 + 1)  # right gutter
+    )
+
+
+def _normalize_pool_sizes(pool_per_type, targets):
+    """`pool_per_type` may be one int (same reserve count for every target) or a
+    ``{target_type: count}`` dict (the 2D-bootstrap path sizes each immune type
+    to its own achievable equilibrium -- see `repro_fig3b`). Returns an ordered
+    ``{target: count}`` over `targets`."""
+    if isinstance(pool_per_type, dict):
+        return {t: int(pool_per_type.get(t, 0)) for t in targets}
+    return {t: int(pool_per_type) for t in targets}
+
+
+def _seed_recruit_pool(world, spec, *, pool_per_type, targets, target_volume,
+                       lambda_volume):
+    """Pre-seed (BEFORE `world.finalize`) dormant reserve cells
+    (`RECRUIT_RESERVE_TYPE`) per target immune type into the four Medium margin
+    strips (`_recruit_pool_origins`). `pool_per_type` is an int (uniform) or a
+    ``{target: count}`` dict. Returns ``{target_type: [reserve_cell_id, ...]}`` --
+    FIFO queues an inflow event pops from to activate a cell of that type. Raises
+    if the strips can't hold the requested pool (caller keeps the pool small
+    enough to fit, or grows ``margin_sites`` so the gutters do -- the 2D-bootstrap
+    auto-margin in `run_full_model`)."""
+    sizes = _normalize_pool_sizes(pool_per_type, targets)
+    origins = _recruit_pool_origins(spec, target_volume)
+    side = int(round(target_volume ** 0.5))
+    need = sum(sizes.values())
     if len(origins) < need:
+        nx, ny, _nz = spec["potts"]["dims"]
         raise ValueError(
             f"recruit reserve pool needs {need} slots but only {len(origins)} fit "
-            f"in the {nx}x{ny} domain's Medium margins; reduce recruit_pool_per_type")
+            f"in the {nx}x{ny} domain's Medium margins; reduce the pool or raise "
+            f"margin_sites")
 
     pool: dict[int, list[int]] = {t: [] for t in targets}
     slot = 0
     for t in targets:
-        for _ in range(pool_per_type):
+        for _ in range(sizes[t]):
             x0, y0 = origins[slot]
             slot += 1
             cid = world.add_cell(RECRUIT_RESERVE_TYPE, float(target_volume),
@@ -1694,6 +1731,33 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
     else:
         n_infected = 0  # init_viral_load: no pre-infected cells
 
+    # 2D-bootstrap auto-margin (Incr 13): a large reserve pool (the fig3b immune
+    # bootstrap sizes each type to its ODE equilibrium -- M~400, K~380, E~240,
+    # ~1000 reserves total) needs Medium margin to hold it. Grow `margin_sites`
+    # until the four strips (`_recruit_pool_origins`) fit the requested pool with
+    # ~5% headroom, so callers pass the pool they want and never hand-tune margin.
+    # Default small runs (pool_per_type=6 -> 18 slots) fit at margin_sites=10 and
+    # are untouched. Only the width of the Medium border changes; the epithelial
+    # patch, cluster layout and every rate constant are unchanged.
+    recruit_targets = [types.M, types.K, types.E]
+    if "recruitment" in enable:
+        mv0 = int(params["macrophage"]["volume_sites"])
+        need = int(sum(_normalize_pool_sizes(recruit_pool_per_type,
+                                             recruit_targets).values()) * 1.05)
+        while margin_sites <= 400:
+            trial = immune.build_cytotoxic_scenario_spec(
+                epithelial_cells_per_side=cells_per_side, n_infected=n_infected,
+                n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
+                margin_sites=margin_sites, separation_sites=separation_sites,
+                seed=seed, **scenario_kw)
+            if len(_recruit_pool_origins(trial, mv0)) >= need:
+                break
+            margin_sites += 8
+        else:
+            raise ValueError(
+                f"recruit reserve pool of {need} slots does not fit even at "
+                f"margin_sites=400; reduce recruit_pool_per_type")
+
     spec = immune.build_cytotoxic_scenario_spec(
         epithelial_cells_per_side=cells_per_side, n_infected=n_infected,
         n_macrophages=n_macrophages, n_nk=n_nk, n_cd8=n_cd8,
@@ -1728,8 +1792,8 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
     chemo_fi = fields.add_chemokine_field(world)
     il10_fi = fields.add_il10_field(world)
 
-    # Task-8.4 recruit reserve pool (dormant cells activated by ODE inflow).
-    recruit_targets = [types.M, types.K, types.E]
+    # Task-8.4 recruit reserve pool (dormant cells activated by ODE inflow;
+    # `recruit_targets` set with the auto-margin block above).
     reserve_pool: dict[int, list[int]] = {}
     if "recruitment" in enable:
         mv = int(params["macrophage"]["volume_sites"])
@@ -2059,7 +2123,16 @@ def run_full_model(*, cells_per_side: int, steps: int, seed: int,
         state.clear()
         state.update(new_state)
         if "recruitment" in enable:
-            _recruit_step(C, state["P"], G_ki, B_ei)
+            # Source `update_populations` runs recruitment EVERY MCS; the ODE
+            # couples once per record for speed (docstring above), so apply
+            # `mcs_per_step` MCS of recruitment here at the record's freshly-
+            # integrated ODE state. The inflow/outflow constants ARE calibrated
+            # in per-MCS units, so applying only one MCS per 7-MCS record
+            # throttled the immune response ~7x -- the fig3b macrophage plateau
+            # (~26 at 3.5 d vs the ~105 homeostatic / ~380 chemokine-saturated
+            # equilibrium) was this cadence, not the reserve-pool cap.
+            for _ in range(mcs_per_step):
+                _recruit_step(C, state["P"], G_ki, B_ei)
         # dynamic sig_1 for the next record's secretion (a_11*T + a_12*D).
         return a_11 * state["T"] + a_12 * (tot_cell - H - I)
 
@@ -2147,6 +2220,44 @@ _FIG3B_OBSERVABLE_MAP = {
 # the ODE coupling rely on staying a raw sum). Only the 4 FIELD-typed
 # observables (section == "fields") are converted; counts/ode sections pass
 # through unchanged -- they are already in the target's units.
+def bootstrap_immune_config(tot_cell: int, *, headroom: float = 1.15,
+                            max_pool_per_type: int = 600) -> dict:
+    """2D immune bootstrap (Incr 13): size the recruit reserve pool per type to
+    the model's OWN ODE recruitment equilibrium at the fig3b patch scale, so the
+    pool is never the cap on the immune response (the Incr-9..12 studies plateaued
+    at ~10 macrophages purely because `recruit_pool_per_type` defaulted to 6 --
+    NOT a magnitude gap: at tot_cell=1225 the macrophage equilibrium is ~105
+    homeostatic and ~380 chemokine-saturated, right at the fig3b lower band).
+
+    Returns run_full_model kwargs ``{n_macrophages, n_nk, n_cd8,
+    recruit_pool_per_type}``. Pool per type = ceil(equilibrium * local_ratio *
+    headroom), where equilibrium = inflow(saturating signal)/outflow -- derived
+    from the source recruitment constants (`recruitment.*`), NOT fitted to the
+    target bands. Initial seeds are the scenario's resident immune counts at
+    infection onset (the target t=0 values: M=10, K=5, E=2), a scenario IC, not a
+    rate tune. `run_full_model`'s auto-margin grows the Medium border to hold it.
+
+    `max_pool_per_type` caps each pool: the CD8 APC-driven Hill saturates near
+    ~1100 (above the fig3b CD8 band's 750 ceiling), and holding ~3000 dormant
+    reserves is beyond a feasible 2D domain -- exactly the space limit the planned
+    z=2 immune-layer engine change removes. The cap bounds 2D compute; a capped
+    type is flagged so the study reports the pool was space-limited, not a fit."""
+    import math
+    params = load_params()
+    consts = price_ode.resolve_constants(params["price_ode"],
+                                         num_epithelial=int(tot_cell))
+    lr = params["coupling"]["recruitment"]["local_ratios"]
+    sat = 50.0  # saturates the macrophage/NK chemokine Hill; peak-ish for CD8 APC
+    raw = {
+        types.M: recruitment.macrophage_inflow(sat, consts) / recruitment.macrophage_outflow(consts) * float(lr["macro"]),
+        types.K: recruitment.nk_inflow(sat, consts) / recruitment.nk_outflow(0.0, consts) * float(lr["nk"]),
+        types.E: recruitment.cd8_inflow(sat, consts) / recruitment.cd8_outflow(0.0, consts) * float(lr["cd8"]),
+    }
+    pool = {t: min(max_pool_per_type, math.ceil(v * headroom)) for t, v in raw.items()}
+    return {"n_macrophages": 10, "n_nk": 5, "n_cd8": 2,
+            "recruit_pool_per_type": pool}
+
+
 def _map_full_model_observables(result: dict, observable_map: dict) -> dict:
     """Apply an observable map (`_FIG3B_OBSERVABLE_MAP`/`_FIG5_OBSERVABLE_MAP`)
     to one `run_full_model` result ``result``, converting each FIELD-typed
@@ -2179,7 +2290,7 @@ def _map_full_model_observables(result: dict, observable_map: dict) -> dict:
 
 
 def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240,
-                seed0: int = 0) -> dict:
+                seed0: int = 0, bootstrap: bool = False) -> dict:
     """Increment 9 Task 9.2 -- the CAPSTONE `repro_fig3b` driver: run the full
     model (`run_full_model`, Task 9.1) over the Sego-2022 Fig-3B scenario (5%
     initial infection fraction, 0.3 mm patch -> ``cells_per_side x
@@ -2222,11 +2333,12 @@ def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240
     {"figure": "fig3b", "observables": {...}, "passed": bool}, "replicas":
     replicas, "cells_per_side": cells_per_side, "steps": steps}``.
     """
+    boot = bootstrap_immune_config(cells_per_side * cells_per_side) if bootstrap else {}
     runs = []
     for i in range(replicas):
         seed = seed0 + i
         r = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
-                           init_infection_frac=0.05)
+                           init_infection_frac=0.05, **boot)
         mapped = _map_full_model_observables(r, _FIG3B_OBSERVABLE_MAP)
         runs.append(mapped)
 
@@ -2346,7 +2458,8 @@ def _evaluate_fig7_subset(ensemble: dict, target_subset: dict) -> dict:
 
 
 def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
-              cells_per_side: int = 35, steps: int = 240, seed0: int = 0) -> dict:
+              cells_per_side: int = 35, steps: int = 240, seed0: int = 0,
+              bootstrap: bool = False) -> dict:
     """Increment 9 Task 9.3 -- the CAPSTONE `repro_fig5` driver: run the full
     model (`run_full_model`, Task 9.1) as a seeded ensemble at EACH initial
     viral load in `loads`, matching `targets/fig5.json`'s
@@ -2430,6 +2543,7 @@ def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
     """
     target_observables = bands.load("fig5")["observables"]
     tot_cell = cells_per_side * cells_per_side
+    boot = bootstrap_immune_config(tot_cell) if bootstrap else {}
 
     by_load: dict = {}
     for load_idx, load in enumerate(loads):
@@ -2437,7 +2551,8 @@ def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
         for r in range(replicas):
             seed = seed0 + load_idx * replicas + r
             res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
-                                 init_infection_frac=None, init_viral_load=float(load))
+                                 init_infection_frac=None, init_viral_load=float(load),
+                                 **boot)
             mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
             runs.append(mapped)
 
@@ -2479,7 +2594,8 @@ def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
 
 
 def repro_fig7(*, fracs=(0.001, 0.005, 0.01, 0.05), replicas: int = 3,
-              cells_per_side: int = 35, steps: int = 240, seed0: int = 0) -> dict:
+              cells_per_side: int = 35, steps: int = 240, seed0: int = 0,
+              bootstrap: bool = False) -> dict:
     """Increment 9 Task 9.4 -- the CAPSTONE `repro_fig7` driver: run the full
     model (`run_full_model`, Task 9.1) as a seeded ensemble at EACH initial
     infection fraction in `fracs`, matching `targets/fig7.json`'s
@@ -2565,6 +2681,7 @@ def repro_fig7(*, fracs=(0.001, 0.005, 0.01, 0.05), replicas: int = 3,
     """
     target_observables = bands.load("fig7")["observables"]
     tot_cell = cells_per_side * cells_per_side
+    boot = bootstrap_immune_config(tot_cell) if bootstrap else {}
 
     by_frac: dict = {}
     for frac_idx, frac in enumerate(fracs):
@@ -2572,7 +2689,8 @@ def repro_fig7(*, fracs=(0.001, 0.005, 0.01, 0.05), replicas: int = 3,
         for r in range(replicas):
             seed = seed0 + frac_idx * replicas + r
             res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
-                                 init_infection_frac=float(frac), init_viral_load=None)
+                                 init_infection_frac=float(frac), init_viral_load=None,
+                                 **boot)
             mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
             runs.append(mapped)
 
