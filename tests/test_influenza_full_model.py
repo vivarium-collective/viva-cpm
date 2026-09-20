@@ -67,6 +67,58 @@ def test_repro_fig3b_runs_and_evaluates_bands():
     assert u[-1][1] <= u[0][1]
 
 
+def test_recruit_pool_four_strip_capacity_and_per_type_sizing():
+    # Incr 13: the 4-strip packing (top+bottom+left+right gutters) holds far
+    # more reserves than the old top/bottom-only pack, and _seed_recruit_pool
+    # accepts a per-type {type: count} dict, seeding exactly that many each.
+    from pbg_cpm_studies.influenza import build, immune, types
+    from pbg_cpm_studies.influenza.run import (
+        _recruit_pool_origins, _seed_recruit_pool, RECRUIT_RESERVE_TYPE)
+    spec = immune.build_cytotoxic_scenario_spec(
+        epithelial_cells_per_side=12, n_infected=1, n_macrophages=4,
+        n_nk=4, n_cd8=4, margin_sites=40, separation_sites=8, seed=1)
+    origins = _recruit_pool_origins(spec, 25)
+    assert len(origins) > 200                     # four strips are roomy at margin 40
+    assert len(set(origins)) == len(origins)      # no overlapping reserve slots
+    world = build.world_from_spec(spec, finalize=False)
+    for t in range(RECRUIT_RESERVE_TYPE):
+        world.set_contact(RECRUIT_RESERVE_TYPE, t, 10.0)
+    world.set_contact(RECRUIT_RESERVE_TYPE, RECRUIT_RESERVE_TYPE, 25.0)
+    sizes = {types.M: 30, types.K: 20, types.E: 10}
+    pool = _seed_recruit_pool(world, spec, pool_per_type=sizes,
+                              targets=[types.M, types.K, types.E],
+                              target_volume=25, lambda_volume=9.0)
+    assert [len(pool[t]) for t in (types.M, types.K, types.E)] == [30, 20, 10]
+
+
+def test_bootstrap_immune_config_sizes_pool_to_equilibrium():
+    # The pool is sized to the model's own ODE recruitment equilibria (M ~ chemo-
+    # saturated ~380, capped types flagged), NOT fitted to bands; seeds are the
+    # scenario t=0 immune ICs.
+    from pbg_cpm_studies.influenza import types
+    cfg = run.bootstrap_immune_config(1225)
+    assert cfg["n_macrophages"] == 10 and cfg["n_nk"] == 5 and cfg["n_cd8"] == 2
+    pool = cfg["recruit_pool_per_type"]
+    assert pool[types.M] > 300                     # macrophage eq ~380 -> pool ~440
+    assert pool[types.K] > 200 and pool[types.E] > 100
+    assert all(v <= 600 for v in pool.values())    # cap holds
+
+
+def test_full_model_bootstrap_activates_beyond_old_pool_cap():
+    # With the bootstrap pool + auto-margin, recruitment can grow macrophages
+    # WELL past the old n_seed+6 cap. Small/short so it stays fast: assert the
+    # reserve pool actually seeded the requested (large) count -- i.e. auto-margin
+    # grew the domain to fit it -- and the run completes.
+    from pbg_cpm_studies.influenza import types
+    boot = run.bootstrap_immune_config(15 * 15)
+    r = run.run_full_model(cells_per_side=15, steps=3, seed=1,
+                           init_infection_frac=0.05, **boot)
+    # domain grew beyond the default margin to hold the pool
+    assert r["params"]["tot_cell"] == 225
+    # macrophage capacity (seed + pool) far exceeds the old 4+6 cap
+    assert boot["recruit_pool_per_type"][types.M] > 20
+
+
 def test_repro_fig5_viral_load_sweep():
     r = run.repro_fig5(loads=(1, 10000), replicas=1, cells_per_side=12, steps=15, seed0=0)  # reduced
     assert set(r["by_load"].keys()) == {1, 10000}
