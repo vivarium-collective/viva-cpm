@@ -27,7 +27,7 @@ purpose:
   mechanism: full_model_infection_fraction_sweep_vs_fig7_acceptance_bands
 
 report:
-  title: "repro_fig7 sweeps run_full_model over Fig-7's initial-infection-fraction scenarios and evaluates EACH fraction against only that fraction's fig7.json band subset (the shared scenario-grouping guard, generalized from repro_fig5's Task-9.0-review-flagged guard into `_scenario_target_subset`) — at reduced scale (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, ~0.068 simulated days), the monotone dose-response direction holds (uninfected_final_frac: frac=0.001 -> 1.0, frac=0.05 -> 0.9444) but band_eval['passed'] is False for both fractions; the paper-scale 20-replica/35x35-cell/~15-day ensemble is deferred to the Mac-mini Phase-B follow-up"
+  title: "repro_fig7 sweeps run_full_model over Fig-7's initial-infection-fraction scenarios and evaluates EACH fraction against only that fraction's fig7.json band subset (the shared scenario-grouping guard, generalized from repro_fig5's Task-9.0-review-flagged guard into `_scenario_target_subset`) — at reduced scale (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, ~0.068 simulated days), the monotone dose-response direction holds (uninfected_final_frac: frac=0.001 -> 1.0, frac=0.05 -> 0.958333) but band_eval['passed'] is False for both fractions; the paper-scale 20-replica/35x35-cell/~15-day ensemble is deferred to the Mac-mini Phase-B follow-up"
   verdict: documented
   confidence: medium
   evidence_quality: measured
@@ -79,7 +79,7 @@ report:
     -- a larger initial infection fraction does not leave MORE surviving
     uninfected cells than a smaller one -- holds: `uninfected_final_frac` is
     1.0 (144/144 cells, i.e. NO cell ever became infected) at frac=0.001 vs
-    0.9444 (136/144 cells) at frac=0.05. A HONEST AND LOAD-BEARING CAVEAT
+    0.958333 (138/144 cells) at frac=0.05. A HONEST AND LOAD-BEARING CAVEAT
     THIS REPORT FLAGS EXPLICITLY: at `cells_per_side=12` (144 epithelial
     cells), `round(0.001 * 144) = round(0.144) = 0` -- the smallest tested
     fraction rounds DOWN to zero pre-infected cells, so frac=0.001's
@@ -93,7 +93,7 @@ report:
     Task 9.1) is correct; it is simply that 0.1% of 144 rounds to 0, while
     0.1% of the paper's 10000-cell population rounds to 10 (fig7.json's own
     scenario). The monotone-direction assertion still holds cleanly (1.0
-    surviving at the degenerate no-infection control vs 0.9444 at
+    surviving at the degenerate no-infection control vs 0.958333 at
     frac=0.05's real 7-cell seed), but it should not be read as evidence the
     model reproduces Fig-7's frac=0.001 trajectory -- that fraction was
     effectively not simulated at this reduced population size. Per-fraction,
@@ -101,7 +101,7 @@ report:
     checkpoints each, worst_miss = largest relative out-of-band distance):
     frac=0.001 -- uninfected_cells 0/6 (worst_miss 2.29), infected_cells 3/6
     (0.33), extracellular_virus 5/6 (0.33), antibodies 2/6 (0.097);
-    frac=0.05 -- uninfected_cells 5/6 (0.35), infected_cells 3/6 (0.32),
+    frac=0.05 -- uninfected_cells 5/6 (0.35), infected_cells 4/6 (0.32),
     extracellular_virus 6/6 (0, fully in-band), antibodies 6/6 (0, fully
     in-band). NONE of these numbers were tuned to look better, and
     `targets/fig7.json` was NOT edited -- the band is the fixed oracle per
@@ -196,17 +196,17 @@ report:
   key_metrics:
     - {name: band_eval_passed, value: false, note: "fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, seed0=0 -- both per-fraction band evaluations fail"}
     - {name: lethal_threshold, value: null, note: "neither tested fraction's ensemble-mean final uninfected fraction drops to <=0.5 at this reduced scale/duration"}
-    - {name: monotone_dose_response, value: true, note: "uninfected_final_frac(frac=0.05)=0.9444 <= uninfected_final_frac(frac=0.001)=1.0 -- the reduced-scale test's own fidelity criterion, holds, BUT see the degenerate-frac=0.001 caveat in report.conclusion"}
+    - {name: monotone_dose_response, value: true, note: "uninfected_final_frac(frac=0.05)=0.958333 <= uninfected_final_frac(frac=0.001)=1.0 -- the reduced-scale test's own fidelity criterion, holds, BUT see the degenerate-frac=0.001 caveat in report.conclusion"}
     - {name: frac0001_n_infected_seeded, value: 0, note: "round(0.001 * 144) = 0 -- the smallest tested fraction seeds ZERO pre-infected cells at this reduced population (vs 10 of 10000 at paper scale); a degenerate no-infection control, not a real exercise of fig7.json's frac=0.001 scenario"}
     - {name: frac0001_uninfected_final_frac, value: 1.0, note: "144/144 cells uninfected for all 15 records -- trivial, since no cell was ever infected"}
     - {name: frac05_n_infected_seeded, value: 7, note: "round(0.05 * 144) = 7 -- a real (non-degenerate) infection seed"}
-    - {name: frac05_uninfected_final_frac, value: 0.9444, note: "136/144 cells uninfected at t_days~0.068 (15 records)"}
+    - {name: frac05_uninfected_final_frac, value: 0.958333, note: "138/144 cells uninfected at t_days~0.068 (15 records)"}
     - {name: frac0001_uninfected_cells_n_in, value: "0/6", note: "worst_miss 2.29 -- largest miss in this report; the degenerate zero-infection run never approaches fig7.json's expected frac=0.001 infection/recovery trajectory"}
     - {name: frac0001_infected_cells_n_in, value: "3/6", note: "worst_miss 0.33"}
     - {name: frac0001_extracellular_virus_n_in, value: "5/6", note: "worst_miss 0.33"}
     - {name: frac0001_antibodies_n_in_soft, value: "2/6", note: "worst_miss 0.097; ODE-integrated A state, soft=true"}
     - {name: frac05_uninfected_cells_n_in, value: "5/6", note: "worst_miss 0.35"}
-    - {name: frac05_infected_cells_n_in, value: "3/6", note: "worst_miss 0.32"}
+    - {name: frac05_infected_cells_n_in, value: "4/6", note: "worst_miss 0.32"}
     - {name: frac05_extracellular_virus_n_in, value: "6/6", note: "worst_miss 0.0 -- fully in-band, unlike repro_fig5's ~1200x extracellular_virus miss at both tested loads; see report.main_insight for why this should not be read as the fig3b/fig5 units gap being resolved"}
     - {name: frac05_antibodies_n_in_soft, value: "6/6", note: "worst_miss 0.0; soft=true, fully in-band"}
     - {name: reduced_run_sim_duration_days, value: 0.0681, note: "15 records x mcs_per_step=7 x s_per_mcs=60 / 86400; fig7 target checkpoints run 0.0-15.0 days -- bands.series_in_band flat-extrapolates the near-t=0 model value out to every later checkpoint"}
@@ -393,7 +393,7 @@ claim: |
   ~0.068-simulated-day run duration vs. the target's 0.0-15-day checkpoint
   window, not a mechanism defect. The MONOTONE dose-response direction this
   reduced test's own assertion checks
-  (`uninfected_final_frac(frac=0.05)=0.9444 <=
+  (`uninfected_final_frac(frac=0.05)=0.958333 <=
   uninfected_final_frac(frac=0.001)=1.0`) holds, BUT frac=0.001's value is a
   degenerate no-infection control at this reduced population
   (`round(0.001*144)=0` pre-infected cells seeded), reported here honestly
@@ -445,7 +445,7 @@ readouts:
     description: >-
       Ensemble-mean `uninfected_final_frac` at `fracs=(0.001,0.05),
       replicas=1, cells_per_side=12, steps=15, seed0=0`: 1.0 (144/144
-      cells) at frac=0.001 vs 0.9444 (136/144 cells) at frac=0.05 -- a
+      cells) at frac=0.001 vs 0.958333 (138/144 cells) at frac=0.05 -- a
       larger initial infection fraction leaves not-more surviving
       uninfected cells, the direction the paper's Fig-7 narrative depends
       on. Honestly caveated: frac=0.001 seeds `round(0.001*144)=0`
@@ -462,7 +462,7 @@ readouts:
       trajectory), infected_cells 3/6 (0.33), extracellular_virus 5/6
       (0.33), antibodies 2/6 (0.097, soft) -- fraction band_eval
       passed=False. frac=0.05: uninfected_cells 5/6 (0.35), infected_cells
-      3/6 (0.32), extracellular_virus 6/6 (0, fully in-band), antibodies
+      4/6 (0.32), extracellular_virus 6/6 (0, fully in-band), antibodies
       6/6 (0, soft, fully in-band) -- fraction band_eval passed=False
       (uninfected_cells + infected_cells miss). Overall
       `band_eval["passed"]`=False.
@@ -519,7 +519,7 @@ findings:
     evidence:
       from_test: repro_fig7 sweeps infection fractions and returns a well-formed by_frac/band_eval dict with the monotone dose-response
       divergence_factor: null
-      observed: "by_frac keys == {0.001, 0.05}; lethal_threshold=None; top-level band_eval present with passed=False; uninfected_final_frac 1.0 (frac=0.001) -> 0.9444 (frac=0.05), monotone non-increasing"
+      observed: "by_frac keys == {0.001, 0.05}; lethal_threshold=None; top-level band_eval present with passed=False; uninfected_final_frac 1.0 (frac=0.001) -> 0.958333 (frac=0.05), monotone non-increasing"
     statement: |
       `run.repro_fig7` is wired correctly: it sweeps a seeded ensemble of
       `run_full_model` per initial infection fraction with pre-infected
@@ -619,7 +619,7 @@ conclusion: |
   per-fraction `band_eval["passed"]` is False for both tested fractions
   (see `report.key_metrics` for the full per-observable breakdown). The
   MONOTONE dose-response direction this reduced test's own assertion checks
-  holds (`uninfected_final_frac`: 1.0 at frac=0.001 -> 0.9444 at
+  holds (`uninfected_final_frac`: 1.0 at frac=0.001 -> 0.958333 at
   frac=0.05), but this report explicitly flags that frac=0.001 is a
   DEGENERATE no-infection control at this reduced population
   (`round(0.001*144)=0` pre-infected cells seeded) -- an honesty finding
@@ -702,7 +702,7 @@ biological_summary: |
   scale test IS built to check -- a non-increasing surviving-uninfected
   fraction as initial infection fraction rises -- holds
   (`uninfected_final_frac`: 1.0 at frac=0.001's degenerate control vs
-  0.9444 at frac=0.05's real 7-cell seed), but should be read cautiously
+  0.958333 at frac=0.05's real 7-cell seed), but should be read cautiously
   given the frac=0.001 degeneracy: this reduced config effectively compares
   ONE real infection scenario (0.05) against a no-infection baseline, not
   two genuine points on Fig-7's dose-response curve. Unlike
@@ -769,7 +769,7 @@ key_assumptions:
 
 literature_anchors:
   - expectation: "Sego 2022 Fig. 7 / Sec. 3.4, p.11: all replicas are non-lethal (the epithelial patch recovers) for initial infection fraction <=1%, even though the ODE model alone is fatal for all of these fractions; at fraction=5% the spatial model is comparably severe to the ODE model (the Fig. 3B scenario), though some replicas still retain surviving uninfected cells -- another spatial-vs-ODE disagreement, this time in initial-condition sensitivity rather than viral-dose sensitivity (Fig. 5's comparison)."
-    model_observable: "run.repro_fig7's per-fraction ensemble (mapped to targets/fig7.json's exact observable keys, evaluated per fraction via _fig7_target_subset/_evaluate_fig7_subset) at REDUCED scale (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15): band_eval['passed']=False for both fractions (population-scale/run-duration mismatch plus a frac=0.001 rounding degeneracy, per report.key_metrics); the qualitative monotone dose-response direction holds (uninfected_final_frac 1.0 at frac=0.001's degenerate control -> 0.9444 at frac=0.05's real seed), a directional echo of the paper's own severity-rises-with-initial-fraction narrative, NOT a magnitude or threshold-value reproduction (only 2 of 4 fractions tested, and frac=0.001 did not actually seed any infection at this reduced population)."
+    model_observable: "run.repro_fig7's per-fraction ensemble (mapped to targets/fig7.json's exact observable keys, evaluated per fraction via _fig7_target_subset/_evaluate_fig7_subset) at REDUCED scale (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15): band_eval['passed']=False for both fractions (population-scale/run-duration mismatch plus a frac=0.001 rounding degeneracy, per report.key_metrics); the qualitative monotone dose-response direction holds (uninfected_final_frac 1.0 at frac=0.001's degenerate control -> 0.958333 at frac=0.05's real seed), a directional echo of the paper's own severity-rises-with-initial-fraction narrative, NOT a magnitude or threshold-value reproduction (only 2 of 4 fractions tested, and frac=0.001 did not actually seed any infection at this reduced population)."
     source: "Sego et al. 2022, Fig. 7, p.11 (digitized by eye from log-scale panels, approximate) via pbg_cpm_studies/influenza/targets/fig7.json"
     status_in_workspace: "Driver wired and evaluable, scenario-grouping guard generalized + verified in pytest for both fig5 and fig7 (F-01, F-02); monotone dose-response direction holds at reduced scale with an honestly-flagged degenerate-fraction caveat (F-02/F-03); per-fraction band containment reported honestly as a scale/duration/rounding-driven miss, NOT a reproduction claim. Paper-scale 20-replica, all-4-fraction ensemble is the Mac-mini Phase-B follow-up that will set the reproduced verdict."
     cites: [sego2022influenza]
@@ -813,7 +813,7 @@ runs:
       'repro_fig7 sweeps infection fractions and returns a well-formed by_frac/band_eval dict with the monotone dose-response':
         result: PASS
         measured_value: 1.0
-        notes: "by_frac keys == {0.001, 0.05}; lethal_threshold=None; top-level band_eval present (passed=False); uninfected_final_frac 1.0 (frac=0.001, degenerate 0-infected-cells control) -> 0.9444 (frac=0.05, real 7-cell seed), monotone non-increasing."
+        notes: "by_frac keys == {0.001, 0.05}; lethal_threshold=None; top-level band_eval present (passed=False); uninfected_final_frac 1.0 (frac=0.001, degenerate 0-infected-cells control) -> 0.958333 (frac=0.05, real 7-cell seed), monotone non-increasing."
         evaluated_by: tests/test_influenza_full_model.py::test_repro_fig7_infection_fraction_sweep
       'Scenario-grouping guard filters fig7''s tagged observables correctly and raises loudly on an unmatched fraction':
         result: PASS
@@ -823,7 +823,7 @@ runs:
       'Reduced-scale per-fraction band comparison -- per-observable in-band fraction':
         result: DOCUMENTED
         measured_value: 0.0
-        notes: "Both per-fraction band_eval['passed'] are False. frac=0.001 n_in/6: uninfected_cells 0, infected_cells 3, extracellular_virus 5, antibodies 2. frac=0.05 n_in/6: uninfected_cells 5, infected_cells 3, extracellular_virus 6, antibodies 6. Reported honestly as a scale/duration/rounding-driven gap (task-9.4-report.md), NOT a Fig-7 reproduction claim; the paper-scale 20-replica, all-4-fraction ensemble is the Mac-mini Phase-B follow-up."
+        notes: "Both per-fraction band_eval['passed'] are False. frac=0.001 n_in/6: uninfected_cells 0, infected_cells 3, extracellular_virus 5, antibodies 2. frac=0.05 n_in/6: uninfected_cells 5, infected_cells 4, extracellular_virus 6, antibodies 6. Reported honestly as a scale/duration/rounding-driven gap (task-9.4-report.md), NOT a Fig-7 reproduction claim; the paper-scale 20-replica, all-4-fraction ensemble is the Mac-mini Phase-B follow-up."
         evaluated_by: "n/a -- ad hoc measurement reported in report.key_metrics and task-9.4-report.md"
 
 discovery_implications:
