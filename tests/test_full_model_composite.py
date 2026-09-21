@@ -394,3 +394,36 @@ def test_composite_immune_not_pool_capped():
         f"expected macrophage count to grow past the old fixed-pool ceiling "
         f"(run_full_model's default cap = 10); got max={max(macrophage)}, "
         f"series={macrophage}")
+
+
+def test_run_full_model_composite_init_viral_load_seeds_infection():
+    """fig5/fig7 path: init_viral_load lays down a ~uniform virus-field IC with
+    NO pre-infected cells; infection then EMERGES from the field (mirrors
+    run_full_model's init_viral_load branch, now supported by the composite)."""
+    from pbg_cpm_studies.influenza import run
+    r = run.run_full_model_composite(cells_per_side=8, steps=18, seed=1,
+                                     init_viral_load=1000.0)
+    assert r["counts"]["infected"][0] == 0        # no pre-infected cells at t0
+    assert max(r["counts"]["infected"]) > 0       # infection emerges from the field
+    assert r["params"]["init_viral_load"] == 1000.0
+
+
+def test_repro_fig5_runs_on_composite_engine():
+    """The fig5 viral-load sweep runs end-to-end through the pb-Composite
+    (engine='composite') now that init_viral_load is wired."""
+    from pbg_cpm_studies.influenza import run
+    r = run.repro_fig5(loads=(1, 10000), replicas=1, cells_per_side=8, steps=10,
+                       seed0=0, engine="composite")
+    assert set(r["by_load"].keys()) == {1, 10000}
+    surv = lambda L: r["by_load"][L]["uninfected_final_frac"]
+    assert surv(10000) <= surv(1) + 1e-9      # higher load => not more survivors
+    assert "band_eval" in r
+
+
+def test_repro_fig7_runs_on_composite_engine():
+    """The fig7 infection-fraction sweep runs end-to-end through the composite."""
+    from pbg_cpm_studies.influenza import run
+    r = run.repro_fig7(fracs=(0.001, 0.05), replicas=1, cells_per_side=8, steps=10,
+                       seed0=0, engine="composite")
+    assert set(r["by_frac"].keys()) == {0.001, 0.05}
+    assert "band_eval" in r

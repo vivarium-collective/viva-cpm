@@ -445,6 +445,7 @@ DEMO_S_PER_MCS = 60.0
 def full_model_composite_document(*, cells_per_side: int = DEMO_FULL_MODEL_CELLS_PER_SIDE,
                                   seed: int = DEMO_SEED,
                                   init_infection_frac: float = DEMO_INIT_INFECTED_FRAC,
+                                  init_viral_load: float | None = None,
                                   n_macrophages: int = DEMO_N_MACROPHAGES,
                                   n_nk: int = DEMO_N_NK, n_cd8: int = DEMO_N_CD8,
                                   margin_sites: int = DEMO_FULL_MODEL_MARGIN_SITES,
@@ -474,7 +475,15 @@ def full_model_composite_document(*, cells_per_side: int = DEMO_FULL_MODEL_CELLS
     """
     params = load_params()
     tot_cell = int(cells_per_side) * int(cells_per_side)
-    n_infected = max(0, min(int(round(float(init_infection_frac) * tot_cell)), tot_cell))
+    # init_viral_load scenario (fig5/fig7): NO pre-infected cells -- infection
+    # emerges from a ~uniform virus-field IC that EpitheliumProcess seeds at
+    # construction. Mutually exclusive with init_infection_frac (as in
+    # run_full_model); when a load is given, force n_infected=0 so the scatter
+    # block below is skipped.
+    if init_viral_load is not None and float(init_viral_load) > 0.0:
+        n_infected = 0
+    else:
+        n_infected = max(0, min(int(round(float(init_infection_frac) * tot_cell)), tot_cell))
 
     spec = immune.build_cytotoxic_scenario_spec(
         epithelial_cells_per_side=cells_per_side, n_infected=n_infected,
@@ -571,6 +580,8 @@ def full_model_composite_document(*, cells_per_side: int = DEMO_FULL_MODEL_CELLS
                 # FULL_MODEL_EPITHELIUM_ENABLE docstring above) so the
                 # uninfected-H IL-10 gate is active, same as run_full_model.
                 "enable": list(FULL_MODEL_EPITHELIUM_ENABLE),
+                # fig5/fig7 viral-load IC (0.0 = the init_infection_frac path).
+                "init_viral_load": float(init_viral_load or 0.0),
             },
             "inputs": {
                 "fates": ["fates"],

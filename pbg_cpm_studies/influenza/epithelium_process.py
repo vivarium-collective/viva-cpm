@@ -81,6 +81,10 @@ class EpitheliumProcess(CPMProcess):
         # "how many MCS per update" from any historical `mcs_per_update` use.
         "mcs_per_step": {"_type": "integer", "_default": 1},
         "enable": {"_type": "list", "_default": list(_DEFAULT_ENABLE)},
+        # init_viral_load > 0 seeds a ~uniform virus-field IC at construction
+        # (the fig5/fig7 "viral load" scenario: no pre-infected cells, infection
+        # emerges from the field). 0.0 = not used (init_infection_frac path).
+        "init_viral_load": {"_type": "float", "_default": 0.0},
     })
 
     def initialize(self, config):
@@ -96,6 +100,19 @@ class EpitheliumProcess(CPMProcess):
         fields.add_il10_field(self.world)
         seed = int(spec["potts"]["seed"])
         self.world.finalize(seed)
+
+        # init_viral_load: seed a ~uniform virus-field IC (no pre-infected
+        # cells), mirroring run.py's `_seed_uniform_virus` -- every H cell is a
+        # transient virus source for exactly one field advance (the engine has
+        # no field-write primitive), then reset to 0 so only infected cells
+        # secrete during the run proper. Documented IC approximation, NOT a
+        # rate tune (deposit scales linearly with the load). Virus field = idx 0.
+        init_viral_load = float(self.config.get("init_viral_load") or 0.0)
+        if init_viral_load > 0.0:
+            _d, _decay, _dt, _sub, _sec = fields._virus_field_params()
+            self.world.set_secretion(0, types.H, init_viral_load / _dt)
+            self.world.advance_fields(1)
+            self.world.set_secretion(0, types.H, 0.0)
 
         self.mcs = int(self.config["mcs_per_update"])
         self.mcs_per_step = int(self.config.get("mcs_per_step") or self.mcs)
