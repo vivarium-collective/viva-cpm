@@ -1240,7 +1240,7 @@ _save_viz('repro-fig3b', 'Fig-3B_reproduction_ensemble_vs_acceptance_band', _ren
 # run duration vs. the target's 0.0-15-day checkpoint window, not a
 # mechanism defect. The MONOTONE dose-response direction this reduced
 # test's own assertion checks (`uninfected_final_frac(load=10000)=0.0 <=
-# uninfected_final_frac(load=1)=0.611`) holds. The paper-scale 50-replica,
+# uninfected_final_frac(load=1)=0.958333`) holds. The paper-scale 50-replica,
 # all-5-load, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required
 # before any `reproduced` verdict for Fig 5, and `conclusion_verdicts.
 # biological_validation` stays PENDING here.
@@ -1377,7 +1377,7 @@ _save_viz('repro-fig5-viral-load', 'Fig-5_reproduction_dose-response_vs_acceptan
 # ~0.068-simulated-day run duration vs. the target's 0.0-15-day checkpoint
 # window, not a mechanism defect. The MONOTONE dose-response direction this
 # reduced test's own assertion checks
-# (`uninfected_final_frac(frac=0.05)=0.9444 <=
+# (`uninfected_final_frac(frac=0.05)=0.958333 <=
 # uninfected_final_frac(frac=0.001)=1.0`) holds, BUT frac=0.001's value is a
 # degenerate no-infection control at this reduced population
 # (`round(0.001*144)=0` pre-infected cells seeded), reported here honestly

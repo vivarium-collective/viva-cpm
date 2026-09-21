@@ -595,7 +595,7 @@ above) -- expected given the ~69x smaller epithelial population and the
 ~0.068-simulated-day run duration vs. the target&#39;s 0.0-15-day checkpoint
 window, not a mechanism defect. The MONOTONE dose-response direction this
 reduced test&#39;s own assertion checks
-(`uninfected_final_frac(frac=0.05)=0.9444 &lt;=
+(`uninfected_final_frac(frac=0.05)=0.958333 &lt;=
 uninfected_final_frac(frac=0.001)=1.0`) holds, BUT frac=0.001&#39;s value is a
 degenerate no-infection control at this reduced population
 (`round(0.001*144)=0` pre-infected cells seeded), reported here honestly
@@ -631,7 +631,7 @@ test of that scenario. The qualitative mechanism this task&#39;s reduced-
 scale test IS built to check -- a non-increasing surviving-uninfected
 fraction as initial infection fraction rises -- holds
 (`uninfected_final_frac`: 1.0 at frac=0.001&#39;s degenerate control vs
-0.9444 at frac=0.05&#39;s real 7-cell seed), but should be read cautiously
+0.958333 at frac=0.05&#39;s real 7-cell seed), but should be read cautiously
 given the frac=0.001 degeneracy: this reduced config effectively compares
 ONE real infection scenario (0.05) against a no-infection baseline, not
 two genuine points on Fig-7&#39;s dose-response curve. Unlike
@@ -752,7 +752,7 @@ Mac-mini Phase-B paper-scale, all-4-fraction run.
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> by_frac keys == {0.001, 0.05}; lethal_threshold=None; top-level band_eval present with passed=False; uninfected_final_frac 1.0 (frac=0.001) -&gt; 0.9444 (frac=0.05), monotone non-increasing · 
+              <strong>observed:</strong> by_frac keys == {0.001, 0.05}; lethal_threshold=None; top-level band_eval present with passed=False; uninfected_final_frac 1.0 (frac=0.001) -&gt; 0.958333 (frac=0.05), monotone non-increasing · 
               
               via test <a href="#bt-repro_fig7" onclick="_gotoStudyTab('tests','bt-repro_fig7');return false;"><code>repro_fig7 sweeps infection fractions and returns a well-formed by_frac/band_eval dict with the monotone dose-response</code></a> · 
               
@@ -1258,7 +1258,7 @@ behavior change (verified: all pre-existing fig5 tests still pass).
           
         </div>
         <div class="anchor-observable">
-          <em>Model observable:</em> <code>run.repro_fig7&#39;s per-fraction ensemble (mapped to targets/fig7.json&#39;s exact observable keys, evaluated per fraction via _fig7_target_subset/_evaluate_fig7_subset) at REDUCED scale (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15): band_eval[&#39;passed&#39;]=False for both fractions (population-scale/run-duration mismatch plus a frac=0.001 rounding degeneracy, per report.key_metrics); the qualitative monotone dose-response direction holds (uninfected_final_frac 1.0 at frac=0.001&#39;s degenerate control -&gt; 0.9444 at frac=0.05&#39;s real seed), a directional echo of the paper&#39;s own severity-rises-with-initial-fraction narrative, NOT a magnitude or threshold-value reproduction (only 2 of 4 fractions tested, and frac=0.001 did not actually seed any infection at this reduced population).</code>
+          <em>Model observable:</em> <code>run.repro_fig7&#39;s per-fraction ensemble (mapped to targets/fig7.json&#39;s exact observable keys, evaluated per fraction via _fig7_target_subset/_evaluate_fig7_subset) at REDUCED scale (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15): band_eval[&#39;passed&#39;]=False for both fractions (population-scale/run-duration mismatch plus a frac=0.001 rounding degeneracy, per report.key_metrics); the qualitative monotone dose-response direction holds (uninfected_final_frac 1.0 at frac=0.001&#39;s degenerate control -&gt; 0.958333 at frac=0.05&#39;s real seed), a directional echo of the paper&#39;s own severity-rises-with-initial-fraction narrative, NOT a magnitude or threshold-value reproduction (only 2 of 4 fractions tested, and frac=0.001 did not actually seed any infection at this reduced population).</code>
         </div>
         
         <div class="anchor-source"><em>Source:</em> Sego et al. 2022, Fig. 7, p.11 (digitized by eye from log-scale panels, approximate) via pbg_cpm_studies/influenza/targets/fig7.json</div>
@@ -1339,7 +1339,7 @@ paper-scale-digitized bands.
         
           <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 1.0</code>
         
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: by_frac keys == {0.001, 0.05}; lethal_threshold=None; top-level band_eval present (passed=False); uninfected_final_frac 1.0 (frac=0.001, degenerate 0-infected-cells control) -&gt; 0.9444 (frac=0.05, real 7-cell seed), monotone non-increasing.</code>
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: by_frac keys == {0.001, 0.05}; lethal_threshold=None; top-level band_eval present (passed=False); uninfected_final_frac 1.0 (frac=0.001, degenerate 0-infected-cells control) -&gt; 0.958333 (frac=0.05, real 7-cell seed), monotone non-increasing.</code>
         
           <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_full_model.py::test_repro_fig7_infection_fraction_sweep</code>
         
@@ -1544,7 +1544,7 @@ simulated days vs. the target's 0.0-15-day checkpoint window),
 per-fraction <code>band_eval[&quot;passed&quot;]</code> is False for both tested fractions
 (see <code>report.key_metrics</code> for the full per-observable breakdown). The
 MONOTONE dose-response direction this reduced test's own assertion checks
-holds (<code>uninfected_final_frac</code>: 1.0 at frac=0.001 -&gt; 0.9444 at
+holds (<code>uninfected_final_frac</code>: 1.0 at frac=0.001 -&gt; 0.958333 at
 frac=0.05), but this report explicitly flags that frac=0.001 is a
 DEGENERATE no-infection control at this reduced population
 (<code>round(0.001*144)=0</code> pre-infected cells seeded) -- an honesty finding
@@ -1700,7 +1700,7 @@ make any number in this report look better than it is.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "e5336bb7005349afc6544845295026b6e5434150", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/e5336bb7005349afc6544845295026b6e5434150", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 14:49 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c2bd2553fad51549a229929cfcac9c3b38941012", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c2bd2553fad51549a229929cfcac9c3b38941012", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 16:20 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "repro-fig7-infection-fraction";
