@@ -148,16 +148,19 @@ def test_repro_study_data_matches_reported_values():
     assert (r3["replicas"], r3["cells_per_side"], r3["steps"]) == (2, 15, 20)
     assert r3["band_eval"]["passed"] is False
     # repro-fig5-viral-load study.yaml: loads=(1,10000), uninfected_final_frac
-    # load=1 -> 0.611, load=10000 -> 0.0, both bands fail.
+    # load=1 -> 0.958, load=10000 -> 0.0, both bands fail. (Post init_viral_load
+    # IC fix: low load now mostly survives -- 138/144 -- a stronger, source-
+    # faithful dose-response than the pre-fix over-seeded 0.611.)
     r5 = _SD["repro_fig5"]
     assert r5["loads"] == [1, 10000]
-    assert abs(r5["by_load"]["1"]["uninfected_final_frac"] - 0.611111) < 1e-4
+    assert abs(r5["by_load"]["1"]["uninfected_final_frac"] - 0.958333) < 1e-4
     assert r5["by_load"]["10000"]["uninfected_final_frac"] == 0.0
     assert r5["by_load"]["1"]["band_eval"]["passed"] is False
     assert r5["by_load"]["10000"]["band_eval"]["passed"] is False
     # repro-fig7-infection-fraction study.yaml: fracs=(0.001,0.05),
-    # uninfected_final_frac frac=0.001 -> 1.0, frac=0.05 -> 0.9444.
+    # uninfected_final_frac frac=0.001 -> 1.0, frac=0.05 -> 0.958 (138/144;
+    # up from the pre-fix 0.9444 after the shared init_viral_load IC fix).
     r7 = _SD["repro_fig7"]
     assert r7["fracs"] == [0.001, 0.05]
     assert r7["by_frac"]["0.001"]["uninfected_final_frac"] == 1.0
-    assert abs(r7["by_frac"]["0.05"]["uninfected_final_frac"] - 0.944444) < 1e-4
+    assert abs(r7["by_frac"]["0.05"]["uninfected_final_frac"] - 0.958333) < 1e-4
