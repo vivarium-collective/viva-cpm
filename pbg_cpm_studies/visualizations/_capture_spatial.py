@@ -93,10 +93,23 @@ class _RecWorld:
         if self._owner:
             # cell-label mosaic (substrate relaxation) — labels can exceed 255
             grid = owners.astype(np.uint16)
+            self._frames.append({"mcs": int(self._mcs), "grid": _encode(grid)})
         else:
             types_arr = np.asarray(w.cell_types(), dtype=np.int64)
             grid = types_arr[owners].astype(np.uint8)   # per-site cell TYPE
-        self._frames.append({"mcs": int(self._mcs), "grid": _encode(grid)})
+            # Outline every individual cell (adjacent same-TYPE cells share a
+            # colour but differ in owner): paint the cell sites whose right or
+            # down neighbour has a different owner with the EDGE sentinel (8),
+            # giving thin 1px tessellation lines. Baked INTO the type grid (not a
+            # separate overlay) so the card embeds one heatmap, not two -> no
+            # size increase even at full-sheet density. Only cell sites (owner
+            # != 0) are marked, so the outline stays inside cells, not the medium.
+            edges = np.zeros_like(owners, dtype=bool)
+            edges[:, :-1] |= owners[:, :-1] != owners[:, 1:]
+            edges[:-1, :] |= owners[:-1, :] != owners[1:, :]
+            edges &= owners != 0
+            grid[edges] = 8
+            self._frames.append({"mcs": int(self._mcs), "grid": _encode(grid)})
 
     def step(self, n=1, *a, **k):
         if self._mcs >= self._next:
@@ -205,13 +218,15 @@ def capture_all() -> dict:
     for slug, driver, kwargs, total_mcs in STUDIES:
         frames, nx, ny = _run_capture(driver, total_mcs, **kwargs)
         frames = _subsample(frames, N_FRAMES)
+        # Cell boundaries are baked into the type grid as the EDGE sentinel (8),
+        # so every study is outlined with no extra per-frame layer.
         spatial[slug] = {
             "kind": "type", "enc": "zlib+b64", "dtype": "uint8",
             "nx": nx, "ny": ny, "seed": int(kwargs.get("seed", 17)),
             "frames": frames,
         }
         span = f'MCS {frames[0]["mcs"]}->{frames[-1]["mcs"]}'
-        print(f"{slug}: {len(frames)} frames {nx}x{ny} full-res  ({span})")
+        print(f"{slug}: {len(frames)} frames {nx}x{ny} full-res  ({span}) [outlined]")
     return spatial
 
 

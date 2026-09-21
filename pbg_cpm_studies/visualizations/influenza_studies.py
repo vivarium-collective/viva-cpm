@@ -94,9 +94,11 @@ def _decode_grid(frame, nx, ny, dtype):
 
 
 def _type_traces(grid2d):
+    # code 8 = cell-boundary sentinel (baked tessellation outline) -> extend the
+    # discrete scale to 0..8 so those sites draw dark; harmless when absent.
     return [{"type": "heatmap", "z": grid2d.tolist(),
-             "colorscale": S.discrete_state_colorscale(7),
-             "zmin": -0.5, "zmax": 7.5, "showscale": False, "xgap": 0, "ygap": 0,
+             "colorscale": S.discrete_state_colorscale(8),
+             "zmin": -0.5, "zmax": 8.5, "showscale": False, "xgap": 0, "ygap": 0,
              "hoverinfo": "skip"}]
 
 
@@ -145,7 +147,9 @@ def _build_spatial(slug, title, subtitle, caption, *, increment, kpis,
         "annotations": [_spatial_stamp(_stamp_text(frames_data[0]["mcs"]))],
         **_spatial_axes(nx, ny), **_spatial_controls(steps)})
 
-    codes = (sorted({int(v) for g in decoded for v in np.unique(g)})
+    # Exclude the boundary sentinel (8) from the state legend — it's an outline,
+    # not a cell state.
+    codes = (sorted({int(v) for g in decoded for v in np.unique(g) if int(v) != 8})
              if not owner else [])
     body = (_spatial_legend(codes, owner=owner)
             + S.plot(div, _traces(decoded[0]), layout, frames=frames))

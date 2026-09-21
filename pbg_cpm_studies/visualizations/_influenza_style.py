@@ -52,6 +52,7 @@ SPATIAL_STATES = {
     1: CELL_STATES[1], 2: CELL_STATES[2], 3: CELL_STATES[3],
     4: CELL_STATES[4], 5: CELL_STATES[5], 6: CELL_STATES[6],
     7: ("Dormant reserve pool", RESERVE_TINT),
+    8: ("Cell boundary", "#181818"),   # per-cell tessellation outline (baked into the grid)
 }
 
 

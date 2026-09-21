@@ -78,7 +78,9 @@ def test_spatial_data_is_real_multiframe():
         assert g0.shape == (d["ny"], d["nx"])
         assert int(g0.min()) >= 0
         if d["kind"] == "type":
-            assert int(g0.max()) <= 7          # medium(0), 6 cell states, reserve(7)
+            # medium(0), 6 cell states, reserve(7), + cell-boundary sentinel(8)
+            # baked in for the per-cell tessellation outline.
+            assert int(g0.max()) <= 8
         # frames advance in MCS (first->last), a real time series
         assert d["frames"][-1]["mcs"] > d["frames"][0]["mcs"]
 
