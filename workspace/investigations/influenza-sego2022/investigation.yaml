@@ -142,7 +142,48 @@ executive:
     fig5/fig7 at paper scale are in-progress/follow-up. This investigation does
     NOT claim a full quantitative reproduction; it claims a close,
     honestly-bounded, source-faithful one.
-  verdict_status: in-progress
+
+    CONSOLIDATED FINAL STATUS (Increments 13-14 + divergence register). Incr 13
+    (#60) found and fixed a real BUG — recruitment ran ONCE per 7-MCS record while
+    its rates are per-MCS, throttling the immune response ~7x; fixed to run every
+    MCS (source `update_populations` cadence) plus a 2D immune bootstrap
+    (reserve-pool uncapping). Incr 14 (#61) promoted the capstone science out of the
+    monolithic `run_full_model` loop into a real process-bigraph COMPOSITE with a
+    SWAPPABLE AGENT-BASED immune layer (off-lattice immune cells: chemotaxis,
+    proximity killing, whole-cell secretion, uncapped ODE-driven recruitment);
+    four processes (Epithelium/Immune/SystemicODE + driver), all through
+    process-bigraph; `run_full_model` kept intact as the reference; EpitheliumProcess
+    reproduces its epithelial trajectory EXACTLY (element-wise parity); full suite
+    257 passed. Fig5/fig7 now also run through the composite (#62, engine="composite").
+
+    PAPER-SCALE VERDICT (the decisive test). Macrophage counts do NOT reach the
+    fig3b band, and this is now DEFINITIVELY a SOURCE-FAITHFUL LIMIT, not a
+    reproduction failure: removing the reserve-pool cap AND correcting the IL-10
+    feedback gives macrophage peak 119 (LOWER than the capped 176), because
+    macrophage recruitment is chemokine-loop-gain-limited (the chemokine field never
+    saturates the recruitment Hill; z=2 geometry cannot change this — recruitment is
+    driven by the z-invariant chemokine INTEGRAL). CD8 (APC-driven, not
+    chemokine-limited) DID reach its band once uncapped (188 -> 330; lower band 280);
+    NK ~186. fig7's infection-fraction dose-response is reproduced (survival
+    0.66 -> 0.11 across the fraction sweep); fig5's viral-load dose-response is NOT
+    (total loss at every load).
+
+    DIVERGENCE REGISTER (docs/cc3d-reference/known-divergences.md) tracks 11
+    divergences, each triaged fixable / irreducible / accepted, and root-causes the
+    fig5 gap to the discrepancy-#10 field-concentration units -- a cell_volume=25
+    factor in BOTH the missing `-g_vh*H*V` virus uptake AND the init_viral_load IC
+    (which over-seeds ~25x). The clean fix is a fully-scoped multi-part increment
+    (g_vh uptake + IC correction + observable/target reconciliation + localization-
+    test updates), logged as the next work.
+
+    HONEST STATUS (consolidated): a close, source-faithful reproduction of the
+    Sego-2022 model on a swappable, agent-based process-bigraph architecture, with
+    every remaining divergence from the figures now PRECISELY CHARACTERIZED -- which
+    are irreducible source-faithful physics (the macrophage gap) and which are
+    fixable #10 units work (fig5). NOT a full quantitative band pass; a rigorously
+    bounded, source-honest reproduction with a tracked path for the fixable gaps. No
+    constant was tuned to fit any figure.
+  verdict_status: consolidated-close-source-faithful
   verdict_detail: |
     Member study parameter-provenance (Design phase, documentation-only)
     establishes the parameter authority: it cites params.yaml, the two

@@ -94,6 +94,15 @@ report:
     secretion-built) is where the raw-sum bug was structurally large
     (~1200x worst_miss) and where this same fix materially changes the
     result; see that study for the units fix's dominant effect.
+
+    CONSOLIDATED (Incr 13-14): recruitment-cadence BUG fixed (#60: recruitment ran
+    once per 7-MCS record vs its per-MCS rates, ~7x throttle) + agent-based
+    process-bigraph Composite immune layer (#61). Paper-scale: macrophage counts
+    stay ~2x below band -- DEFINITIVELY source-faithful chemokine-loop physics
+    (uncapping the reserve pool + correct IL-10 gives peak 119 < the capped 176;
+    z=2 geometry cannot help, recruitment is driven by the z-invariant chemokine
+    INTEGRAL), NOT the pool cap. CD8 (APC-driven) uncapped INTO its band
+    (188 -> 330; lower band 280); NK ~186. See known-divergences.md D1/D5. No tuning.
   main_insight: >-
     The soft-flagged observables (type1_ifn, antibodies, nk_cells,
     cd8_t_cells, il10) land in-band at MORE checkpoints (5-7 of 8) than the
