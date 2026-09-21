@@ -87,6 +87,17 @@ report:
     units fix), antibodies 6/6 (0). NONE of these numbers were tuned to look
     better, and `targets/fig5.json` was NOT edited -- the band is the fixed
     oracle per the task brief.
+
+    CONSOLIDATED (Incr 14, pb-Composite): fig5 now runs through the process-bigraph
+    composite (engine="composite"). Paper-scale sweep (cps=35, 720 steps): the
+    viral-load DOSE-RESPONSE is NOT reproduced -- uninfected survival is 0 at EVERY
+    load (1..10000) by 3.5 d. Root-caused (docs/cc3d-reference/known-divergences.md
+    D2/D8): the virus field is missing the source `-g_vh*H*V` uninfected uptake AND
+    init_viral_load over-seeds ~25x -- BOTH the same cell_volume=25 discrepancy-#10
+    factor. Confirmed against the actual CC3D source: loads/25 restore the
+    dose-response (v0=0.04 -> 82% survive, v0>=4 -> total loss). Clean fix is a
+    scoped multi-part increment (g_vh uptake + IC correction + observable/target
+    reconciliation). NOT tuned.
   main_insight: >-
     load=10000's uninfected_cells/antibodies land FULLY in-band (6/6 each,
     worst_miss 0) while load=1's do not (4/6 and 5/6) -- but this is a

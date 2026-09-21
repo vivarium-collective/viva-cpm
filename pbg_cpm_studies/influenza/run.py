@@ -2213,12 +2213,10 @@ def run_full_model_composite(*, cells_per_side: int, steps: int, seed: int,
     `apply_recruitment` is likewise driven True every MCS here (not once per
     record), the corrected cadence per the brief.
     """
-    if init_viral_load is not None:
-        raise NotImplementedError(
-            "run_full_model_composite: init_viral_load is not yet supported "
-            "by full_model_composite_document (init_infection_frac scenarios "
-            "only) -- deferred alongside the remaining run_full_model parity "
-            "gaps (Task 3.4).")
+    if (init_infection_frac is None) == (init_viral_load is None):
+        raise ValueError(
+            "run_full_model_composite requires exactly one of init_infection_frac "
+            "XOR init_viral_load (got both or neither)")
 
     from ..composites.influenza import full_model_composite_document
     from ..core import build_core
@@ -2228,6 +2226,11 @@ def run_full_model_composite(*, cells_per_side: int, steps: int, seed: int,
                       mcs_per_step=mcs_per_step, s_per_mcs=s_per_mcs)
     if init_infection_frac is not None:
         doc_kwargs["init_infection_frac"] = init_infection_frac
+    if init_viral_load is not None:
+        # fig5/fig7 viral-load scenario: EpitheliumProcess seeds the uniform
+        # virus-field IC (no pre-infected cells). The document forces
+        # n_infected=0 when a load is given.
+        doc_kwargs["init_viral_load"] = init_viral_load
     doc = full_model_composite_document(**doc_kwargs)
 
     # Drive the epithelium ONE raw MCS per manual `update()` call below (not
@@ -2533,8 +2536,25 @@ def _map_full_model_observables(result: dict, observable_map: dict) -> dict:
     return mapped
 
 
+def _dispatch_full_model(engine, *, cells_per_side, steps, seed, boot, **scenario):
+    """Run ONE full-model replica through the chosen engine:
+      - ``"reference"`` (default): `run_full_model` -- on-lattice reserve-pool
+        immune, with the optional 2D `boot` bootstrap config applied.
+      - ``"composite"``: `run_full_model_composite` -- the process-bigraph
+        Composite with the agent-based, density-uncapped immune layer. `boot`
+        is INAPPLICABLE here (no reserve pool to size) and is ignored.
+    Both return the same result-dict shape, so the repro drivers map either
+    identically."""
+    if engine == "composite":
+        return run_full_model_composite(cells_per_side=cells_per_side, steps=steps,
+                                        seed=seed, **scenario)
+    return run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
+                          **scenario, **boot)
+
+
 def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240,
-                seed0: int = 0, bootstrap: bool = False) -> dict:
+                seed0: int = 0, bootstrap: bool = False,
+                engine: str = "reference") -> dict:
     """Increment 9 Task 9.2 -- the CAPSTONE `repro_fig3b` driver: run the full
     model (`run_full_model`, Task 9.1) over the Sego-2022 Fig-3B scenario (5%
     initial infection fraction, 0.3 mm patch -> ``cells_per_side x
@@ -2581,8 +2601,8 @@ def repro_fig3b(*, replicas: int = 3, cells_per_side: int = 35, steps: int = 240
     runs = []
     for i in range(replicas):
         seed = seed0 + i
-        r = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
-                           init_infection_frac=0.05, **boot)
+        r = _dispatch_full_model(engine, cells_per_side=cells_per_side, steps=steps,
+                                 seed=seed, boot=boot, init_infection_frac=0.05)
         mapped = _map_full_model_observables(r, _FIG3B_OBSERVABLE_MAP)
         runs.append(mapped)
 
@@ -2703,7 +2723,7 @@ def _evaluate_fig7_subset(ensemble: dict, target_subset: dict) -> dict:
 
 def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
               cells_per_side: int = 35, steps: int = 240, seed0: int = 0,
-              bootstrap: bool = False) -> dict:
+              bootstrap: bool = False, engine: str = "reference") -> dict:
     """Increment 9 Task 9.3 -- the CAPSTONE `repro_fig5` driver: run the full
     model (`run_full_model`, Task 9.1) as a seeded ensemble at EACH initial
     viral load in `loads`, matching `targets/fig5.json`'s
@@ -2794,9 +2814,10 @@ def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
         runs = []
         for r in range(replicas):
             seed = seed0 + load_idx * replicas + r
-            res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
-                                 init_infection_frac=None, init_viral_load=float(load),
-                                 **boot)
+            res = _dispatch_full_model(engine, cells_per_side=cells_per_side,
+                                       steps=steps, seed=seed, boot=boot,
+                                       init_infection_frac=None,
+                                       init_viral_load=float(load))
             mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
             runs.append(mapped)
 
@@ -2839,7 +2860,7 @@ def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
 
 def repro_fig7(*, fracs=(0.001, 0.005, 0.01, 0.05), replicas: int = 3,
               cells_per_side: int = 35, steps: int = 240, seed0: int = 0,
-              bootstrap: bool = False) -> dict:
+              bootstrap: bool = False, engine: str = "reference") -> dict:
     """Increment 9 Task 9.4 -- the CAPSTONE `repro_fig7` driver: run the full
     model (`run_full_model`, Task 9.1) as a seeded ensemble at EACH initial
     infection fraction in `fracs`, matching `targets/fig7.json`'s
@@ -2932,9 +2953,10 @@ def repro_fig7(*, fracs=(0.001, 0.005, 0.01, 0.05), replicas: int = 3,
         runs = []
         for r in range(replicas):
             seed = seed0 + frac_idx * replicas + r
-            res = run_full_model(cells_per_side=cells_per_side, steps=steps, seed=seed,
-                                 init_infection_frac=float(frac), init_viral_load=None,
-                                 **boot)
+            res = _dispatch_full_model(engine, cells_per_side=cells_per_side,
+                                       steps=steps, seed=seed, boot=boot,
+                                       init_infection_frac=float(frac),
+                                       init_viral_load=None)
             mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
             runs.append(mapped)
 

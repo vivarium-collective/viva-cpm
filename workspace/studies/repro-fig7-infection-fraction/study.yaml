@@ -106,6 +106,13 @@ report:
     in-band). NONE of these numbers were tuned to look better, and
     `targets/fig7.json` was NOT edited -- the band is the fixed oracle per
     the task brief.
+
+    CONSOLIDATED (Incr 14): fig7 runs through the pb-Composite (engine="composite");
+    the infection-fraction DOSE-RESPONSE IS reproduced at paper scale -- uninfected
+    survival 0.66 -> 0.11 monotone across fracs 0.001..0.05. Unlike fig5, fig7 seeds
+    SCATTERED infected cells (no uniform virus-field IC), so the D2/D8 virus-
+    clearance / IC-magnitude gap (docs/cc3d-reference/known-divergences.md) barely
+    affects it. Source-faithful; not tuned.
   main_insight: >-
     The reduced-scale result here is dominated by a DIFFERENT mechanism than
     `repro_fig5`'s reduced-scale report: not a virus-field-units mismatch
