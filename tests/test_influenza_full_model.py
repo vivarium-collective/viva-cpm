@@ -167,3 +167,31 @@ def test_fig7_target_subset_scenario_grouping_guard():
 
     with pytest.raises(ValueError):
         run._fig7_target_subset(target_observables, 0.5)  # untagged fraction
+
+
+def test_fig5_viral_load_dose_response_restored():
+    """D2/D8 fix: the fig5 viral-load dose-response is reproduced -- a LOW
+    init_viral_load leaves substantially more surviving epithelium than a HIGH
+    load. Before the fix (init_viral_load over-seeded ~cell_sites-fold), every
+    load drove total loss (no dose-response). The IC now deposits v0/cell_sites
+    per pixel (source `v0` = virus PER CELL), so low doses are survivable.
+    See docs/cc3d-reference/known-divergences.md D8."""
+    from pbg_cpm_studies.influenza import run
+    lo = run.run_full_model(cells_per_side=12, steps=150, seed=0, init_viral_load=1.0)
+    hi = run.run_full_model(cells_per_side=12, steps=150, seed=0, init_viral_load=1000.0)
+    un_lo = lo["counts"]["uninfected"][-1]
+    un_hi = hi["counts"]["uninfected"][-1]
+    tot = lo["params"]["tot_cell"]
+    assert un_lo > 0.4 * tot          # low load: much of the sheet survives
+    assert un_hi == 0                 # high load: total epithelial loss
+    assert un_lo > un_hi              # monotone dose-response
+
+
+def test_fig5_virus_observable_t0_equals_load():
+    """The extracellular_virus observable at t=0 reads the viral-load multiplier
+    (per-cell v0), matching fig5.json -- via repro_fig5's field_divisor=tot_cell
+    reconciliation now that the IC deposits v0/cell_sites per pixel."""
+    from pbg_cpm_studies.influenza import run
+    r = run.repro_fig5(loads=(1000,), replicas=1, cells_per_side=12, steps=2, seed0=0)
+    t0_virus = r["by_load"][1000]["ensemble"]["extracellular_virus"][0][1]
+    assert 0.5 * 1000 < t0_virus < 2 * 1000    # reads ~load, not load/cell_sites

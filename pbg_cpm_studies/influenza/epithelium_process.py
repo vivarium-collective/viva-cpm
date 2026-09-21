@@ -110,7 +110,12 @@ class EpitheliumProcess(CPMProcess):
         init_viral_load = float(self.config.get("init_viral_load") or 0.0)
         if init_viral_load > 0.0:
             _d, _decay, _dt, _sub, _sec = fields._virus_field_params()
-            self.world.set_secretion(0, types.H, init_viral_load / _dt)
+            # v0 is TOTAL virus per epithelial cell -> v0/cell_sites per pixel
+            # (source line 92-93); depositing per-pixel `load` over-seeds
+            # ~cell_sites-fold. Mirrors run.py `_seed_uniform_virus`.
+            cell_sites = int(load_params()["cpm"]["cell_sites"])
+            per_pixel = init_viral_load / cell_sites
+            self.world.set_secretion(0, types.H, per_pixel / _dt)
             self.world.advance_fields(1)
             self.world.set_secretion(0, types.H, 0.0)
 

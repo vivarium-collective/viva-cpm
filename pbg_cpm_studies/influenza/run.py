@@ -1604,9 +1604,16 @@ def _seed_uniform_virus(world, virus_fi, target_conc, epithelial_ids):
     no multiplier to any dynamics constant.
     """
     _d, _decay, dt, _substeps, _sec = fields._virus_field_params()
-    # `world.set_secretion(field, TYPE, rate)` is a per-TYPE rule; every H cell
-    # is the epithelial patch, so this deposits uniformly across the patch.
-    world.set_secretion(virus_fi, types.H, float(target_conc) / dt)
+    # `target_conc` (=v0) is the source's TOTAL initial virus PER EPITHELIAL CELL
+    # (`ImmuneModelInputs.v0`); the source spreads it over the cell's pixels ->
+    # `v0_sites ~= v0/cell_volume` per pixel (`ViralInfectionVTMSteppables` line
+    # 92-93). Depositing `target_conc` per PIXEL (the pre-fix behavior) over-seeds
+    # ~cell_volume-fold and collapses the fig5 dose-response (every load lethal);
+    # deposit `target_conc/cell_sites` per pixel instead. `world.set_secretion`
+    # is per-TYPE; every H cell is the epithelial patch, so this seeds uniformly.
+    cell_sites = int(load_params()["cpm"]["cell_sites"])
+    per_pixel = float(target_conc) / cell_sites
+    world.set_secretion(virus_fi, types.H, per_pixel / dt)
     world.advance_fields(1)
     world.set_secretion(virus_fi, types.H, 0.0)
 
@@ -2505,7 +2512,8 @@ def bootstrap_immune_config(tot_cell: int, *, headroom: float = 1.15,
             "recruit_pool_per_type": pool}
 
 
-def _map_full_model_observables(result: dict, observable_map: dict) -> dict:
+def _map_full_model_observables(result: dict, observable_map: dict,
+                                field_divisor: float | None = None) -> dict:
     """Apply an observable map (`_FIG3B_OBSERVABLE_MAP`/`_FIG5_OBSERVABLE_MAP`)
     to one `run_full_model` result ``result``, converting each FIELD-typed
     observable (``section == "fields"``) from `run_full_model`'s raw
@@ -2525,8 +2533,17 @@ def _map_full_model_observables(result: dict, observable_map: dict) -> dict:
     # `load` exactly (the target's own t=0 value). Incr 12 units correction;
     # run_full_model's raw-sum field recording + the ODE's own sum/dim.z coupling
     # are unchanged.
+    # Default field divisor = tissue site count (spatial-mean concentration over
+    # the epithelial patch), used by fig3b/fig7 whose fields are SECRETION-built.
+    # `field_divisor` overrides it: `repro_fig5` (init_viral_load) passes
+    # `tot_cell` so the extracellular_virus observable reads PER-CELL virus (= v0
+    # = the viral_load_multiplier at t=0), matching `fig5.json`'s target
+    # convention now that the IC deposits v0/cell_sites per pixel (D8 fix). Using
+    # n_tissue_sites there would read v0/cell_volume instead.
     cell_volume = float(load_params()["price_ode"]["scaling"]["cell_volume"])
-    n_tissue_sites = max(1.0, float(result["params"]["tot_cell"]) * cell_volume)
+    if field_divisor is None:
+        field_divisor = max(1.0, float(result["params"]["tot_cell"]) * cell_volume)
+    n_tissue_sites = float(field_divisor)
     mapped = {}
     for obs_name, (section, key) in observable_map.items():
         series = list(zip(result["t_days"], result[section][key]))
@@ -2818,7 +2835,11 @@ def repro_fig5(*, loads=(1, 10, 100, 1000, 10000), replicas: int = 3,
                                        steps=steps, seed=seed, boot=boot,
                                        init_infection_frac=None,
                                        init_viral_load=float(load))
-            mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP)
+            # init_viral_load: extracellular_virus observable is PER-CELL virus
+            # (= v0 = the multiplier at t=0), so divide the field sum by tot_cell
+            # (not tissue sites) to match fig5.json's target convention.
+            mapped = _map_full_model_observables(res, _FIG5_OBSERVABLE_MAP,
+                                                 field_divisor=float(tot_cell))
             runs.append(mapped)
 
         ensemble = {obs_name: bands.aggregate_replicas(runs, obs_name)
