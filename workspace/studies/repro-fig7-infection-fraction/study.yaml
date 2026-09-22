@@ -370,38 +370,13 @@ description: |
   frac=0.001 scenario.
 
 claim: |
-  `run.repro_fig7` is implemented and wired correctly: it sweeps a seeded
-  ensemble of `run_full_model` over Fig-7's initial-infection-fraction
-  scenarios, maps every observable onto `targets/fig7.json`'s exact keys
-  (reusing fig5's `_FIG5_OBSERVABLE_MAP` since both targets share the same 4
-  keys), ensemble-means per fraction via `bands.aggregate_replicas`, filters
-  each fraction's own scenario-tagged band subset (`_fig7_target_subset`,
-  built on the shared `_scenario_target_subset` this task generalized from
-  `repro_fig5`'s guard, verified to raise `ValueError` rather than silently
-  mixing scenarios when a fraction has no tagged entries, AND verified to
-  filter correctly for the happy path -- both now covered by a dedicated
-  pytest unit test), and evaluates via `_evaluate_fig7_subset`, producing a
-  well-formed `{"by_frac": {frac: {...}}, "lethal_threshold": ...,
-  "band_eval": {...}, "fracs":..., "replicas":..., "cells_per_side":...,
-  "steps":...}` dict (verified by `tests/test_influenza_full_model.py::
-  test_repro_fig7_infection_fraction_sweep`). THIS STUDY DOES NOT CLAIM
-  FIG-7 IS REPRODUCED. At the reduced scale this task's fast test uses
-  (`fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, seed0=0`),
-  per-fraction `band_eval["passed"]` is False for both fractions
-  (per-observable n_in/6 and worst_miss reported in `report.key_metrics`
-  above) -- expected given the ~69x smaller epithelial population and the
-  ~0.068-simulated-day run duration vs. the target's 0.0-15-day checkpoint
-  window, not a mechanism defect. The MONOTONE dose-response direction this
-  reduced test's own assertion checks
-  (`uninfected_final_frac(frac=0.05)=0.958333 <=
-  uninfected_final_frac(frac=0.001)=1.0`) holds, BUT frac=0.001's value is a
-  degenerate no-infection control at this reduced population
-  (`round(0.001*144)=0` pre-infected cells seeded), reported here honestly
-  rather than presented as a real reproduction of fig7.json's frac=0.001
-  trajectory. The paper-scale 20-replica, all-4-fraction, 35x35-cell,
-  ~15-day ensemble (Mac-mini Phase-B) is required before any `reproduced`
-  verdict for Fig 7, and `conclusion_verdicts.biological_validation` stays
-  PENDING here.
+  `repro_fig7` is wired correctly: it sweeps a seeded ensemble of the full
+  model across Fig-7's infection-fraction scenarios and evaluates each
+  fraction against only its own acceptance-band subset. Fig-7 is not
+  reproduced at reduced scale — per-fraction band containment fails, and
+  the smallest tested fraction degenerates to a no-infection control since
+  it rounds to zero seeded cells. The monotone dose-response direction
+  still holds; a paper-scale ensemble is required before reproduction.
 
 expected_behavior:
   - "`repro_fig7` returns a `by_frac` dict keyed by exactly the requested fractions, each with an `ensemble`, a per-fraction `band_eval`, and `uninfected_final_frac`/`uninfected_min_frac`."

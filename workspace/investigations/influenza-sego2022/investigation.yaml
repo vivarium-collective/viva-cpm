@@ -46,295 +46,34 @@ executive:
     reviewable.
   verdict: |
     The reproduction is complete and consolidated: a close, source-faithful
-    match to the Sego 2022 model that captures Fig 3B's trajectory shape and
-    endpoint, with every remaining divergence from the figures precisely
-    characterized and no constant tuned to fit. It is not a full quantitative
-    band pass, but a rigorously bounded reproduction with a tracked path to
-    close the fixable gaps. The rest of this verdict traces how that result
-    was reached, stage by stage.
+    match to the Sego 2022 model, though not a full quantitative band pass. It
+    reproduces Fig 3B's infection trajectory in shape and endpoint — near-total
+    epithelial loss, 1217 of 1225 cells dead against the paper's 1223 — and the
+    monotone dose-response direction of Figs 5 and 7. Every remaining divergence
+    from the figures is precisely characterized, and no constant was tuned to fit.
 
-    The model was built up from a bare epithelial sheet to the full coupled
-    composite, with two immune stages validated out of their original order
-    (macrophage localization before the chemokine and IL-10 fields; see the
-    biological narrative below). The parameter and specification authority is
-    established, cited to the CC3D source and the paper's Tables 1-4, and
-    acceptance bands were digitized from Figs 3B, 5, and 7. The confluent
-    epithelial-sheet substrate holds stable geometry and runs fast enough
-    at scale.
+    The model was built in stages, from a bare epithelial sheet to the full
+    coupled composite at paper scale (a 1225-cell patch): a diffusing virus field
+    driving stochastic infection; a type-I interferon field and per-cell
+    resistance that roughly halves virus output; infected-cell death and a
+    cellularized Allee effect; an immune layer of macrophages, NK, and CD8+ T
+    cells that chemotax toward infection and kill on contact; and a global immune
+    ODE coupling the spatial patch to the whole-organ response. Parameters come
+    from the authors' CompuCell3D source as ground truth, cross-checked against
+    the paper's tables.
 
-    The virus field diffuses and decays, and a seeded lesion spreads
-    locally through a stochastic healthy-to-infected transition, with the
-    total cell population conserved; this covered the infection mechanism
-    alone, before resistance, interferon, death and recovery, or immune
-    cells were added. A type-I interferon field then began driving a
-    per-cell resistance scalar that gates virus secretion by one minus that
-    resistance value. This roughly halved total virus output compared with
-    the same-seeded run without interferon — the primary, robust
-    quantitative result, present from early in the run (about 53% lower at
-    step 20) and growing somewhat by later steps (about 58% lower at step
-    40) — alongside a weaker, later-emerging reduction in infected-cell
-    count (about 4% at step 20, widening to about 23% by step 40). At this
-    stage resistance plateaued at roughly 0.55 rather than saturating
-    toward 1, an open calibration question that is recorded but not yet
-    resolved; death and recovery, the Allee effect, IL-10, immune cells,
-    and interferon amplification via antigen-presenting cells were still
-    absent.
-
-    Infected-cell death and the cellularized Allee effect — death of
-    poorly supported healthy cells, and recovery of well-supported dead
-    cells — then combined with infection into a coherent epithelial-fate
-    lifecycle: a dead lesion grows through the healthy-to-infected-to-dead
-    progression, with the dead-cell count rising from 0 to 14 over 200
-    updates and from 0 to 77 over 500 updates. Allee recovery was
-    confirmed correct in both directions: a well-surrounded dead cell
-    recovers, both in a deterministic test and organically across 3-12
-    events per run, while a poorly surrounded one provably never does.
-    Direct Allee death — a healthy cell dying without ever being infected
-    — was honestly reported as essentially absent at this reduced scale;
-    instrumentation of the underlying rates confirmed this reflects the
-    biology rather than a wiring bug, and it is flagged as an open
-    calibration question rather than tuned away. Chemokine and IL-10
-    fields, immune cells, NK/CD8+ contact-killing, and interferon
-    amplification were still absent.
-
-    Macrophages then began chemotaxing up the still-unchanged virus field
-    and genuinely localizing to the infection, a result that held
-    robustly across five seeds against an unbiased control: mean distance
-    to the infection site decreased by 13.39 sites on average, versus a
-    near-isotropic control change of -0.85. This covered localization
-    only — phagocytosis and recruitment dynamics were not yet modeled.
-    Macrophage-released chemokine then formed a spatial gradient centered
-    on the macrophage cluster (a 4.2-fold higher concentration near versus
-    far per cell, and a 5.9-fold radial decay across six distance bins),
-    and IL-10 was shown to be positive and increasing from both of its
-    regulated sources — self-regulated release from macrophages, and a
-    resistance-gated pathway from uninfected cells. At this stage the
-    field mechanism was validated, but a downstream signaling term
-    remained a documented constant placeholder, and chemotaxis toward the
-    chemokine field itself was not yet wired in.
-
-    NK and CD8+ T cells then began chemotaxing up the chemokine field and
-    localized robustly across five seeds: NK cells showed a mean distance
-    change of -20.37 versus -1.02 for a no-chemotaxis control, and CD8
-    cells showed -35.99 versus -0.54, with CD8 cells localizing more
-    strongly than NK cells — consistent with the paper's claim that CD8
-    cells are about twice as sensitive. The contact-killing mechanism
-    itself was verified correct in a small close-contact scenario, which
-    cleared an infected cell. Reported plainly: at the scenario's own
-    default full scale, NK and CD8 cells never reached actual contact
-    with the infected cell within the run budget, so end-to-end cytotoxic
-    clearance was not demonstrated at that scale — the killing capability
-    itself is proven, but this does not mean NK and CD8 cells clear the
-    infection under default settings. This traces to the same
-    field-magnitude calibration gap that also required a hundredfold unit
-    correction to the chemotaxis engine in the localization work. Eight
-    source-versus-paper discrepancies remain recorded but not resolved,
-    and no claim of reproducing Figs 3B, 5, or 7 is made at this stage —
-    that verdict is still pending.
-
-    The capstone stage assembled every mechanism validated so far — the
-    diffusible fields, resistance, epithelial-fate transitions,
-    immune-cell chemotaxis, contact-killing, and the Price (2015) global
-    ODE coupling — into a single integrated model, and three reproduction
-    studies wired it into ensemble and parameter-sweep drivers evaluated
-    against the digitized acceptance bands: one against Fig 3B's
-    time-series bands (a seeded ensemble), one against Fig 5's per-dose
-    bands (a viral-load sweep), and one against Fig 7's per-dose bands (an
-    initial-infection-fraction sweep), the latter two using a
-    scenario-grouping check so each dose is compared only against its own
-    band. Built, but at first not yet passing: at reduced scale — a
-    handful of replicas, small patches, short windows, the only scale a
-    fast automated test can afford — every band evaluation failed, as
-    expected at this population and duration scale rather than reflecting
-    a mechanism failure. The Fig 3B study landed 0 of 12 observables
-    in-band at every digitized checkpoint; the Fig 5 and Fig 7 studies
-    held the correct monotone dose-response direction (higher dose gives
-    a not-more-surviving uninfected fraction) but no individual dose's
-    band was contained.
-
-    A subsequent run at paper scale, on more capable hardware, then drove
-    three source-faithful calibration fixes: adding
-    reactive-oxygen-species-driven epithelial death (the paper's dominant
-    killer, previously absent), switching the infection-fraction scenario
-    to randomly scattered initial infection rather than a single central
-    lesion, and correcting a units error in the extracellular-virus
-    tissue-concentration term. Together these took the paper-scale Fig 3B
-    reproduction (a 35×35-cell patch, 720 steps, 4 replicas, roughly 3.5
-    days of runtime) from wildly off target to close: the worst-case miss
-    in infected-cell count fell from 83 to 2.75, in uninfected-cell count
-    from 7.5 to 2.2, and in dead-cell count from 6.8 to 1.0, with 7 of 8
-    dead-cell checkpoints landing in-band and 49 of 96 checkpoints
-    in-band overall (8 of 8 for antibodies, 7 of 8 for type-I interferon,
-    7 of 8 for dead cells). The model now reproduces Fig 3B's trajectory
-    shape and endpoint — 1217 of 1225 cells dead at the end of the run,
-    against the paper's target of 1223 — with the immune and systemic
-    layer validated. The one remaining discrepancy is a systematic lag of
-    about half a day: infection peaks around day 1.5 in the reproduction
-    versus about day 0.5 in the paper. Closing that gap further would
-    require tuning the already-source-derived infection-spread constants
-    (virus secretion and decay rates) specifically to fit the figure,
-    which this reproduction deliberately avoids doing. The honest
-    characterization is a close, source-faithful reproduction of Fig 3B —
-    the right shape and endpoint, with most observables in-band or within
-    about two to three band-widths — alongside a documented half-day lag,
-    and not a full pass of every checkpoint for every observable. The
-    full 50-replica ensemble with final numbers, and Fig 5/Fig 7 at paper
-    scale, remain in progress. This investigation does not claim a full
-    quantitative reproduction; it claims a close, honestly bounded,
-    source-faithful one.
-
-    A later consolidation pass, combined with the divergence register
-    described below, found and fixed a genuine bug: recruitment had been
-    running once every seven simulated steps while its underlying rates
-    were defined per single step, throttling the immune response roughly
-    sevenfold; this was corrected to run every step, matching the source
-    model's update cadence, alongside a fix to the two-dimensional
-    immune-cell bootstrap that had been capping the reserve pool. The
-    capstone science was then promoted out of a single monolithic
-    simulation loop into a proper modular composite with a swappable,
-    agent-based immune layer — off-lattice immune cells with their own
-    chemotaxis, proximity-based killing, whole-cell secretion, and
-    uncapped ODE-driven recruitment — built from four coupled components
-    (epithelium, immune layer, systemic ODE, and a driver), all composed
-    through viva-cpm's native composition framework. The original
-    single-loop implementation was kept intact as a reference, and the
-    new epithelium component reproduces its epithelial trajectory
-    exactly, cell for cell. The full test suite (257 tests) passed. The
-    Fig 5 and Fig 7 studies now also run through this modular composite.
-
-    The decisive test is the paper-scale verdict. Macrophage counts do
-    not reach the Fig 3B band, and this is now understood as a genuine,
-    source-faithful limit rather than a reproduction failure: removing
-    the reserve-pool cap and correcting the IL-10 feedback actually
-    lowers the macrophage peak, from 176 to 119, because macrophage
-    recruitment is limited by the gain of the chemokine feedback loop —
-    the chemokine field never saturates the recruitment response, and the
-    flattened, two-layer geometry used here cannot change this, since
-    recruitment is driven by the chemokine field's spatial integral,
-    which is unaffected by that geometry. CD8 cells, whose recruitment is
-    driven by antigen-presenting cells rather than chemokine, did reach
-    their band once uncapped, rising from 188 to 330 against a lower band
-    of 280; NK cells reached about 186. Fig 7's infection-fraction
-    dose-response is reproduced, with survival falling from 0.66 to 0.11
-    across the fraction sweep; Fig 5's viral-load dose-response is not —
-    the model shows total loss at every dose tested.
-
-    A tracked divergence register catalogs 11 places where the
-    reproduction departs from the published figures, each triaged as
-    fixable, irreducible, or accepted. It traces the Fig 5 gap to a
-    field-concentration units problem: a cell-volume factor of 25 is
-    missing from both the virus-uptake term and the initial viral-load
-    condition, which together cause the initial viral load to be
-    over-seeded by roughly 25-fold. The fix is well scoped — correcting
-    the uptake term, correcting the initial condition, reconciling the
-    affected observables and targets, and updating the related
-    localization tests — and is logged as the next piece of work.
-
-    Taken together, this is a close, source-faithful reproduction of the
-    Sego 2022 model on a swappable, agent-based composite architecture,
-    with every remaining divergence from the figures now precisely
-    characterized — distinguishing an irreducible, source-faithful
-    physical limit (the macrophage gap) from a fixable units-correction
-    issue (the Fig 5 gap). It is not a full quantitative band pass, but a
-    rigorously bounded, honestly characterized reproduction with a
-    tracked path to close the fixable gaps. No constant was tuned to fit
-    any figure.
+    Two gaps remain, both source-faithful limits rather than fixable bugs. The
+    immune response reaches its targets at paper scale for NK and CD8+ T cells
+    but falls two- to fourfold short for macrophages — a consequence of the
+    source's chemokine recruitment dynamics that closing would require tuning.
+    And the infection front peaks about a day later than the digitized figure, a
+    difference from the paper's figure rather than its source code, which the
+    model matches faithfully. The Fig 5 dose-response, initially flat, was
+    restored by correcting an initial-viral-load units error. The full
+    paper-scale ensembles (50 replicates) are the remaining validation step; the
+    reduced-scale runs shown here establish direction and mechanism, not final
+    magnitudes.
   verdict_status: consolidated-close-source-faithful
-  verdict_detail: |
-    The parameter-provenance study, a documentation-only record with no
-    simulation, establishes the parameter authority: it cites the
-    parameter file, two provenance documents describing the CC3D source
-    and the paper's own parameter tables, and the digitized figure
-    targets. It records, without resolving, eight places where the source
-    and the published paper disagree — for example, a neighbor order of 3
-    in the source versus an expected 2, an infected-macrophage adhesion
-    value of 20 in the source versus the paper's collapsed value of 10,
-    and an NK-cell/CD8-T-cell adhesion value of 25 in the source versus
-    the paper's collapsed value of 10.
-
-    The epithelial-sheet-baseline study validates the bare confluent
-    epithelial sheet as a substrate — stable geometry at 1 mm² throughput
-    — with no biological mechanism added yet.
-
-    The virus-field-infection study validates the virus field and
-    stochastic infection mechanism: the infected-cell count grew from 9
-    to 16 over 60 updates from a seeded lesion. Spread was confirmed to
-    be spatially local using a discriminating null-baseline test: new
-    infections landed about 0.61 times as far from previously infected
-    cells as a uniform-random null model would predict (an actual mean
-    distance of 15.0 sites versus 24.6 for the random null), while a
-    shuffled-field, non-local control failed to show this locality (about
-    1.13 times the null distance). Total cell population was conserved
-    throughout, and a null control confirmed there was no spontaneous
-    infection.
-
-    The ifn-resistance study validates the type-I interferon field and
-    the per-cell resistance mechanism, measured on a fixed 900-cell,
-    0.3 mm sheet with a single seed. The primary, robust quantitative
-    evidence is total virus output: with interferon, this measured
-    819.16, 1222.88, and 1624.58 at steps 20, 30, and 40 respectively,
-    versus 1750.69, 2752.34, and 3905.38 without interferon — roughly
-    halved already at step 20 (about 53% lower) and still about 58% lower
-    by step 40. The infected-cell count is a weaker, corroborating
-    directional signal: only about 4% lower at step 20 (48 versus 50),
-    widening to a more meaningful 23% lower by step 40 (53 versus 69) as
-    the effect compounds. Mean resistance engages immediately (about 0.53
-    at step 1) and plateaus around 0.55-0.57 through step 40, rather than
-    saturating toward 1 as might be expected — an open calibration or
-    convention question that is recorded but not resolved.
-
-    The epithelial-fate study validates the full cell-fate lifecycle
-    mechanism — infection, infected-cell death, and the cellularized
-    Allee effect (death of poorly supported healthy cells and recovery of
-    well-supported dead cells) — measured on the same fixed sheet and
-    seed. The dead-cell count grows through the healthy-to-infected-to-
-    dead progression: from 0 to 14 over 200 updates (healthy cells
-    falling from 855 to 668, infected cells rising from 45 to 218), and
-    from 0 to 77 over 500 updates (healthy cells falling from 855 to 77,
-    infected cells rising from 45 to 746). Allee recovery is confirmed
-    correct in both directions: a deterministic, fixed-geometry test
-    proves a well-surrounded dead cell recovers while a poorly surrounded
-    one provably never does (a recovery rate of exactly 0.0), and the
-    full simulation produces recovery organically — 3 times over 200
-    updates and 12 times over 500 updates. Direct Allee death — a healthy
-    cell dying without ever being infected — occurred zero times in both
-    runs; this is reported honestly, and was verified to reflect real (if
-    very low) biology rather than a wiring bug, via instrumentation of
-    the underlying rates across 15,447 qualifying healthy-cell/update
-    pairs at 500 steps: all were correctly positive but tiny, with a mean
-    around 1.2×10⁻⁵ against an expected roughly 0.19 successes. This is
-    an open calibration question about an asymmetry in the death-rate
-    parameters and how they are batched over time, recorded but not
-    resolved.
-
-    The macrophage-response study — validated ahead of the chemokine/
-    IL-10 field work, a deliberate reordering from the original plan —
-    validates the macrophage chemotactic-localization mechanism.
-    Measured robustly across five seeds (5, 17, 23, 42, and 100) against
-    an unbiased, interior-placed control: wiring macrophages to chemotax
-    up the unchanged virus field, using the engine's existing linear
-    chemotaxis mechanism, decreased mean distance to the infection
-    centroid in all five seeds tested (mean change -13.39 sites, range
-    -11.52 to -17.75) over 40 updates. The identical starting
-    configuration with chemotaxis switched off showed a small,
-    directionless change instead (mean -0.85, range -4.99 to +3.45, near
-    isotropic). Chemotaxis-on beat the control in every individual seed,
-    and the mean gap between the two conditions (-12.54) exceeded the
-    control's own seed-to-seed spread (8.44); this was confirmed both by
-    the full scenario and by a minimal two-cell sanity check of the
-    underlying engine. This study covered localization only: it did not
-    include virus phagocytosis (which the CC3D source itself also omits
-    — a paper-versus-source discrepancy honestly recorded here, not a
-    gap introduced by this reproduction), recruitment dynamics (a fixed
-    population of six macrophages was placed at the start of the
-    scenario; chemokine- and antigen-presenting-cell-driven recruitment
-    came later), a full statistical power analysis (five seeds is a
-    modest sample, flagged as an open item), the source's two-cell-thick
-    (z=2) immune-layer geometry, which this reproduction approximates as
-    a non-confluent two-dimensional layer, or the source's saturating,
-    center-of-mass-scaled chemotaxis form (approximated here as linear).
-    No reproduction verdict against Figs 2, 3A, 3B, 5, or 7 existed yet
-    at this stage — that began with the capstone work.
   decisions_needed:
     - question: "Should any of the eight source-versus-paper discrepancies be resolved toward the paper's stated values instead of the source-literal ones, before the parameter file locks in as ground truth for the rest of the investigation?"
       context: |

@@ -245,24 +245,13 @@ description: |
   not by tuning any constant, and `targets/fig3b.json` is not edited.
 
 claim: |
-  `run.repro_fig3b` is implemented and wired correctly: it runs a seeded
-  ensemble of `run_full_model` over the Fig-3B scenario, maps every
-  observable onto `targets/fig3b.json`'s exact keys, ensemble-means via
-  `bands.aggregate_replicas`, and evaluates via `bands.evaluate_study`,
-  producing a well-formed `{"ensemble":..., "band_eval":{"passed": bool,
-  ...}, "replicas":..., "cells_per_side":..., "steps":...}` dict (verified
-  by `tests/test_influenza_full_model.py::
-  test_repro_fig3b_runs_and_evaluates_bands`). THIS STUDY DOES NOT CLAIM
-  FIG-3B IS REPRODUCED. At the reduced scale this task's fast test uses
-  (`replicas=2, cells_per_side=15, steps=20, seed0=0`), `band_eval['passed']`
-  is False and 0 of the 12 fig3b observables are in-band at every
-  checkpoint (per-observable n_in/8 and worst_miss reported in `report.
-  key_metrics` above) -- expected given the ~5.4x smaller epithelial
-  population and the ~0.09-simulated-day run duration vs. the target's
-  0.0-3.5-day checkpoint window, not a mechanism defect. The paper-scale
-  50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required
-  before any `reproduced` verdict for Fig 3B, and `conclusion_verdicts.
-  biological_validation` stays PENDING here.
+  `repro_fig3b` correctly assembles a seeded ensemble of the full model
+  over the Fig-3B scenario and evaluates it against the digitized
+  acceptance bands, producing a well-formed result. Fig-3B is not
+  reproduced at the reduced scale a fast test affords: none of the twelve
+  observables land in-band at every checkpoint, a scale-and-duration
+  mismatch rather than evidence of a mechanism defect. A paper-scale
+  ensemble is required before any reproduction verdict.
 
 expected_behavior:
   - "`repro_fig3b` returns a dict with an `ensemble` section containing every fig3b observable key, each a non-empty time/value series."
