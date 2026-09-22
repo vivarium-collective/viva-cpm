@@ -6,7 +6,7 @@ title: "Global Price-2015 ODE coupling"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:
-  - study: cytotoxic-killing
+  - study: immune-response
     condition: tests-passed
 
 purpose:

@@ -21,9 +21,6 @@ from pbg_cpm_studies.visualizations import influenza_studies as V
 STUDIES = {
     "ifn-resistance": ("ifn-resistance.html", V.InfluenzaIfnResistance),
     "epithelial-fate": ("epithelial-fate.html", V.InfluenzaEpithelialFate),
-    "macrophage-response": ("macrophage-response.html", V.InfluenzaMacrophageResponse),
-    "signaling-fields": ("signaling-fields.html", V.InfluenzaSignalingFields),
-    "cytotoxic-killing": ("cytotoxic-killing.html", V.InfluenzaCytotoxicKilling),
     "global-coupling": ("global-coupling.html", V.InfluenzaGlobalCoupling),
     # Increment 9 (CAPSTONE, Task 9.5): the three repro-fig* studies.
     "repro-fig3b": ("repro-fig3b.html", V.InfluenzaReproFig3B),
@@ -38,9 +35,7 @@ SPATIAL_STUDIES = {
     "virus-field-infection": ("spatial-virus-field.html", V.InfluenzaSpatialVirusField),
     "ifn-resistance": ("spatial-ifn.html", V.InfluenzaSpatialIfnResistance),
     "epithelial-fate": ("spatial-fate.html", V.InfluenzaSpatialEpithelialFate),
-    "macrophage-response": ("spatial-macrophage.html", V.InfluenzaSpatialMacrophage),
-    "signaling-fields": ("spatial-signaling.html", V.InfluenzaSpatialSignaling),
-    "cytotoxic-killing": ("spatial-cytotoxic.html", V.InfluenzaSpatialCytotoxic),
+    "immune-response": ("spatial-immune.html", V.InfluenzaSpatialImmune),
     "global-coupling": ("spatial-global.html", V.InfluenzaSpatialGlobalCoupling),
     "repro-fig3b": ("spatial-repro-fig3b.html", V.InfluenzaSpatialReproFig3B),
     "repro-fig5-viral-load": ("spatial-repro-fig5.html", V.InfluenzaSpatialReproFig5),
