@@ -249,3 +249,10 @@ narrative_spine_skip_reason: >-
   is a forward-looking build checklist that belongs to Increment 1+, and
   interventions/variants presuppose a baseline composite that does not exist
   yet in this study.
+
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.influenza.epithelium
+    params: {patch_mm: 0.1, seed: 17}  # nominal baseline; this is a documentation-only provenance study with no simulation of its own
+  model_settings: []

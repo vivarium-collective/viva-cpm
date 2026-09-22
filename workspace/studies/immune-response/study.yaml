@@ -119,3 +119,31 @@ conclusion_verdicts:
       is the capstone's role.
 
 gate_status: passed
+
+conditions:
+  baseline:
+    name: baseline
+    composite: pbg_cpm_studies.composites.influenza.cytotoxic_immunity
+    params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch; the measured tissue-scale immune-response scene comes from run.run_cytotoxic_response at ~900 cells, not this composite
+  model_settings: []
+
+question: |
+  Do the innate and adaptive immune mechanisms — macrophage chemotaxis, the
+  macrophage-released chemokine and IL-10 signalling field, and NK/CD8
+  cytotoxic localization — compose into a coherent immune response at a
+  representative tissue scale (a roughly 900-cell epithelial sheet)?
+
+hypothesis: |
+  Running the full immune layer on a tissue-scale sheet will show macrophage,
+  NK, and CD8+ T cells chemotaxing toward an infected patch and clustering
+  against the sheet, with contact-killing field-magnitude-limited at full scale.
+
+objective: |
+  Run the full immune layer (macrophage, NK, CD8+ T cells) on a ~900-cell
+  epithelial sheet seeded with an infected patch, and confirm the immune cells
+  chemotax toward the infection and cluster against the sheet.
+
+readouts:
+  - {name: immune_localization, value: confirmed, note: "NK and CD8 clusters close distance toward the infected patch over the run"}
+
+behavior_tests: []
