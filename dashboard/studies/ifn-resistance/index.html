@@ -565,25 +565,13 @@ REDUCE infection spread and total virus versus the same run with no IFN
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">A type-I IFN field, sampled locally per infected cell into a resistance
-scalar (source formula) that gates that cell&#39;s virus secretion by
-`(1-resist)`, measurably reduces total virus versus an identical no-IFN
-run (same seed, same 60-update driver) — roughly HALVED at every sampled
-step (819.16 vs 1750.69 at step 20, ~53%; 1222.88 vs 2752.34 at step 30,
-~56%; 1624.58 vs 3905.38 at step 40, ~58%). This is the study&#39;s PRIMARY,
-robust quantitative evidence. Infected-cell count (n_I) moves in the same
-protective direction but is a WEAKER signal at the step Task 3.3&#39;s
-integration test actually asserts: 48 vs 50 at step 20 is only a ~4%
-reduction; the gap widens to ~15% at step 30 (51 vs 60) and ~23% at step
-40 (53 vs 69) as the virus-load reduction has more time to compound into
-a visible count difference. So n_I is treated here as a corroborating
-directional trend, not co-equal quantitative evidence with total_virus.
-This is a MECHANISM-validation claim (the IFN-&gt;resistance-&gt;reduced-
-secretion chain behaves in the protective direction and has a real,
-non-trivial magnitude on virus load, with a smaller/slower-to-emerge
-effect on cell counts), not a claim that any of Sego et al. 2022&#39;s
-quantitative figure targets (Figs 3B/5/7) are met — that reproduction
-verdict remains PENDING until Increment 9 (the capstone).
+      <p class="ctr-text">A type-I IFN field, converted per-cell into a resistance scalar, gates
+virus secretion and roughly halves total virus versus an identical
+no-IFN run — the study&#39;s primary, robust evidence. Infected-cell count
+moves the same protective direction but more weakly, becoming meaningful
+only later in the run. This validates the mechanism only; it is not a
+claim that Sego et al. 2022&#39;s quantitative figure targets are met, which
+remains pending.
 </p>
       
       <div class="ctr-context">Infected epithelial cells secrete type-I interferon (IFN) into a second
@@ -1685,7 +1673,7 @@ until Increment 9 (the capstone).</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c2bd2553fad51549a229929cfcac9c3b38941012", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c2bd2553fad51549a229929cfcac9c3b38941012", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 16:20 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "a6b5dad806b4bc8b5c2389e28304e1250ee04189", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/a6b5dad806b4bc8b5c2389e28304e1250ee04189", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-22 03:50 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "ifn-resistance";

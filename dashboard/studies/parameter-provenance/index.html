@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Study: cytotoxic-killing</title>
+<title>Study: parameter-provenance</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
 <!-- Inherit the workbench light/dark theme (this page loads in an iframe;
@@ -14,11 +14,11 @@
 <header class="study-header">
   <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
-    <span class="study-name" id="study-name" data-slug="cytotoxic-killing" title="cytotoxic-killing">NK / CD8⁺ cytotoxic killing</span>
+    <span class="study-name" id="study-name" data-slug="parameter-provenance" title="parameter-provenance">Parameter provenance &amp; digitized Fig 3B/5/7 targets</span>
     
     <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
     
-    <span class="phase-pill phase-simulate" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Simulate</span>
+    <span class="phase-pill phase-design" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Design</span>
     
   </h1>
   <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0;">
@@ -36,7 +36,7 @@
     
 
     
-    <div id="readiness-panel" data-slug="cytotoxic-killing"></div>
+    <div id="readiness-panel" data-slug="parameter-provenance"></div>
 
     
     
@@ -54,15 +54,15 @@
             <span class="dot"></span>1&nbsp;·&nbsp;Plan
           </span>
           
-          <span class="status-step gate-step axis-simulation_status gate-state-passed set" title="Gate 2 · Execution">
+          <span class="status-step gate-step axis-simulation_status gate-state-not-assessed set" title="Gate 2 · Execution">
             <span class="dot"></span>2&nbsp;·&nbsp;Execution
           </span>
           
-          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 3 · Evidence">
+          <span class="status-step gate-step axis-evaluation_status gate-state-not-assessed set" title="Gate 3 · Evidence">
             <span class="dot"></span>3&nbsp;·&nbsp;Evidence
           </span>
           
-          <span class="status-step gate-step axis-evaluation_status gate-state-passed set" title="Gate 4 · Quality">
+          <span class="status-step gate-step axis-evaluation_status gate-state-not-assessed set" title="Gate 4 · Quality">
             <span class="dot"></span>4&nbsp;·&nbsp;Quality
           </span>
           
@@ -86,31 +86,31 @@
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed">
+        <div class="status-detail-row gate-row gate-state-not-assessed">
           <span class="status-detail-axis">2 · Execution</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="3 completed run(s)">◆ computed: ran</span>
+          <span class="gate-computed-chip gate-state-not-assessed" title="no runs in runs.db">◆ computed: not_run</span>
           
           
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed">
+        <div class="status-detail-row gate-row gate-state-not-assessed">
           <span class="status-detail-axis">3 · Evidence</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          <span class="gate-computed-chip gate-state-not-assessed" title="nothing run to evaluate">◆ computed: not_evaluated</span>
           
           
           
         </div>
         
-        <div class="status-detail-row gate-row gate-state-passed">
+        <div class="status-detail-row gate-row gate-state-not-assessed">
           <span class="status-detail-axis">4 · Quality</span>
           <span class="status-chip gate-state-not-assessed">not set</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="completed run + recorded verdicts">◆ computed: evaluated</span>
+          <span class="gate-computed-chip gate-state-not-assessed" title="nothing run to evaluate">◆ computed: not_evaluated</span>
           
           
           
@@ -120,7 +120,7 @@
           <span class="status-detail-axis">5 · Decision</span>
           <span class="status-chip gate-state-passed">passed</span>
           
-          <span class="gate-computed-chip gate-state-passed" title="spine gate evaluator (study_verdict.roll_up_verdict / pipeline_gate.gate_evaluator)">◆ computed: passed</span>
+          <span class="gate-computed-chip gate-state-not-assessed" title="spine gate evaluator (study_verdict.roll_up_verdict / pipeline_gate.gate_evaluator)">◆ computed: not_started</span>
           
           
           
@@ -148,16 +148,10 @@
 
 
 
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Introducing NK (`types.K`) and CD8+ T (`types.E`) cells, wired to
-chemotax up the macrophage-released chemokine field (Increment 6) and to
-contact-kill infected cells via the CC3D source&#39;s literal LOCAL
-(surface-contact) kill-rate formula: do NK/CD8 genuinely LOCALIZE toward
-the infection (robust across seeds), does the contact-killing MECHANISM
-itself actually clear an infected cell once contact happens, and — the
-honest question this study exists to surface — does that killing
-mechanism actually engage end-to-end at the scenario&#39;s own DEFAULT
-full scale, or do NK/CD8 simply never get close enough within a
-feasible step budget?
+<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> What is the authoritative, cited parameter set for reproducing Sego et al.
+2022&#39;s cellularized influenza model, and where does that authority (the
+CC3D ViralInfectionVTM source) disagree with the paper&#39;s own printed
+tables?
 </p>
 
 <nav class="study-tabs" aria-label="Study sections">
@@ -185,7 +179,7 @@ feasible step budget?
   </div>
   <div class="act-cluster" data-act="evidence">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="evidence" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="evidence" data-gate-state="not-assessed"></span>
       <span class="act-label">Evidence</span>
     </div>
     <div class="act-tabs">
@@ -197,7 +191,7 @@ feasible step budget?
   </div>
   <div class="act-cluster" data-act="assurance">
     <div class="act-header">
-      <span class="act-gate-dot" data-gate="assurance" data-gate-state="passed"></span>
+      <span class="act-gate-dot" data-gate="assurance" data-gate-state="not-assessed"></span>
       <span class="act-label">Assurance</span>
     </div>
     <div class="act-tabs">
@@ -569,125 +563,48 @@ feasible step budget?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">NK/CD8 chemotaxis up the (unchanged, Increment-6) chemokine field
-produces genuine spatial LOCALIZATION, robust across 5 tried seeds (NK
-mean distance change -20.37, CD8 -35.99, both negative in 5/5 seeds,
-against a near-isotropic lambda=0 control, NK -1.02/CD8 -0.54) with CD8
-(2x NK&#39;s lambda) localizing more strongly than NK in every seed and on
-average -- matching the paper&#39;s Sec. 2.3 &#34;CD8+ sensitivity twice that of
-NK cells.&#34; Separately, the contact-killing MECHANISM itself
-(`killing.contact_kill_rate`, the source&#39;s literal LOCAL surface-contact
-form, resist-DIRECT per discrepancy #7) is proven correct: a small
-close-contact scenario kills the one infected cell (1 -&gt; 0 at update 22
-of 45) with killing enabled vs steady at 1 with the identical seed and
-killing disabled. THIS STUDY DOES NOT CLAIM &#34;NK/CD8 CLEAR THE INFECTION&#34;
-AT REALISTIC SCALE -- at the scenario&#39;s own DEFAULT full scale (same
-6-macrophage/6-NK/6-CD8, 60-update scenario the localization numbers
-above come from), NK/CD8 close much of the distance to the infection
-(NK ~81.6 -&gt; ~57.8, CD8 ~81.6 -&gt; ~39.8) but NEVER reach actual contact
-within the run budget, so `n_infected` is unchanged (stays at 1 for all
-61 recorded steps, no kill fires). The killing CAPABILITY is
-demonstrated; end-to-end cytotoxic CLEARANCE at default/realistic scale
-is an OPEN Increment-9 field-magnitude-calibration item, the same root
-cause as the localization mechanism&#39;s own 100x engine-unit-scale
-correction, deliberately NOT tuned away here.
+      <p class="ctr-text">The parameter authority for the influenza-sego2022 investigation is
+established and cited: params.yaml is sourced from the CC3D
+ViralInfectionVTM package and the paper&#39;s Tables 1-4, with every value
+traceable to one or the other, and figure-target acceptance bands exist for
+Figs 3B, 5, 7. This is a claim of DOCUMENTATION COMPLETENESS, not of
+reproduction — no simulation has been run against these targets.
 </p>
       
-      <div class="ctr-context">NK (`types.K`) and CD8+ T (`types.E`) cells are placed in the domain
-interior (the Task-7.1 three-cluster scenario: epithelial/infection patch
-| macrophage cluster | NK+CD8 cluster, every cluster &gt;= `margin_sites`
-from every noflux wall) and wired to chemotax up the macrophage-released
-chemokine field (Increment 6, unchanged) via the engine&#39;s linear-lambda
-`World.set_chemotaxis` primitive, at the documented, non-per-seed-tuned
-`NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` correction (Task 7.1 -- the literal
-source lambda is statistically undetectable at this engine&#39;s
-chemokine-field concentration scale). Over a 60-update run, tested across
-5 seeds (5, 17, 23, 42, 100), both NK and CD8&#39;s mean distance to the
-infection centroid falls consistently when chemotaxis is on (NK mean
-change -20.37, CD8 -35.99, negative in 5/5 seeds each), against a
-near-isotropic lambda=0 control (NK -1.02, CD8 -0.54, no consistent sign)
--- CD8 (2x NK&#39;s literal lambda) localizes more strongly than NK in every
-seed, matching the paper&#39;s Sec. 2.3 stated 2x-sensitivity ratio. Each
-update, `killing.contact_kill_rate` (the CC3D source&#39;s literal LOCAL
-surface-contact kill-rate form, applying `cell_resist` DIRECTLY per
-discrepancy #7, NK checked before CD8 per the source&#39;s ordering) draws a
-stochastic kill for every currently-infected cell from its NK/CD8 contact
-area; a small, deliberately close-contact scenario (2 macrophages/2 NK/2
-CD8, tight margin/separation) confirms this mechanism actually clears the
-infected cell (1 -&gt; 0 at update 22 of 45) once genuine lattice contact
-happens, vs steady at 1 with killing disabled, same seed. This study&#39;s
-central, deliberately UN-hidden finding: at the SAME scenario&#39;s own
-DEFAULT full scale (6 macrophages/6 NK/6 CD8, the scale the localization
-numbers above are measured at), NK/CD8 close much of the distance to the
-infection (NK ~81.6 -&gt; ~57.8, CD8 ~81.6 -&gt; ~39.8 over 60 updates) but
-NEVER reach actual contact within the run budget -- n_infected stays
-unchanged at 1 for all 61 recorded steps, no kill fires. The killing
-CAPABILITY is demonstrated and verified correct; end-to-end cytotoxic
-CLEARANCE at default/realistic scale is NOT -- this is the same root
-cause as the localization mechanism&#39;s own 100x engine-unit-scale
-correction (the chemokine field&#39;s raw concentration is far below what the
-source&#39;s literal parameters were calibrated for), compounded by the
-three-cluster scenario&#39;s extra cluster-separation distance, and is
-recorded as an open Increment-9 field-magnitude-calibration item rather
-than tuned away. Discrepancy #7 (resist-DIRECT), the deferred
-nearby-population killing term, haptotaxis, stubbed recruitment, and
-2D-approximation geometry are all additional open items, not resolved
-here.
+      <div class="ctr-context">This study does not simulate biology — it documents the parameter
+authority a future simulation will use. Sego et al. 2022&#39;s cellularized
+influenza model specifies epithelial, macrophage, NK, and CD8+ T cell
+types; diffusible virus, type-I IFN, chemokine, and IL-10 fields; per-cell
+resistance and death/recovery rules; and chemotactic recruitment
+strengths — all summarized with formulas and cited constants in
+docs/cc3d-reference/sego2022-parameters.md and encoded machine-readably in
+pbg_cpm_studies/influenza/params.yaml. Establishing this authority first,
+and recording where the paper&#39;s own supplementary source disagrees with
+its printed tables, lets every later increment build on an audited
+foundation instead of quietly picking whichever number seemed
+plausible.
 </div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Test</h2>
-      <p class="ctr-text">Wire NK (`types.K`)/CD8+ (`types.E`) chemotaxis (`immune.
-set_nk_cd8_chemotaxis`, Task 7.1) up the chemokine field (Increment 6)
-and contact-killing (`killing.contact_kill_rate`, Task 7.2, the literal
-`ContactKillingSteppable` LOCAL form) into the Task-7.1 three-cluster
-scenario (`immune.build_cytotoxic_scenario_spec`) and driver (`run.
-run_cytotoxic_response`), and measure: (a) NK/CD8 `mean_distance_to_
-infection` across 5 seeds (5, 17, 23, 42, 100), chemotaxis on (lambda x
-`NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100`) vs a lambda=0 control (`tests/
-test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds`,
-task-7.1-report.md); (b) `n_infected` in a small close-contact scenario,
-killing enabled vs disabled, same seed (`tests/test_influenza_killing.py::
-test_infected_count_lower_with_nk_cd8_killing_than_without`,
-task-7.2-report.md); (c) `n_infected` at the scenario&#39;s own DEFAULT full
-scale with killing enabled, an ad hoc (not fast-pytest-suite) measurement
-recorded honestly in task-7.2-report.md&#39;s &#34;Honest assessment&#34; section. A
-minimal in-package figure (`pbg_cpm_studies/influenza/viz.py::
-cytotoxic_killing_figure`, Task 7.3) renders the NK+CD8 distance
-trajectory (on vs control overlay) plus the infected-count trajectory
-(killing enabled vs disabled overlay).
+      <p class="ctr-text">Produce a single, cited parameter file and supporting provenance
+documentation that later increments can consume without re-deriving
+constants from the paper or source, and digitize the paper&#39;s Figs 3B, 5, 7
+into acceptance-band targets for the eventual capstone reproduction.
 </p>
       
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>cytotoxic-killing</code></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">The full interior-placed cytotoxic scenario, chemotaxis on
-(NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x params.yaml default), across 5
-seeds (5, 17, 23, 42, 100): NK mean distance to the infection centroid
-must decrease (final &lt; initial) in EVERY seed.
-</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Same scenario/seeds: CD8 mean distance to the infection centroid must
-decrease in EVERY seed, and CD8&#39;s gap over the lambda=0 control must
-exceed NK&#39;s (matching the paper&#39;s Sec. 2.3 2x-sensitivity claim).
-</span><span class="ctr-dot">·</span><span class="ctr-meta-item">A small close-contact scenario (2 macrophages/2 NK/2 CD8,
-margin_sites=4, separation_sites=1, steps=45, seed=17): n_infected at
-the final step must be lower WITH killing enabled than WITHOUT,
-same-seed/scenario otherwise.
-</span><span class="ctr-dot">·</span><span class="ctr-meta-item">`enable_killing=False` must build the SAME scenario/chemotaxis (NK/CD8
-present, still chemotaxing) as `enable_killing=True`, isolating the
-killing step&#39;s own effect from any localization run-to-run variation.
-</span><span class="ctr-dot">·</span><span class="ctr-meta-item">`killing.contact_kill_rate`&#39;s LOCAL kill-rate formula must reproduce
-params.yaml&#39;s precomputed `pr_cf_nk_loc`/`pr_cf_cd8_loc` (= g_i *
-tot_ec_ODE) to 1e-9 relative tolerance, and must apply `cell_resist`
-DIRECTLY (discrepancy #7), not `(1 - cell_resist)`.
-</span></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>parameter-provenance</code></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">Parameter authority is established and cited</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Source-vs-paper discrepancies are recorded, not silently resolved</span><span class="ctr-dot">·</span><span class="ctr-meta-item">Figure-target acceptance bands exist for Figs 3B, 5, 7</span></div>
       </div>
       
     </div>
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">The weak end-to-end result is NOT a separate bug — it is the SAME root cause Task 7.1 already flagged for localization: the chemokine field&#39;s raw concentration in this engine&#39;s units is ~2-3 orders of magnitude smaller than the virus field&#39;s at comparable distances, so the source&#39;s literal chemotaxis lambda (5000/10000) is statistically undetectable against thermal/adhesion noise at this field&#39;s scale, requiring the documented, non-per-seed-tuned `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100` correction just to produce a MEASURABLE on/off localization gap — itself still far short of closing the FULL distance to actual contact within a feasible step budget. This compounds with `build_cytotoxic_scenario_spec`&#39;s three-cluster layout (epithelial/infection patch -&gt; macrophage cluster -&gt; NK/CD8 cluster): NK/CD8 must close TWO cluster-separations&#39; worth of distance to physically reach an infected cell, not one. Both are Increment-9 field-magnitude-calibration items, recorded not tuned away (per the brief&#39;s explicit instruction not to smuggle a rescue via re-tuning): if this study widened `NK_CD8_CHEMOTAXIS_ENGINE_SCALE` or shrank `separation_sites` until the default scenario also cleared the infection, that would hide the real finding (the source&#39;s literal parameters don&#39;t calibrate against this engine&#39;s field-concentration units) behind a number that looks better than the mechanism&#39;s honest state.</p>
+      <p class="ctr-text">Treating the paper&#39;s own supplementary source as ground truth (rather than only its printed tables) surfaces real, previously-implicit modeling choices the paper&#39;s prose alone would hide — e.g. the source&#39;s NeighborOrder=3 vs. the paper-silent default assumption of 2, and two immune-adhesion entries where the source&#39;s per-subtype matrix does not collapse to the paper&#39;s stated single value.</p>
       
       
     <div class="overview-section findings-section">
@@ -700,44 +617,35 @@ DIRECTLY (discrepancy #7), not `(1 - cell_resist)`.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-methodological finding-status-confirms">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">NK cells chemotaxing up the (Increment-6, unchanged) chemokine field
-via the engine&#39;s linear-lambda `World.set_chemotaxis` primitive
-genuinely and consistently localize to the infection, at the
-documented `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` engine-unit
-correction -- robust across every one of 5 tried seeds, comfortably
-beyond the lambda=0 control&#39;s own noise floor.
+            <span class="finding-claim finding-statement">The parameter/spec authority for reproducing Sego et al. 2022 is
+established and fully cited (CC3D ViralInfectionVTM source + paper
+Tables 1-4), with digitized acceptance-band targets for the three
+figures the capstone increment must reproduce. No simulation evidence
+exists yet — this finding is about documentation completeness only.
 </span>
-            
-            <span class="finding-chip">via <code>NK localization -- distance to infection decreases in every tried seed</code></span>
             
           </summary>
           <div class="finding-drawer">
             <div class="finding-header">
               <span class="finding-id">F-01</span>
-              <span class="finding-kind">computational</span>
+              <span class="finding-kind">methodological</span>
               <span class="finding-status-text">confirms literature</span>
             </div>
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> NK distance change -18.59 (seed 5), -23.39 (17), -15.22 (23), -23.77 (42), -20.86 (100); mean -20.37, negative in 5/5 seeds; lambda=0 control mean -1.02, spread 7.59 · 
+              <strong>observed:</strong> params.yaml (pbg_cpm_studies/influenza/params.yaml) cites every section to either &#34;Sego 2022 Table N&#34; or the CC3D source directly; docs/cc3d-reference/sego2022-parameters.md mirrors it with formulas and constants; three figure-target JSON files (pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json) digitize acceptance bands from Figs 3B, 5, 7. · 
               
-              via test <a href="#bt-NK" onclick="_gotoStudyTab('tests','bt-NK');return false;"><code>NK localization -- distance to infection decreases in every tried seed</code></a> · 
+              
               
               
               
             </div>
             
-            
-            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
-              
-              
-            </div>
             
             
             
@@ -758,152 +666,29 @@ beyond the lambda=0 control&#39;s own noise floor.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-methodological finding-status-partial">
         <details class="finding-details">
           <summary class="finding-row">
-            <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">CD8+ T cells localize even more strongly than NK cells in every seed
-and on average (mean on/off gap 35.45 vs NK&#39;s 19.35), consistent with
-CD8&#39;s 2x-larger literal chemotaxis lambda (10000 vs 5000) and matching
-the paper&#39;s Sec. 2.3 qualitative claim (&#34;CD8+ sensitivity twice that
-of NK cells&#34;).
+            <span class="finding-status-glyph">◐</span>
+            <span class="finding-claim finding-statement">Eight source-vs-paper discrepancies are recorded as open items rather
+than silently resolved. params.yaml currently follows the CC3D
+source-literal value in each numeric case, per the controller ruling
+that the source is what actually produced the published figures — but
+this is a recorded modeling choice, not a settled resolution, and is
+carried forward as a decision_needed at the investigation level.
 </span>
-            
-            <span class="finding-chip">via <code>CD8 localization -- distance to infection decreases in every tried seed</code></span>
             
           </summary>
           <div class="finding-drawer">
             <div class="finding-header">
               <span class="finding-id">F-02</span>
-              <span class="finding-kind">computational</span>
-              <span class="finding-status-text">confirms literature</span>
-            </div>
-            
-            
-            <div class="finding-evidence">
-              <strong>observed:</strong> CD8 distance change -22.87 (seed 5), -41.86 (17), -39.81 (23), -35.48 (42), -39.94 (100); mean -35.99, negative in 5/5 seeds; on/off gap 35.45 vs NK&#39;s 19.35 (ratio ~1.86) · 
-              
-              via test <a href="#bt-CD8" onclick="_gotoStudyTab('tests','bt-CD8');return false;"><code>CD8 localization -- distance to infection decreases in every tried seed</code></a> · 
-              
-              
-              
-            </div>
-            
-            
-            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×1.86 vs expected</span>
-              
-              
-            </div>
-            
-            
-            
-            
-            
-            
-            
-            
-          </div>
-        </details>
-      </div>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <div class="finding-card finding-kind-computational finding-status-confirms">
-        <details class="finding-details">
-          <summary class="finding-row">
-            <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The contact-killing mechanism (`killing.contact_kill_rate`&#39;s literal
-LOCAL surface-contact form, applied via a per-update stochastic draw,
-NK checked before CD8 per the source&#39;s ordering) is implemented and
-verified CORRECT: once NK/CD8 cells are in actual lattice contact with
-an infected cell, the kill draw engages and removes it. This confirms
-the killing MECHANISM works, isolated from whether NK/CD8 can reach an
-infected cell at any particular scenario scale (see F-04).
-</span>
-            
-            <span class="finding-chip">via <code>Contact-killing reduces infected count vs. killing-disabled control</code></span>
-            
-          </summary>
-          <div class="finding-drawer">
-            <div class="finding-header">
-              <span class="finding-id">F-03</span>
-              <span class="finding-kind">computational</span>
-              <span class="finding-status-text">confirms literature</span>
-            </div>
-            
-            
-            <div class="finding-evidence">
-              <strong>observed:</strong> n_infected: 1 -&gt; 0 at update 22 of 45 with killing enabled; steady at 1 (unchanged) with killing disabled, same seed=17 and scenario · 
-              
-              via test <a href="#bt-Contact-killing" onclick="_gotoStudyTab('tests','bt-Contact-killing');return false;"><code>Contact-killing reduces infected count vs. killing-disabled control</code></a> · 
-              
-              
-              
-            </div>
-            
-            
-            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
-              
-              
-            </div>
-            
-            
-            
-            
-            
-            
-            
-            
-          </div>
-        </details>
-      </div>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <div class="finding-card finding-kind-computational finding-status-partial">
-        <details class="finding-details">
-          <summary class="finding-row">
-            <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">This is the study&#39;s central honest finding, reported as a GAP, not
-hidden as a clean pass (status: partial): the SAME contact-killing
-mechanism verified correct in F-03 does NOT engage end-to-end at the
-scenario&#39;s own default/realistic scale within a feasible step budget
--- NK/CD8 localize (closing much of the distance, per F-01/F-02) but
-never reach actual lattice contact with the infected cell, so no kill
-draw ever fires. This is the SAME root cause as F-01/F-02&#39;s own
-`NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x` engine-unit correction (the
-chemokine field&#39;s raw concentration is far below what the source&#39;s
-literal chemotaxis lambda was calibrated for), compounded by the
-three-cluster scenario&#39;s extra cluster-separation distance. NOT tuned
-away here, per the brief&#39;s explicit instruction -- an open
-Increment-9 field-magnitude-calibration item.
-</span>
-            
-          </summary>
-          <div class="finding-drawer">
-            <div class="finding-header">
-              <span class="finding-id">F-04</span>
-              <span class="finding-kind">computational</span>
+              <span class="finding-kind">methodological</span>
               <span class="finding-status-text">partial literature</span>
             </div>
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> n_infected constant at 1 for all 61 recorded steps at the DEFAULT full-scale scenario (6 macrophages/6 NK/6 CD8, margin_sites=20, separation_sites=20, steps=60, seed=17); NK mean distance to infection closes ~81.6 -&gt; ~57.8, CD8 ~81.6 -&gt; ~39.8 over the same run -- substantial closing, but contact is never reached · 
+              <strong>observed:</strong> docs/cc3d-reference/sego2022-parameters.md §7 lists 8 places where the CC3D source and the paper&#39;s printed tables disagree: (1) neighbor order 3 (source) vs. an assumed 2 (paper silent), (2) Infected- Macrophage adhesion 20 (source, per-subtype) vs. the paper&#39;s collapsed &#34;infected-immune = 10&#34;, (3) NKcell-CD8Tcell adhesion 25 (source) vs. the paper&#39;s collapsed heterotypic-immune = 10, (4) active lattice dimensions (175x175, source default) matching neither paper patch size exactly, (5) the initial-viral-load sweep {1,10,100,1000,10000} is scenario config, not enumerated in the source&#39;s base ModelInputs, (6) ViralCellDeathSteppable is an explicitly &#34;simplified version&#34; omitting the paper&#39;s printed ROS/viral-load Hill-saturation death term, (7) ContactKillingSteppable multiplies by cell_resist directly rather than (1 - cell_resist) like every other resistance consumer, (8) macrophage-virus chemotaxis is labeled &#34;moderate&#34; in the paper&#39;s table but numerically equals the &#34;strong&#34; NK value (5,000) in both source and paper — a qualitative-label mismatch, not a numeric one. · 
               
               
               
@@ -911,12 +696,6 @@ Increment-9 field-magnitude-calibration item.
               
             </div>
             
-            
-            <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
-              <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
-              
-              
-            </div>
             
             
             
@@ -938,9 +717,9 @@ Increment-9 field-magnitude-calibration item.
       <div class="ctr-meta ctr-assess">
         
         <div class="ctr-meta-row"><span class="ctr-meta-k">Confidence</span>
-          <span class="ctr-badge ctr-badge-provisional">Provisional</span>
+          <span class="ctr-badge ctr-badge-medium">medium</span>
           <span class="ctr-vch">biology&nbsp;PENDING</span>
-          <span class="ctr-vch">insight&nbsp;PENDING</span>
+          <span class="ctr-vch">insight&nbsp;POSITIVE</span>
         </div>
         
         
@@ -959,12 +738,12 @@ Increment-9 field-magnitude-calibration item.
   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
     <h2 class="overview-label" style="margin:0">Model composition</h2>
     
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'cytotoxic-killing', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'parameter-provenance', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
   </div>
 
   
   
-  <div id="model-composite-cards" class="model-composite-cards" data-study="cytotoxic-killing"
+  <div id="model-composite-cards" class="model-composite-cards" data-study="parameter-provenance"
        data-study-config="">
     <p class="muted" style="font-size:0.85em;margin:0">Loading composite card(s)…</p>
   </div>
@@ -983,33 +762,29 @@ Increment-9 field-magnitude-calibration item.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.cytotoxic_immunity" data-model-overrides='{"chemotaxis_v_cd8": 1000000.0, "chemotaxis_v_macro": 5000.0, "chemotaxis_v_nk": 500000.0, "seed": 17}'>
+    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.epithelium" data-model-overrides='{"patch_mm": 0.1, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <strong>cytotoxic-killing</strong>
+        <strong>parameter-provenance</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.cytotoxic_immunity</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.epithelium</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.cytotoxic_immunity')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.epithelium')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="cytotoxic-killing"
-               value="pbg_cpm_studies.composites.influenza.cytotoxic_immunity" placeholder="pkg.composites.name"
+        <input type="text" class="baseline-composite-input" data-baseline-name="parameter-provenance"
+               value="pbg_cpm_studies.composites.influenza.epithelium" placeholder="pkg.composites.name"
                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
-                data-baseline-name="cytotoxic-killing">Set composite</button>
+                data-baseline-name="parameter-provenance">Set composite</button>
       </div>
-      <div class="baseline-composite-status muted" data-baseline-name="cytotoxic-killing" style="font-size:0.8em;margin-top:2px"></div>
+      <div class="baseline-composite-status muted" data-baseline-name="parameter-provenance" style="font-size:0.8em;margin-top:2px"></div>
       
       
       
       
       
-      
-        
-      
-        
       
         
       
@@ -1024,10 +799,10 @@ Increment-9 field-magnitude-calibration item.
       
       
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:0.8em">
+        <span class="cond-pill"><span class="cond-pill-k">seeds</span>=1</span>
         
         
         
-        <span class="cond-pill"><span class="cond-pill-k">status</span>=completed</span>
       </div>
       
     </div>
@@ -1042,40 +817,16 @@ Increment-9 field-magnitude-calibration item.
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.cytotoxic_immunity</code></p>
-    
-    
-    <p><strong>New state variables:</strong></p>
-    <ul style="margin:0 0 8px 18px">
-      <li><code>per-cell types K (NK) and E (CD8+ T)</code></li><li><code>NK/CD8 centre-of-mass localization diagnostic</code></li><li><code>per-infected-cell n_infected series</code></li>
-    </ul>
-    
-    
-    <p><strong>New parameters:</strong></p>
-    <ul style="margin:0 0 8px 18px">
-      <li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li><li><code></code></li>
-    </ul>
+    <p><strong>Base model:</strong> <code>none — documentation study, no composite is defined or run</code></p>
     
     
     
-    <p class="muted" style="font-size:0.88em">A new dashboard-loadable composite IS added this increment:
-`pbg_cpm_studies.composites.influenza.cytotoxic_immunity` (Task 7.3) --
-wraps the Task-7.1 three-cluster scenario + virus field (macrophage
-chemotaxis, unchanged) + chemokine field (a NEW declarative spec entry,
-`fields.chemokine_field_spec_entry`, Task 7.3), with NK/CD8 chemotaxis
-wired declaratively via the chemokine field&#39;s `chemotaxis` list (the
-same `cpm.schema.load_world` convention `macrophage_response` uses).
-This is a LIVE-DEMO wrapper for the LOCALIZATION half ONLY -- it does
-NOT implement the contact-killing step (`killing.contact_kill_rate` is
-a custom per-update Python calculation over `world.
-cell_contact_area_by_type`, not expressible in this declarative spec
-format), and does not reproduce the field warmup or the
-distance/n_infected readouts this study&#39;s measured numbers come from.
-Those numbers (both the 5-seed localization table and the
-close-contact/default-scale killing numbers) come directly from
-`run.run_cytotoxic_response` (Tasks 7.1/7.2, a raw `cpm_core.World`
-loop), not from this composite. `chemotaxis_v_nk=chemotaxis_v_cd8=0.0`
-reproduces the localization lambda=0 control on the composite side too.
+    
+    
+    <p class="muted" style="font-size:0.88em">No engine/composite code is introduced by this study. It is pure
+documentation: params.yaml, docs/cc3d-reference/sego2022-source-notes.md,
+docs/cc3d-reference/sego2022-parameters.md, and
+pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json.
 </p>
   </div>
   
@@ -1109,7 +860,7 @@ reproduces the localization lambda=0 control on the composite side too.
 
   <h4>Latest run preview</h4>
   <p class="muted" style="font-size:0.9em">Per-store sparkline + first/last/min/max from the most recent run's emitted trajectory. This is a downsampled PREVIEW, not the full data — use the per-store or Download-all links for the complete arrays.</p>
-  <div id="results-preview" data-study="cytotoxic-killing">
+  <div id="results-preview" data-study="parameter-provenance">
     <p class="empty-message">Loading results preview…</p>
   </div>
 
@@ -1133,9 +884,9 @@ reproduces the localization lambda=0 control on the composite side too.
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
     <span class="muted" style="margin-right:auto;font-weight:600">Analysis result files</span>
     <a id="data-download-all" class="btn-mini" style="display:none"
-       href="/api/study-analysis-zip?study=cytotoxic-killing">Download all (.zip)</a>
+       href="/api/study-analysis-zip?study=parameter-provenance">Download all (.zip)</a>
   </div>
-  <div id="data-files" data-study="cytotoxic-killing">
+  <div id="data-files" data-study="parameter-provenance">
     <p class="empty-message">Loading result files…</p>
   </div>
 </div>
@@ -1156,7 +907,7 @@ reproduces the localization lambda=0 control on the composite side too.
     interval/buffer, output location, and emit scope — from
     <code>lib/emitters.py</code> and this study's (or the workspace's)
     <code>runtime.default_emitter</code>.</p>
-    <div id="readouts-emitter" data-study="cytotoxic-killing">
+    <div id="readouts-emitter" data-study="parameter-provenance">
       <p class="empty-message">Loading emitter configuration…</p>
     </div>
 
@@ -1168,7 +919,7 @@ reproduces the localization lambda=0 control on the composite side too.
     
     <div id="readouts-download" style="margin:0 0 16px 0"></div>
 
-    <div id="readouts-table" data-study="cytotoxic-killing">
+    <div id="readouts-table" data-study="parameter-provenance">
       <p class="empty-message">Loading readouts from the composite emit plan…</p>
     </div>
 
@@ -1176,7 +927,7 @@ reproduces the localization lambda=0 control on the composite side too.
     <p class="muted" style="font-size:0.9em">Store path, dtype, shape
     <code>(n_steps, …)</code>, units, and a best-effort byte estimate for each emitted
     leaf.</p>
-    <div id="readouts-shapes" data-study="cytotoxic-killing">
+    <div id="readouts-shapes" data-study="parameter-provenance">
       <p class="empty-message">Loading output shapes…</p>
     </div>
 
@@ -1200,7 +951,7 @@ reproduces the localization lambda=0 control on the composite side too.
     
     
     <div class="viz-actions-row" style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'cytotoxic-killing')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
+      <button type="button" class="btn-mini" onclick="window._vivStudyFiguresFromCard(event, 'parameter-provenance')" title="Download this study's visualizations (figure panels + its composite) as a zip">↓ visualizations</button>
     </div>
     
 
@@ -1210,32 +961,17 @@ reproduces the localization lambda=0 control on the composite side too.
     
     
     <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/cytotoxic-killing/viz/spatial-cytotoxic.html"
+      <iframe src="/viva-cpm/dashboard/workspace/studies/parameter-provenance/viz/acceptance-targets.html"
               class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="Spatial state — cytotoxic"
+              loading="lazy" title="Fig 3B targets"
               onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
               ></iframe>
       
       <div class="figure-caption-row">
         <span class="figure-source-chip">embed</span>
-        <span class="figure-title">Spatial state — cytotoxic</span>
+        <span class="figure-title">Fig 3B targets</span>
         
-        <a href="/viva-cpm/dashboard/workspace/studies/cytotoxic-killing/viz/spatial-cytotoxic.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
-      </div>
-    </div>
-    
-    <div class="figure-card embed-viz-card">
-      <iframe src="/viva-cpm/dashboard/workspace/studies/cytotoxic-killing/viz/cytotoxic-killing.html"
-              class="figure-media-frame figure-media-frame--embed"
-              loading="lazy" title="Cytotoxic killing"
-              onload="window.__fitFigureFrame&&window.__fitFigureFrame(this)"
-              ></iframe>
-      
-      <div class="figure-caption-row">
-        <span class="figure-source-chip">embed</span>
-        <span class="figure-title">Cytotoxic killing</span>
-        
-        <a href="/viva-cpm/dashboard/workspace/studies/cytotoxic-killing/viz/cytotoxic-killing.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
+        <a href="/viva-cpm/dashboard/workspace/studies/parameter-provenance/viz/acceptance-targets.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
       </div>
     </div>
     
@@ -1264,28 +1000,28 @@ reproduces the localization lambda=0 control on the composite side too.
       
       <li class="literature-anchor-card expectation-item">
         <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span>NK and CD8+ T cells are chemotactically recruited to and localize at the infection site, with CD8+ cells having roughly twice NK cells&#39; chemotactic sensitivity (Sego 2022 Sec. 2.3); Table 3/ImmuneModelInputs.py give chemotaxis_v_nk=5E3/chemotaxis_v_cd8=10E3.</span>
+          <span>Sego et al. 2022 Tables 1-4 specify the CPM, adhesion, diffusion, chemotaxis, and scaling parameters for the cellularized influenza model.</span>
           
         </div>
         <div class="anchor-observable">
-          <em>Model observable:</em> <code>NK/CD8 mean distance to the infection centroid falls in 5/5 tried seeds for both types (NK mean -20.37, CD8 -35.99) with chemotaxis on, vs a near-isotropic lambda=0 control (NK -1.02, CD8 -0.54); CD8&#39;s on/off gap (35.45) exceeds NK&#39;s (19.35) in every seed and on average, matching the paper&#39;s 2x-sensitivity claim -- at a documented, non-per-seed-tuned 100x chemotaxis engine-unit scale.</code>
+          <em>Model observable:</em> <code>pbg_cpm_studies/influenza/params.yaml (every section cites Table 1-4 or the CC3D source)</code>
         </div>
         
-        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (ChemotaxisSteppable, ImmuneModelInputs.py chemotaxis_v_nk/chemotaxis_v_cd8) via pbg_cpm_studies/influenza/params.yaml nk: and cd8: blocks</div>
+        <div class="anchor-source"><em>Source:</em> Sego 2022 Tables 3-4</div>
         
       </li>
     
       
       <li class="literature-anchor-card expectation-item">
         <div class="anchor-expectation" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span>NK/CD8 cells contact-kill infected epithelial cells (ContactKillingSteppable), clearing the infection over the course of the immune response (Sego 2022&#39;s overall model narrative, and the source&#39;s ContactKillingSteppable LOCAL surface-contact kill-rate term).</span>
+          <span>The CC3D ViralInfectionVTM source is the literal implementation that produced the paper&#39;s published figures.</span>
           
         </div>
         <div class="anchor-observable">
-          <em>Model observable:</em> <code>The contact-killing MECHANISM is implemented (killing.contact_kill_rate, the literal LOCAL kill-rate form, resist-DIRECT per discrepancy #7) and verified correct in a small close-contact scenario (n_infected 1 -&gt; 0 at update 22 of 45 with killing enabled, vs steady at 1 disabled). BUT at the scenario&#39;s own default full scale, NK/CD8 never reach actual contact within the run budget, so n_infected is UNCHANGED there -- end-to-end cytotoxic clearance is NOT demonstrated at this scale, honestly reported as a gap rather than tuned away.</code>
+          <em>Model observable:</em> <code>docs/cc3d-reference/sego2022-source-notes.md (acquisition + module map), sego2022-parameters.md (formulas/constants/sources)</code>
         </div>
         
-        <div class="anchor-source"><em>Source:</em> Sego 2022 (paper narrative) vs CC3D ViralInfectionVTM source (ContactKillingSteppable, ~lines 212-319)</div>
+        <div class="anchor-source"><em>Source:</em> CompuCell3D ViralInfectionVTM supplementary package</div>
         
       </li>
     
@@ -1334,177 +1070,23 @@ reproduces the localization lambda=0 control on the composite side too.
     
     
     
-    <li class="expected-behavior-item" id="bt-NK localization -- distance to infection decreases in every tried seed"
+    <li class="expected-behavior-item" id="bt-0"
         data-test-kind="behavioral"
         
-        data-pytest-node="NK localization -- distance to infection decreases in every tried seed"
-        data-classification="primary"
-        data-result="PASS"
-        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
-      
-        
-      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
-        <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">NK localization -- distance to infection decreases in every tried seed</strong>
-        
-      </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">The full interior-placed cytotoxic scenario, chemotaxis on
-(NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100x params.yaml default), across 5
-seeds (5, 17, 23, 42, 100): NK mean distance to the infection centroid
-must decrease (final &lt; initial) in EVERY seed.
-</div>
-      
-      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
-        <strong>Latest result:</strong>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: -20.37</code>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: mean NK distance change over 5 seeds; per-seed: -18.59 (5), -23.39 (17), -15.22 (23), -23.77 (42), -20.86 (100); negative in 5/5 seeds; control mean -1.02, spread 7.59 (task-7.1-report.md).</code>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds</code>
-        
-      </div>
-      
-      
-      <details style="margin-top: 6px; font-size: 0.82em;">
-        <summary class="muted" style="cursor: pointer;">Assertion</summary>
-        
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "cytotoxic-nk-on-multiseed", "kind": "all_seeds_nk_on_distance_change_negative", "stat": "final"}
-pass_if: {"op": "eq", "value": true}</pre>
-      </details>
-      
-      
-      
-      
-    </li>
-    
-    
-    
-    
-    
-    
-    
-    
-    <li class="expected-behavior-item" id="bt-CD8 localization -- distance to infection decreases in every tried seed"
-        data-test-kind="behavioral"
-        
-        data-pytest-node="CD8 localization -- distance to infection decreases in every tried seed"
-        data-classification="primary"
-        data-result="PASS"
-        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
-      
-        
-      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
-        <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">CD8 localization -- distance to infection decreases in every tried seed</strong>
-        
-      </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">Same scenario/seeds: CD8 mean distance to the infection centroid must
-decrease in EVERY seed, and CD8&#39;s gap over the lambda=0 control must
-exceed NK&#39;s (matching the paper&#39;s Sec. 2.3 2x-sensitivity claim).
-</div>
-      
-      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
-        <strong>Latest result:</strong>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: -35.99</code>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: mean CD8 distance change over 5 seeds; per-seed: -22.87 (5), -41.86 (17), -39.81 (23), -35.48 (42), -39.94 (100); negative in 5/5 seeds; on/off gap 35.45 exceeds NK&#39;s 19.35, matching paper Sec. 2.3&#39;s 2x-sensitivity claim.</code>
-        
-          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds</code>
-        
-      </div>
-      
-      
-      <details style="margin-top: 6px; font-size: 0.82em;">
-        <summary class="muted" style="cursor: pointer;">Assertion</summary>
-        
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "cytotoxic-cd8-on-multiseed", "kind": "all_seeds_cd8_on_distance_change_negative", "stat": "final"}
-pass_if: {"op": "eq", "value": true}</pre>
-      </details>
-      
-      
-      
-      
-    </li>
-    
-    
-    
-    
-    
-    
-    
-    
-    <li class="expected-behavior-item" id="bt-Contact-killing reduces infected count vs. killing-disabled control"
-        data-test-kind="behavioral"
-        
-        data-pytest-node="Contact-killing reduces infected count vs. killing-disabled control"
-        data-classification="primary"
-        data-result="pending"
-        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
-      
-        
-      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
-        <span class="classification-pill classification-primary">primary</span>
-        <strong style="font-size: 0.9em;">Contact-killing reduces infected count vs. killing-disabled control</strong>
-        
-      </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">A small close-contact scenario (2 macrophages/2 NK/2 CD8,
-margin_sites=4, separation_sites=1, steps=45, seed=17): n_infected at
-the final step must be lower WITH killing enabled than WITHOUT,
-same-seed/scenario otherwise.
-</div>
-      
-      
-      <details style="margin-top: 6px; font-size: 0.82em;">
-        <summary class="muted" style="cursor: pointer;">Assertion</summary>
-        
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "close-contact-killing-on-vs-off", "kind": "n_infected_final_with_killing_lt_without", "stat": "final"}
-pass_if: {"op": "lt", "value": "n_infected_without_killing[final]"}</pre>
-      </details>
-      
-      
-      
-      
-    </li>
-    
-    
-    
-    
-    
-    
-    
-    
-    <li class="expected-behavior-item" id="bt-Killing-disabled control holds an identical scenario"
-        data-test-kind="behavioral"
-        
-        data-pytest-node="Killing-disabled control holds an identical scenario"
-        data-classification="secondary"
+        data-pytest-node=""
+        data-classification="unclassified"
         data-result="pending"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
-        <span class="classification-pill classification-secondary">secondary</span>
-        <strong style="font-size: 0.9em;">Killing-disabled control holds an identical scenario</strong>
+        <span class="classification-pill classification-unclassified">unclassified</span>
+        <strong style="font-size: 0.9em;">(unnamed)</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">`enable_killing=False` must build the SAME scenario/chemotaxis (NK/CD8
-present, still chemotaxing) as `enable_killing=True`, isolating the
-killing step&#39;s own effect from any localization run-to-run variation.
-</div>
+      <div style="margin-top: 6px; font-size: 0.95em;"></div>
       
-      
-      <details style="margin-top: 6px; font-size: 0.82em;">
-        <summary class="muted" style="cursor: pointer;">Assertion</summary>
-        
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "killing-control-scenario-identity", "kind": "scenario_params_match_across_killing_flag", "stat": "final"}
-pass_if: {"op": "eq", "value": true}</pre>
-      </details>
       
       
       
@@ -1518,34 +1100,53 @@ pass_if: {"op": "eq", "value": true}</pre>
     
     
     
-    <li class="expected-behavior-item" id="bt-contact_kill_rate matches params.yaml&#39;s precomputed coefficients"
+    <li class="expected-behavior-item" id="bt-1"
         data-test-kind="behavioral"
         
-        data-pytest-node="contact_kill_rate matches params.yaml&#39;s precomputed coefficients"
-        data-classification="secondary"
+        data-pytest-node=""
+        data-classification="unclassified"
         data-result="pending"
         style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
       
         
       <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
         <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
-        <span class="classification-pill classification-secondary">secondary</span>
-        <strong style="font-size: 0.9em;">contact_kill_rate matches params.yaml&#39;s precomputed coefficients</strong>
+        <span class="classification-pill classification-unclassified">unclassified</span>
+        <strong style="font-size: 0.9em;">(unnamed)</strong>
         
       </div>
-      <div style="margin-top: 6px; font-size: 0.95em;">`killing.contact_kill_rate`&#39;s LOCAL kill-rate formula must reproduce
-params.yaml&#39;s precomputed `pr_cf_nk_loc`/`pr_cf_cd8_loc` (= g_i *
-tot_ec_ODE) to 1e-9 relative tolerance, and must apply `cell_resist`
-DIRECTLY (discrepancy #7), not `(1 - cell_resist)`.
-</div>
+      <div style="margin-top: 6px; font-size: 0.95em;"></div>
       
       
-      <details style="margin-top: 6px; font-size: 0.82em;">
-        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-2"
+        data-test-kind="behavioral"
         
-        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"condition": "contact-kill-rate-unit", "kind": "contact_kill_rate_matches_precomputed_coefficients", "stat": "final"}
-pass_if: {"op": "eq", "value": true}</pre>
-      </details>
+        data-pytest-node=""
+        data-classification="unclassified"
+        data-result="pending"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569">⏳ pending</span>
+        <span class="classification-pill classification-unclassified">unclassified</span>
+        <strong style="font-size: 0.9em;">(unnamed)</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;"></div>
+      
       
       
       
@@ -1618,14 +1219,14 @@ pass_if: {"op": "eq", "value": true}</pre>
           <span class="narrative-label">Regression compatibility</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="regression_compatibility"
                 title="Computed from run status (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PASS</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
           <span class="muted small" style="margin-left:6px">computed from run status</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Regression basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
-                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">Reproduces Task 7.1&#39;s (commit e5c9e50) and Task 7.2&#39;s (commit 4f28eba) measured integration-test results and report tables exactly (same driver, same seeds, same params.yaml constants); Increments 0-6 unchanged (48 influenza tests pass at Task 7.2, no regressions; this task&#39;s viz addition adds tests without touching any driver).</textarea>
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged.">No engine code exists yet; nothing to regress against.</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Empirical validation</span>
@@ -1638,20 +1239,20 @@ pass_if: {"op": "eq", "value": true}</pre>
           <span class="narrative-label">Empirical basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.biological_validation.basis"
-                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">This study validates the NK/CD8 LOCALIZATION mechanism (5-seed on/off comparison against an unbiased interior-placed control) and the CONTACT-KILLING mechanism (a small close-contact scenario) as independently correct, but explicitly does NOT demonstrate end-to-end cytotoxic clearance at the scenario&#39;s own default/realistic scale (n_infected unchanged there) -- an honestly-reported gap, not a quantitative reproduction against any figure&#39;s acceptance band. Do NOT read PENDING here as a passing or failing reproduction verdict; no reproduction claim is made until Increment 9.</textarea>
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5].">No simulation has been run against the digitized figure targets; biological validation begins at Increment 9 (the capstone).</textarea>
         </label>
         <label class="narrative-row">
           <span class="narrative-label">Explanatory gain</span>
           <span class="narrative-input verdict-badge-computed" data-verdict-track="explanatory_gain"
                 title="Computed from interpretation-tier findings (read-only)"
-                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">POSITIVE</span>
           <span class="muted small" style="margin-left:6px">computed from interpretation-tier findings</span>
         </label>
         <label class="narrative-row narrative-row-wide">
           <span class="narrative-label">Explanatory basis</span>
           <textarea class="narrative-input narrative-textarea" rows="2"
                     data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
-                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">No alternative mechanism is being compared at this increment; deferred to later increments / the capstone where a reproduction comparison against the paper&#39;s figures becomes meaningful.</textarea>
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed.">Cross-checking the CC3D source against the paper&#39;s printed tables surfaced 8 discrepancies that would otherwise have been silently absorbed into an implicit &#34;best guess&#34; parameter set.</textarea>
         </label>
       </div>
     </div>
@@ -1664,31 +1265,13 @@ pass_if: {"op": "eq", "value": true}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>LOCALIZATION MECHANISM VALIDATED (robust, 5/5 seeds, both NK and CD8,
-CD8 stronger per its 2x lambda); CONTACT-KILLING MECHANISM VALIDATED as a
-working, correctly-implemented primitive (close-contact test, 1 -&gt; 0);
-END-TO-END CYTOTOXIC CLEARANCE AT DEFAULT/REALISTIC SCALE IS WEAK -- NOT
-DEMONSTRATED. NK/CD8 chemotaxing up the (Increment-6, unchanged) chemokine
-field genuinely localize to the infection, robustly across 5 seeds for
-both cell types, with CD8 localizing more strongly than NK (matching the
-paper's stated 2x sensitivity ratio). Separately, <code>killing. contact_kill_rate</code> (the CC3D source's literal LOCAL surface-contact
-kill-rate form, resist-DIRECT per discrepancy #7) is implemented and
-proven correct: a small close-contact scenario shows it removes an
-infected cell once NK/CD8 reach it. But at the SAME scenario's own default
-full scale (6 macrophages/6 NK/6 CD8, 60 updates, same seed as the
-close-contact test) NK/CD8 never reach actual contact within the run
-budget -- the infected count is unchanged. This study does NOT claim
-&quot;NK/CD8 clear the infection&quot;: the killing CAPABILITY is demonstrated, but
-end-to-end clearance at realistic scale is an OPEN Increment-9
-field-magnitude-calibration item, the same root cause as the localization
-mechanism's own 100x engine-unit-scale correction, deliberately reported
-as a gap rather than tuned away. Other open items, all recorded not
-resolved: discrepancy #7 (resist-DIRECT kill rate), the deferred
-nearby-population killing term (Increment 8), haptotaxis (not modeled),
-stubbed recruitment (a fixed population), 2D-approximation geometry, and
-the engine's linear (not the source's saturating/COM-scaled) chemotaxis
-form. No Figs 2/3A/3B/5/7 reproduction claim is made -- that verdict stays
-PENDING until Increment 9 (the capstone).</p>
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>Increment 0's documentation goal is met: the parameter authority is
+established, cited, and cross-checked against the CC3D source, with 8
+disagreements recorded rather than hidden, and digitized acceptance-band
+targets exist for the three figures the capstone increment must
+eventually reproduce. This study makes no claim about reproduction
+fidelity — that is out of scope until Increment 1 introduces the first
+simulation code.</p>
 </div>
     </div>
     
@@ -1706,7 +1289,7 @@ PENDING until Increment 9 (the capstone).</p>
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">100x CHEMOTAXIS ENGINE-UNIT SCALE — `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100.0` (Task 7.1), applied identically to NK and CD8&#39;s literal params.yaml lambda (preserving CD8&#39;s exact 2:1 ratio over NK), chosen from a one-time grid scan (50/200/500x) at a single seed then CONFIRMED (not re-tuned) across all 5 required seeds. The chemokine field&#39;s raw concentration is ~2-3 orders of magnitude smaller than the virus field&#39;s at comparable distances (chemokine diffuses ~87x faster, the same secreted mass spreads far more thinly), so the literal source lambda (5000/10000) is statistically undetectable against thermal/adhesion noise at this concentration scale -- a documented, non-per-seed-tuned engine-unit correction, an open Increment-9 calibration item.</li><li style="margin:2px 0">DISCREPANCY #7 (resist-DIRECT) — `ContactKillingSteppable.step()` multiplies `kill_rate` by `cell_resist` DIRECTLY, not `(1 - cell_resist)`, unlike every other resistance consumer in this codebase (`transitions.infected_death_step`, `allee.*`, the secretion-scale gates). Implemented literally per the source, not &#34;fixed&#34; -- a cell with MORE local IFN is killed FASTER by contact NK/CD8, the opposite of every other resist-gated protective mechanism here. Left unresolved as recorded (possible intentional antigen-presentation effect, or a source inconsistency -- not adjudicated).</li><li style="margin:2px 0">NEARBY-POPULATION killing term deferred — `ContactKillingSteppable` also applies a well-mixed, non-spatial &#34;nearby&#34; kill term (`params.yaml`&#39;s `nk.killing.nearby_term_deferred`/ `cd8.killing.nearby_term_deferred`), independent of the LOCAL surface-contact term modeled here; requires Increment 8&#39;s population-scale ODE bookkeeping.</li><li style="margin:2px 0">HAPTOTAXIS not modeled — only field-gradient chemotaxis (toward the chemokine field) drives NK/CD8 movement here; any adhesion/contact-gradient-driven directed-migration component is not implemented, an open Increment-9 item.</li><li style="margin:2px 0">RECRUITMENT is stubbed — a FIXED NK/CD8 population (6 cells each) is placed at scenario build time; chemokine-driven inflow/outflow (`params.yaml`&#39;s `nk.recruitment`/`cd8.recruitment`) is not modeled (requires the live immune-model ODE/SBML solver, Increment 8).</li><li style="margin:2px 0">2D-APPROXIMATION geometry — the same non-confluent, interior-placed 2D three-cluster patch as Increments 5/6, not the source&#39;s z=2 immune-layer-over-confluent-z=1-sheet geometry. Faithful z=2 geometry is deferred to Increment 9, and may place NK/CD8 closer to the infection than this study&#39;s layout does (see report.main_expert_question).</li><li style="margin:2px 0">CHEMOTAXIS FUNCTIONAL-FORM gap — the source uses a saturating, per-cell-COM-scaled lambda (`chemotaxis_v_nk / (1 + concentration)`); the engine primitive used here (`World.set_chemotaxis`) is a fixed LINEAR-regime lambda per (field, type). The fidelity criterion tested here is the localization/killing BEHAVIOR, not the exact functional form -- an Increment-9 calibration item.</li><li style="margin:2px 0">END-TO-END CLEARANCE not demonstrated at default scale — reported honestly as this study&#39;s central gap (finding F-04), not tuned away by widening `NK_CD8_CHEMOTAXIS_ENGINE_SCALE` further or shrinking `separation_sites` until the default scenario also clears the infection; doing so would hide the real finding (the source&#39;s literal parameters don&#39;t calibrate against this engine&#39;s field-concentration units at any scale tried so far) behind a number that looks better than the mechanism&#39;s honest state.</li><li style="margin:2px 0">No chemokine-driven APC/global-ODE-coupled recruitment amplification, no global ODE compartment, and no Figs 2/3A/3B/5/7 reproduction claim exist yet -- all later increments.</li>
+        <li style="margin:2px 0">The CC3D ViralInfectionVTM supplementary source is treated as the authoritative, source-literal parameter reference where it disagrees with the paper&#39;s printed tables (controller ruling; see decisions_needed at the investigation level).</li><li style="margin:2px 0">Figure targets (Figs 3B, 5, 7) are digitized by eye from log-scale panels in the published PDF and are approximate acceptance bands, not extracted vector/tabular data.</li><li style="margin:2px 0">params.yaml&#39;s chemotaxis functional_form is noted as saturating/COM in the source while the engine currently implements a linear term — recorded as a future-increment gap, not resolved here.</li>
       </ul>
     </div>
     
@@ -1722,27 +1305,6 @@ PENDING until Increment 9 (the capstone).</p>
     
     
     
-    
-    <div class="decide-section">
-      <h3 class="overview-label">Latest run outcomes</h3>
-      <div style="font-size:0.88em;color:#64748b;margin-bottom:8px">
-        baseline · seed ? ·
-        ?s simulated ·
-        ? history rows ·
-        started ?
-      </div>
-      
-      
-      
-      <p class="muted" style="margin:0;font-size:0.9em">
-        <strong>2</strong> test outcomes
-        — <span style="color:#065f46;font-weight:600">2 PASS</span> ·
-        <span style="color:#991b1b;font-weight:600">0 FAIL</span>.
-        Per-test outcomes (measured value · evaluator · band) are canonical on the
-        <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline">Tests tab →</a>.
-      </p>
-      
-    </div>
     
     
 
@@ -1773,14 +1335,14 @@ PENDING until Increment 9 (the capstone).</p>
       <div class="di-group">
         <h3>Follow-up study proposals
           <span class="muted" style="font-weight:normal;font-size:0.82em">(discovered)</span>
-          <span class="muted" style="font-weight:normal;font-size:0.85em">(3)</span></h3>
+          <span class="muted" style="font-weight:normal;font-size:0.85em">(1)</span></h3>
         <p class="muted" style="margin:0 0 8px 0;font-size:0.85em">Click <strong>➕ Add to investigation</strong> to spawn a new study node in the investigation graph.</p>
         <div class="followup-list">
           
           
           <div class="di-card di-fup-card">
             <div class="followup-header">
-              <strong class="followup-title">Increment 9: chemokine field magnitude / chemotaxis lambda joint calibration</strong>
+              <strong class="followup-title">Increment 1: Epithelial sheet at scale</strong>
               
               
               
@@ -1790,41 +1352,7 @@ PENDING until Increment 9 (the capstone).</p>
             
             <div class="followup-actions" style="margin-top:8px">
               <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('cytotoxic-killing', "incr9-field-magnitude-calibration")">➕ Add to investigation</button>
-            </div>
-          </div>
-          
-          
-          <div class="di-card di-fup-card">
-            <div class="followup-header">
-              <strong class="followup-title">Increment 8: nearby-population killing term + chemokine-driven NK/CD8/macrophage recruitment</strong>
-              
-              
-              
-              
-            </div>
-            
-            
-            <div class="followup-actions" style="margin-top:8px">
-              <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('cytotoxic-killing', "incr8-nearby-killing-and-recruitment")">➕ Add to investigation</button>
-            </div>
-          </div>
-          
-          
-          <div class="di-card di-fup-card">
-            <div class="followup-header">
-              <strong class="followup-title">Increment 9 (or earlier spike): larger-ensemble statistical characterization of NK/CD8 localization</strong>
-              
-              
-              
-              
-            </div>
-            
-            
-            <div class="followup-actions" style="margin-top:8px">
-              <button class="btn-seed-followup"
-                      onclick="_seedFollowupProposal('cytotoxic-killing', "cytotoxic-larger-ensemble")">➕ Add to investigation</button>
+                      onclick="_seedFollowupProposal('parameter-provenance', "epithelial-sheet-baseline")">➕ Add to investigation</button>
             </div>
           </div>
           
@@ -1847,10 +1375,10 @@ PENDING until Increment 9 (the capstone).</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c2bd2553fad51549a229929cfcac9c3b38941012", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c2bd2553fad51549a229929cfcac9c3b38941012", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 16:20 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "a6b5dad806b4bc8b5c2389e28304e1250ee04189", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/a6b5dad806b4bc8b5c2389e28304e1250ee04189", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-22 03:50 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
-window._studyName = "cytotoxic-killing";
+window._studyName = "parameter-provenance";
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.

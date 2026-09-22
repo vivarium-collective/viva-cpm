@@ -29,13 +29,14 @@ if _os.environ.get("PYTHONUTF8") != "1":
 # A ground-up native reproduction of a published cellularized multiscale
 # infection model (Sego, Mochan, Ermentrout & Glazier 2022, J. Theor. Biol.
 # 532:110918), used as a rigor exercise for viva-cpm's CPM engine: can it
-# reach quantitative figure match against a real, independently-published
+# reach quantitative figure match against a real, independently published
 # spatial immunology model, using the authors' own CompuCell3D source as
-# ground truth rather than just the paper's prose? The investigation is
-# structured as a 10-increment capability ladder (Increment 0 spec/targets,
-# 1-8 individual mechanisms at reduced scale, 9 the full capstone
-# reproduction) so reproducibility accrues cumulatively and each step is
-# independently reviewable.
+# ground truth rather than just the paper's prose? The investigation was
+# built up in stages — first establishing the specification and acceptance
+# targets, then validating individual mechanisms at reduced scale, and
+# finally assembling the full model for a capstone reproduction — so that
+# reproducibility accrued cumulatively and each stage was independently
+# reviewable.
 #
 # ---
 #
@@ -184,6 +185,18 @@ def _render_one(address, config, runs_db, study_yaml):
 # reproduction — no simulation has been run against these targets.
 
 # ### Parameters
+#
+# | simulation | composite | steps | params |
+# | --- | --- | --- | --- |
+# | `baseline` | `pbg_cpm_studies.composites.influenza.epithelium` | 0 | patch_mm=0.1, seed=17 |
+
+# ### Specification (process-bigraph) — load, inspect, edit
+#
+# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
+
+# **Composite `pbg_cpm_studies.composites.influenza.epithelium`** — `spec_pbg_cpm_studies_composites_influenza_epithelium` (a plain, editable dict)
+
+# _composite spec file for `pbg_cpm_studies.composites.influenza.epithelium` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -325,15 +338,13 @@ _save_viz('epithelial-sheet-baseline', 'Confluent_epithelial_sheet', _render_one
 #
 # **Purpose.** virus_field_and_infection_transition
 #
-# **Claim.** The extracellular virus field diffuses and decays (source-cited
-# parameters), and a seeded lesion of InfectedReleasing cells spreads via a
-# stochastic, virus-driven H -> I transition to nearby Healthy cells
-# (locally, within a few diffusion lengths), with total cell population
-# conserved every update. This is a MECHANISM-validation claim (the field
-# and the transition behave sensibly together), not a claim that any of
-# Sego et al. 2022's quantitative figure targets (Figs 3B/5/7) are met —
-# that reproduction verdict remains PENDING until Increment 9 (the
-# capstone).
+# **Claim.** The extracellular virus field diffuses and decays as specified, and a
+# seeded lesion of infected cells spreads via a stochastic, virus-driven
+# healthy-to-infected transition that stays local to existing infection,
+# with total cell population conserved throughout. This validates the
+# mechanism only — it is not a claim that any of Sego et al. 2022's
+# quantitative figure targets are met; that reproduction verdict remains
+# pending until the capstone increment.
 
 # ### Parameters
 #
@@ -420,25 +431,13 @@ _save_viz('virus-field-infection', 'Infection_dynamics_locality', _render_one('l
 #
 # **Purpose.** ifn_field_and_per_cell_resistance
 #
-# **Claim.** A type-I IFN field, sampled locally per infected cell into a resistance
-# scalar (source formula) that gates that cell's virus secretion by
-# `(1-resist)`, measurably reduces total virus versus an identical no-IFN
-# run (same seed, same 60-update driver) — roughly HALVED at every sampled
-# step (819.16 vs 1750.69 at step 20, ~53%; 1222.88 vs 2752.34 at step 30,
-# ~56%; 1624.58 vs 3905.38 at step 40, ~58%). This is the study's PRIMARY,
-# robust quantitative evidence. Infected-cell count (n_I) moves in the same
-# protective direction but is a WEAKER signal at the step Task 3.3's
-# integration test actually asserts: 48 vs 50 at step 20 is only a ~4%
-# reduction; the gap widens to ~15% at step 30 (51 vs 60) and ~23% at step
-# 40 (53 vs 69) as the virus-load reduction has more time to compound into
-# a visible count difference. So n_I is treated here as a corroborating
-# directional trend, not co-equal quantitative evidence with total_virus.
-# This is a MECHANISM-validation claim (the IFN->resistance->reduced-
-# secretion chain behaves in the protective direction and has a real,
-# non-trivial magnitude on virus load, with a smaller/slower-to-emerge
-# effect on cell counts), not a claim that any of Sego et al. 2022's
-# quantitative figure targets (Figs 3B/5/7) are met — that reproduction
-# verdict remains PENDING until Increment 9 (the capstone).
+# **Claim.** A type-I IFN field, converted per-cell into a resistance scalar, gates
+# virus secretion and roughly halves total virus versus an identical
+# no-IFN run — the study's primary, robust evidence. Infected-cell count
+# moves the same protective direction but more weakly, becoming meaningful
+# only later in the run. This validates the mechanism only; it is not a
+# claim that Sego et al. 2022's quantitative figure targets are met, which
+# remains pending.
 
 # ### Parameters
 #
@@ -529,23 +528,11 @@ _save_viz('ifn-resistance', 'IFN_per-cell_resistance', _render_one('local:Influe
 #
 # **Claim.** Wiring infection, infected death, and the cellularized Allee effect
 # together produces a coherent, population-conserving epithelial-fate
-# lifecycle: a dead lesion grows via H->I->D (n_D: 0->14 at 200 updates,
-# 0->77 at 500 updates, same seed=17/0.3mm/900-cell sheet as Increments
-# 2/3), and the Allee branch responds correctly to local contact geometry
-# in BOTH directions -- a dead cell fully surrounded by healthy tissue
-# recovers (proven both deterministically in a hand-made frozen-geometry
-# world and organically in the full driver, 3-12 events/run), while a dead
-# cell surrounded by dying tissue never does (rate is provably 0, not just
-# empirically absent). This is a MECHANISM-validation claim (the fate
-# lifecycle composes correctly and the Allee branch is bidirectionally
-# functional), not a claim that any of Sego et al. 2022's quantitative
-# figure targets (Figs 3B/5/7) are met -- that reproduction verdict remains
-# PENDING until Increment 9 (the capstone). Direct H->D Allee death is
-# honestly reported as RARE at this reduced scale (0 observed events across
-# both runs) -- verified genuine via rate instrumentation (15,447
-# qualifying encounters, all correctly nonzero, expected ~0.19 successes),
-# not a wiring bug, and flagged as an open Increment-9 calibration question
-# rather than tuned away here.
+# lifecycle: a dead lesion grows, and dead cells surrounded by healthy
+# tissue recover while those surrounded by dying tissue never do. This
+# validates the mechanism only, not a reproduction of Sego et al. 2022's
+# figure targets. Direct Allee death is honestly reported as rare at this
+# scale, verified genuine rather than a wiring bug.
 
 # ### Parameters
 #
@@ -597,308 +584,31 @@ _save_viz('epithelial-fate', 'Epithelial-fate_lifecycle', _render_one('local:Inf
 # | Dead cell fully surrounded by healthy tissue recovers (D->H) | kind=recovers_within_500_draws condition=epithelial-fate stat=final | op eq value True |
 # | Dead cell surrounded by dying tissue never recovers (negative control) | kind=recovery_rate_over_500_draws condition=epithelial-fate stat=max | op eq value 0.0 |
 
-# ## Study: Macrophage localization to infection (`macrophage-response`)
+# ## Study: Immune response at tissue scale (`immune-response`)
 #
-# **Question.** Does wiring the macrophage cell type to chemotax up the extracellular-virus
-# gradient (via the engine's existing `World.set_chemotaxis` primitive, no
-# Rust change) produce genuine spatial LOCALIZATION to the infection -- mean
-# macrophage-to-infection distance decreasing over time -- robustly across
-# multiple seeds, and with a geometrically UNBIASED (interior-placed, not
-# wall-pinned) lambda=0 control that shows no such localization?
+# **Question.** Do the innate and adaptive immune mechanisms — macrophage chemotaxis, the
+# macrophage-released chemokine and IL-10 signalling field, and NK/CD8
+# cytotoxic localization — compose into a coherent immune response at a
+# representative tissue scale (a roughly 900-cell epithelial sheet)?
 #
-# **Objective.** Wire the macrophage cell type (`types.M`, Task 5.0) and virus-field
-# chemotaxis (`immune.set_macrophage_chemotaxis`, Task 5.1) into a
-# non-confluent 2D-approximation scenario
-# (`immune.build_macrophage_scenario_spec`, fix round 1: both clusters
-# interior-placed) and driver (`run.run_macrophage_response`, fix round 1:
-# fixed non-tuned knobs), and measure the resulting
-# `mean_distance_to_infection` series with chemotaxis on (lambda=5000,
-# `params.yaml` default) vs off (lambda=0 control), across 5 seeds (5, 17,
-# 23, 42, 100) (Task 5.1's integration test
-# `tests/test_influenza_macrophage.py::test_macrophages_localize_to_infection_across_seeds`,
-# which asserts ON is negative in every seed, ON < OFF in every seed, and
-# the mean on/off gap exceeds OFF's own seed-to-seed spread; plus the
-# minimal 2-cell engine-sanity tests, and the fuller localization-number
-# table recorded in task-5.1-report.md's fix-round-1 section). A minimal
-# in-package figure (`pbg_cpm_studies/influenza/viz.py::macrophage_response_figure`,
-# Task 5.2) renders the mean-distance-to-infection trajectory (on vs off
-# overlay) plus the macrophage centre-of-mass path for a single representative
-# run.
+# **Objective.** Run the full immune layer (macrophage, NK, CD8+ T cells) on a ~900-cell
+# epithelial sheet seeded with an infected patch, and confirm the immune cells
+# chemotax toward the infection and cluster against the sheet.
 #
-# **Hypothesis.** Macrophages (`types.M`) placed in the domain interior, away from a seeded
-# infection also placed in the interior (neither cluster wall-pinned), with
-# chemotaxis wired toward the (unchanged, Increment-2) virus field via the
-# engine's linear-lambda `World.set_chemotaxis` primitive, will move up the
-# virus gradient and accumulate near the infection over time -- their mean
-# centre-of-mass distance to the infected-cell centroid should decrease
-# substantially and consistently across multiple seeds. A lambda=0 control
-# (chemotaxis mechanically disabled, same seeds/scenario otherwise) should
-# show a small, directionless change -- isolating the chemotaxis mechanism
-# (rather than incidental wall drift or adhesion) as the cause of
-# localization, and ruling out a seed-specific curve-fit.
+# **Hypothesis.** Running the full immune layer on a tissue-scale sheet will show macrophage,
+# NK, and CD8+ T cells chemotaxing toward an infected patch and clustering
+# against the sheet, with contact-killing field-magnitude-limited at full scale.
 #
-# **Purpose.** macrophage_chemotactic_localization
-#
-# **Claim.** Wiring macrophage chemotaxis to the (unchanged) virus field via the
-# engine's existing linear-lambda primitive produces genuine spatial
-# LOCALIZATION, robust across seeds and against a geometrically unbiased
-# control: with both the macrophage cluster and the infection placed in the
-# domain interior (start distance 47.20 sites, identical across seeds),
-# chemotaxis-on reduces the macrophages' mean distance to the infection
-# centroid in EVERY one of 5 tried seeds (mean change -13.39 sites, range
-# -11.52 to -17.75), while the SAME starting configuration with chemotaxis
-# off (lambda=0 control) shows a small, directionless change (mean -0.85,
-# range -4.99 to +3.45) -- near-isotropic, not a masked drift. Chemotaxis-on
-# beats the lambda=0 control in every individual seed (paired comparison),
-# and the mean on/off gap (-12.54) exceeds the control's own seed-to-seed
-# spread (8.44), so the effect is not explainable by control noise alone.
-# This is a LOCALIZATION-MECHANISM validation claim (macrophages chemotax
-# toward the infection, matching Fig 2B/3A's qualitative direction, and now
-# demonstrated to replicate rather than asserted from a single seed), NOT a
-# claim that any quantitative reproduction target is met, that macrophages
-# phagocytose virus (the CC3D source has no such per-macrophage mechanism),
-# or that recruitment dynamics are modeled (a fixed population is placed at
-# scenario build time) -- that fuller reproduction verdict remains PENDING
-# until Increment 9 (the capstone). The 5-seed ensemble is a modest sample,
-# not a full statistical power analysis or source-scale replicate count
-# (see caveats).
+# **Claim.** The immune mechanisms (macrophage/NK/CD8 chemotaxis + chemokine signalling)
+# compose and localise toward infection at tissue scale. Contact-killing at full
+# scale remains the documented field-magnitude calibration gap (quantified in the
+# capstone) -- this is a MECHANISM result, not a Fig-3B/5/7 reproduction claim.
 
 # ### Parameters
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.innate_immunity` | 0 | chemotaxis_v_macro=5000.0, seed=17 |
-
-# ### Specification (process-bigraph) — load, inspect, edit
-#
-# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
-
-# **Composite `pbg_cpm_studies.composites.influenza.innate_immunity`** — `spec_pbg_cpm_studies_composites_influenza_innate_immunity` (a plain, editable dict)
-
-# _composite spec file for `pbg_cpm_studies.composites.influenza.innate_immunity` not found under `pbg_cpm_studies/composites/` — skipped._
-
-# ### Run
-#
-# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
-
-# === Study: macrophage-response ===
-STUDY = 'macrophage-response'
-STUDY_DIR = REPO / 'workspace/studies' / STUDY
-STUDY_YAML = str(STUDY_DIR / "study.yaml")
-RUNS_DB = str(STUDY_DIR / "runs.db")
-
-print("No recorded runs for this study; nothing to reproduce.")
-
-# ### Visualizations
-#
-# _Results are shown by the figures below, produced by the run above._
-
-# **Spatial state — macrophage recruitment (animated)**
-
-# Spatial state — macrophage recruitment (animated)
-_save_viz('macrophage-response', 'Spatial_state_macrophage_recruitment_animated', _render_one('local:InfluenzaSpatialMacrophage', {}, RUNS_DB, STUDY_YAML))
-
-# **Macrophage localization**
-
-# Macrophage localization
-_save_viz('macrophage-response', 'Macrophage_localization', _render_one('local:InfluenzaMacrophageResponse', {}, RUNS_DB, STUDY_YAML))
-
-# ### Acceptance criteria
-#
-# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
-#
-# | test | measures | passes if |
-# | --- | --- | --- |
-# | Chemotaxis-on reduces distance to infection in every tried seed | kind=all_seeds_on_distance_change_negative condition=macrophage-response-on-multiseed stat=final | op eq value True |
-# | Chemotaxis-on ends closer than the lambda=0 control in every seed (paired comparison) | kind=all_seeds_on_lt_off condition=macrophage-response-on-vs-off-multiseed stat=final | op eq value True |
-# | Mean on/off gap exceeds the control's own seed-to-seed spread | kind=mean_gap_exceeds_control_spread condition=macrophage-response-gap-vs-spread stat=final | op gt value control_spread |
-# | Engine-sanity — macrophage moves up the virus gradient | kind=distance_final_lt_initial condition=engine-sanity-on stat=final | op lt value distance[0] |
-# | Engine-sanity — no approach without chemotaxis (negative control) | kind=distance_final_ge_initial condition=engine-sanity-off stat=final | op ge value distance[0] |
-
-# ## Study: Chemokine & IL-10 signaling fields (`signaling-fields`)
-#
-# **Question.** Do the macrophage-released chemokine and IL-10 diffusible fields (Task
-# 6.1) actually form the expected spatial and regulatory structure: a
-# chemokine GRADIENT centered on the macrophage cluster (higher near, lower
-# far, decaying with distance -- the attractant profile future NK/CD8+
-# recruitment will chemotax up), and IL-10 positive/increasing from BOTH its
-# regulated sources (macrophage Hill self-regulation, uninfected 1-resist
-# gating)?
-#
-# **Objective.** Wire the chemokine + IL-10 fields (`fields.add_chemokine_field`/
-# `add_il10_field`, Task 6.1) and their per-cell secretion regulation
-# (`signaling.macrophage_secretion_scale`/`uninfected_il10_scale`) into the
-# Increment-5 non-confluent macrophage scenario, and drive
-# `run.run_macrophage_signaling` (steps=15, seed=17, default scenario
-# knobs) to measure: (a) the chemokine field's per-cell near (macrophages)
-# vs. far (uninfected epithelial patch, `separation_sites` away) split, and
-# its raw-lattice radial profile (6 concentric bins) around the macrophage-
-# cluster centroid; (b) IL-10 positivity and growth at both the macrophage
-# and uninfected-cell source populations. Evidence: `tests/
-# test_influenza_signaling.py`'s 4 integration tests
-# (`test_chemokine_and_il10_fields_are_positive_after_macrophage_signaling_run`,
-# `test_chemokine_field_is_highest_near_macrophages_and_decays_with_distance`,
-# `test_il10_positive_from_macrophage_and_uninfected_sources`,
-# `test_macrophage_signaling_run_is_deterministic`) plus the full
-# localization numbers recorded in task-6.1-report.md. A minimal in-package
-# figure (`pbg_cpm_studies/influenza/viz.py::signaling_fields_figure`, Task
-# 6.2) renders the chemokine radial profile (panel a) and the IL-10
-# trajectories at both source populations (panel b).
-#
-# **Hypothesis.** Wiring macrophage-released chemokine secretion (Hill-self-regulated by
-# each macrophage's own local IL-10) and dual-source IL-10 secretion
-# (macrophage Hill-regulated + uninfected 1-resist-gated) as diffusible
-# fields over the Increment-5 macrophage scenario will produce a chemokine
-# concentration that is substantially higher at/near the macrophage cluster
-# than far from it, decaying with distance in a position-independent radial
-# profile -- and both IL-10 sources will register positive, increasing
-# concentration, neither pinned at exactly 0 (the secretion never engages)
-# nor saturating instantly (the Hill/resist gates are degenerate).
-#
-# **Purpose.** chemokine_il10_field_gradient
-#
-# **Claim.** Wiring macrophage-released chemokine + IL-10 diffusible fields, with
-# per-cell secretion regulated by a shared IL-10-Hill self-regulation loop
-# (macrophages) and a `1-resist` gate (uninfected epithelial cells),
-# produces a genuine chemokine GRADIENT centered on the macrophage cluster:
-# per-cell, macrophages read 0.00261 vs. 0.00062 at a far uninfected
-# epithelial patch (4.2x near/far), and a raw-lattice radial profile
-# (position-independent) decays monotonically from 0.00195 at the
-# macrophage-centered innermost bin to 0.00033 at the outermost of 6 bins
-# (5.9x end-to-end drop). IL-10 is positive and increasing from BOTH its
-# regulated sources (macrophages 2.97e-4, uninfected cells 3.71e-5, final
-# step). This is a FIELD-MECHANISM validation claim (the gradient future
-# NK/CD8+ recruitment, Increment 7, will chemotax up genuinely exists and is
-# correctly centered) -- NOT a claim that any quantitative reproduction
-# target is met, that `sig_1`'s true TNF-dependent dynamics are modeled (a
-# documented constant stub is used, Increment 8), or that recruitment/
-# chemotaxis toward the field is wired (Increment 7). That fuller
-# reproduction verdict remains PENDING until Increment 9 (the capstone).
-
-# ### Parameters
-#
-# | simulation | composite | steps | params |
-# | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.innate_immunity` | 0 | chemotaxis_v_macro=5000.0, seed=17 |
-
-# ### Specification (process-bigraph) — load, inspect, edit
-#
-# Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
-
-# **Composite `pbg_cpm_studies.composites.influenza.innate_immunity`** — `spec_pbg_cpm_studies_composites_influenza_innate_immunity` (a plain, editable dict)
-
-# _composite spec file for `pbg_cpm_studies.composites.influenza.innate_immunity` not found under `pbg_cpm_studies/composites/` — skipped._
-
-# ### Run
-#
-# _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
-
-# === Study: signaling-fields ===
-STUDY = 'signaling-fields'
-STUDY_DIR = REPO / 'workspace/studies' / STUDY
-STUDY_YAML = str(STUDY_DIR / "study.yaml")
-RUNS_DB = str(STUDY_DIR / "runs.db")
-
-print("No recorded runs for this study; nothing to reproduce.")
-
-# ### Visualizations
-#
-# _Results are shown by the figures below, produced by the run above._
-
-# **Spatial state — signaling scene (animated)**
-
-# Spatial state — signaling scene (animated)
-_save_viz('signaling-fields', 'Spatial_state_signaling_scene_animated', _render_one('local:InfluenzaSpatialSignaling', {}, RUNS_DB, STUDY_YAML))
-
-# **Chemokine + IL-10 fields**
-
-# Chemokine + IL-10 fields
-_save_viz('signaling-fields', 'Chemokine_IL-10_fields', _render_one('local:InfluenzaSignalingFields', {}, RUNS_DB, STUDY_YAML))
-
-# ### Acceptance criteria
-#
-# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
-#
-# | test | measures | passes if |
-# | --- | --- | --- |
-# | Chemokine and IL-10 fields are positive after the run | kind=total_field_positive_and_increasing condition=signaling-fields-positivity stat=final | op eq value True |
-# | Chemokine is highest near macrophages and decays with distance | kind=chemo_near_gt_far_and_radial_decay condition=signaling-fields-gradient stat=final | op eq value True |
-# | IL-10 positive from both macrophage and uninfected sources | kind=il10_dual_source_positive condition=signaling-fields-il10-sources stat=final | op eq value True |
-# | Run is fully deterministic given a fixed seed | kind=series_equal_across_repeats condition=signaling-fields-determinism stat=all | op eq value True |
-
-# ## Study: NK / CD8⁺ cytotoxic killing (`cytotoxic-killing`)
-#
-# **Question.** Do NK (type K) and CD8+ T (type E) cells, chemotaxing up the macrophage-
-# released chemokine field and contact-killing infected cells via the CC3D
-# source's literal LOCAL surface-contact kill-rate formula, genuinely
-# LOCALIZE to the infection (robust across seeds) and genuinely CLEAR an
-# infected cell once contact happens -- and does that killing mechanism
-# actually engage end-to-end within a feasible step budget at the
-# scenario's own DEFAULT full scale, or only in an artificially
-# close-contact test?
-#
-# **Objective.** Wire NK (`types.K`)/CD8+ (`types.E`) chemotaxis (`immune.
-# set_nk_cd8_chemotaxis`, Task 7.1) up the chemokine field (Increment 6)
-# and contact-killing (`killing.contact_kill_rate`, Task 7.2, the literal
-# `ContactKillingSteppable` LOCAL form) into the Task-7.1 three-cluster
-# scenario (`immune.build_cytotoxic_scenario_spec`) and driver (`run.
-# run_cytotoxic_response`), and measure: (a) NK/CD8 `mean_distance_to_
-# infection` across 5 seeds (5, 17, 23, 42, 100), chemotaxis on (lambda x
-# `NK_CD8_CHEMOTAXIS_ENGINE_SCALE=100`) vs a lambda=0 control (`tests/
-# test_influenza_nk_cd8.py::test_nk_and_cd8_localize_to_infection_across_seeds`,
-# task-7.1-report.md); (b) `n_infected` in a small close-contact scenario,
-# killing enabled vs disabled, same seed (`tests/test_influenza_killing.py::
-# test_infected_count_lower_with_nk_cd8_killing_than_without`,
-# task-7.2-report.md); (c) `n_infected` at the scenario's own DEFAULT full
-# scale with killing enabled, an ad hoc (not fast-pytest-suite) measurement
-# recorded honestly in task-7.2-report.md's "Honest assessment" section. A
-# minimal in-package figure (`pbg_cpm_studies/influenza/viz.py::
-# cytotoxic_killing_figure`, Task 7.3) renders the NK+CD8 distance
-# trajectory (on vs control overlay) plus the infected-count trajectory
-# (killing enabled vs disabled overlay).
-#
-# **Hypothesis.** NK/CD8 cells placed in the domain interior, chemotaxing toward the
-# macrophage-released chemokine field via the engine's linear-lambda
-# `World.set_chemotaxis` primitive, will move up the gradient and
-# accumulate near the infection, robustly across seeds, with CD8 (2x NK's
-# literal lambda) localizing more strongly. Once NK/CD8 are in actual
-# lattice contact with an infected cell, `killing.contact_kill_rate`'s
-# stochastic draw will remove it (`types.I` -> `types.D`). At the
-# scenario's own default full scale, however, NK/CD8 may not close the full
-# distance to the infected cell within a feasible step budget -- if so,
-# that should be reported honestly as a weak end-to-end result, not
-# concealed by re-tuning the scenario/lambda until it "works."
-#
-# **Purpose.** nk_cd8_chemotactic_localization_and_contact_killing
-#
-# **Claim.** NK/CD8 chemotaxis up the (unchanged, Increment-6) chemokine field
-# produces genuine spatial LOCALIZATION, robust across 5 tried seeds (NK
-# mean distance change -20.37, CD8 -35.99, both negative in 5/5 seeds,
-# against a near-isotropic lambda=0 control, NK -1.02/CD8 -0.54) with CD8
-# (2x NK's lambda) localizing more strongly than NK in every seed and on
-# average -- matching the paper's Sec. 2.3 "CD8+ sensitivity twice that of
-# NK cells." Separately, the contact-killing MECHANISM itself
-# (`killing.contact_kill_rate`, the source's literal LOCAL surface-contact
-# form, resist-DIRECT per discrepancy #7) is proven correct: a small
-# close-contact scenario kills the one infected cell (1 -> 0 at update 22
-# of 45) with killing enabled vs steady at 1 with the identical seed and
-# killing disabled. THIS STUDY DOES NOT CLAIM "NK/CD8 CLEAR THE INFECTION"
-# AT REALISTIC SCALE -- at the scenario's own DEFAULT full scale (same
-# 6-macrophage/6-NK/6-CD8, 60-update scenario the localization numbers
-# above come from), NK/CD8 close much of the distance to the infection
-# (NK ~81.6 -> ~57.8, CD8 ~81.6 -> ~39.8) but NEVER reach actual contact
-# within the run budget, so `n_infected` is unchanged (stays at 1 for all
-# 61 recorded steps, no kill fires). The killing CAPABILITY is
-# demonstrated; end-to-end cytotoxic CLEARANCE at default/realistic scale
-# is an OPEN Increment-9 field-magnitude-calibration item, the same root
-# cause as the localization mechanism's own 100x engine-unit-scale
-# correction, deliberately NOT tuned away here.
-
-# ### Parameters
-#
-# | simulation | composite | steps | params |
-# | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.cytotoxic_immunity` | 0 | chemotaxis_v_macro=5000.0, chemotaxis_v_nk=500000.0, chemotaxis_v_cd8=1000000.0, seed=17 |
+# | `baseline` | `pbg_cpm_studies.composites.influenza.cytotoxic_immunity` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
@@ -912,8 +622,8 @@ _save_viz('signaling-fields', 'Chemokine_IL-10_fields', _render_one('local:Influ
 #
 # _Set the runtime (`STEPS`) and step size (`INTERVAL`), then run. Each simulation builds the (edited) spec above and writes `runs.db`; the figures below read it. Set `RERUN = False` to skip re-simulating._
 
-# === Study: cytotoxic-killing ===
-STUDY = 'cytotoxic-killing'
+# === Study: immune-response ===
+STUDY = 'immune-response'
 STUDY_DIR = REPO / 'workspace/studies' / STUDY
 STUDY_YAML = str(STUDY_DIR / "study.yaml")
 RUNS_DB = str(STUDY_DIR / "runs.db")
@@ -924,27 +634,10 @@ print("No recorded runs for this study; nothing to reproduce.")
 #
 # _Results are shown by the figures below, produced by the run above._
 
-# **Spatial state — cytotoxic response (animated)**
+# **InfluenzaSpatialImmune**
 
-# Spatial state — cytotoxic response (animated)
-_save_viz('cytotoxic-killing', 'Spatial_state_cytotoxic_response_animated', _render_one('local:InfluenzaSpatialCytotoxic', {}, RUNS_DB, STUDY_YAML))
-
-# **NK/CD8 localization + killing**
-
-# NK/CD8 localization + killing
-_save_viz('cytotoxic-killing', 'NK_CD8_localization_killing', _render_one('local:InfluenzaCytotoxicKilling', {}, RUNS_DB, STUDY_YAML))
-
-# ### Acceptance criteria
-#
-# _Pre-registered checks (criteria/thresholds only — run the cells above to evaluate them)._
-#
-# | test | measures | passes if |
-# | --- | --- | --- |
-# | NK localization -- distance to infection decreases in every tried seed | kind=all_seeds_nk_on_distance_change_negative condition=cytotoxic-nk-on-multiseed stat=final | op eq value True |
-# | CD8 localization -- distance to infection decreases in every tried seed | kind=all_seeds_cd8_on_distance_change_negative condition=cytotoxic-cd8-on-multiseed stat=final | op eq value True |
-# | Contact-killing reduces infected count vs. killing-disabled control | kind=n_infected_final_with_killing_lt_without condition=close-contact-killing-on-vs-off stat=final | op lt value n_infected_without_killing[final] |
-# | Killing-disabled control holds an identical scenario | kind=scenario_params_match_across_killing_flag condition=killing-control-scenario-identity stat=final | op eq value True |
-# | contact_kill_rate matches params.yaml's precomputed coefficients | kind=contact_kill_rate_matches_precomputed_coefficients condition=contact-kill-rate-unit stat=final | op eq value True |
+# InfluenzaSpatialImmune
+_save_viz('immune-response', 'InfluenzaSpatialImmune', _render_one('', {}, RUNS_DB, STUDY_YAML))
 
 # ## Study: Global Price-2015 ODE coupling (`global-coupling`)
 #
@@ -987,27 +680,14 @@ _save_viz('cytotoxic-killing', 'NK_CD8_localization_killing', _render_one('local
 #
 # **Purpose.** hybrid_price2015_global_ode_bidirectional_coupling
 #
-# **Claim.** The hybrid Price-2015 global ODE (10 systemic species, discrepancy #9)
-# integrates stably once per MCS and responds to the spatial infection.
-# All three stubs carried since Increments 5-7 are RESOLVED as dynamic,
-# source-faithful mechanisms: dynamic sig_1 (`a_11*T + a_12*D`, the
-# unchanged Michaelis secretion form, discrepancy #11), ODE-driven
-# recruitment (chemokine/APC Hill inflows with the source's CD8-no-
-# baseline asymmetry preserved, discrepancy #12), and NK/CD8 killing
-# extended with a well-mixed NEARBY term (verified via a documented test
-# seam) alongside the unchanged Increment-7 LOCAL contact term. THIS STUDY
-# DOES NOT CLAIM THESE MECHANISMS ARE ALREADY CALIBRATED — at this
-# driver's default reduced-scale patch (eta ~1.4e-4), dynamic sig_1's
-# value is ~6 orders of magnitude below the retired static stub (2.44),
-# collapsing the secretion-scale factor to near-zero; ODE-driven
-# recruitment produces sub-0.01-per-MCS rates (no observable integer
-# population growth from the chemokine/APC signal within a short run, only
-# from the baseline term at a boosted eta); and the nearby-killing term,
-# grown via natural recruitment alone over 300 MCS, remains orders of
-# magnitude too weak to fire. These are FIELD-vs-ODE UNIT-SCALE
-# CALIBRATION gaps — the same root-cause category as Increment 7's
-# chemotaxis-engine-scale correction — deliberately reported as open,
-# NOT tuned away, and deferred to Increment 9.
+# **Claim.** The hybrid global immune ODE integrates stably each step and couples
+# bidirectionally with the spatial model, resolving three previously-
+# stubbed mechanisms — dynamic IL-10/chemokine signaling, ODE-driven
+# recruitment, and a nearby-population killing term — each individually
+# verified correct. At this reduced-scale patch, none of these mechanisms'
+# magnitudes yet reconcile with the values replaced or reach an observable
+# effect: a field-versus-ODE unit-scale calibration gap, reported honestly
+# and deferred rather than tuned away.
 
 # ### Parameters
 #
@@ -1103,24 +783,13 @@ _save_viz('global-coupling', 'Hybrid_global_ODE_coupling', _render_one('local:In
 #
 # **Purpose.** full_model_ensemble_vs_fig3b_acceptance_bands
 #
-# **Claim.** `run.repro_fig3b` is implemented and wired correctly: it runs a seeded
-# ensemble of `run_full_model` over the Fig-3B scenario, maps every
-# observable onto `targets/fig3b.json`'s exact keys, ensemble-means via
-# `bands.aggregate_replicas`, and evaluates via `bands.evaluate_study`,
-# producing a well-formed `{"ensemble":..., "band_eval":{"passed": bool,
-# ...}, "replicas":..., "cells_per_side":..., "steps":...}` dict (verified
-# by `tests/test_influenza_full_model.py::
-# test_repro_fig3b_runs_and_evaluates_bands`). THIS STUDY DOES NOT CLAIM
-# FIG-3B IS REPRODUCED. At the reduced scale this task's fast test uses
-# (`replicas=2, cells_per_side=15, steps=20, seed0=0`), `band_eval['passed']`
-# is False and 0 of the 12 fig3b observables are in-band at every
-# checkpoint (per-observable n_in/8 and worst_miss reported in `report.
-# key_metrics` above) -- expected given the ~5.4x smaller epithelial
-# population and the ~0.09-simulated-day run duration vs. the target's
-# 0.0-3.5-day checkpoint window, not a mechanism defect. The paper-scale
-# 50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required
-# before any `reproduced` verdict for Fig 3B, and `conclusion_verdicts.
-# biological_validation` stays PENDING here.
+# **Claim.** `repro_fig3b` correctly assembles a seeded ensemble of the full model
+# over the Fig-3B scenario and evaluates it against the digitized
+# acceptance bands, producing a well-formed result. Fig-3B is not
+# reproduced at the reduced scale a fast test affords: none of the twelve
+# observables land in-band at every checkpoint, a scale-and-duration
+# mismatch rather than evidence of a mechanism defect. A paper-scale
+# ensemble is required before any reproduction verdict.
 
 # ### Parameters
 #
@@ -1221,29 +890,13 @@ _save_viz('repro-fig3b', 'Fig-3B_reproduction_ensemble_vs_acceptance_band', _ren
 #
 # **Purpose.** full_model_viral_load_sweep_vs_fig5_acceptance_bands
 #
-# **Claim.** `run.repro_fig5` is implemented and wired correctly: it sweeps a seeded
-# ensemble of `run_full_model` over Fig-5's viral-load scenarios, maps
-# every observable onto `targets/fig5.json`'s exact keys, ensemble-means
-# per load via `bands.aggregate_replicas`, filters each load's own
-# scenario-tagged band subset (`_fig5_target_subset`, verified to raise
-# `ValueError` rather than silently mixing scenarios when a load has no
-# tagged entries), and evaluates via `_evaluate_fig5_subset`, producing a
-# well-formed `{"by_load": {load: {...}}, "lethal_threshold": ...,
-# "band_eval": {...}, "loads":..., "replicas":..., "cells_per_side":...,
-# "steps":...}` dict (verified by `tests/test_influenza_full_model.py::
-# test_repro_fig5_viral_load_sweep`). THIS STUDY DOES NOT CLAIM FIG-5 IS
-# REPRODUCED. At the reduced scale this task's fast test uses
-# (`loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0`),
-# per-load `band_eval["passed"]` is False for both loads (per-observable
-# n_in/6 and worst_miss reported in `report.key_metrics` above) -- expected
-# given the ~69x smaller epithelial population and the ~0.068-simulated-day
-# run duration vs. the target's 0.0-15-day checkpoint window, not a
-# mechanism defect. The MONOTONE dose-response direction this reduced
-# test's own assertion checks (`uninfected_final_frac(load=10000)=0.0 <=
-# uninfected_final_frac(load=1)=0.958333`) holds. The paper-scale 50-replica,
-# all-5-load, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required
-# before any `reproduced` verdict for Fig 5, and `conclusion_verdicts.
-# biological_validation` stays PENDING here.
+# **Claim.** `repro_fig5` is wired correctly: it sweeps a seeded ensemble of the full
+# model across Fig-5's viral-load scenarios and evaluates each load
+# against only its own acceptance-band subset. This study does not claim
+# Fig-5 is reproduced — at reduced population and run duration, per-load
+# band containment fails, though the monotone dose-response direction
+# (higher initial viral load, fewer surviving uninfected cells) holds. A
+# paper-scale ensemble is required before any reproduction verdict.
 
 # ### Parameters
 #
@@ -1354,38 +1007,13 @@ _save_viz('repro-fig5-viral-load', 'Fig-5_reproduction_dose-response_vs_acceptan
 #
 # **Purpose.** full_model_infection_fraction_sweep_vs_fig7_acceptance_bands
 #
-# **Claim.** `run.repro_fig7` is implemented and wired correctly: it sweeps a seeded
-# ensemble of `run_full_model` over Fig-7's initial-infection-fraction
-# scenarios, maps every observable onto `targets/fig7.json`'s exact keys
-# (reusing fig5's `_FIG5_OBSERVABLE_MAP` since both targets share the same 4
-# keys), ensemble-means per fraction via `bands.aggregate_replicas`, filters
-# each fraction's own scenario-tagged band subset (`_fig7_target_subset`,
-# built on the shared `_scenario_target_subset` this task generalized from
-# `repro_fig5`'s guard, verified to raise `ValueError` rather than silently
-# mixing scenarios when a fraction has no tagged entries, AND verified to
-# filter correctly for the happy path -- both now covered by a dedicated
-# pytest unit test), and evaluates via `_evaluate_fig7_subset`, producing a
-# well-formed `{"by_frac": {frac: {...}}, "lethal_threshold": ...,
-# "band_eval": {...}, "fracs":..., "replicas":..., "cells_per_side":...,
-# "steps":...}` dict (verified by `tests/test_influenza_full_model.py::
-# test_repro_fig7_infection_fraction_sweep`). THIS STUDY DOES NOT CLAIM
-# FIG-7 IS REPRODUCED. At the reduced scale this task's fast test uses
-# (`fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, seed0=0`),
-# per-fraction `band_eval["passed"]` is False for both fractions
-# (per-observable n_in/6 and worst_miss reported in `report.key_metrics`
-# above) -- expected given the ~69x smaller epithelial population and the
-# ~0.068-simulated-day run duration vs. the target's 0.0-15-day checkpoint
-# window, not a mechanism defect. The MONOTONE dose-response direction this
-# reduced test's own assertion checks
-# (`uninfected_final_frac(frac=0.05)=0.958333 <=
-# uninfected_final_frac(frac=0.001)=1.0`) holds, BUT frac=0.001's value is a
-# degenerate no-infection control at this reduced population
-# (`round(0.001*144)=0` pre-infected cells seeded), reported here honestly
-# rather than presented as a real reproduction of fig7.json's frac=0.001
-# trajectory. The paper-scale 20-replica, all-4-fraction, 35x35-cell,
-# ~15-day ensemble (Mac-mini Phase-B) is required before any `reproduced`
-# verdict for Fig 7, and `conclusion_verdicts.biological_validation` stays
-# PENDING here.
+# **Claim.** `repro_fig7` is wired correctly: it sweeps a seeded ensemble of the full
+# model across Fig-7's infection-fraction scenarios and evaluates each
+# fraction against only its own acceptance-band subset. Fig-7 is not
+# reproduced at reduced scale — per-fraction band containment fails, and
+# the smallest tested fraction degenerates to a no-infection control since
+# it rounds to zero seeded cells. The monotone dose-response direction
+# still holds; a paper-scale ensemble is required before reproduction.
 
 # ### Parameters
 #
@@ -1437,4 +1065,4 @@ _save_viz('repro-fig7-infection-fraction', 'Fig-7_reproduction_dose-response_vs_
 # | Scenario-grouping guard filters fig7's tagged observables correctly and raises loudly on an unmatched fraction | kind=fig7_scenario_grouping_guard_filter_and_raise condition=repro-fig7-reduced-scale stat=final | op eq value True |
 
 # ## Open decisions
-# - Should any of the 8 source-vs-paper discrepancies (sego2022-parameters.md §7) be resolved toward the paper's stated values instead of the source-literal ones before Increment 1 locks in params.yaml as ground truth?
+# - Should any of the eight source-versus-paper discrepancies be resolved toward the paper's stated values instead of the source-literal ones, before the parameter file locks in as ground truth for the rest of the investigation?

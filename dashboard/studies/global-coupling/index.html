@@ -570,27 +570,14 @@ the field-vs-ODE unit scales still need Increment-9 calibration?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">The hybrid Price-2015 global ODE (10 systemic species, discrepancy #9)
-integrates stably once per MCS and responds to the spatial infection.
-All three stubs carried since Increments 5-7 are RESOLVED as dynamic,
-source-faithful mechanisms: dynamic sig_1 (`a_11*T + a_12*D`, the
-unchanged Michaelis secretion form, discrepancy #11), ODE-driven
-recruitment (chemokine/APC Hill inflows with the source&#39;s CD8-no-
-baseline asymmetry preserved, discrepancy #12), and NK/CD8 killing
-extended with a well-mixed NEARBY term (verified via a documented test
-seam) alongside the unchanged Increment-7 LOCAL contact term. THIS STUDY
-DOES NOT CLAIM THESE MECHANISMS ARE ALREADY CALIBRATED — at this
-driver&#39;s default reduced-scale patch (eta ~1.4e-4), dynamic sig_1&#39;s
-value is ~6 orders of magnitude below the retired static stub (2.44),
-collapsing the secretion-scale factor to near-zero; ODE-driven
-recruitment produces sub-0.01-per-MCS rates (no observable integer
-population growth from the chemokine/APC signal within a short run, only
-from the baseline term at a boosted eta); and the nearby-killing term,
-grown via natural recruitment alone over 300 MCS, remains orders of
-magnitude too weak to fire. These are FIELD-vs-ODE UNIT-SCALE
-CALIBRATION gaps — the same root-cause category as Increment 7&#39;s
-chemotaxis-engine-scale correction — deliberately reported as open,
-NOT tuned away, and deferred to Increment 9.
+      <p class="ctr-text">The hybrid global immune ODE integrates stably each step and couples
+bidirectionally with the spatial model, resolving three previously-
+stubbed mechanisms — dynamic IL-10/chemokine signaling, ODE-driven
+recruitment, and a nearby-population killing term — each individually
+verified correct. At this reduced-scale patch, none of these mechanisms&#39;
+magnitudes yet reconcile with the values replaced or reach an observable
+effect: a field-versus-ODE unit-scale calibration gap, reported honestly
+and deferred rather than tuned away.
 </p>
       
       <div class="ctr-context">The Price (2015)-derived global (whole-organ) immune ODE compartment —
@@ -1960,7 +1947,7 @@ this study's calibration gaps resolved first.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c2bd2553fad51549a229929cfcac9c3b38941012", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c2bd2553fad51549a229929cfcac9c3b38941012", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 16:20 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "a6b5dad806b4bc8b5c2389e28304e1250ee04189", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/a6b5dad806b4bc8b5c2389e28304e1250ee04189", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-22 03:50 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "global-coupling";

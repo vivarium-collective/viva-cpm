@@ -568,23 +568,11 @@ tissue recover, while dead cells surrounded by dying tissue do not?
       <h2 class="overview-label ctr-h">Claim</h2>
       <p class="ctr-text">Wiring infection, infected death, and the cellularized Allee effect
 together produces a coherent, population-conserving epithelial-fate
-lifecycle: a dead lesion grows via H-&gt;I-&gt;D (n_D: 0-&gt;14 at 200 updates,
-0-&gt;77 at 500 updates, same seed=17/0.3mm/900-cell sheet as Increments
-2/3), and the Allee branch responds correctly to local contact geometry
-in BOTH directions -- a dead cell fully surrounded by healthy tissue
-recovers (proven both deterministically in a hand-made frozen-geometry
-world and organically in the full driver, 3-12 events/run), while a dead
-cell surrounded by dying tissue never does (rate is provably 0, not just
-empirically absent). This is a MECHANISM-validation claim (the fate
-lifecycle composes correctly and the Allee branch is bidirectionally
-functional), not a claim that any of Sego et al. 2022&#39;s quantitative
-figure targets (Figs 3B/5/7) are met -- that reproduction verdict remains
-PENDING until Increment 9 (the capstone). Direct H-&gt;D Allee death is
-honestly reported as RARE at this reduced scale (0 observed events across
-both runs) -- verified genuine via rate instrumentation (15,447
-qualifying encounters, all correctly nonzero, expected ~0.19 successes),
-not a wiring bug, and flagged as an open Increment-9 calibration question
-rather than tuned away here.
+lifecycle: a dead lesion grows, and dead cells surrounded by healthy
+tissue recover while those surrounded by dying tissue never do. This
+validates the mechanism only, not a reproduction of Sego et al. 2022&#39;s
+figure targets. Direct Allee death is honestly reported as rare at this
+scale, verified genuine rather than a wiring bug.
 </p>
       
       <div class="ctr-context">Infected epithelial cells die at a simplified flat per-MCS rate
@@ -1721,7 +1709,7 @@ reproduction verdict is PENDING until Increment 9 (the capstone).</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c2bd2553fad51549a229929cfcac9c3b38941012", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c2bd2553fad51549a229929cfcac9c3b38941012", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 16:20 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "a6b5dad806b4bc8b5c2389e28304e1250ee04189", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/a6b5dad806b4bc8b5c2389e28304e1250ee04189", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-22 03:50 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "epithelial-fate";

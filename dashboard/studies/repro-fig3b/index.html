@@ -570,24 +570,13 @@ mismatch rather than mechanism correctness?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">`run.repro_fig3b` is implemented and wired correctly: it runs a seeded
-ensemble of `run_full_model` over the Fig-3B scenario, maps every
-observable onto `targets/fig3b.json`&#39;s exact keys, ensemble-means via
-`bands.aggregate_replicas`, and evaluates via `bands.evaluate_study`,
-producing a well-formed `{&#34;ensemble&#34;:..., &#34;band_eval&#34;:{&#34;passed&#34;: bool,
-...}, &#34;replicas&#34;:..., &#34;cells_per_side&#34;:..., &#34;steps&#34;:...}` dict (verified
-by `tests/test_influenza_full_model.py::
-test_repro_fig3b_runs_and_evaluates_bands`). THIS STUDY DOES NOT CLAIM
-FIG-3B IS REPRODUCED. At the reduced scale this task&#39;s fast test uses
-(`replicas=2, cells_per_side=15, steps=20, seed0=0`), `band_eval[&#39;passed&#39;]`
-is False and 0 of the 12 fig3b observables are in-band at every
-checkpoint (per-observable n_in/8 and worst_miss reported in `report.
-key_metrics` above) -- expected given the ~5.4x smaller epithelial
-population and the ~0.09-simulated-day run duration vs. the target&#39;s
-0.0-3.5-day checkpoint window, not a mechanism defect. The paper-scale
-50-replica, 35x35-cell, ~3.5-day ensemble (Mac-mini Phase-B) is required
-before any `reproduced` verdict for Fig 3B, and `conclusion_verdicts.
-biological_validation` stays PENDING here.
+      <p class="ctr-text">`repro_fig3b` correctly assembles a seeded ensemble of the full model
+over the Fig-3B scenario and evaluates it against the digitized
+acceptance bands, producing a well-formed result. Fig-3B is not
+reproduced at the reduced scale a fast test affords: none of the twelve
+observables land in-band at every checkpoint, a scale-and-duration
+mismatch rather than evidence of a mechanism defect. A paper-scale
+ensemble is required before any reproduction verdict.
 </p>
       
       <div class="ctr-context">`run.repro_fig3b` assembles the Task-9.1 capstone driver
@@ -1505,7 +1494,7 @@ to make any number in this report look better than it is.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c2bd2553fad51549a229929cfcac9c3b38941012", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c2bd2553fad51549a229929cfcac9c3b38941012", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 16:20 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "a6b5dad806b4bc8b5c2389e28304e1250ee04189", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/a6b5dad806b4bc8b5c2389e28304e1250ee04189", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-22 03:50 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "repro-fig3b";

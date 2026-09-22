@@ -572,38 +572,13 @@ digitized bands&#39; absolute magnitudes at paper scale?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">`run.repro_fig7` is implemented and wired correctly: it sweeps a seeded
-ensemble of `run_full_model` over Fig-7&#39;s initial-infection-fraction
-scenarios, maps every observable onto `targets/fig7.json`&#39;s exact keys
-(reusing fig5&#39;s `_FIG5_OBSERVABLE_MAP` since both targets share the same 4
-keys), ensemble-means per fraction via `bands.aggregate_replicas`, filters
-each fraction&#39;s own scenario-tagged band subset (`_fig7_target_subset`,
-built on the shared `_scenario_target_subset` this task generalized from
-`repro_fig5`&#39;s guard, verified to raise `ValueError` rather than silently
-mixing scenarios when a fraction has no tagged entries, AND verified to
-filter correctly for the happy path -- both now covered by a dedicated
-pytest unit test), and evaluates via `_evaluate_fig7_subset`, producing a
-well-formed `{&#34;by_frac&#34;: {frac: {...}}, &#34;lethal_threshold&#34;: ...,
-&#34;band_eval&#34;: {...}, &#34;fracs&#34;:..., &#34;replicas&#34;:..., &#34;cells_per_side&#34;:...,
-&#34;steps&#34;:...}` dict (verified by `tests/test_influenza_full_model.py::
-test_repro_fig7_infection_fraction_sweep`). THIS STUDY DOES NOT CLAIM
-FIG-7 IS REPRODUCED. At the reduced scale this task&#39;s fast test uses
-(`fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, seed0=0`),
-per-fraction `band_eval[&#34;passed&#34;]` is False for both fractions
-(per-observable n_in/6 and worst_miss reported in `report.key_metrics`
-above) -- expected given the ~69x smaller epithelial population and the
-~0.068-simulated-day run duration vs. the target&#39;s 0.0-15-day checkpoint
-window, not a mechanism defect. The MONOTONE dose-response direction this
-reduced test&#39;s own assertion checks
-(`uninfected_final_frac(frac=0.05)=0.958333 &lt;=
-uninfected_final_frac(frac=0.001)=1.0`) holds, BUT frac=0.001&#39;s value is a
-degenerate no-infection control at this reduced population
-(`round(0.001*144)=0` pre-infected cells seeded), reported here honestly
-rather than presented as a real reproduction of fig7.json&#39;s frac=0.001
-trajectory. The paper-scale 20-replica, all-4-fraction, 35x35-cell,
-~15-day ensemble (Mac-mini Phase-B) is required before any `reproduced`
-verdict for Fig 7, and `conclusion_verdicts.biological_validation` stays
-PENDING here.
+      <p class="ctr-text">`repro_fig7` is wired correctly: it sweeps a seeded ensemble of the full
+model across Fig-7&#39;s infection-fraction scenarios and evaluates each
+fraction against only its own acceptance-band subset. Fig-7 is not
+reproduced at reduced scale — per-fraction band containment fails, and
+the smallest tested fraction degenerates to a no-infection control since
+it rounds to zero seeded cells. The monotone dose-response direction
+still holds; a paper-scale ensemble is required before reproduction.
 </p>
       
       <div class="ctr-context">`run.repro_fig7` sweeps the Task-9.1 capstone driver (`run_full_model`,
@@ -1700,7 +1675,7 @@ make any number in this report look better than it is.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c2bd2553fad51549a229929cfcac9c3b38941012", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c2bd2553fad51549a229929cfcac9c3b38941012", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 16:20 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "a6b5dad806b4bc8b5c2389e28304e1250ee04189", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/a6b5dad806b4bc8b5c2389e28304e1250ee04189", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-22 03:50 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "repro-fig7-infection-fraction";

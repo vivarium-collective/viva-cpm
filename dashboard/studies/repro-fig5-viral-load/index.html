@@ -571,29 +571,13 @@ absolute magnitudes at paper scale?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">`run.repro_fig5` is implemented and wired correctly: it sweeps a seeded
-ensemble of `run_full_model` over Fig-5&#39;s viral-load scenarios, maps
-every observable onto `targets/fig5.json`&#39;s exact keys, ensemble-means
-per load via `bands.aggregate_replicas`, filters each load&#39;s own
-scenario-tagged band subset (`_fig5_target_subset`, verified to raise
-`ValueError` rather than silently mixing scenarios when a load has no
-tagged entries), and evaluates via `_evaluate_fig5_subset`, producing a
-well-formed `{&#34;by_load&#34;: {load: {...}}, &#34;lethal_threshold&#34;: ...,
-&#34;band_eval&#34;: {...}, &#34;loads&#34;:..., &#34;replicas&#34;:..., &#34;cells_per_side&#34;:...,
-&#34;steps&#34;:...}` dict (verified by `tests/test_influenza_full_model.py::
-test_repro_fig5_viral_load_sweep`). THIS STUDY DOES NOT CLAIM FIG-5 IS
-REPRODUCED. At the reduced scale this task&#39;s fast test uses
-(`loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0`),
-per-load `band_eval[&#34;passed&#34;]` is False for both loads (per-observable
-n_in/6 and worst_miss reported in `report.key_metrics` above) -- expected
-given the ~69x smaller epithelial population and the ~0.068-simulated-day
-run duration vs. the target&#39;s 0.0-15-day checkpoint window, not a
-mechanism defect. The MONOTONE dose-response direction this reduced
-test&#39;s own assertion checks (`uninfected_final_frac(load=10000)=0.0 &lt;=
-uninfected_final_frac(load=1)=0.958333`) holds. The paper-scale 50-replica,
-all-5-load, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required
-before any `reproduced` verdict for Fig 5, and `conclusion_verdicts.
-biological_validation` stays PENDING here.
+      <p class="ctr-text">`repro_fig5` is wired correctly: it sweeps a seeded ensemble of the full
+model across Fig-5&#39;s viral-load scenarios and evaluates each load
+against only its own acceptance-band subset. This study does not claim
+Fig-5 is reproduced — at reduced population and run duration, per-load
+band containment fails, though the monotone dose-response direction
+(higher initial viral load, fewer surviving uninfected cells) holds. A
+paper-scale ensemble is required before any reproduction verdict.
 </p>
       
       <div class="ctr-context">`run.repro_fig5` sweeps the Task-9.1 capstone driver (`run_full_model`,
@@ -1759,7 +1743,7 @@ tuned, and <code>targets/fig5.json</code> was not edited.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c2bd2553fad51549a229929cfcac9c3b38941012", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c2bd2553fad51549a229929cfcac9c3b38941012", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-21 16:20 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "a6b5dad806b4bc8b5c2389e28304e1250ee04189", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/a6b5dad806b4bc8b5c2389e28304e1250ee04189", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-22 03:50 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "repro-fig5-viral-load";
