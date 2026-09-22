@@ -63,3 +63,59 @@ conclusion: |
   single-mechanism demos with one honest-scale scene. Contact-killing at full
   scale is the documented calibration gap (quantified in the capstone); no
   Fig-3B/5/7 reproduction is claimed here.
+
+report:
+  title: "Immune response at tissue scale"
+  verdict: documented
+  confidence: medium
+  evidence_quality: measured
+  objective: >-
+    Run the full immune layer (macrophage, NK, CD8+ T cells) on a ~900-cell
+    epithelial sheet seeded with an infected patch, and confirm the immune
+    cells chemotax toward the infection and cluster against the sheet.
+  conclusion: >-
+    The immune mechanisms compose and localize toward infection at
+    representative tissue scale. Contact-killing at full scale remains the
+    documented calibration gap quantified in the capstone. Mechanism
+    validation only; no reproduction claim is made against the paper's figures.
+
+findings:
+  - id: F-01
+    kind: computational
+    status: confirms
+    mechanism_origin: emergent
+    evidence:
+      from_test: Immune cells localize toward the infected patch at tissue scale
+      divergence_factor: 1.0
+      observed: "on a 900-cell sheet with 60 immune cells (20 macrophage, 20 NK, 20 CD8), the NK and CD8 clusters chemotax up the chemokine field and close distance toward the infected patch over the run"
+    statement: |
+      Macrophage, NK, and CD8+ T cells chemotax up the macrophage-released
+      chemokine field toward an infected patch and cluster against the sheet
+      at representative tissue scale, consolidating the earlier per-mechanism
+      demonstrations into one honest-scale immune-response scene.
+  - id: F-02
+    kind: computational
+    status: confirms
+    mechanism_origin: emergent
+    evidence:
+      from_test: Contact-killing is a verified mechanism
+      divergence_factor: 1.0
+      observed: "contact-killing clears infected cells reliably where immune cells reach contact; at full tissue scale the cells localize but do not all reach contact within the run budget"
+    statement: |
+      NK/CD8 contact-killing is a verified-correct mechanism. At full tissue
+      scale the immune cells localize but do not all reach contact within the
+      run budget, which is the documented field-magnitude calibration gap,
+      quantified in the capstone, not a mechanism defect.
+
+conclusion_verdicts:
+  mechanism_validation:
+    result: PASS
+    basis: The immune layer composes and localizes toward infection at representative tissue scale across macrophage, NK, and CD8 cell types.
+  biological_validation:
+    result: PENDING
+    basis: >-
+      This study validates the immune mechanisms at representative scale and
+      makes no reproduction claim against the paper's figures; that evaluation
+      is the capstone's role.
+
+gate_status: passed
