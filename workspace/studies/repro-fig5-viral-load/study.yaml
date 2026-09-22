@@ -331,29 +331,13 @@ description: |
   Fig-5 narrative depends on holds cleanly at this reduced scale.
 
 claim: |
-  `run.repro_fig5` is implemented and wired correctly: it sweeps a seeded
-  ensemble of `run_full_model` over Fig-5's viral-load scenarios, maps
-  every observable onto `targets/fig5.json`'s exact keys, ensemble-means
-  per load via `bands.aggregate_replicas`, filters each load's own
-  scenario-tagged band subset (`_fig5_target_subset`, verified to raise
-  `ValueError` rather than silently mixing scenarios when a load has no
-  tagged entries), and evaluates via `_evaluate_fig5_subset`, producing a
-  well-formed `{"by_load": {load: {...}}, "lethal_threshold": ...,
-  "band_eval": {...}, "loads":..., "replicas":..., "cells_per_side":...,
-  "steps":...}` dict (verified by `tests/test_influenza_full_model.py::
-  test_repro_fig5_viral_load_sweep`). THIS STUDY DOES NOT CLAIM FIG-5 IS
-  REPRODUCED. At the reduced scale this task's fast test uses
-  (`loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0`),
-  per-load `band_eval["passed"]` is False for both loads (per-observable
-  n_in/6 and worst_miss reported in `report.key_metrics` above) -- expected
-  given the ~69x smaller epithelial population and the ~0.068-simulated-day
-  run duration vs. the target's 0.0-15-day checkpoint window, not a
-  mechanism defect. The MONOTONE dose-response direction this reduced
-  test's own assertion checks (`uninfected_final_frac(load=10000)=0.0 <=
-  uninfected_final_frac(load=1)=0.958333`) holds. The paper-scale 50-replica,
-  all-5-load, 35x35-cell, ~15-day ensemble (Mac-mini Phase-B) is required
-  before any `reproduced` verdict for Fig 5, and `conclusion_verdicts.
-  biological_validation` stays PENDING here.
+  `repro_fig5` is wired correctly: it sweeps a seeded ensemble of the full
+  model across Fig-5's viral-load scenarios and evaluates each load
+  against only its own acceptance-band subset. This study does not claim
+  Fig-5 is reproduced — at reduced population and run duration, per-load
+  band containment fails, though the monotone dose-response direction
+  (higher initial viral load, fewer surviving uninfected cells) holds. A
+  paper-scale ensemble is required before any reproduction verdict.
 
 expected_behavior:
   - "`repro_fig5` returns a `by_load` dict keyed by exactly the requested loads, each with an `ensemble`, a per-load `band_eval`, and `uninfected_final_frac`/`uninfected_min_frac`."

@@ -6,7 +6,7 @@ title: "Global Price-2015 ODE coupling"
 confidence: Provisional
 investigation: influenza-sego2022
 parent_studies:
-  - study: cytotoxic-killing
+  - study: immune-response
     condition: tests-passed
 
 purpose:
@@ -257,27 +257,14 @@ description: |
   which needs this study's calibration gaps resolved first.
 
 claim: |
-  The hybrid Price-2015 global ODE (10 systemic species, discrepancy #9)
-  integrates stably once per MCS and responds to the spatial infection.
-  All three stubs carried since Increments 5-7 are RESOLVED as dynamic,
-  source-faithful mechanisms: dynamic sig_1 (`a_11*T + a_12*D`, the
-  unchanged Michaelis secretion form, discrepancy #11), ODE-driven
-  recruitment (chemokine/APC Hill inflows with the source's CD8-no-
-  baseline asymmetry preserved, discrepancy #12), and NK/CD8 killing
-  extended with a well-mixed NEARBY term (verified via a documented test
-  seam) alongside the unchanged Increment-7 LOCAL contact term. THIS STUDY
-  DOES NOT CLAIM THESE MECHANISMS ARE ALREADY CALIBRATED — at this
-  driver's default reduced-scale patch (eta ~1.4e-4), dynamic sig_1's
-  value is ~6 orders of magnitude below the retired static stub (2.44),
-  collapsing the secretion-scale factor to near-zero; ODE-driven
-  recruitment produces sub-0.01-per-MCS rates (no observable integer
-  population growth from the chemokine/APC signal within a short run, only
-  from the baseline term at a boosted eta); and the nearby-killing term,
-  grown via natural recruitment alone over 300 MCS, remains orders of
-  magnitude too weak to fire. These are FIELD-vs-ODE UNIT-SCALE
-  CALIBRATION gaps — the same root-cause category as Increment 7's
-  chemotaxis-engine-scale correction — deliberately reported as open,
-  NOT tuned away, and deferred to Increment 9.
+  The hybrid global immune ODE integrates stably each step and couples
+  bidirectionally with the spatial model, resolving three previously-
+  stubbed mechanisms — dynamic IL-10/chemokine signaling, ODE-driven
+  recruitment, and a nearby-population killing term — each individually
+  verified correct. At this reduced-scale patch, none of these mechanisms'
+  magnitudes yet reconcile with the values replaced or reach an observable
+  effect: a field-versus-ODE unit-scale calibration gap, reported honestly
+  and deferred rather than tuned away.
 
 expected_behavior:
   - The 10 systemic ODE species integrate stably (no divergence/NaN) once

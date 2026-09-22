@@ -94,9 +94,11 @@ def _decode_grid(frame, nx, ny, dtype):
 
 
 def _type_traces(grid2d):
+    # code 8 = cell-boundary sentinel (baked tessellation outline) -> extend the
+    # discrete scale to 0..8 so those sites draw dark; harmless when absent.
     return [{"type": "heatmap", "z": grid2d.tolist(),
-             "colorscale": S.discrete_state_colorscale(7),
-             "zmin": -0.5, "zmax": 7.5, "showscale": False, "xgap": 0, "ygap": 0,
+             "colorscale": S.discrete_state_colorscale(8),
+             "zmin": -0.5, "zmax": 8.5, "showscale": False, "xgap": 0, "ygap": 0,
              "hoverinfo": "skip"}]
 
 
@@ -145,7 +147,9 @@ def _build_spatial(slug, title, subtitle, caption, *, increment, kpis,
         "annotations": [_spatial_stamp(_stamp_text(frames_data[0]["mcs"]))],
         **_spatial_axes(nx, ny), **_spatial_controls(steps)})
 
-    codes = (sorted({int(v) for g in decoded for v in np.unique(g)})
+    # Exclude the boundary sentinel (8) from the state legend — it's an outline,
+    # not a cell state.
+    codes = (sorted({int(v) for g in decoded for v in np.unique(g) if int(v) != 8})
              if not owner else [])
     body = (_spatial_legend(codes, owner=owner)
             + S.plot(div, _traces(decoded[0]), layout, frames=frames))
@@ -433,134 +437,6 @@ def _build_fate():
                   body, cap, increment=4, kpis=kpis)
 
 
-# ── Study F · macrophage-response (Increment 5): chemotaxis localization ─────
-def _build_macrophage():
-    """Macrophages chemotax up the virus field and localize to the infection"""
-    d = _SD["macrophage"]
-    x = d["steps"]
-    start = d["start_distance"]
-    dist = [S.line_trace(x, d["off"]["dist"], S.MUTED, "λ=0 control", dash="dash", markers=False),
-            S.line_trace(x, d["on"]["dist"], S.CELL_STATES[4][1], "chemotaxis on (λ=5000)",
-                        markers=False)]
-    dist_layout = S.base_layout("Update", "Mean distance to infection (sites)", height=290)
-    com = d["on"]["com"]
-    xs = [c[0] for c in com]
-    ys = [c[1] for c in com]
-    traj = [{"x": xs, "y": ys, "type": "scatter", "mode": "lines+markers",
-             "line": {"color": S.CELL_STATES[4][1], "width": 2.2},
-             "marker": {"color": S.CELL_STATES[4][1], "size": 4},
-             "name": "macrophage COM", "hovertemplate": "(%{x:.1f}, %{y:.1f})<extra></extra>"},
-            {"x": [xs[0]], "y": [ys[0]], "type": "scatter", "mode": "markers",
-             "marker": {"color": S.GOOD, "size": 11, "symbol": "circle",
-                        "line": {"color": S.SURFACE, "width": 1.5}}, "name": "start"},
-            {"x": [xs[-1]], "y": [ys[-1]], "type": "scatter", "mode": "markers",
-             "marker": {"color": S.INFECTED, "size": 11, "symbol": "star",
-                        "line": {"color": S.SURFACE, "width": 1.5}}, "name": "end"}]
-    traj_layout = S.base_layout("x (sites)", "y (sites)", height=280)
-    body = ('<div style="font-size:12px;color:%s;font-weight:600;margin:2px 4px 0">'
-            'Distance to infection — chemotaxis on approaches, λ=0 control drifts</div>' % S.SECONDARY
-            + S.plot("influenza-mac-dist", dist, dist_layout)
-            + '<div style="font-size:12px;color:%s;font-weight:600;margin:8px 4px 0">'
-              'Macrophage centre-of-mass trajectory (chemotaxis on)</div>' % S.SECONDARY
-            + S.plot("influenza-mac-traj", traj, traj_layout))
-    on_ch = d["on"]["dist"][-1] - start
-    off_ch = d["off"]["dist"][-1] - start
-    kpis = [(f'{on_ch:+.1f} sites', 'distance change, seed 17 (chemotaxis on)'),
-            (f'{off_ch:+.1f} sites', 'λ=0 control (same seed/geometry)'),
-            ('5 / 5 seeds', 'localize (mean −13.4 vs control −0.85)')]
-    cap = (f'<b>Localization validated, reproduction PENDING.</b> Both clusters start in the domain '
-           f'INTERIOR at the same {start:.1f}-site separation (an unbiased control — no wall pins the '
-           f'λ=0 drift). Shown: seed 17. With chemotaxis on (λ=5000), macrophages close the gap '
-           f'({on_ch:+.1f} sites); the λ=0 control barely moves ({off_ch:+.1f}). Across the full '
-           f'{{5,17,23,42,100}} seed set the on case localizes in 5/5 seeds (mean −13.39) vs a '
-           f'near-isotropic control (mean −0.85, spread 8.44) — the on/off gap exceeds control noise '
-           f'in every seed. This is a localization-mechanism claim only; no Fig 3B/5/7 target is '
-           f'evaluated (Increment 9).')
-    return S.card("Macrophages localize to the infection",
-                  "Increment-5 mechanism — chemotaxis on vs λ=0 (seed 17, 40 updates)",
-                  body, cap, increment=5, kpis=kpis)
-
-
-# ── Study G · signaling-fields (Increment 6): chemokine + IL-10 fields ──────
-def _build_signaling():
-    """Chemokine gradient centered on the macrophage cluster; IL-10 from both sources"""
-    d = _SD["signaling"]
-    r = d["radial"]
-    bar = [{"x": r["centers"], "y": r["means"], "type": "bar",
-            "marker": {"color": S.CELL_STATES[4][1], "line": {"width": 0}},
-            "hovertemplate": "%{x:.0f} sites<br>%{y:.5f}<extra></extra>", "name": "chemokine"}]
-    bar_layout = S.base_layout("Distance from macrophage centroid (sites)",
-                               "Mean chemokine", height=280, showlegend=False)
-    x = d["steps"]
-    il10 = [S.line_trace(x, d["il10_macro"], "#0f766e", "IL-10 at macrophages", markers=False),
-            S.line_trace(x, d["il10_uninf"], S.WARNING, "IL-10 at uninfected (H)", markers=False)]
-    il10_layout = S.base_layout("Update", "mean IL-10 at cell", height=250)
-    body = ('<div style="font-size:12px;color:%s;font-weight:600;margin:2px 4px 0">'
-            'Chemokine radial profile — a gradient centered on the cluster, decaying outward</div>'
-            % S.SECONDARY
-            + S.plot("influenza-sig-radial", bar, bar_layout)
-            + '<div style="font-size:12px;color:%s;font-weight:600;margin:8px 4px 0">'
-              'IL-10 accrues from BOTH regulated sources (macrophage + uninfected)</div>' % S.SECONDARY
-            + S.plot("influenza-sig-il10", il10, il10_layout))
-    inner, outer = r["means"][0], r["means"][-1]
-    kpis = [(f'{d["chemo_near"]/d["chemo_far"]:.1f}×', 'chemokine near/far (per-cell)'),
-            (f'{inner/outer:.1f}×', 'radial decay (inner/outer bin)'),
-            (f'{d["il10_macro"][-1]:.1e} / {d["il10_uninf"][-1]:.1e}', 'IL-10 macro / uninfected')]
-    cap = (f'<b>Field mechanism documented, reproduction PENDING.</b> Macrophage-released chemokine '
-           f'forms a gradient centered on the cluster: {d["chemo_near"]:.5f} at macrophage cells vs '
-           f'{d["chemo_far"]:.5f} at the uninfected patch {d["params"]["separation_sites"]} sites of '
-           f'open Medium away ({d["chemo_near"]/d["chemo_far"]:.1f}×), and a monotonic '
-           f'{inner/outer:.1f}× decay across 6 raw-lattice radial bins ({inner:.5f}→{outer:.5f}, '
-           f'cell-position-independent). IL-10 is positive and rising from both its Hill-regulated '
-           f'sources. This validates the chemokine/IL-10 FIELD mechanism, NOT a Fig 2/3A '
-           f'reproduction: sig_1 here is a documented STATIC stub (its dynamic value is resolved in '
-           f'Increment 8), and global boundary secretion is deferred (Increment 9).')
-    return S.card("Chemokine + IL-10 signaling fields",
-                  "Increment-6 mechanism — radial gradient + IL-10 sources (seed 17, 15 updates)",
-                  body, cap, increment=6, kpis=kpis)
-
-
-# ── Study H · cytotoxic-killing (Increment 7): NK/CD8 localize + kill ───────
-def _build_cytotoxic():
-    """NK/CD8 localize robustly + kill on contact; end-to-end clearance still weak"""
-    d = _SD["cytotoxic"]
-    x = d["steps"]
-    dist = [S.line_trace(x, d["nk_dist"], S.CELL_STATES[5][1], "NK distance", markers=False),
-            S.line_trace(x, d["cd8_dist"], S.CELL_STATES[6][1], "CD8⁺ distance", markers=False)]
-    dist_layout = S.base_layout("Update", "Mean distance to infection (sites)", height=290)
-    c = d["close"]
-    cx = c["steps"]
-    inf = [S.line_trace(cx, c["n_infected_nokill"], S.MUTED, "killing disabled (control)",
-                       dash="dash", markers=False),
-           S.line_trace(cx, c["n_infected_kill"], S.INFECTED, "killing enabled", markers=False)]
-    inf_layout = S.base_layout("Update", "Infected cells", height=250,
-                               extra={"yaxis": {"range": [-0.15, 1.3], "dtick": 1}})
-    body = ('<div style="font-size:12px;color:%s;font-weight:600;margin:2px 4px 0">'
-            'Localization at DEFAULT scale — NK/CD8 close the gap but never reach contact</div>'
-            % S.SECONDARY
-            + S.plot("influenza-cyto-dist", dist, dist_layout)
-            + '<div style="font-size:12px;color:%s;font-weight:600;margin:8px 4px 0">'
-              'Killing WORKS in a close-contact test (1→0 at update 22)</div>' % S.SECONDARY
-            + S.plot("influenza-cyto-inf", inf, inf_layout))
-    kill_at = next((s for s, n in zip(cx, c["n_infected_kill"]) if n == 0), None)
-    kpis = [(f'{d["cd8_dist"][0]:.0f}→{d["cd8_dist"][-1]:.0f}', 'CD8⁺ distance (default scale)'),
-            (f'{d["nk_dist"][0]:.0f}→{d["nk_dist"][-1]:.0f}', 'NK distance (never contacts)'),
-            (f'1→0 @ update {kill_at}', 'close-contact kill (capability proven)')]
-    cap = (f'<b>Capability proven, end-to-end clearance WEAK/PENDING.</b> NK/CD8 chemotax up the '
-           f'chemokine field and localize robustly (5/5 seeds: CD8 mean −35.99, NK −20.37 vs a '
-           f'λ=0 control near 0). Contact-killing WORKS where cells actually touch: in a close-contact '
-           f'scenario the infected cell is cleared (1→0 at update {kill_at}), while the '
-           f'killing-disabled control stays at 1. BUT at the default full-scale scenario the NK/CD8 '
-           f'cluster closes distance ({d["cd8_dist"][0]:.0f}→{d["cd8_dist"][-1]:.0f} for CD8, '
-           f'{d["nk_dist"][0]:.0f}→{d["nk_dist"][-1]:.0f} for NK) yet never reaches contact, so '
-           f'n_infected never drops. End-to-end cytotoxic CLEARANCE at scale is an Increment-9 '
-           f'field-magnitude calibration gap (same root cause as the 100× chemotaxis-scale flag), '
-           f'not a reproduction claim.')
-    return S.card("NK/CD8 cytotoxic localization + killing",
-                  "Increment-7 mechanism — default-scale localization + close-contact kill (seed 17)",
-                  body, cap, increment=7, kpis=kpis)
-
-
 # ── Study I · global-coupling (Increment 8): hybrid Price-2015 ODE ──────────
 def _build_global():
     """Hybrid 10-species global ODE coupled to the CPM patch; magnitudes uncalibrated"""
@@ -755,12 +631,16 @@ def _build_repro_fig7():
 
 # ── per-study CPM 2D spatial-state videos (the PRIMARY viz per study) ────────
 def _sp_kpis(slug, *headline):
-    """A consistent KPI row: mosaic scale + frame span (from the baked frames)
-    + the study's own one-line spatial headline."""
+    """A consistent KPI row: the CELL COUNT (so the scale is explicit) + the
+    lattice, the frame span, and the study's own one-line spatial headline."""
     d = _SP[slug]
     fr = d["frames"]
     span = f'MCS {fr[0]["mcs"]}→{fr[-1]["mcs"]}'
-    return [(f'{d["nx"]}×{d["ny"]} lattice', 'full-resolution mosaic'),
+    n_epi = int(d.get("n_epi", 0))
+    n_imm = int(d.get("n_imm", 0))
+    cells = (f'{n_epi:,} epithelial cells'
+             + (f' + {n_imm} immune' if n_imm else ''))
+    return [(cells, f'{d["nx"]}×{d["ny"]} lattice · full-resolution'),
             (f'{len(fr)} frames', span), headline]
 
 
@@ -837,66 +717,29 @@ def _build_spatial_fate():
                                         f'n_D 0→{d["n_D"][-1]}', "dead lesion core forms"))
 
 
-def _build_spatial_macrophage():
-    """Macrophages chemotax up the virus field and localize to the lesion"""
-    d = _SD["macrophage"]
-    on_ch = d["on"]["dist"][-1] - d["start_distance"]
-    cap = (f'<b>Localization validated, reproduction PENDING.</b> Macrophages '
-           f'(<span style="color:{S.CELL_STATES[4][1]}">■</span>) chemotax up the virus field '
-           f'(λ=5000) and migrate toward the infected patch '
-           f'(<span style="color:{S.INFECTED}">■</span>), closing the gap by {on_ch:+.1f} sites '
-           f'from a {d["start_distance"]:.0f}-site interior start — while a λ=0 control barely '
-           f'moves ({d["off"]["dist"][-1]-d["start_distance"]:+.1f}). Across 5 seeds the on case '
-           f'localizes 5/5 (mean −13.4 vs control −0.85). A localization-mechanism claim only; '
-           f'no Fig&nbsp;3B/5/7 target is evaluated here.')
-    return _build_spatial("macrophage-response",
-                          "Macrophage recruitment — spatial state",
-                          "Increment-5 mechanism — macrophages localizing to the lesion (seed 17)",
-                          cap, increment=5,
-                          kpis=_sp_kpis("macrophage-response",
-                                        f'{on_ch:+.1f} sites', "macrophage net approach"))
-
-
-def _build_spatial_signaling():
-    """Chemokine + IL-10 fields around the macrophage cluster (spatial context)"""
-    d = _SD["signaling"]
-    cap = (f'<b>Field mechanism documented, reproduction PENDING.</b> The spatial context for the '
-           f'signaling fields: the macrophage cluster '
-           f'(<span style="color:{S.CELL_STATES[4][1]}">■</span>) sits a fixed '
-           f'{d["params"]["separation_sites"]} sites of open medium from the uninfected epithelial '
-           f'patch (<span style="color:{S.HEALTHY}">■</span>). Macrophage-released chemokine forms '
-           f'a gradient centered on the cluster ({d["chemo_near"]/d["chemo_far"]:.1f}× near/far, '
-           f'~{d["radial"]["means"][0]/d["radial"]["means"][-1]:.1f}× radial decay), and IL-10 '
-           f'accrues from both regulated sources. This validates the FIELD mechanism, not a '
-           f'Fig&nbsp;2/3A reproduction (sig_1 is a documented static stub here, resolved in '
-           f'Increment&nbsp;8).')
-    return _build_spatial("signaling-fields",
-                          "Signaling-field scene — spatial state",
-                          "Increment-6 mechanism — macrophage cluster + epithelial patch (seed 17)",
-                          cap, increment=6,
-                          kpis=_sp_kpis("signaling-fields",
-                                        f'{d["chemo_near"]/d["chemo_far"]:.1f}×', "chemokine near/far"))
-
-
-def _build_spatial_cytotoxic():
-    """NK + CD8 clusters chemotax toward the lesion; contact-killing where they touch"""
-    d = _SD["cytotoxic"]
-    cap = (f'<b>Capability proven, end-to-end clearance WEAK/PENDING.</b> The full cytotoxic scene: '
-           f'NK (<span style="color:{S.CELL_STATES[5][1]}">■</span>) and CD8⁺ '
-           f'(<span style="color:{S.CELL_STATES[6][1]}">■</span>) clusters chemotax up the '
-           f'chemokine field toward the infected patch '
-           f'(<span style="color:{S.INFECTED}">■</span>) and localize robustly (5/5 seeds: CD8 '
-           f'mean −36, NK −20). Contact-killing WORKS where cells touch (a close-contact test '
-           f'clears the infected cell 1→0). BUT at this default scale the NK/CD8 clusters close '
-           f'distance yet never reach contact, so n_infected does not drop — an Increment-9 '
-           f'field-magnitude calibration gap, NOT a reproduction claim.')
-    return _build_spatial("cytotoxic-killing",
-                          "Cytotoxic response — spatial state",
-                          "Increment-7 mechanism — NK/CD8 localization at default scale (seed 17)",
+def _build_spatial_immune():
+    """Tissue-scale immune response: macrophage/NK/CD8 chemotaxis toward an
+    infected patch + the chemokine signalling field, on a ~900-cell sheet.
+    Consolidates the Increment 5-7 single-mechanism demos at representative
+    scale (replacing the earlier ~10-cell versions)."""
+    cap = (f'<b>The immune response at tissue scale.</b> On a confluent ~900-cell epithelial '
+           f'sheet (<span style="color:{S.HEALTHY}">■</span>) seeded with an infected patch '
+           f'(<span style="color:{S.INFECTED}">■</span>), 60 immune cells — macrophages '
+           f'(<span style="color:{S.CELL_STATES[4][1]}">■</span>), NK '
+           f'(<span style="color:{S.CELL_STATES[5][1]}">■</span>) and CD8⁺ T '
+           f'(<span style="color:{S.CELL_STATES[6][1]}">■</span>) — chemotax up the '
+           f'macrophage-released chemokine field toward the infection and cluster against the '
+           f'sheet. This consolidates the Increment&nbsp;5–7 immune mechanisms (macrophage '
+           f'chemotaxis, chemokine/IL-10 signalling, NK/CD8 cytotoxicity) at representative tissue '
+           f'scale, replacing the earlier ~10-cell single-mechanism demos. Contact-killing at full '
+           f'scale remains the documented field-magnitude calibration gap quantified in the '
+           f'capstone — a mechanism claim, not a Fig&nbsp;3B/5/7 reproduction.')
+    return _build_spatial("immune-response",
+                          "Immune response — spatial state (tissue scale)",
+                          "Consolidated Increment 5–7 immune mechanisms on a ~900-cell sheet (seed 17)",
                           cap, increment=7,
-                          kpis=_sp_kpis("cytotoxic-killing",
-                                        f'CD8 {d["cd8_dist"][0]:.0f}→{d["cd8_dist"][-1]:.0f}',
-                                        "localize, no contact yet"))
+                          kpis=_sp_kpis("immune-response",
+                                        "macrophage · NK · CD8⁺", "chemotax toward infection"))
 
 
 def _build_spatial_global():
@@ -1001,22 +844,6 @@ def update_influenza_epithelial_fate(state):
     return {"html": _build_fate()}
 
 
-@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaMacrophageResponse", demo={"mcs": [0.0]})
-def update_influenza_macrophage_response(state):
-    """Macrophages chemotax up the virus field and localize to the infection"""
-    return {"html": _build_macrophage()}
-
-
-@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSignalingFields", demo={"mcs": [0.0]})
-def update_influenza_signaling_fields(state):
-    """Chemokine gradient centered on the macrophage cluster; IL-10 from both sources"""
-    return {"html": _build_signaling()}
-
-
-@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaCytotoxicKilling", demo={"mcs": [0.0]})
-def update_influenza_cytotoxic_killing(state):
-    """NK/CD8 localize robustly + kill on contact; end-to-end clearance still weak"""
-    return {"html": _build_cytotoxic()}
 
 
 @as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaGlobalCoupling", demo={"mcs": [0.0]})
@@ -1068,18 +895,6 @@ def InfluenzaEpithelialFate():
     return _build_fate()
 
 
-def InfluenzaMacrophageResponse():
-    return _build_macrophage()
-
-
-def InfluenzaSignalingFields():
-    return _build_signaling()
-
-
-def InfluenzaCytotoxicKilling():
-    return _build_cytotoxic()
-
-
 def InfluenzaGlobalCoupling():
     return _build_global()
 
@@ -1121,22 +936,10 @@ def update_influenza_spatial_fate(state):
     return {"html": _build_spatial_fate()}
 
 
-@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialMacrophage", demo={"mcs": [0.0]})
-def update_influenza_spatial_macrophage(state):
-    """Macrophages chemotax up the virus field and localize to the lesion"""
-    return {"html": _build_spatial_macrophage()}
-
-
-@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialSignaling", demo={"mcs": [0.0]})
-def update_influenza_spatial_signaling(state):
-    """Chemokine + IL-10 fields around the macrophage cluster (spatial context)"""
-    return {"html": _build_spatial_signaling()}
-
-
-@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialCytotoxic", demo={"mcs": [0.0]})
-def update_influenza_spatial_cytotoxic(state):
-    """NK + CD8 clusters chemotax toward the lesion; contact-killing where they touch"""
-    return {"html": _build_spatial_cytotoxic()}
+@as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialImmune", demo={"mcs": [0.0]})
+def update_influenza_spatial_immune(state):
+    """Tissue-scale immune response: macrophage/NK/CD8 chemotaxis + chemokine field on a ~900-cell sheet"""
+    return {"html": _build_spatial_immune()}
 
 
 @as_visualization(inputs={"mcs": "list[float]"}, name="InfluenzaSpatialGlobalCoupling", demo={"mcs": [0.0]})
@@ -1180,16 +983,8 @@ def InfluenzaSpatialEpithelialFate():
     return _build_spatial_fate()
 
 
-def InfluenzaSpatialMacrophage():
-    return _build_spatial_macrophage()
-
-
-def InfluenzaSpatialSignaling():
-    return _build_spatial_signaling()
-
-
-def InfluenzaSpatialCytotoxic():
-    return _build_spatial_cytotoxic()
+def InfluenzaSpatialImmune():
+    return _build_spatial_immune()
 
 
 def InfluenzaSpatialGlobalCoupling():

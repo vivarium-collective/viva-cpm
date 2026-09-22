@@ -19,8 +19,7 @@ def test_backfilled_study_visualizations_render_html():
     # Increments 3-8: each backfilled study's zero-arg accessor returns a
     # non-empty Plotly card (mirrors the Increment 0-2 check above).
     for fn in (V.InfluenzaIfnResistance, V.InfluenzaEpithelialFate,
-               V.InfluenzaMacrophageResponse, V.InfluenzaSignalingFields,
-               V.InfluenzaCytotoxicKilling, V.InfluenzaGlobalCoupling):
+               V.InfluenzaGlobalCoupling):
         html = fn()
         assert isinstance(html, str) and "plotly" in html.lower()
         assert len(html) > 2000
@@ -46,8 +45,7 @@ def test_virus_scene_is_animated():
 _SPATIAL_ACCESSORS = (
     V.InfluenzaSpatialSheet, V.InfluenzaSpatialVirusField,
     V.InfluenzaSpatialIfnResistance, V.InfluenzaSpatialEpithelialFate,
-    V.InfluenzaSpatialMacrophage, V.InfluenzaSpatialSignaling,
-    V.InfluenzaSpatialCytotoxic, V.InfluenzaSpatialGlobalCoupling,
+    V.InfluenzaSpatialImmune, V.InfluenzaSpatialGlobalCoupling,
     V.InfluenzaSpatialReproFig3B, V.InfluenzaSpatialReproFig5,
     V.InfluenzaSpatialReproFig7,
 )
@@ -69,7 +67,8 @@ def test_spatial_data_is_real_multiframe():
     # per study, each frame a zlib+base64-compressed cell-type/owner lattice.
     import numpy as np
     from pbg_cpm_studies.visualizations.influenza_studies import _SP, _decode_grid
-    assert len(_SP) == 9  # 8 distinct scenes + the shared full-model repro scene
+    assert len(_SP) == 7  # 6 distinct scenes + the shared full-model repro scene
+    # (the 3 tiny Incr-5/6/7 demos consolidated into one tissue-scale immune scene)
     for slug, d in _SP.items():
         assert len(d["frames"]) >= 10          # ~16-20 even-spaced full-duration frames
         assert d["enc"] == "zlib+b64"          # compressed, not a raw grid list
@@ -78,7 +77,9 @@ def test_spatial_data_is_real_multiframe():
         assert g0.shape == (d["ny"], d["nx"])
         assert int(g0.min()) >= 0
         if d["kind"] == "type":
-            assert int(g0.max()) <= 7          # medium(0), 6 cell states, reserve(7)
+            # medium(0), 6 cell states, reserve(7), + cell-boundary sentinel(8)
+            # baked in for the per-cell tessellation outline.
+            assert int(g0.max()) <= 8
         # frames advance in MCS (first->last), a real time series
         assert d["frames"][-1]["mcs"] > d["frames"][0]["mcs"]
 
@@ -122,15 +123,8 @@ def test_backfilled_study_data_matches_reported_values():
     # Incr 4: dead lesion forms (n_D 0 -> 14 over 200 updates), Allee death rare
     assert _SD["fate"]["n_D"][0] == 0 and _SD["fate"]["n_D"][-1] == 14
     assert _SD["fate"]["death_cum"][-1] == 0 and _SD["fate"]["recovery_cum"][-1] == 3
-    # Incr 5: chemotaxis-on localizes (net approach), lambda=0 control does not
-    mac = _SD["macrophage"]
-    assert mac["on"]["dist"][-1] < mac["start_distance"] - 10
-    # Incr 6: chemokine radial profile decays monotonically (~5.9x inner/outer)
-    means = _SD["signaling"]["radial"]["means"]
-    assert means == sorted(means, reverse=True) and means[0] / means[-1] > 5
-    # Incr 7: close-contact killing clears the cell (1 -> 0), control stays at 1
-    assert min(_SD["cytotoxic"]["close"]["n_infected_kill"]) == 0
-    assert _SD["cytotoxic"]["close"]["n_infected_nokill"][-1] == 1
+    # Incr 5-7 immune mechanisms consolidated into the tissue-scale immune-response
+    # study (spatial only); their per-mechanism data series are no longer baked.
     # Incr 8: dynamic sig_1 collapses ~1e-6, far below the retired stub (2.44)
     assert _SD["global"]["sigma1"][-1] < 1e-3
 

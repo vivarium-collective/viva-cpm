@@ -75,6 +75,8 @@ class _RecWorld:
         object.__setattr__(self, "_owner", bool(owner))
         object.__setattr__(self, "_nx", None)
         object.__setattr__(self, "_ny", None)
+        object.__setattr__(self, "_n_epi", 0)    # epithelial cell count (first snap)
+        object.__setattr__(self, "_n_imm", 0)    # immune cell count (peak over run)
 
     def __getattr__(self, name):
         return getattr(object.__getattribute__(self, "_w"), name)
@@ -90,13 +92,34 @@ class _RecWorld:
         w = object.__getattribute__(self, "_w")
         nx, ny = self._dims()
         owners = np.asarray(w.snapshot(), dtype=np.int64).reshape(ny, nx)
+        # Cell counts: epithelial (types 1-3 = H/I/D) fixed at the intact sheet
+        # (first snap); immune (types 4-6 = M/K/E) tracked at its peak (they
+        # recruit/move over the run). cell_types() is per-cell (index 0 = medium).
+        ct = np.asarray(w.cell_types(), dtype=np.int64)[1:]
+        if not self._frames:
+            object.__setattr__(self, "_n_epi", int(np.isin(ct, (1, 2, 3)).sum()))
+        object.__setattr__(self, "_n_imm",
+                           max(self._n_imm, int(np.isin(ct, (4, 5, 6)).sum())))
         if self._owner:
             # cell-label mosaic (substrate relaxation) — labels can exceed 255
             grid = owners.astype(np.uint16)
+            self._frames.append({"mcs": int(self._mcs), "grid": _encode(grid)})
         else:
             types_arr = np.asarray(w.cell_types(), dtype=np.int64)
             grid = types_arr[owners].astype(np.uint8)   # per-site cell TYPE
-        self._frames.append({"mcs": int(self._mcs), "grid": _encode(grid)})
+            # Outline every individual cell (adjacent same-TYPE cells share a
+            # colour but differ in owner): paint the cell sites whose right or
+            # down neighbour has a different owner with the EDGE sentinel (8),
+            # giving thin 1px tessellation lines. Baked INTO the type grid (not a
+            # separate overlay) so the card embeds one heatmap, not two -> no
+            # size increase even at full-sheet density. Only cell sites (owner
+            # != 0) are marked, so the outline stays inside cells, not the medium.
+            edges = np.zeros_like(owners, dtype=bool)
+            edges[:, :-1] |= owners[:, :-1] != owners[:, 1:]
+            edges[:-1, :] |= owners[:-1, :] != owners[1:, :]
+            edges &= owners != 0
+            grid[edges] = 8
+            self._frames.append({"mcs": int(self._mcs), "grid": _encode(grid)})
 
     def step(self, n=1, *a, **k):
         if self._mcs >= self._next:
@@ -141,7 +164,7 @@ def _run_capture(driver, total_mcs, /, **kwargs):
     primary = max(_CREATED, key=lambda r: len(r._frames))
     primary._finish()
     nx, ny = primary._dims()
-    return list(primary._frames), nx, ny
+    return list(primary._frames), nx, ny, primary._n_epi, primary._n_imm
 
 
 def _subsample(frames: list, n: int) -> list:
@@ -173,7 +196,8 @@ def capture_all() -> dict:
     gnx, gny = world._dims()
     spatial["epithelial-sheet-baseline"] = {
         "kind": "owner", "enc": "zlib+b64", "dtype": "uint16",
-        "nx": gnx, "ny": gny, "seed": 17, "frames": of,
+        "nx": gnx, "ny": gny, "seed": 17,
+        "n_epi": int(world._n_epi), "n_imm": 0, "frames": of,
     }
     print(f"sheet: {len(of)} frames {gnx}x{gny} (owner mosaic)")
 
@@ -186,12 +210,14 @@ def capture_all() -> dict:
          dict(patch_mm=0.3, steps=60, seed=17), 600),
         ("epithelial-fate", run.run_epithelial_fate,
          dict(patch_mm=0.3, steps=200, seed=17), 2000),
-        ("macrophage-response", run.run_macrophage_response,
-         dict(steps=40, seed=17), 400),
-        ("signaling-fields", run.run_macrophage_signaling,
-         dict(steps=20, seed=17), 200),
-        ("cytotoxic-killing", run.run_cytotoxic_response,
-         dict(steps=60, seed=17), 600),
+        # Consolidated immune-response scene at TISSUE scale (~900 epithelial
+        # cells): macrophage/NK/CD8 chemotaxis toward an infected patch + the
+        # chemokine signalling field + contact-killing, replacing the three tiny
+        # (~10-cell) single-mechanism demos (Incr 5/6/7).
+        ("immune-response", run.run_cytotoxic_response,
+         dict(epithelial_cells_per_side=30, n_infected=12, n_macrophages=20,
+              n_nk=20, n_cd8=20, margin_sites=6, separation_sites=2,
+              steps=60, seed=17), 600),
         ("global-coupling", run.run_global_coupling,
          dict(side=30, steps=20, seed=3), 20),
         # CAPSTONE money-shot: full paper scale (35×35 = 1225-cell epithelial
@@ -203,15 +229,18 @@ def capture_all() -> dict:
               mcs_per_step=7), 5040),
     ]
     for slug, driver, kwargs, total_mcs in STUDIES:
-        frames, nx, ny = _run_capture(driver, total_mcs, **kwargs)
+        frames, nx, ny, n_epi, n_imm = _run_capture(driver, total_mcs, **kwargs)
         frames = _subsample(frames, N_FRAMES)
+        # Cell boundaries are baked into the type grid as the EDGE sentinel (8),
+        # so every study is outlined with no extra per-frame layer.
         spatial[slug] = {
             "kind": "type", "enc": "zlib+b64", "dtype": "uint8",
             "nx": nx, "ny": ny, "seed": int(kwargs.get("seed", 17)),
-            "frames": frames,
+            "n_epi": int(n_epi), "n_imm": int(n_imm), "frames": frames,
         }
         span = f'MCS {frames[0]["mcs"]}->{frames[-1]["mcs"]}'
-        print(f"{slug}: {len(frames)} frames {nx}x{ny} full-res  ({span})")
+        print(f"{slug}: {len(frames)} frames {nx}x{ny}  ({span}) "
+              f"[{n_epi} epi + {n_imm} immune cells]")
     return spatial
 
 

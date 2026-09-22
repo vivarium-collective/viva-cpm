@@ -149,15 +149,13 @@ description: |
   lesion, a separate one drives the per-update stochastic transition.
 
 claim: |
-  The extracellular virus field diffuses and decays (source-cited
-  parameters), and a seeded lesion of InfectedReleasing cells spreads via a
-  stochastic, virus-driven H -> I transition to nearby Healthy cells
-  (locally, within a few diffusion lengths), with total cell population
-  conserved every update. This is a MECHANISM-validation claim (the field
-  and the transition behave sensibly together), not a claim that any of
-  Sego et al. 2022's quantitative figure targets (Figs 3B/5/7) are met —
-  that reproduction verdict remains PENDING until Increment 9 (the
-  capstone).
+  The extracellular virus field diffuses and decays as specified, and a
+  seeded lesion of infected cells spreads via a stochastic, virus-driven
+  healthy-to-infected transition that stays local to existing infection,
+  with total cell population conserved throughout. This validates the
+  mechanism only — it is not a claim that any of Sego et al. 2022's
+  quantitative figure targets are met; that reproduction verdict remains
+  pending until the capstone increment.
 
 expected_behavior:
   - n_I grows from the seeded initial lesion over successive updates while

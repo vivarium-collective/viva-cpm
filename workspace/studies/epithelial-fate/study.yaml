@@ -179,23 +179,11 @@ description: |
 claim: |
   Wiring infection, infected death, and the cellularized Allee effect
   together produces a coherent, population-conserving epithelial-fate
-  lifecycle: a dead lesion grows via H->I->D (n_D: 0->14 at 200 updates,
-  0->77 at 500 updates, same seed=17/0.3mm/900-cell sheet as Increments
-  2/3), and the Allee branch responds correctly to local contact geometry
-  in BOTH directions -- a dead cell fully surrounded by healthy tissue
-  recovers (proven both deterministically in a hand-made frozen-geometry
-  world and organically in the full driver, 3-12 events/run), while a dead
-  cell surrounded by dying tissue never does (rate is provably 0, not just
-  empirically absent). This is a MECHANISM-validation claim (the fate
-  lifecycle composes correctly and the Allee branch is bidirectionally
-  functional), not a claim that any of Sego et al. 2022's quantitative
-  figure targets (Figs 3B/5/7) are met -- that reproduction verdict remains
-  PENDING until Increment 9 (the capstone). Direct H->D Allee death is
-  honestly reported as RARE at this reduced scale (0 observed events across
-  both runs) -- verified genuine via rate instrumentation (15,447
-  qualifying encounters, all correctly nonzero, expected ~0.19 successes),
-  not a wiring bug, and flagged as an open Increment-9 calibration question
-  rather than tuned away here.
+  lifecycle: a dead lesion grows, and dead cells surrounded by healthy
+  tissue recover while those surrounded by dying tissue never do. This
+  validates the mechanism only, not a reproduction of Sego et al. 2022's
+  figure targets. Direct Allee death is honestly reported as rare at this
+  scale, verified genuine rather than a wiring bug.
 
 expected_behavior:
   - The dead-cell count n_D grows from 0 over the course of a run, while
