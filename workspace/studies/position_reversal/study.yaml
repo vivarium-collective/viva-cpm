@@ -98,7 +98,7 @@ runs:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.position_reversal
-    params: {}
+    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    params: {study: position_reversal}
   model_settings: []
 inputs: []

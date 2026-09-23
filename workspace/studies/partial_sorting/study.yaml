@@ -98,7 +98,7 @@ runs:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.partial_sorting
-    params: {}
+    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    params: {study: partial_sorting}
   model_settings: []
 inputs: []

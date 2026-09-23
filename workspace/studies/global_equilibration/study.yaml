@@ -95,6 +95,6 @@ runs:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.global_equilibration
-    params: {}
+    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    params: {study: global_equilibration}
   model_settings: []
