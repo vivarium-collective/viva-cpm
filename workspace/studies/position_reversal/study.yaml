@@ -36,7 +36,7 @@ findings:
     kind: computational
     status: confirms
     statement: Dark cells sort OUTWARD, surrounding the light cells, the reversed pattern predicted for gamma_lM>gamma_dM (Figs 20-21).
-conclusion: 'Reproduced the paper''s Position reversal example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 20, Fig 21.'
+conclusion: 'Reproduced the paper''s Position reversal example with the exact energies and initial condition; the viva-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 20, Fig 21.'
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
@@ -94,11 +94,11 @@ runs:
         result: PASS
         measured_value: 1.0
         notes: corr_dM_final=1.000 (corr_lM 0.442→0.000), frac_ld 0.439→0.058
-        evaluated_by: pbg_cpm_studies.gg1993.validate
+        evaluated_by: viva_cpm_studies.gg1993.validate
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    composite: viva_cpm_studies.composites.gg1993.gg1993
     params: {study: position_reversal}
   model_settings: []
 inputs: []

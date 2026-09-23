@@ -8,12 +8,12 @@ an analysis/write-up only — no model code, sim runs, or study verdicts were ch
 **What "the CC3D simulation" is here.** We do not have a live CC3D run. The reference
 is (a) the digitized target curves — Fig 3B (time series vs. the global ODE), Fig 5
 (viral-load sweep), Fig 7 (infection-fraction sweep), and Fig 2/3 (spatial snapshots)
-— captured in `pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json`; and (b) the
+— captured in `viva_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json`; and (b) the
 transcribed CC3D *source*, dossiered in `docs/cc3d-reference/sego2022-parameters.md`,
 `…-global-ode.md`, and `…-source-notes.md`. The CC3D source (not the paper prose) is
 the fidelity ground truth per the source-notes convention.
 
-**What "our reproduction" is.** `pbg_cpm_studies/influenza/run.py::run_full_model` +
+**What "our reproduction" is.** `viva_cpm_studies/influenza/run.py::run_full_model` +
 `_one_mcs` — a single per-MCS pipeline assembling every mechanism primitive from
 Increments 0–8, with Increments 10–12 adding ROS death, scattered seeding, and the
 field-units correction. Paper-scale results (cells_per_side=35 / 1225 cells / 720
@@ -53,7 +53,7 @@ an explicitly bounded, not-yet-full-band-pass claim.
 ### 2.1 What we computed
 
 Decoded the baked capture `INFLUENZA_SPATIAL["repro-full-model"]`
-(`pbg_cpm_studies/visualizations/_influenza_spatial.py`; `zlib+base64` → `uint8`
+(`viva_cpm_studies/visualizations/_influenza_spatial.py`; `zlib+base64` → `uint8`
 per-site cell-type grid, nx=235, ny=195, seed=0, 18 frames spanning MCS 0→5033 ≈
 0–3.5 days). Type codes: MEDIUM=0, H=1, I=2, D=3, M=4, K=5, E=6. Per frame I computed
 per-epithelial composition (fractions of H/I/D among the H∪I∪D sites), 8-connected
@@ -325,9 +325,9 @@ immune-geometry differences are known, engine-imposed, and stated, not hidden.
 
 *Sources cited: `docs/cc3d-reference/sego2022-parameters.md` (§2–§7, mechanism literals
 + discrepancies #1–#8), `docs/cc3d-reference/sego2022-global-ode.md` (§2–§6, hybrid ODE +
-coupling + discrepancies #9–#12), `pbg_cpm_studies/influenza/targets/fig3b.json` (digitized
-CC3D/paper curves + bands), `pbg_cpm_studies/influenza/run.py::run_full_model`/`_one_mcs`
-(our pipeline), `pbg_cpm_studies/visualizations/_influenza_spatial.py`
+coupling + discrepancies #9–#12), `viva_cpm_studies/influenza/targets/fig3b.json` (digitized
+CC3D/paper curves + bands), `viva_cpm_studies/influenza/run.py::run_full_model`/`_one_mcs`
+(our pipeline), `viva_cpm_studies/visualizations/_influenza_spatial.py`
 (`repro-full-model` capture, decoded here). Our paper-scale numbers are from Mac-mini runs
 not stored in the repo. Spatial metrics in §2 were computed directly from the decoded
 capture for this analysis.*

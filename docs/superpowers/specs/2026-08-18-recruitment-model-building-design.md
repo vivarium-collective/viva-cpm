@@ -151,7 +151,7 @@ readouts pass `check-observables`.
 ## 4. Part B — the `recruitment-model-building` investigation
 
 ### B1. Mechanism library — real Processes
-New module `pbg_cpm_studies/model_building/mechanisms.py` defining the ladder as
+New module `viva_cpm_studies/model_building/mechanisms.py` defining the ladder as
 **real `process_bigraph` response-couplings** over the CPM engine, extending the
 existing `cpm.coupling.receptor_coupling` / `ReceptorSubcell`:
 
@@ -167,7 +167,7 @@ each mechanism → its default knobs + literature citation (mirroring casebook's
 `LIBRARY`), with **no test→mechanism answer key** baked in (NAVIGATE reasons from
 the failing test's `knob`/mechanism token).
 
-`pbg_cpm_studies/model_building/navigate.py` — the deterministic NAVIGATE policy:
+`viva_cpm_studies/model_building/navigate.py` — the deterministic NAVIGATE policy:
 given the graded contract, take the most-negative **hard** test and install the
 mechanism it pulls on (or take one knob-calibration step). Emergent: the climb
 static→hill→adaptive is a *consequence* of this policy, never a scripted list.
@@ -232,7 +232,7 @@ demonstrates the two-round audit genuinely rejecting an insufficient draft.
 (`adaptation_ratio` is retained as a **readout** and a directional axis in the
 report, not a hard gate, so an uncalibrated ε is not falsely failed.)
 
-A supporting composite (`pbg_cpm_studies/composites/chemotaxis_adaptive.py`,
+A supporting composite (`viva_cpm_studies/composites/chemotaxis_adaptive.py`,
 `@composite_generator` id `chemotaxis_adaptive.recruitment_adaptive`) exposes the
 adaptive coupling under the background conditions the contract measures:
 `low_bg`, `mid_bg`, `high_bg` (uniform baseline cue added on top of the source
@@ -292,10 +292,10 @@ lower rungs the loop recapitulates).
 ## 5. File plan
 
 New:
-- `pbg_cpm_studies/model_building/__init__.py`
-- `pbg_cpm_studies/model_building/mechanisms.py` — the 3-rung library (real couplings)
-- `pbg_cpm_studies/model_building/navigate.py` — deterministic NAVIGATE policy
-- `pbg_cpm_studies/composites/chemotaxis_adaptive.py` — adaptive composite + background conditions
+- `viva_cpm_studies/model_building/__init__.py`
+- `viva_cpm_studies/model_building/mechanisms.py` — the 3-rung library (real couplings)
+- `viva_cpm_studies/model_building/navigate.py` — deterministic NAVIGATE policy
+- `viva_cpm_studies/composites/chemotaxis_adaptive.py` — adaptive composite + background conditions
 - `workspace/studies/recruitment-adaptive/study.yaml` — the loop's target/contract
 - `workspace/investigations/recruitment-model-building/investigation.yaml`
 - `scripts/build_recruitment_loop.py` — the loop driver (emergent trajectory)

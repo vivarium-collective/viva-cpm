@@ -26,11 +26,11 @@
 
 - `crates/cpm-core/src/field.rs` — add `Field::value_at` / `Field::add_source_at` (core).
 - `crates/cpm-core/src/lib.rs` (World) + `crates/cpm-py/src/lib.rs` — expose `field_value_at` / `field_add_source_at` on the Python `World`.
-- `pbg_cpm_studies/influenza/epithelium_process.py` (NEW) — `EpitheliumProcess(CPMProcess)`: all-field per-cell readout, `field_at_point` output, `field_deposit` input, and the epithelial cell-fate transitions moved out of `run.py`.
-- `pbg_cpm_studies/influenza/immune_process.py` (NEW) — `ImmuneProcess`: agent state, chemotaxis, proximity killing, secretion deposition, ODE-driven recruitment.
-- `pbg_cpm_studies/influenza/ode_process.py` (NEW) — `SystemicODEProcess`: wraps `price_ode.GlobalODE`.
-- `pbg_cpm_studies/composites/influenza.py` — rewrite `full_model_composite_document` (`:452`) to wire the four processes; add `EPITHELIUM_ADDR`/`IMMUNE_ADDR`/`ODE_ADDR`.
-- `pbg_cpm_studies/influenza/run.py` — add `run_full_model_composite(...)` driving `process_bigraph.Composite`; leave `run_full_model` intact.
+- `viva_cpm_studies/influenza/epithelium_process.py` (NEW) — `EpitheliumProcess(CPMProcess)`: all-field per-cell readout, `field_at_point` output, `field_deposit` input, and the epithelial cell-fate transitions moved out of `run.py`.
+- `viva_cpm_studies/influenza/immune_process.py` (NEW) — `ImmuneProcess`: agent state, chemotaxis, proximity killing, secretion deposition, ODE-driven recruitment.
+- `viva_cpm_studies/influenza/ode_process.py` (NEW) — `SystemicODEProcess`: wraps `price_ode.GlobalODE`.
+- `viva_cpm_studies/composites/influenza.py` — rewrite `full_model_composite_document` (`:452`) to wire the four processes; add `EPITHELIUM_ADDR`/`IMMUNE_ADDR`/`ODE_ADDR`.
+- `viva_cpm_studies/influenza/run.py` — add `run_full_model_composite(...)` driving `process_bigraph.Composite`; leave `run_full_model` intact.
 - `tests/test_epithelium_process.py`, `tests/test_immune_process.py`, `tests/test_ode_process.py`, `tests/test_full_model_composite.py` (NEW).
 
 ---
@@ -120,7 +120,7 @@ git commit -m "cpm: field point read/deposit (field_value_at, field_add_source_a
 ### Task 1.2: EpitheliumProcess — extended CPM ports (all-field readout, point sample, point deposit)
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/epithelium_process.py`
+- Create: `viva_cpm_studies/influenza/epithelium_process.py`
 - Test: `tests/test_epithelium_process.py` (Create)
 
 **Interfaces:**
@@ -132,8 +132,8 @@ git commit -m "cpm: field point read/deposit (field_value_at, field_add_source_a
 ```python
 # tests/test_epithelium_process.py
 import numpy as np
-from pbg_cpm_studies.influenza.epithelium_process import EpitheliumProcess
-from pbg_cpm_studies.influenza import build, immune
+from viva_cpm_studies.influenza.epithelium_process import EpitheliumProcess
+from viva_cpm_studies.influenza import build, immune
 
 def _spec():
     return immune.build_cytotoxic_scenario_spec(
@@ -205,15 +205,15 @@ Also extend Task 1.2's test to assert these outputs exist:
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/influenza/epithelium_process.py tests/test_epithelium_process.py
+git add viva_cpm_studies/influenza/epithelium_process.py tests/test_epithelium_process.py
 git commit -m "influenza: EpitheliumProcess extends CPMProcess with all-field readout + point deposit"
 ```
 
 ### Task 1.3: EpitheliumProcess — epithelial cell-fate transitions moved in
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/epithelium_process.py`
-- Reference (verbatim mechanism source): `pbg_cpm_studies/influenza/run.py` `_one_mcs` steps 2–8.5 (`run.py:1975`–`2097`) and the helpers `transitions.*`, `resistance.cell_resistance`, `signaling.*`, `allee.*`, `fields.il10_hill_constants`, `price_ode.hill`.
+- Modify: `viva_cpm_studies/influenza/epithelium_process.py`
+- Reference (verbatim mechanism source): `viva_cpm_studies/influenza/run.py` `_one_mcs` steps 2–8.5 (`run.py:1975`–`2097`) and the helpers `transitions.*`, `resistance.cell_resistance`, `signaling.*`, `allee.*`, `fields.il10_hill_constants`, `price_ode.hill`.
 - Test: `tests/test_epithelium_process.py` (extend)
 
 **Interfaces:**
@@ -224,8 +224,8 @@ git commit -m "influenza: EpitheliumProcess extends CPMProcess with all-field re
 
 ```python
 def test_epithelium_process_fates_deplete_living_epithelium():
-    from pbg_cpm_studies.influenza.run import load_params
-    from pbg_cpm_studies.influenza import price_ode, types
+    from viva_cpm_studies.influenza.run import load_params
+    from viva_cpm_studies.influenza import price_ode, types
     spec = _spec(); spec["fields"] = None
     p = EpitheliumProcess({"spec": spec, "mcs_per_update": 1, "n_fields": 4,
                            "enable": ["infection","ifn","death","ros","allee"]})
@@ -250,7 +250,7 @@ def test_epithelium_process_fates_deplete_living_epithelium():
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/influenza/epithelium_process.py tests/test_epithelium_process.py
+git add viva_cpm_studies/influenza/epithelium_process.py tests/test_epithelium_process.py
 git commit -m "influenza: move epithelial cell-fate transitions into EpitheliumProcess (ordered, source-faithful)"
 ```
 
@@ -267,7 +267,7 @@ git commit -m "influenza: move epithelial cell-fate transitions into EpitheliumP
 ```python
 def test_epithelium_process_parity_with_run_full_model_epithelial_only():
     import numpy as np
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     enable = ["infection","ifn","death","allee"]   # ros/ode/immune off for a clean parity
     r = run.run_full_model(cells_per_side=8, steps=20, seed=3,
                            init_infection_frac=0.1, enable=enable)
@@ -299,7 +299,7 @@ git commit -m "influenza: Phase-1 parity gate — EpitheliumProcess matches run_
 ### Task 2.1: ImmuneProcess — agent state + chemotaxis
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/immune_process.py`
+- Create: `viva_cpm_studies/influenza/immune_process.py`
 - Test: `tests/test_immune_process.py` (Create)
 
 **Interfaces:**
@@ -311,8 +311,8 @@ git commit -m "influenza: Phase-1 parity gate — EpitheliumProcess matches run_
 ```python
 # tests/test_immune_process.py
 import numpy as np
-from pbg_cpm_studies.influenza.immune_process import ImmuneProcess
-from pbg_cpm_studies.influenza import types
+from viva_cpm_studies.influenza.immune_process import ImmuneProcess
+from viva_cpm_studies.influenza import types
 
 def _linear_field(nx, ny):
     # increasing in +x
@@ -337,15 +337,15 @@ def test_nk_agent_moves_up_chemokine_gradient():
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/influenza/immune_process.py tests/test_immune_process.py
+git add viva_cpm_studies/influenza/immune_process.py tests/test_immune_process.py
 git commit -m "influenza: ImmuneProcess agent state + chemotaxis (field-gradient step)"
 ```
 
 ### Task 2.2: ImmuneProcess — proximity killing + secretion deposition
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/immune_process.py`
-- Reference: `pbg_cpm_studies/influenza/killing.py` (`contact_kill_rate`, `nearby_kill_rate`), `signaling.macrophage_secretion_scale`, `fields.il10_hill_constants`.
+- Modify: `viva_cpm_studies/influenza/immune_process.py`
+- Reference: `viva_cpm_studies/influenza/killing.py` (`contact_kill_rate`, `nearby_kill_rate`), `signaling.macrophage_secretion_scale`, `fields.il10_hill_constants`.
 - Test: `tests/test_immune_process.py` (extend)
 
 **Interfaces:**
@@ -387,15 +387,15 @@ def test_macrophage_deposits_chemokine_when_sig1_positive():
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/influenza/immune_process.py tests/test_immune_process.py
+git add viva_cpm_studies/influenza/immune_process.py tests/test_immune_process.py
 git commit -m "influenza: ImmuneProcess proximity killing + macrophage chemokine/IL-10 deposition (source rates, proxy geometry documented)"
 ```
 
 ### Task 2.3: ImmuneProcess — ODE-driven recruitment (uncapped spawn/remove)
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/immune_process.py`
-- Reference: `pbg_cpm_studies/influenza/recruitment.py` (`macrophage_inflow`, `nk_inflow`, `cd8_inflow`, `*_outflow`, `ul_rate_to_prob`, `poisson_inflow_count`).
+- Modify: `viva_cpm_studies/influenza/immune_process.py`
+- Reference: `viva_cpm_studies/influenza/recruitment.py` (`macrophage_inflow`, `nk_inflow`, `cd8_inflow`, `*_outflow`, `ul_rate_to_prob`, `poisson_inflow_count`).
 - Test: `tests/test_immune_process.py` (extend)
 
 **Interfaces:**
@@ -429,7 +429,7 @@ def test_recruitment_grows_agents_uncapped():
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/influenza/immune_process.py tests/test_immune_process.py
+git add viva_cpm_studies/influenza/immune_process.py tests/test_immune_process.py
 git commit -m "influenza: ImmuneProcess ODE-driven recruitment (uncapped agent spawn/remove, local_ratio=1)"
 ```
 
@@ -440,8 +440,8 @@ git commit -m "influenza: ImmuneProcess ODE-driven recruitment (uncapped agent s
 ### Task 3.1: SystemicODEProcess
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/ode_process.py`
-- Reference: `pbg_cpm_studies/influenza/price_ode.py` (`GlobalODE.__init__(consts, *, num_epithelial)`, `GlobalODE.step(state, inputs, dt_seconds) -> dict`, `INTEGRATED_STATES`, `resolve_constants`), and `run.py` `_ode_couple` (`run.py:2098`–`2128`) for the input assembly + the `recruit_drivers` derivation.
+- Create: `viva_cpm_studies/influenza/ode_process.py`
+- Reference: `viva_cpm_studies/influenza/price_ode.py` (`GlobalODE.__init__(consts, *, num_epithelial)`, `GlobalODE.step(state, inputs, dt_seconds) -> dict`, `INTEGRATED_STATES`, `resolve_constants`), and `run.py` `_ode_couple` (`run.py:2098`–`2128`) for the input assembly + the `recruit_drivers` derivation.
 - Test: `tests/test_ode_process.py` (Create)
 
 **Interfaces:**
@@ -452,9 +452,9 @@ git commit -m "influenza: ImmuneProcess ODE-driven recruitment (uncapped agent s
 
 ```python
 # tests/test_ode_process.py
-from pbg_cpm_studies.influenza.ode_process import SystemicODEProcess
-from pbg_cpm_studies.influenza import price_ode
-from pbg_cpm_studies.influenza.run import load_params
+from viva_cpm_studies.influenza.ode_process import SystemicODEProcess
+from viva_cpm_studies.influenza import price_ode
+from viva_cpm_studies.influenza.run import load_params
 
 def test_ode_process_advances_and_emits_drivers():
     p = load_params()
@@ -476,26 +476,26 @@ def test_ode_process_advances_and_emits_drivers():
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/influenza/ode_process.py tests/test_ode_process.py
+git add viva_cpm_studies/influenza/ode_process.py tests/test_ode_process.py
 git commit -m "influenza: SystemicODEProcess wraps GlobalODE (ode_state + recruit_drivers + sig_1)"
 ```
 
 ### Task 3.2: full_model Composite document
 
 **Files:**
-- Modify: `pbg_cpm_studies/composites/influenza.py` (`full_model_composite_document`, `:452`; add address constants near `:44`)
+- Modify: `viva_cpm_studies/composites/influenza.py` (`full_model_composite_document`, `:452`; add address constants near `:44`)
 - Test: `tests/test_full_model_composite.py` (Create)
 
 **Interfaces:**
 - Consumes: `EpitheliumProcess`, `ImmuneProcess`, `SystemicODEProcess`.
-- Produces: `full_model_composite_document(...)` returning a document with nodes `epithelium`, `immune`, `ode` and stores `fates`, `field_deposit`, `immune_agents`, `chemo_field`, `virus_field`, `dims`, `positions`, `types`, `epithelial_positions`, `infected_ids`, `ode_state`, `recruit_drivers`, `sig_1`, `immune_kills`, `margin_box`. Wire per the spec's data-flow diagram. `EPITHELIUM_ADDR = "local:!pbg_cpm_studies.influenza.epithelium_process.EpitheliumProcess"` etc.
+- Produces: `full_model_composite_document(...)` returning a document with nodes `epithelium`, `immune`, `ode` and stores `fates`, `field_deposit`, `immune_agents`, `chemo_field`, `virus_field`, `dims`, `positions`, `types`, `epithelial_positions`, `infected_ids`, `ode_state`, `recruit_drivers`, `sig_1`, `immune_kills`, `margin_box`. Wire per the spec's data-flow diagram. `EPITHELIUM_ADDR = "local:!viva_cpm_studies.influenza.epithelium_process.EpitheliumProcess"` etc.
 
 - [ ] **Step 1: Write the failing test** — the document builds a `process_bigraph.Composite` and steps once without error, and all three process nodes are present:
 
 ```python
 # tests/test_full_model_composite.py
-from pbg_cpm_studies.composites.influenza import full_model_composite_document
-from pbg_cpm_studies.core import build_core
+from viva_cpm_studies.composites.influenza import full_model_composite_document
+from viva_cpm_studies.core import build_core
 from process_bigraph import Composite
 
 def test_full_model_composite_builds_and_steps():
@@ -508,21 +508,21 @@ def test_full_model_composite_builds_and_steps():
 
 - [ ] **Step 2: Run to verify it fails** → FAIL.
 
-- [ ] **Step 3: Implement** the document. Reuse `_cpm_store`'s scene-building for the epithelium node config but point its address at `EPITHELIUM_ADDR`; build the scene via the same `immune.build_cytotoxic_scenario_spec` + scatter that `run_full_model` uses; seed `immune_agents` with the initial M/K/E agents; set `margin_box` from the scene dims. Confirm `build_core()` resolves `local:!…` addresses (see `pbg_cpm_studies/core.py`).
+- [ ] **Step 3: Implement** the document. Reuse `_cpm_store`'s scene-building for the epithelium node config but point its address at `EPITHELIUM_ADDR`; build the scene via the same `immune.build_cytotoxic_scenario_spec` + scatter that `run_full_model` uses; seed `immune_agents` with the initial M/K/E agents; set `margin_box` from the scene dims. Confirm `build_core()` resolves `local:!…` addresses (see `viva_cpm_studies/core.py`).
 
 - [ ] **Step 4: Run to verify it passes** → PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/composites/influenza.py tests/test_full_model_composite.py
+git add viva_cpm_studies/composites/influenza.py tests/test_full_model_composite.py
 git commit -m "influenza: full_model composite document wires Epithelium+Immune+ODE processes"
 ```
 
 ### Task 3.3: run_full_model_composite driver
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/run.py` (add `run_full_model_composite`; do not touch `run_full_model`)
+- Modify: `viva_cpm_studies/influenza/run.py` (add `run_full_model_composite`; do not touch `run_full_model`)
 - Test: `tests/test_full_model_composite.py` (extend)
 
 **Interfaces:**
@@ -533,7 +533,7 @@ git commit -m "influenza: full_model composite document wires Epithelium+Immune+
 
 ```python
 def test_run_full_model_composite_shape_and_decline():
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     r = run.run_full_model_composite(cells_per_side=8, steps=12, seed=1, init_infection_frac=0.1)
     for k in ("counts","fields","ode","t_days","params"):
         assert k in r
@@ -550,7 +550,7 @@ def test_run_full_model_composite_shape_and_decline():
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/influenza/run.py tests/test_full_model_composite.py
+git add viva_cpm_studies/influenza/run.py tests/test_full_model_composite.py
 git commit -m "influenza: run_full_model_composite drives the pb Composite (same result shape)"
 ```
 
@@ -567,14 +567,14 @@ git commit -m "influenza: run_full_model_composite drives the pb Composite (same
 
 ```python
 def test_composite_epithelial_parity_reduced_scale():
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     ref = run.run_full_model(cells_per_side=8, steps=15, seed=2, init_infection_frac=0.1)
     got = run.run_full_model_composite(cells_per_side=8, steps=15, seed=2, init_infection_frac=0.1)
     d_ref, d_got = ref["counts"]["dead"][-1], got["counts"]["dead"][-1]
     assert abs(d_got - d_ref) <= max(3, int(0.15 * max(d_ref, 1)))
 
 def test_composite_immune_not_pool_capped():
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     got = run.run_full_model_composite(cells_per_side=12, steps=40, seed=1, init_infection_frac=0.05)
     assert max(got["counts"]["macrophage"]) >= 12   # grows with the tissue, not a fixed pool
 ```

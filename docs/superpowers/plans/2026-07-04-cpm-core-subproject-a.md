@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Repo root: `pbg-cpm` (git already initialized; spec committed).
+- Repo root: `viva-cpm` (git already initialized; spec committed).
 - `CellId = u32`; `MEDIUM: CellId = 0` is the ECM/medium sentinel and is exempt from Volume and Surface energy.
 - Dimension-generic: 2D is 3D with `dims[2] == 1`. Never write a separate 2D code path.
 - Lattice index order: `idx = x + y*nx + z*nx*ny`.
@@ -25,7 +25,7 @@
 ## File Structure
 
 ```
-pbg-cpm/
+viva-cpm/
   Cargo.toml                      # workspace
   pyproject.toml                  # maturin, module cpm_core, python-source "."
   crates/
@@ -96,7 +96,7 @@ Create empty module files so it compiles: `crates/cpm-core/src/lattice.rs`, `wor
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd pbg-cpm && cargo test -p cpm-core`
+Run: `cd viva-cpm && cargo test -p cpm-core`
 Expected: FAIL — no workspace/manifest yet ("could not find `Cargo.toml`").
 
 - [ ] **Step 3: Write minimal implementation**
@@ -1163,7 +1163,7 @@ requires = ["maturin>=1.5,<2"]
 build-backend = "maturin"
 
 [project]
-name = "pbg-cpm"
+name = "viva-cpm"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = ["process-bigraph"]
@@ -1177,7 +1177,7 @@ python-source = "."
 Build the environment:
 
 ```bash
-cd pbg-cpm
+cd viva-cpm
 uv venv --python 3.12
 source .venv/bin/activate
 uv pip install maturin pytest process-bigraph
@@ -1369,7 +1369,7 @@ Expected: FAIL — `cpm` package / `write_pack` not found.
 
 `cpm/__init__.py`:
 ```python
-"""pbg-cpm: process-bigraph Cellular Potts framework (Python layer)."""
+"""viva-cpm: process-bigraph Cellular Potts framework (Python layer)."""
 ```
 
 `cpm/pack.py`:

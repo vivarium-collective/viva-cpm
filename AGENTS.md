@@ -14,7 +14,7 @@ pbg-superpowers workspace.
 ## What this workspace is
 
 `cpm-studies` is a pbg-superpowers workspace. The Python package
-lives under `pbg_cpm_studies/`; investigations live under
+lives under `viva_cpm_studies/`; investigations live under
 `workspace/investigations/<slug>/`; per-study YAML + runs live under
 `workspace/studies/<slug>/`. See [`README.md`](README.md) and
 [`NEXT_STEPS.md`](NEXT_STEPS.md) for the workspace's purpose + onboarding

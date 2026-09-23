@@ -6,7 +6,7 @@ conversation. The recruitment mechanism ladder is one real caller in production.
 """
 import numpy as np
 
-from pbg_cpm_studies.model_building import calibrate as C
+from viva_cpm_studies.model_building import calibrate as C
 
 
 def test_screen_ranks_the_influential_parameter_first():
@@ -75,7 +75,7 @@ def test_calibrate_is_deterministic():
 
 def test_refine_parallel_matches_serial_and_runs_concurrently():
     import threading
-    from pbg_cpm_studies.model_building import calibrate as C
+    from viva_cpm_studies.model_building import calibrate as C
 
     def obj(p):
         return 1.0 - abs(p["x"] - 0.6)

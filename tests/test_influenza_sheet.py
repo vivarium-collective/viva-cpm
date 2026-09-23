@@ -1,4 +1,4 @@
-from pbg_cpm_studies.influenza import sheet, types
+from viva_cpm_studies.influenza import sheet, types
 
 
 def test_sheet_lattice_and_cell_count_0p3mm():
@@ -26,7 +26,7 @@ def test_sheet_potts_uses_paper_cpm_constants():
 
 
 def test_world_builds_and_holds_volume_after_relaxation():
-    from pbg_cpm_studies.influenza import build, sheet
+    from viva_cpm_studies.influenza import build, sheet
     spec = sheet.build_sheet_spec(0.3)
     w = build.world_from_spec(spec)
     assert w.n_cells() == 900

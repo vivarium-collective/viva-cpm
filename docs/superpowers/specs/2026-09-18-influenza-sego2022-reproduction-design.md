@@ -94,7 +94,7 @@ paper scale (250k lattice sites / ~10k cells at 1 mm²):
   extend to a batched ρ solve to contain the dominant cost).
 - Contact-area-by-type query (for Allee `a_H` and contact killing).
 
-**Python processes (`cpm/processes`, `pbg_cpm_studies/composites`)** — the
+**Python processes (`cpm/processes`, `viva_cpm_studies/composites`)** — the
 lower-frequency biology, orchestrated by `CPMProcess`-style Steps over the Rust
 world:
 - `TransitionProcess` — evaluates Table-2 stochastic transitions per cell per

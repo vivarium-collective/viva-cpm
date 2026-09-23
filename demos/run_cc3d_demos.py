@@ -1,5 +1,5 @@
 """Reimplement canonical CompuCell3D demos with CC3D's actual parameters, run
-them on the pbg-cpm engine, VALIDATE the output against CC3D's expected
+them on the viva-cpm engine, VALIDATE the output against CC3D's expected
 behavior, and export time-series for the viewer.
 
 Demos (see docs/cc3d-reference/demo-parameters.md):

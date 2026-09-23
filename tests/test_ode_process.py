@@ -1,8 +1,8 @@
 import process_bigraph as pb
 
-from pbg_cpm_studies.influenza.ode_process import SystemicODEProcess
-from pbg_cpm_studies.influenza import price_ode
-from pbg_cpm_studies.influenza.run import load_params
+from viva_cpm_studies.influenza.ode_process import SystemicODEProcess
+from viva_cpm_studies.influenza import price_ode
+from viva_cpm_studies.influenza.run import load_params
 
 
 def test_ode_process_advances_and_emits_drivers():

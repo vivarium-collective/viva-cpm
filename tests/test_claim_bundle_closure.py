@@ -12,7 +12,7 @@ decoupled from the Rust engine (importing the package would pull in composites).
 import importlib.util
 from pathlib import Path
 
-_MODULE = Path(__file__).resolve().parents[1] / "pbg_cpm_studies" / "claim_bundle_closure.py"
+_MODULE = Path(__file__).resolve().parents[1] / "viva_cpm_studies" / "claim_bundle_closure.py"
 
 
 def _derive():

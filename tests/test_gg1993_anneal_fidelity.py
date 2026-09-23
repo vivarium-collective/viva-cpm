@@ -15,9 +15,9 @@ heterotypic fraction. On the buggy code these diverge (~0.45 vs ~0.15).
 
 import numpy as np
 
-from pbg_cpm_studies.gg1993 import engine, metrics
-from pbg_cpm_studies.gg1993.engine import WorldParams, energies_from_paper
-from pbg_cpm_studies.gg1993.types import LIGHT, DARK
+from viva_cpm_studies.gg1993 import engine, metrics
+from viva_cpm_studies.gg1993.engine import WorldParams, energies_from_paper
+from viva_cpm_studies.gg1993.types import LIGHT, DARK
 
 
 def _build_sorting_sim(seed=3):

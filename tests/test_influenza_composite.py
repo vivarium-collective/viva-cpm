@@ -1,7 +1,7 @@
 import process_bigraph as pb
 
-from pbg_cpm_studies.composites import influenza as inf
-from pbg_cpm_studies.influenza import types as inf_types
+from viva_cpm_studies.composites import influenza as inf
+from viva_cpm_studies.influenza import types as inf_types
 
 
 def test_composite_document_runs_and_emits():

@@ -47,8 +47,8 @@ from __future__ import annotations
 
 import math
 
-from pbg_cpm_studies.influenza import killing, run
-from pbg_cpm_studies.influenza.params import load_params
+from viva_cpm_studies.influenza import killing, run
+from viva_cpm_studies.influenza.params import load_params
 
 SEED = 17
 

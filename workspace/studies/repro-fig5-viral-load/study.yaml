@@ -525,7 +525,7 @@ findings:
       by ~n_lattice_sites (structurally worse at paper scale, more lattice
       sites), which is exactly what F-03 originally (mis)diagnosed as a
       PFU-equivalent calibration gap. `_map_full_model_observables`
-      (`pbg_cpm_studies/influenza/run.py`) now converts only the 4
+      (`viva_cpm_studies/influenza/run.py`) now converts only the 4
       field-typed observables to the SPATIAL-MEAN concentration
       (`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run's
       own `params.dims`) at the repro-observable-mapping layer -- NOT in
@@ -748,7 +748,7 @@ key_assumptions:
 literature_anchors:
   - expectation: "Sego 2022 Fig. 5 / Sec. 3.3, p.9: the spatial CPM model trends toward lethal outcomes (near-total uninfected-cell loss) only near a ~1000x increase over the ODE-calibrated initial viral dose (multiplier 10000), while multipliers 1/10/100/1000 remain non-lethal across all 50 replicas -- a spatial-vs-ODE disagreement, since the ODE model alone predicts lethal outcomes from multiplier 10 upward (Fig. 4/5 disagreement)."
     model_observable: "run.repro_fig5's per-load ensemble (mapped to targets/fig5.json's exact observable keys, evaluated per load via _fig5_target_subset/_evaluate_fig5_subset) at REDUCED scale (loads=(1,10000), replicas=1, cells_per_side=12, steps=15): band_eval['passed']=False for both loads (population-scale/run-duration mismatch, per report.key_metrics; the virus-field units mismatch is resolved, see F-04); the qualitative monotone dose-response direction holds (uninfected_final_frac 0.958333 at load=1 -> 0.0 at load=10000), a directional echo of the paper's own lethal-threshold-near-10000x narrative, NOT a magnitude or threshold-value reproduction (only 2 of 5 loads tested)."
-    source: "Sego et al. 2022, Fig. 5, p.9 (digitized by eye from log-scale panels, approximate) via pbg_cpm_studies/influenza/targets/fig5.json"
+    source: "Sego et al. 2022, Fig. 5, p.9 (digitized by eye from log-scale panels, approximate) via viva_cpm_studies/influenza/targets/fig5.json"
     status_in_workspace: "Driver wired and evaluable, scenario-grouping guard verified (F-01); monotone dose-response direction holds at reduced scale (F-02); per-load band containment reported honestly as a scale/duration-driven miss (F-03), NOT a reproduction claim; the prior structural units bug in extracellular_virus's observable mapping is fixed (F-04, Task-9.3-review) -- extracellular_virus is no longer a miss driver; the small domain-geometry residual (~0.375x) previously flagged after that fix is also resolved, following the subsequent `init_viral_load` IC fix (this update, see F-04). Paper-scale 50-replica, all-5-load ensemble is the Mac-mini Phase-B follow-up that will set the reproduced verdict."
     cites: [sego2022influenza]
 
@@ -760,17 +760,17 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.full_model
+  base_model: viva_cpm_studies.composites.influenza.full_model
   new_processes: []
   new_state_variables: [repro_fig5 per-load ensemble-mean series per fig5 observable key, per-load band_eval (in_band/n_checked/n_in/worst_miss), lethal_threshold]
   new_parameters: [loads, replicas, seed0]
   modified_processes: []
   new_listeners: []
   notes: |
-    `run.repro_fig5` is a driver-level function (`pbg_cpm_studies/
+    `run.repro_fig5` is a driver-level function (`viva_cpm_studies/
     influenza/run.py`), not a new dashboard-loadable composite; it drives
     `run.run_full_model` directly (a raw `cpm_core.World` loop, same as
-    every other Increment 9 driver), reusing `pbg_cpm_studies.composites.
+    every other Increment 9 driver), reusing `viva_cpm_studies.composites.
     influenza.full_model` (Task 9.1's composite wrapper) as this study's
     `base_model` for provenance/report-card purposes. The composite wrapper
     itself is unchanged by this task.
@@ -803,7 +803,7 @@ discovery_implications:
     - id: incr9-fig5-virus-units-calibration
       title: "RESOLVED (Task-9.3-review MUST-FIX, this update, see F-04): the extracellular_virus miss was a units BUG, not a PFU-scale calibration gap -- fixed by reporting spatial-mean concentration instead of the raw lattice sum"
       status: resolved
-      motivation: "ORIGINAL (superseded): extracellular_virus missed fig5's bands by the same ~1000x order of magnitude at BOTH tested loads, consistent with repro_fig3b's own finding for the same observable, and was read as a units/scale mismatch between this engine's virus-field integral and the paper's reported PFU-equivalent values. RESOLUTION: it was a structural raw-sum-vs-mean bug in the repro-observable mapping layer (fixed in `_map_full_model_observables`, pbg_cpm_studies/influenza/run.py); extracellular_virus is now fully in-band at load=10000 and 5/6 at load=1 (post the subsequent init_viral_load IC fix, this update). The ~0.375x domain-geometry residual this bug's fix left behind is tracked below and is now RESOLVED too."
+      motivation: "ORIGINAL (superseded): extracellular_virus missed fig5's bands by the same ~1000x order of magnitude at BOTH tested loads, consistent with repro_fig3b's own finding for the same observable, and was read as a units/scale mismatch between this engine's virus-field integral and the paper's reported PFU-equivalent values. RESOLUTION: it was a structural raw-sum-vs-mean bug in the repro-observable mapping layer (fixed in `_map_full_model_observables`, viva_cpm_studies/influenza/run.py); extracellular_virus is now fully in-band at load=10000 and 5/6 at load=1 (post the subsequent init_viral_load IC fix, this update). The ~0.375x domain-geometry residual this bug's fix left behind is tracked below and is now RESOLVED too."
     - id: incr9-fig5-virus-domain-dilution-residual
       title: "RESOLVED (this update, see F-04): the ~0.375x patch/full-domain-area dilution residual left in extracellular_virus after the Task-9.3-review units fix is no longer present following the init_viral_load IC fix"
       status: resolved
@@ -812,7 +812,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.full_model
+    composite: viva_cpm_studies.composites.influenza.full_model
     params: {loads: [1, 10000], replicas: 1, cells_per_side: 12, steps: 15, seed0: 0}  # the reduced fast-test config this study's numbers come from; run.repro_fig5 is a driver function, not exercised through this composite directly -- see model_change.notes
 
   model_settings: []

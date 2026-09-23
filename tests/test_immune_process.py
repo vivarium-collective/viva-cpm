@@ -1,12 +1,12 @@
 import numpy as np
 import process_bigraph as pb
 import pytest
-from pbg_cpm_studies.influenza.immune_process import ImmuneProcess
-from pbg_cpm_studies.influenza import types
-from pbg_cpm_studies.influenza.fields import il10_hill_constants
-from pbg_cpm_studies.influenza.killing import contact_kill_rate
-from pbg_cpm_studies.influenza.params import load_params
-from pbg_cpm_studies.influenza.signaling import macrophage_secretion_scale
+from viva_cpm_studies.influenza.immune_process import ImmuneProcess
+from viva_cpm_studies.influenza import types
+from viva_cpm_studies.influenza.fields import il10_hill_constants
+from viva_cpm_studies.influenza.killing import contact_kill_rate
+from viva_cpm_studies.influenza.params import load_params
+from viva_cpm_studies.influenza.signaling import macrophage_secretion_scale
 
 
 def _linear_field(nx, ny):

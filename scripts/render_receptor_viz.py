@@ -2,7 +2,7 @@
 """Render the receptor-recruitment study figures to each study's ``viz/`` dir.
 
 The three receptor visualizations in
-``pbg_cpm_studies.visualizations.receptor_studies`` are self-contained (their
+``viva_cpm_studies.visualizations.receptor_studies`` are self-contained (their
 Plotly data is baked in from the analysed 5-seed runs, so rendering needs no
 live simulation). This script wraps each fragment in a standalone HTML page —
 matching the ``chemotaxis/scene.py`` convention that produced
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pbg_cpm_studies.visualizations import receptor_studies as V
+from viva_cpm_studies.visualizations import receptor_studies as V
 
 # study slug -> the receptor investigation's shared figure set (baseline vs
 # blocked are two conditions of one comparison, so both carry the full set;

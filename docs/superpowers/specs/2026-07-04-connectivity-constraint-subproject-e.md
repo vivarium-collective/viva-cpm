@@ -1,7 +1,7 @@
 # Sub-project E, Spec 1 — CPM Connectivity Constraint
 
 **Status:** design approved 2026-07-04
-**Umbrella:** [pbg-cpm design](2026-07-04-pbg-cpm-design.md), Sub-project E (tissue mechanics / structural integrity)
+**Umbrella:** [viva-cpm design](2026-07-04-viva-cpm-design.md), Sub-project E (tissue mechanics / structural integrity)
 
 ## Goal
 

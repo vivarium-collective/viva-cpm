@@ -35,7 +35,7 @@ findings:
     kind: computational
     status: confirms
     statement: A light-cell-lined medium cavity nucleates within the aggregate (Fig 28); reproduced approximately (the paper notes this case is delicate).
-conclusion: 'Reproduced the paper''s Vacancy nucleation (cavity) example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 28.'
+conclusion: 'Reproduced the paper''s Vacancy nucleation (cavity) example with the exact energies and initial condition; the viva-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 28.'
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
@@ -93,11 +93,11 @@ runs:
         result: PASS
         measured_value: 0.543
         notes: boundary 36301→28836, frac_dd 0.358→0.543
-        evaluated_by: pbg_cpm_studies.gg1993.validate
+        evaluated_by: viva_cpm_studies.gg1993.validate
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    composite: viva_cpm_studies.composites.gg1993.gg1993
     params: {study: vacancy_cavity}
   model_settings: []
 inputs: []

@@ -4,7 +4,7 @@ Increment-5 crux -- proves the macrophage cell type (`types.M`) chemotaxes up
 the extracellular-virus gradient toward the infection (paper Fig 2B / Fig 3A
 -- macrophages accumulate at the lesion), using the existing engine
 chemotaxis primitive (`World.set_chemotaxis`) wired the same way
-`pbg_cpm_studies.chemotaxis` wires its source/responder recipe -- no Rust
+`viva_cpm_studies.chemotaxis` wires its source/responder recipe -- no Rust
 change.
 
 Two tests:
@@ -50,7 +50,7 @@ from __future__ import annotations
 
 import math
 
-from pbg_cpm_studies.influenza import build, fields, immune, run, types
+from viva_cpm_studies.influenza import build, fields, immune, run, types
 
 SEED = 17
 

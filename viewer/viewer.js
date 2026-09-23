@@ -1,4 +1,4 @@
-// pbg-cpm viewer — renders exported Cellular Potts time-series with an
+// viva-cpm viewer — renders exported Cellular Potts time-series with an
 // interrogation UI: color-by modes, per-type toggles, hover cell inspection,
 // full playback transport, chemical-field overlay, and live measurements.
 import * as THREE from "three";

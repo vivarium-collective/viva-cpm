@@ -17,7 +17,7 @@ we add.
 The investigation **names its own refinement and records the exact gap we close**:
 
 - Composite already exposes the down-scale socket, wired but empty:
-  `"inputs": {"fates": ["fates"]}` with `"fates": {}` (`pbg_cpm_studies/composites/chemotaxis.py`).
+  `"inputs": {"fates": ["fates"]}` with `"fates": {}` (`viva_cpm_studies/composites/chemotaxis.py`).
 - Recorded semantic gap (investigation.yaml `caveats`): *"CPM chemotaxis lambda is a PHENOMENOLOGICAL
   response strength … not a receptor-level model — a recorded semantic gap, not a hidden one."*
 - Named refinement (investigation.yaml `competing_frameworks`): *"Receptor-kinetics / ODE chemotaxis
@@ -90,7 +90,7 @@ published model later (§7).
   occupancy crosses threshold. (Graded naive/partial/full with intermediate λ is a trivial extension for
   a smoother dose-response — §7.)
 
-### 2.3 Composite — `pbg_cpm_studies/composites/chemotaxis_receptor.py`
+### 2.3 Composite — `viva_cpm_studies/composites/chemotaxis_receptor.py`
 
 New `@composite_generator` factory `recruitment_receptor`, reusing `chemotaxis.build_spec(...)` for the
 CPM world (adding the type-3 contact rows) and adding, per responder cell:
@@ -125,7 +125,7 @@ render in the dashboard today but are currently unused workspace-wide. Each is l
    `claim-bundle/realization.yaml` naming what must be preserved, and (b) a reusable check comparing the
    two realizations' recruitment observables (§4, H3).
 3. **Scale translator (`aggregate`, cell→tissue)** — lift the recruitment-index reduction
-   (`pbg_cpm_studies/chemotaxis/metrics.py: recruitment_index_from_coms`) into a **declared readout /
+   (`viva_cpm_studies/chemotaxis/metrics.py: recruitment_index_from_coms`) into a **declared readout /
    typed emitted observable** with `index_by`/`units`, so the tissue-scale quantity is first-class rather
    than a post-hoc script (§4, H1).
 
@@ -180,15 +180,15 @@ these rather than adding a parallel notion:
   in `viva-superpowers/skills/viva-expert/reference.md:1005` — effectively the informal spec of the
   translator concept.
 - **Strongest existing instance (typed-by-convention, validates, registry-dispatched):**
-  `pbg_cpm_studies/evaluators.py:45,85` `_recruitment_index` + `register_evaluators` — a backend-neutral
+  `viva_cpm_studies/evaluators.py:45,85` `_recruitment_index` + `register_evaluators` — a backend-neutral
   `measure` → backend observable, keyed by kind, with validation. **Increment 1's studies reuse this exact
   extractor.** H2/H3 extend it; the measure-crossing formalism should *become* this, generalized.
 - **Prose-only bindings to make executable:** `claim-bundle/realization.yaml` `bindings:` /
   `intervention-binding:` declare source→target + fidelity but as human strings — give them a typed,
-  resolvable form so `pbg_cpm_studies/claim_bundle_closure.py` can check a binding names a real
+  resolvable form so `viva_cpm_studies/claim_bundle_closure.py` can check a binding names a real
   extractor/param, not just id cross-refs.
-- **Untyped reductions to type (H1):** `cpm/metrics.py`, `pbg_cpm_studies/chemotaxis/metrics.py`,
-  `pbg_cpm_studies/gg1993/metrics.py` (state→observable). H1 also **collapses the two parallel registries**
+- **Untyped reductions to type (H1):** `cpm/metrics.py`, `viva_cpm_studies/chemotaxis/metrics.py`,
+  `viva_cpm_studies/gg1993/metrics.py` (state→observable). H1 also **collapses the two parallel registries**
   — `evaluators.py` (by measure-kind) and `gg1993/validate.py:35 MEASURE` (by study-slug) — into one.
 
 **Consolidation principle:** the typed translator generalizes `transform` / `Bridge` / the evaluators
@@ -253,7 +253,7 @@ viva-cpm into upstream packages (do once proven here).
 3. **Refinement preservation** — receptor-realization vs phenomenological-λ recruitment, overlaid with CI
    ribbons: the satisfaction condition (and the translator "round-trip") made visible.
 
-New viz functions in `pbg_cpm_studies/visualizations/` (`@as_visualization`), following the existing
+New viz functions in `viva_cpm_studies/visualizations/` (`@as_visualization`), following the existing
 `chemotaxis_studies.py` pattern.
 
 ## 9. How this feeds the general formalism

@@ -18,8 +18,8 @@ import math
 
 import numpy as np
 
-from pbg_cpm_studies.influenza import allee, run, types
-from pbg_cpm_studies.influenza.params import load_params
+from viva_cpm_studies.influenza import allee, run, types
+from viva_cpm_studies.influenza.params import load_params
 
 try:
     from cpm import cpm_core

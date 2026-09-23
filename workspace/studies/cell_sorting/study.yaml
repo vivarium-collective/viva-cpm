@@ -36,7 +36,7 @@ findings:
     kind: computational
     status: confirms
     statement: 'Complete cell sorting: dark cells cluster internally beneath a light monolayer; heterotypic contact falls while light-medium contact rises, reproducing Figs 12-16 and Tables II-III.'
-conclusion: 'Reproduced the paper''s Cell sorting example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 12, Fig 13, Fig 14, Fig 15, Fig 16, Table II, Table III.'
+conclusion: 'Reproduced the paper''s Cell sorting example with the exact energies and initial condition; the viva-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 12, Fig 13, Fig 14, Fig 15, Fig 16, Table II, Table III.'
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
@@ -94,11 +94,11 @@ runs:
         result: PASS
         measured_value: 1.0
         notes: frac_ld 0.435→0.079 (82% drop), corr_lM 0.462→1.000
-        evaluated_by: pbg_cpm_studies.gg1993.validate
+        evaluated_by: viva_cpm_studies.gg1993.validate
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    composite: viva_cpm_studies.composites.gg1993.gg1993
     params: {study: cell_sorting}
   model_settings: []
 inputs: []

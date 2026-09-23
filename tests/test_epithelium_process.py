@@ -1,7 +1,7 @@
 import numpy as np
 import process_bigraph as pb
-from pbg_cpm_studies.influenza.epithelium_process import EpitheliumProcess
-from pbg_cpm_studies.influenza import build, immune, types
+from viva_cpm_studies.influenza.epithelium_process import EpitheliumProcess
+from viva_cpm_studies.influenza import build, immune, types
 
 
 def _spec():
@@ -204,7 +204,7 @@ def test_epithelium_process_parity_with_run_full_model_epithelial_only():
     # seeded from the shared spec["potts"]["seed"] == seed) over the
     # IDENTICAL scene and MCS cadence, so exact agreement is expected, not
     # just "within tolerance".
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     enable = ["infection", "ifn", "death", "allee"]   # ros/ode/immune off for a clean parity
     r = run.run_full_model(cells_per_side=8, steps=20, seed=3,
                            init_infection_frac=0.1, enable=enable)

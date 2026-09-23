@@ -214,7 +214,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.chemotaxis.recruitment
+  base_model: viva_cpm_studies.composites.chemotaxis.recruitment
   new_processes: []
   new_state_variables: []
   new_parameters: [cue_rate, chemo_lambda]
@@ -257,7 +257,7 @@ runs:
         result: PASS
         measured_value: 0.767
         notes: 0.767 ± 0.170 across 5 seeds vs 0.000 for both negatives (d=6.38)
-        evaluated_by: pbg_cpm_studies.evaluators
+        evaluated_by: viva_cpm_studies.evaluators
 
 discovery_implications:
   followup_study_proposals:
@@ -273,7 +273,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.chemotaxis.recruitment
+    composite: viva_cpm_studies.composites.chemotaxis.recruitment
     params: {cue_rate: 10.0, chemo_lambda: 14.0} # cue ON, response ON
 
   model_settings: []

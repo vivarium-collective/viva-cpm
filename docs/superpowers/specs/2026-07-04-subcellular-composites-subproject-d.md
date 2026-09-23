@@ -1,7 +1,7 @@
 # Sub-project D — Per-cell Subcellular Composites (SBML ODE + Boolean)
 
 **Status:** design approved 2026-07-04
-**Umbrella:** [pbg-cpm design](2026-07-04-pbg-cpm-design.md), Sub-project D (subcellular plugins)
+**Umbrella:** [viva-cpm design](2026-07-04-viva-cpm-design.md), Sub-project D (subcellular plugins)
 
 ## Goal
 

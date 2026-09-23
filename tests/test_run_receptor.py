@@ -11,7 +11,7 @@ actually exercise a real signal against the Task-3 default ``conc_scale``:
     overwrite the committed real receptor_<condition>.json summaries (same
     default path) on every pytest run.
 """
-from pbg_cpm_studies.chemotaxis.run_receptor import run_receptor
+from viva_cpm_studies.chemotaxis.run_receptor import run_receptor
 
 
 def test_summary_shape_and_recruitment_ordering(tmp_path):

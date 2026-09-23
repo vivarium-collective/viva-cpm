@@ -20,7 +20,7 @@ on:
     branches: [main]
     paths:
       - 'workspace/**'
-      - 'pbg_cpm_studies/**'
+      - 'viva_cpm_studies/**'
       - 'scripts/publish_dashboard.sh'
       - '.github/workflows/publish-dashboard.yml'
       - 'pyproject.toml'
@@ -70,7 +70,7 @@ jobs:
         # so a data-less checkout still publishes.
         run: |
           source .venv/bin/activate
-          python -m pbg_cpm_studies.gg1993.validate || \
+          python -m viva_cpm_studies.gg1993.validate || \
             echo "::warning::conclusion refresh skipped (no series data present)"
 
       - name: Build dashboard snapshot

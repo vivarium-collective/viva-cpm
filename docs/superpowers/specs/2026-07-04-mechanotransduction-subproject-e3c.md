@@ -1,7 +1,7 @@
 # Sub-project E3c — Per-cell Mechanotransduction (Composite-wired)
 
 **Status:** design approved 2026-07-04
-**Umbrella:** [pbg-cpm design](2026-07-04-pbg-cpm-design.md), Sub-project E (tissue
+**Umbrella:** [viva-cpm design](2026-07-04-viva-cpm-design.md), Sub-project E (tissue
 mechanics). Builds on E1/E2/E3a/E3b and reuses the Sub-project D subcellular
 Composite pattern.
 

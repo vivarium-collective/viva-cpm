@@ -36,7 +36,7 @@ findings:
     kind: computational
     status: confirms
     statement: Light cells disperse as isolated cells into the medium while dark cells remain compact and round (Fig 25).
-conclusion: 'Reproduced the paper''s Dispersal - light-cell sloughing example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 25.'
+conclusion: 'Reproduced the paper''s Dispersal - light-cell sloughing example with the exact energies and initial condition; the viva-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 25.'
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
@@ -94,11 +94,11 @@ runs:
         result: PASS
         measured_value: 7.04
         notes: frac_lM 0.073→0.513 (7.0×), boundary 39617→51795
-        evaluated_by: pbg_cpm_studies.gg1993.validate
+        evaluated_by: viva_cpm_studies.gg1993.validate
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    composite: viva_cpm_studies.composites.gg1993.gg1993
     params: {study: dispersal_sloughing}
   model_settings: []
 inputs: []

@@ -1,6 +1,6 @@
 import time
 import pytest
-from pbg_cpm_studies.influenza import build, sheet
+from viva_cpm_studies.influenza import build, sheet
 
 
 @pytest.mark.perf

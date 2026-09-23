@@ -117,7 +117,7 @@ carry.
 
 ## Final calibrated parameters
 
-`pbg_cpm_studies/composites/chemotaxis_adaptive.py`:
+`viva_cpm_studies/composites/chemotaxis_adaptive.py`:
 
 - `ACTIVATE_OCCUPANCY_DEFAULT`: `0.5` → **`0.04`** (the only change; all
   other defaults — `kd=2.9`, `hill=2.0`, `conc_scale=0.02`, `epsilon=0.1`,

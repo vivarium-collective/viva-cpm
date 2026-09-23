@@ -3,7 +3,7 @@
 Rewires the adaptive-recruitment ladder onto the engine's occupancy-space
 chemotaxis primitive (Task R1, `World.set_chemotaxis_occupancy`) instead of
 the earlier per-cell `AdaptiveReceptorSubcell`. New module:
-`pbg_cpm_studies/model_building/mechanisms.py`. New test:
+`viva_cpm_studies/model_building/mechanisms.py`. New test:
 `tests/test_recruitment_ladder_faithful.py` (5/5 passing). Full suite:
 67 passed, 1 skipped.
 

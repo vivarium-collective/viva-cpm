@@ -36,7 +36,7 @@ findings:
     kind: computational
     status: confirms
     statement: The tiling rounds into a 1012-cell disk with <n>~6.0, mu2~0.69, matching Fig 4b; statistics stable after ~400 MCS (Fig 5).
-conclusion: 'Reproduced the paper''s Global pattern equilibration example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 4, Fig 5.'
+conclusion: 'Reproduced the paper''s Global pattern equilibration example with the exact energies and initial condition; the viva-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 4, Fig 5.'
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
@@ -91,10 +91,10 @@ runs:
         result: PASS
         measured_value: 6.007
         notes: boundary 37838→36781, ⟨n⟩_bulk 6.00→6.01
-        evaluated_by: pbg_cpm_studies.gg1993.validate
+        evaluated_by: viva_cpm_studies.gg1993.validate
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    composite: viva_cpm_studies.composites.gg1993.gg1993
     params: {study: global_equilibration}
   model_settings: []

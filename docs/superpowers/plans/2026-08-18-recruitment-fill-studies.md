@@ -204,7 +204,7 @@ runtime:
   max_generations: 1
   post_run_scripts: []
 model_change:
-  base_model: pbg_cpm_studies.composites.chemotaxis.recruitment
+  base_model: viva_cpm_studies.composites.chemotaxis.recruitment
   new_processes: []
   new_state_variables: []
   new_parameters: [cue_rate, chemo_lambda]
@@ -487,7 +487,7 @@ v4 field content the loop's report will reuse. Phases 2–3 get their own plans 
 Phase 1 merges:
 
 - **Phase 2 plan** (`…-recruitment-loop-driver.md`): the mechanism library
-  (`pbg_cpm_studies/model_building/mechanisms.py` — `static_lambda`,
+  (`viva_cpm_studies/model_building/mechanisms.py` — `static_lambda`,
   `hill_occupancy`, `adaptive_receptor`), the `navigate.py` policy, the
   `chemotaxis_adaptive` composite with the 5 background conditions, the
   `recruitment-adaptive` contract study, and `scripts/build_recruitment_loop.py`

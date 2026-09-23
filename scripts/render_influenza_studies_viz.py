@@ -2,7 +2,7 @@
 """Render the Increment 3-8 influenza study figures to each study's ``viz/`` dir.
 
 The six backfilled influenza visualizations in
-``pbg_cpm_studies.visualizations.influenza_studies`` are self-contained (their
+``viva_cpm_studies.visualizations.influenza_studies`` are self-contained (their
 Plotly data is baked in from real engine runs at each study's documented
 scenario, so rendering needs no live simulation). This script wraps each
 fragment in a standalone HTML page — matching the convention that produced
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pbg_cpm_studies.visualizations import influenza_studies as V
+from viva_cpm_studies.visualizations import influenza_studies as V
 
 # study slug -> (embed filename, zero-arg accessor)
 STUDIES = {

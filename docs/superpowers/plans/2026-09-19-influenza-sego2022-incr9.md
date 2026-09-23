@@ -6,11 +6,11 @@
 
 **Architecture:** All mechanism primitives already exist across Increments 0–8 (infection/death transitions, Allee recovery, per-cell resistance, the four diffusive fields, macrophage/NK/CD8 chemotaxis + contact/nearby killing, ODE-driven recruitment, the hybrid global Price-2015 ODE). This increment (A) wires them into a single `run_full_model` per-MCS loop in the source's steppable order, (B) adds a scale-agnostic acceptance-band harness (`bands.py`), (C) builds the three `repro_*` drivers + studies. Reduced-scale (0.3 mm) ensembles run locally + in CI; the paper-scale (500×500, η=0.04, 50-replica) calibration runs are executed separately on the Mac mini (Phase B, post-merge — see the compute note).
 
-**Tech Stack:** Python, numpy, scipy (ODE), matplotlib(Agg); the existing `pbg_cpm_studies/influenza/*` package + Rust CPM engine (no Rust change expected).
+**Tech Stack:** Python, numpy, scipy (ODE), matplotlib(Agg); the existing `viva_cpm_studies/influenza/*` package + Rust CPM engine (no Rust change expected).
 
 **Spec:** `docs/superpowers/specs/2026-09-18-influenza-sego2022-reproduction-design.md` (Increment 9 + §6 acceptance + §7 compute).
 
-**Source authority:** `docs/cc3d-reference/sego2022-parameters.md` and `docs/cc3d-reference/sego2022-global-ode.md` (per-MCS steppable order §4). Targets: `pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json` (Increment-0 digitized bands; `value`=ODE reference, `lo`/`hi`=50-replica spatial spread; `soft:true` observables are lenient).
+**Source authority:** `docs/cc3d-reference/sego2022-parameters.md` and `docs/cc3d-reference/sego2022-global-ode.md` (per-MCS steppable order §4). Targets: `viva_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json` (Increment-0 digitized bands; `value`=ODE reference, `lo`/`hi`=50-replica spatial spread; `soft:true` observables are lenient).
 
 ## Global Constraints
 
@@ -26,10 +26,10 @@
 
 ## File Structure
 
-- `pbg_cpm_studies/influenza/bands.py` — NEW. Load a target, `series_in_band`, ensemble aggregation, `evaluate_study` (Task 9.0).
-- `pbg_cpm_studies/influenza/run.py` — MODIFY. The two §4a fidelity fixes (Task 9.0) + `run_full_model` (Task 9.1) + `repro_fig3b`/`repro_fig5`/`repro_fig7` drivers (Tasks 9.2–9.4).
-- `pbg_cpm_studies/influenza/viz.py` — MODIFY. `repro_fig3b_figure` etc. (Task 9.5).
-- `pbg_cpm_studies/composites/influenza.py` — the modular biological composites (`epithelium`/`viral_infection`/`innate_immunity`/`cytotoxic_immunity`/`systemic_ode`/`full_model`) ALREADY EXIST (merged refactor #52). The capstone studies REFERENCE `full_model`; do NOT add a new composite.
+- `viva_cpm_studies/influenza/bands.py` — NEW. Load a target, `series_in_band`, ensemble aggregation, `evaluate_study` (Task 9.0).
+- `viva_cpm_studies/influenza/run.py` — MODIFY. The two §4a fidelity fixes (Task 9.0) + `run_full_model` (Task 9.1) + `repro_fig3b`/`repro_fig5`/`repro_fig7` drivers (Tasks 9.2–9.4).
+- `viva_cpm_studies/influenza/viz.py` — MODIFY. `repro_fig3b_figure` etc. (Task 9.5).
+- `viva_cpm_studies/composites/influenza.py` — the modular biological composites (`epithelium`/`viral_infection`/`innate_immunity`/`cytotoxic_immunity`/`systemic_ode`/`full_model`) ALREADY EXIST (merged refactor #52). The capstone studies REFERENCE `full_model`; do NOT add a new composite.
 - `tests/test_influenza_bands.py` — NEW (Task 9.0).
 - `tests/test_influenza_full_model.py` — NEW (Tasks 9.1–9.4).
 - `tests/test_influenza_viz.py` — MODIFY (Task 9.5).
@@ -40,7 +40,7 @@
 
 ### Task 9.0: acceptance-band harness + the two §4a fidelity fixes
 
-**Files:** Create `pbg_cpm_studies/influenza/bands.py`, `tests/test_influenza_bands.py`; Modify `pbg_cpm_studies/influenza/run.py` (the `run_global_coupling` helpers so `run_full_model` inherits the fixes).
+**Files:** Create `viva_cpm_studies/influenza/bands.py`, `tests/test_influenza_bands.py`; Modify `viva_cpm_studies/influenza/run.py` (the `run_global_coupling` helpers so `run_full_model` inherits the fixes).
 
 **Interfaces — Produces:**
 - `bands.load(fig: str) -> dict` (wraps `targets.load_target`).
@@ -55,7 +55,7 @@
 - [ ] **Step 1: Failing tests** — `tests/test_influenza_bands.py`:
 
 ```python
-from pbg_cpm_studies.influenza import bands
+from viva_cpm_studies.influenza import bands
 
 def test_series_in_band_basic():
     tgt = [{"t_days":0.0,"value":1000,"lo":900,"hi":1100},
@@ -86,7 +86,7 @@ Plus a fidelity-fix test in `tests/test_influenza_full_model.py` deferred to 9.1
 
 ### Task 9.1: `run_full_model` — the complete multiscale driver
 
-**Files:** Modify `pbg_cpm_studies/influenza/run.py`; Create/extend `tests/test_influenza_full_model.py`.
+**Files:** Modify `viva_cpm_studies/influenza/run.py`; Create/extend `tests/test_influenza_full_model.py`.
 
 **Interfaces — Produces:**
 - `run.run_full_model(*, cells_per_side: int, steps: int, seed: int, init_infection_frac: float | None = None, init_viral_load: float | None = None, s_per_mcs: float = 60.0, enable=("infection","ifn","death","allee","macrophage","chemokine","nk_cd8","killing","recruitment","ode"), **kw) -> dict` returning `{"mcs":[...], "t_days":[...], "counts":{"uninfected":[...],"infected":[...],"dead":[...],"macrophage":[...],"nk":[...],"cd8":[...]}, "fields":{"virus":[...],"ifn":[...],"chemo":[...],"il10":[...]}, "ode":{sp:[...]}}` — one full-model run. Each MCS runs the source-ordered pipeline (see Global Constraints). Either `init_infection_frac` (random infected fraction) or `init_viral_load` (uniform virus IC, no pre-infected cells) sets the scenario. `cells_per_side` sets η = (cells_per_side²)/250000.
@@ -94,7 +94,7 @@ Plus a fidelity-fix test in `tests/test_influenza_full_model.py` deferred to 9.1
 - [ ] **Step 1: Failing tests** — `tests/test_influenza_full_model.py`:
 
 ```python
-from pbg_cpm_studies.influenza import run
+from viva_cpm_studies.influenza import run
 
 def test_full_model_smoke_all_observables():
     r = run.run_full_model(cells_per_side=15, steps=10, seed=1, init_infection_frac=0.05)
@@ -212,7 +212,7 @@ def test_repro_fig7_infection_fraction_sweep():
 
 **Files:** Modify `viz.py`, `workspace/investigations/influenza-sego2022/investigation.yaml`, `tests/test_influenza_viz.py`. Do NOT add a composite — `full_model` already exists (refactor #52); the three repro studies reference it in their `base_model`/condition.
 
-**Interfaces — Produces:** `viz.repro_fig3b_figure(result)`, `viz.repro_sweep_figure(result, kind)` (Agg; observable ensemble vs target band); investigation.yaml gains the three repro studies as members + a capstone `at_a_glance`/`acceptance_criteria` entry summarizing the reduced-scale band results and the pending paper-scale verdict. The three study.yaml `base_model` refs point at `pbg_cpm_studies.composites.influenza.full_model`.
+**Interfaces — Produces:** `viz.repro_fig3b_figure(result)`, `viz.repro_sweep_figure(result, kind)` (Agg; observable ensemble vs target band); investigation.yaml gains the three repro studies as members + a capstone `at_a_glance`/`acceptance_criteria` entry summarizing the reduced-scale band results and the pending paper-scale verdict. The three study.yaml `base_model` refs point at `viva_cpm_studies.composites.influenza.full_model`.
 
 - [ ] **Step 1: Failing viz test** — build a tiny `repro_fig3b(replicas=1, cells_per_side=12, steps=8)` result, assert `repro_fig3b_figure(result)` returns a Figure with ≥2 axes (ensemble series + band overlay). Keep FAST.
 - [ ] **Step 2: Run, verify fail.**

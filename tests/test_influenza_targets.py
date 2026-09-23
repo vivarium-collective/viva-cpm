@@ -1,5 +1,5 @@
 import pytest
-from pbg_cpm_studies.influenza import targets
+from viva_cpm_studies.influenza import targets
 
 
 @pytest.mark.parametrize("name", ["fig3b", "fig5", "fig7"])

@@ -1,6 +1,6 @@
-# pbg-cpm vs CompuCell3D — head-to-head benchmark
+# viva-cpm vs CompuCell3D — head-to-head benchmark
 
-A like-for-like single-core throughput comparison between the pbg-cpm Rust engine
+A like-for-like single-core throughput comparison between the viva-cpm Rust engine
 and CompuCell3D (CC3D) 4.10 on an **identical** model.
 
 ## Model (identical in both engines)
@@ -21,15 +21,15 @@ same-machine comparison.
 
 | Engine | MCS/s | copy-attempts/s |
 |--------|-------|-----------------|
-| pbg-cpm (before surface guard) | 67.7 | 8.47 M |
-| **pbg-cpm (current)** | **~83** | **~10.4 M** |
+| viva-cpm (before surface guard) | 67.7 | 8.47 M |
+| **viva-cpm (current)** | **~83** | **~10.4 M** |
 | CompuCell3D 4.10 | ~85 | ~10.7 M |
 
 The head-to-head exposed a real inefficiency: our `delta_hamiltonian` always ran
 the surface-energy term (a neighbour scan + heap allocation per attempt) even
 when λ_surface = 0. CC3D loads no surface plugin here, so it never paid it.
 Guarding the term (`World::any_surface`) + dropping the allocation (`SmallVec`)
-closed the 1.24× gap — pbg-cpm is now at **parity** with CC3D's mature C++ core.
+closed the 1.24× gap — viva-cpm is now at **parity** with CC3D's mature C++ core.
 
 ## Parallel: beating CC3D
 
@@ -43,8 +43,8 @@ Direct head-to-head on an identical **dense 96³ / 1728-cell** model
 | Engine | MCS/s | vs CC3D |
 |--------|-------|---------|
 | CompuCell3D 4.10 (single-thread) | 9.1 | 1× |
-| pbg-cpm `step_parallel`, 12 cores | 52.0 | **5.7×** |
-| pbg-cpm `step_parallel`, 16 cores | 57.3 | **6.3×** |
+| viva-cpm `step_parallel`, 12 cores | 52.0 | **5.7×** |
+| viva-cpm `step_parallel`, 16 cores | 57.3 | **6.3×** |
 
 Pure parallel efficiency (128³, self-relative): 1→4→8→12 threads = 1× → 3.5× →
 6.3× → **7.9×** (≈66% efficiency on the 12 performance cores).
@@ -56,7 +56,7 @@ Reproduce:
 
 ## Reproduce
 
-pbg-cpm side:
+viva-cpm side:
 
     cargo run --release -p cpm-bench
 

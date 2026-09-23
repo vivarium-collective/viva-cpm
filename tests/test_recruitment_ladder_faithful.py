@@ -12,12 +12,12 @@ occupancy-space chemotaxis (``World.set_chemotaxis_occupancy``, Task R1):
                         locally sensed mean every SAMPLE-step increment) --
                         RESCUES recruitment at high background.
 
-See pbg_cpm_studies/model_building/mechanisms.py for the mechanism
+See viva_cpm_studies/model_building/mechanisms.py for the mechanism
 implementation and docs/superpowers/notes/2026-08-18-faithful-ladder-
 calibration.md for the empirical calibration sweep that produced the
 constants asserted against here.
 """
-from pbg_cpm_studies.model_building.mechanisms import simulate_condition
+from viva_cpm_studies.model_building.mechanisms import simulate_condition
 
 
 def test_static_recruits_at_high_background():

@@ -34,7 +34,7 @@ report:
     before any engine code exists.
   conclusion: >-
     The parameter authority for this investigation is established and cited:
-    pbg_cpm_studies/influenza/params.yaml mirrors
+    viva_cpm_studies/influenza/params.yaml mirrors
     docs/cc3d-reference/sego2022-parameters.md, every section cites either the
     paper's Tables 1-4 or the CC3D source directly, and figure-target
     acceptance bands exist for Figs 3B, 5, 7. Eight places where the CC3D
@@ -81,10 +81,10 @@ objective: |
 description: |
   Increment 0 of the influenza-sego2022 investigation. This study documents,
   rather than simulates: it cites the parameter authority
-  (pbg_cpm_studies/influenza/params.yaml), the CC3D-source acquisition and
+  (viva_cpm_studies/influenza/params.yaml), the CC3D-source acquisition and
   transcription docs (docs/cc3d-reference/sego2022-source-notes.md and
   sego2022-parameters.md), and the digitized figure targets
-  (pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json). It reference the
+  (viva_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json). It reference the
   bibliography entry sego2022influenza (workspace/references/papers.bib) for
   the paper itself. No composite, run, or simulated observable exists in this
   study — those begin at Increment 1 (epithelial-sheet-baseline).
@@ -122,11 +122,11 @@ findings:
     evidence:
       from_test: null
       observed: >-
-        params.yaml (pbg_cpm_studies/influenza/params.yaml) cites every
+        params.yaml (viva_cpm_studies/influenza/params.yaml) cites every
         section to either "Sego 2022 Table N" or the CC3D source directly;
         docs/cc3d-reference/sego2022-parameters.md mirrors it with formulas
         and constants; three figure-target JSON files
-        (pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json) digitize
+        (viva_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json) digitize
         acceptance bands from Figs 3B, 5, 7.
     statement: |
       The parameter/spec authority for reproducing Sego et al. 2022 is
@@ -178,7 +178,7 @@ key_assumptions:
 
 literature_anchors:
   - expectation: "Sego et al. 2022 Tables 1-4 specify the CPM, adhesion, diffusion, chemotaxis, and scaling parameters for the cellularized influenza model."
-    model_observable: "pbg_cpm_studies/influenza/params.yaml (every section cites Table 1-4 or the CC3D source)"
+    model_observable: "viva_cpm_studies/influenza/params.yaml (every section cites Table 1-4 or the CC3D source)"
     source: "Sego 2022 Tables 3-4"
     status_in_workspace: "Transcribed and cited; not yet consumed by any simulation."
     cites: [sego2022influenza]
@@ -216,7 +216,7 @@ biological_summary: |
   resistance and death/recovery rules; and chemotactic recruitment
   strengths — all summarized with formulas and cited constants in
   docs/cc3d-reference/sego2022-parameters.md and encoded machine-readably in
-  pbg_cpm_studies/influenza/params.yaml. Establishing this authority first,
+  viva_cpm_studies/influenza/params.yaml. Establishing this authority first,
   and recording where the paper's own supplementary source disagrees with
   its printed tables, lets every later increment build on an audited
   foundation instead of quietly picking whichever number seemed
@@ -235,7 +235,7 @@ model_change:
     No engine/composite code is introduced by this study. It is pure
     documentation: params.yaml, docs/cc3d-reference/sego2022-source-notes.md,
     docs/cc3d-reference/sego2022-parameters.md, and
-    pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json.
+    viva_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json.
 
 discovery_implications:
   followup_study_proposals:
@@ -253,6 +253,6 @@ narrative_spine_skip_reason: >-
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.epithelium
+    composite: viva_cpm_studies.composites.influenza.epithelium
     params: {patch_mm: 0.1, seed: 17}  # nominal baseline; this is a documentation-only provenance study with no simulation of its own
   model_settings: []

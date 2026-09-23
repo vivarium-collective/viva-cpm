@@ -35,7 +35,7 @@ findings:
     kind: computational
     status: confirms
     statement: Clusters remain attached, an extreme partial-sorting case just below the separation threshold (Fig 27).
-conclusion: 'Reproduced the paper''s Dispersal - clusters do not separate example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 27.'
+conclusion: 'Reproduced the paper''s Dispersal - clusters do not separate example with the exact energies and initial condition; the viva-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 27.'
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
@@ -93,11 +93,11 @@ runs:
         result: PASS
         measured_value: 0.9726
         notes: boundary 37254→36232 (ratio 0.973)
-        evaluated_by: pbg_cpm_studies.gg1993.validate
+        evaluated_by: viva_cpm_studies.gg1993.validate
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    composite: viva_cpm_studies.composites.gg1993.gg1993
     params: {study: dispersal_no_separate}
   model_settings: []
 inputs: []

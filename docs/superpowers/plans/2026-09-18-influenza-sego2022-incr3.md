@@ -23,7 +23,7 @@
 ---
 
 ### Task 3.0: Extract & cite IFN field + resistance constants
-**Files:** `pbg_cpm_studies/influenza/params.yaml` (+`ifn:` and `resistance:` sections), `docs/cc3d-reference/sego2022-parameters.md` (fill exact `g_fp`, `g_fi`, `a_rf`), `tests/test_influenza_params.py` (+test).
+**Files:** `viva_cpm_studies/influenza/params.yaml` (+`ifn:` and `resistance:` sections), `docs/cc3d-reference/sego2022-parameters.md` (fill exact `g_fp`, `g_fi`, `a_rf`), `tests/test_influenza_params.py` (+test).
 - [ ] Re-fetch the CC3D source. From `ImmuneModelInputs.py`/`ImmuneModelLib.py`/`ViralInfectionVTMSteppables.py` (`Type1InterferonSecretionSteppable`, `Type1InterferonModelSteppable.update_resistance`), read: IFN unitless D (`t1ifn_dc`≈7.792) + decay (`t1ifn_decay`≈0.07792), diffusion length 2 (`exp_t1ifn_dl`); basal IFN secretion `g_fp`; IFN uptake `g_fi` (note if deferring); and `a_rf` (the resistance denominator constant). Cite file+symbol+units and any per-day→per-MCS conversion.
 - [ ] Add `ifn:` (diffusion_lat2_per_mcs, decay_per_mcs, diffusion_length_cell_diam=2, secretion_g_fp, uptake_g_fi?, source) and `resistance:` (a_rf, formula string `resist = f_bar/(a_rf + f_bar)`, source) sections; test `test_params_carry_ifn_and_resistance_sections` asserts keys + numeric + source + `ifn.diffusion_length_cell_diam == 2`.
 - [ ] Commit `feat(influenza): cite type-I IFN field + resistance constants (Incr 3)`.
@@ -49,18 +49,18 @@
 - [ ] Also run `tests/test_fields.py` + `tests/test_influenza_fields.py` → still PASS (no regression). Commit `feat(engine): per-cell secretion scale for cell-state-regulated field sources`.
 
 ### Task 3.2: type-I IFN field
-**Files:** `pbg_cpm_studies/influenza/fields.py` (+`add_ifn_field`), `tests/test_influenza_fields.py` (+tests).
+**Files:** `viva_cpm_studies/influenza/fields.py` (+`add_ifn_field`), `tests/test_influenza_fields.py` (+tests).
 **Interfaces:** `fields.add_ifn_field(world) -> int` — adds the IFN field (params D/decay), sets `types.I` secretion to the per-pixel `g_fp` rate (same z=1/cell_sites convention as the virus field; reuse the derivation helper), returns index. `fields.IFN_DIFFUSION_LENGTH_SITES = 10` (2 cell-diam × 5 sites).
 - [ ] Failing tests mirroring the virus-field tests: infected cell raises IFN locally, decays with distance; no-infected → ~0. Note IFN diffuses FARTHER-per-unit than virus is FALSE — IFN length is 2 cell-diam (10 sites) vs virus 5 cell-diam (25 sites); assert the shorter IFN range is consistent. Implement, PASS, commit `feat(influenza): type-I IFN field + infected-cell secretion`.
 
 ### Task 3.3: per-cell resistance + (1−resist)-gated virus release
-**Files:** `pbg_cpm_studies/influenza/resistance.py`, `pbg_cpm_studies/influenza/run.py` (extend the driver), `tests/test_influenza_resistance.py`, `tests/test_influenza_virus_infection.py` (extend).
+**Files:** `viva_cpm_studies/influenza/resistance.py`, `viva_cpm_studies/influenza/run.py` (extend the driver), `tests/test_influenza_resistance.py`, `tests/test_influenza_virus_infection.py` (extend).
 **Interfaces:** `resistance.cell_resistance(ifn_at_cell, a_rf) -> float` = `ifn/(a_rf+ifn)` (pure; 0 at ifn=0; →1 as ifn→∞). A driver `run.run_virus_infection_with_ifn(...)` (or extend run_virus_infection with an `ifn=True` flag) that each update: advances fields (virus+IFN via world.step), reads IFN per cell, computes resist, calls `world.set_cell_secretion_scale(virus_fi, cid, 1.0 - resist)` for infected cells, then the infection transition as before.
 - [ ] Failing tests: (a) `cell_resistance` pure-function values (0 at 0; 0.5 at ifn=a_rf; monotone). (b) INTEGRATION — the key claim: with IFN+resistance ON, a seeded lesion produces LESS total virus and FEWER infected cells at a fixed late step than the Increment-2 no-resistance run from the same seed (resistance slows spread). Assert `n_I_with_ifn(t) < n_I_without_ifn(t)` and/or `total_virus_with_ifn < total_virus_without` at a comparable step, same seed. Keep small/fast.
 - [ ] Implement, PASS, commit `feat(influenza): per-cell resistance gates virus release (1-resist)`.
 
 ### Task 3.4: ifn-resistance study + viz + membership
-**Files:** `workspace/studies/ifn-resistance/study.yaml` (hand-author, schema v3, phase Simulate), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member), `pbg_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test).
+**Files:** `workspace/studies/ifn-resistance/study.yaml` (hand-author, schema v3, phase Simulate), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member), `viva_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test).
 - [ ] Add `viz.ifn_resistance_figure(run_result)` (IFN field / resistance map + the with-vs-without-IFN infected-count comparison). Test returns a Figure (Agg).
 - [ ] Hand-author `ifn-resistance/study.yaml`: report HONESTLY that IFN accumulates, per-cell resistance rises, and virus release + spread are reduced vs no-resistance (cite the actual measured with/without numbers from Task 3.3). Caveats: APC-driven IFN amplification omitted (global/Increment 8); resistance's death/Allee/IL-10 roles come in later increments; reproduction verdict PENDING (Increment 9). Wire `virus_infection` (or a new ifn composite) as the baseline; validate with lint-workspace.py; add as investigation member; keep investigation status honest.
 - [ ] Run `-k influenza` (all pass). Commit `feat(influenza): ifn-resistance study + viz`.

@@ -146,7 +146,7 @@ hypothesis: |
 
 objective: |
   Wire infected death (Task 4.2, `transitions.infected_death_step`) and the
-  cellularized Allee effect (Task 4.3, `pbg_cpm_studies/influenza/allee.py`)
+  cellularized Allee effect (Task 4.3, `viva_cpm_studies/influenza/allee.py`)
   into a new driver, `run.run_epithelial_fate` (Task 4.3), alongside the
   unmodified Increment-2/3 infection + IFN-resistance path, and measure the
   resulting n_H/n_I/n_D series plus the diagnostic n_allee_death/
@@ -155,7 +155,7 @@ objective: |
   `::test_dead_cell_surrounded_by_uninfected_recovers`,
   `::test_dead_cell_surrounded_by_dying_does_not_recover`, and the fuller
   200/500-step series in task-4.3-report.md). A minimal in-package figure
-  (`pbg_cpm_studies/influenza/viz.py::epithelial_fate_figure`, Task 4.4)
+  (`viva_cpm_studies/influenza/viz.py::epithelial_fate_figure`, Task 4.4)
   renders the cell-type composition over time plus cumulative Allee event
   counts.
 
@@ -169,7 +169,7 @@ description: |
   APC-driven global IFN amplification -- those arrive in later increments.
   The death-rate coefficient (`mu_i_per_mcs`) and the Allee rate coefficient
   (`b_h`) plus threshold (`srf_threshold`) are taken from the CC3D
-  ViralInfectionVTM source (see `pbg_cpm_studies/influenza/params.yaml`'s
+  ViralInfectionVTM source (see `viva_cpm_studies/influenza/params.yaml`'s
   `cell_death:` and `allee:` blocks); `srf_total`/`srf_uninfected` are
   restricted to epithelial (H/I/D) neighbor contact, excluding MEDIUM,
   matching the source's `ec_list` filter (a design decision recorded in
@@ -486,7 +486,7 @@ key_assumptions:
     `run_epithelial_fate` -- it is a raw `cpm_core.World` loop (Task 4.3),
     not wrapped as a composite. The `conditions.baseline` entry below
     reuses the SAME Increment-2 live-demo composite
-    (`pbg_cpm_studies.composites.influenza.viral_infection`, no infected-
+    (`viva_cpm_studies.composites.influenza.viral_infection`, no infected-
     death/Allee wiring) purely so this study has a dashboard-loadable
     baseline; it is NOT the composite this study's readouts are measured
     from, and it does not reproduce the epithelial-fate mechanism. All
@@ -497,13 +497,13 @@ key_assumptions:
 literature_anchors:
   - expectation: "Infected epithelial cells undergo virally-induced apoptosis (Sego 2022 Sec. 2.2/2.3, Table 2 'Infected death'); dying/dead cells can be replaced by neighboring healthy tissue via a cellularized Allee-effect recovery term (RecoverySteppable)."
     model_observable: "n_D grows from 0 to 14 (200 updates) / 77 (500 updates) via H->I->D; D->H recovery fires both deterministically (frozen-geometry test) and organically (3-12 events/run) when a dead cell is well-surrounded by healthy tissue, and provably never fires when it is not."
-    source: "CC3D ViralInfectionVTM source (ViralCellDeathSteppable, RecoverySteppable) via pbg_cpm_studies/influenza/params.yaml cell_death: and allee: blocks"
+    source: "CC3D ViralInfectionVTM source (ViralCellDeathSteppable, RecoverySteppable) via viva_cpm_studies/influenza/params.yaml cell_death: and allee: blocks"
     status_in_workspace: "Wired and measured directly (infected death + bidirectional Allee response). Infected death uses the source's own SIMPLIFIED flat-rate form (no ROS/Hill term); NK/CD8 contact-killing (a second death pathway) is deferred to Increment 7. No acceptance-band comparison to a digitized figure yet."
     cites: [sego2022influenza]
   - expectation: "The paper's Fig-3B-style reproduction implicitly requires the epithelial-fate lifecycle to produce a growing, spatially coherent dead lesion whose size tracks the immune response over time, at paper scale."
     model_observable: "At reduced (0.3mm/900-cell) scale, the lesion grows monotonically over 200-500 updates driven by infection->death; direct Allee death is essentially absent (0 events) though genuinely, if rarely, nonzero in the underlying rate -- a scale/calibration question, not a wiring failure, flagged for Increment 9."
     source: "Sego 2022 Figs 3B, 5, 7 (digitized acceptance bands, Increment 0)"
-    status_in_workspace: "Referenced QUALITATIVELY only -- this study does not compare against the digitized Fig 3B/5/7 acceptance bands (pbg_cpm_studies/influenza/targets/); that quantitative reproduction comparison is Increment 9's capstone, not attempted here."
+    status_in_workspace: "Referenced QUALITATIVELY only -- this study does not compare against the digitized Fig 3B/5/7 acceptance bands (viva_cpm_studies/influenza/targets/); that quantitative reproduction comparison is Increment 9's capstone, not attempted here."
     cites: [sego2022influenza]
 
 gate_status: passed
@@ -514,7 +514,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.viral_infection
+  base_model: viva_cpm_studies.composites.influenza.viral_infection
   new_processes: []
   new_state_variables: [per-cell type D (dead/dying), Allee death/recovery diagnostic counters]
   new_parameters: [mu_i_per_mcs, b_h, srf_threshold]
@@ -567,7 +567,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.viral_infection
+    composite: viva_cpm_studies.composites.influenza.viral_infection
     params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch, no infected-death/Allee wiring; the measured readouts above come from run.run_epithelial_fate at 0.3mm/900 cells (Task 4.3), not this composite -- see key_assumptions
 
   model_settings: []

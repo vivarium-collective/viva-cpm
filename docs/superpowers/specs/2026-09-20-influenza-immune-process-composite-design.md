@@ -140,7 +140,7 @@ because `ImmuneProcess` applies the drivers every MCS between ODE updates).
 
 ### 4. Composite document
 
-`full_model_composite_document` (`pbg_cpm_studies/composites/influenza.py:452`) is
+`full_model_composite_document` (`viva_cpm_studies/composites/influenza.py:452`) is
 rewritten from the current CPM-only scene to wire the four processes + stores
 above. `run_full_model` becomes a thin driver that builds and steps a
 `process_bigraph.Composite` from this document and reads the observable series

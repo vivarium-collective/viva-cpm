@@ -80,7 +80,7 @@ description: |
   conc_scale, activate_occupancy). Only once occupancy crosses threshold does
   a responder flip from naive (type 2, non-chemotaxing) to activated (type 3,
   chemotaxing) -- see
-  pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor. The
+  viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor. The
   receptor's Kd is not a free-fit parameter: it is the CXCL8 monomer-CXCR1
   affinity reported in Nasser et al. 2009 (2.9 nM), so activation is
   calibrated to a real receptor-ligand pair rather than an arbitrary lambda.
@@ -298,7 +298,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
+  base_model: viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
   new_processes: []
   new_state_variables: []
   new_parameters: [cue_rate, chemo_lambda, kd]
@@ -345,7 +345,7 @@ runs:
         result: PASS
         measured_value: 0.5667
         notes: "0.5667 (95% CI 0.3451-0.7882) across 5 seeds; kd=2.9 nM (Nasser 2009)"
-        evaluated_by: pbg_cpm_studies.evaluators
+        evaluated_by: viva_cpm_studies.evaluators
 
 discovery_implications:
   followup_study_proposals:
@@ -355,7 +355,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
+    composite: viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
     params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: 2.9} # cue ON, receptor-gated response ON
 
   model_settings: []

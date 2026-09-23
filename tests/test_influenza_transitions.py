@@ -8,7 +8,7 @@ import math
 
 import numpy as np
 
-from pbg_cpm_studies.influenza import transitions, types
+from viva_cpm_studies.influenza import transitions, types
 
 
 def test_high_virus_infects_with_near_certain_probability():

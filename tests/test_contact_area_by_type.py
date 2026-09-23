@@ -1,5 +1,5 @@
 """Task 4.1: per-cell contact-area-by-type (Allee surface-fraction substrate)."""
-from pbg_cpm_studies.influenza import build, sheet, types
+from viva_cpm_studies.influenza import build, sheet, types
 
 
 def _cells_per_side(spec):

@@ -2,7 +2,7 @@ schema_version: 2
 name: cpm-studies
 created: "2026-07-14"
 plugin_version: 0.15.0
-package_path: pbg_cpm_studies
+package_path: viva_cpm_studies
 
 # Directory layout. New workspaces group their research directories under a
 # tidy `workspace/` subtree (the dirs below); the hidden `.pbg/` machine state

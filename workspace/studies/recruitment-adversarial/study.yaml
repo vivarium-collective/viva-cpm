@@ -193,7 +193,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.chemotaxis.recruitment
+  base_model: viva_cpm_studies.composites.chemotaxis.recruitment
   new_processes: []
   new_state_variables: []
   new_parameters: [cue_rate, chemo_lambda]
@@ -240,7 +240,7 @@ runs:
         result: PASS
         measured_value: 0.0
         notes: 0.000 across 5 seeds with no cue; the metric correctly rejects
-        evaluated_by: pbg_cpm_studies.evaluators
+        evaluated_by: viva_cpm_studies.evaluators
 
 discovery_implications:
   followup_study_proposals:
@@ -256,7 +256,7 @@ discovery_implications:
 conditions:
   baseline:
     name: adversarial
-    composite: pbg_cpm_studies.composites.chemotaxis.recruitment
+    composite: viva_cpm_studies.composites.chemotaxis.recruitment
     params: {cue_rate: 0.0, chemo_lambda: 14.0} # cue REMOVED (control), response ON
 
   model_settings: []

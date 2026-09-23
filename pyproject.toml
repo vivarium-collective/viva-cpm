@@ -3,7 +3,7 @@ requires = ["maturin>=1.5,<2"]
 build-backend = "maturin"
 
 [project]
-name = "pbg-cpm"
+name = "viva-cpm"
 version = "0.1.0"
 description = "A process-bigraph Cellular Potts Model framework: a fast Rust CPM engine (2D/3D) with pluggable subcellular models, structural constraints, and metrics."
 readme = "README.md"
@@ -37,14 +37,14 @@ sbml = ["libroadrunner>=2.9", "tellurium>=2.2", "viva-tellurium"]
 # Human Reference Atlas FTU illustration -> CPM conversion (cpm.ftu).
 ftu = ["numpy", "matplotlib"]
 # Everything, for running the full demo suite.
-all = ["pbg-cpm[sbml,ftu]"]
+all = ["viva-cpm[sbml,ftu]"]
 # Test tooling — pytest plus the optional stacks the test suite exercises
 # (SBML subcell, FTU). CI installs `.[dev]`, so pytest must live here.
-dev = ["pytest>=7", "pbg-cpm[sbml,ftu]"]
+dev = ["pytest>=7", "viva-cpm[sbml,ftu]"]
 
 [project.urls]
-Homepage = "https://github.com/vivarium-collective/pbg-cpm"
-Repository = "https://github.com/vivarium-collective/pbg-cpm"
+Homepage = "https://github.com/vivarium-collective/viva-cpm"
+Repository = "https://github.com/vivarium-collective/viva-cpm"
 
 # Non-PyPI deps resolved from git so `uv sync` works in CI (publish-dashboard).
 # vivarium-workbench (the dashboard/publish CLI) and viva-tellurium (sbml extra)

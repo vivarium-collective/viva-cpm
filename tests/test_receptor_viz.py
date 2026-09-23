@@ -1,4 +1,4 @@
-from pbg_cpm_studies.visualizations import receptor_studies as V
+from viva_cpm_studies.visualizations import receptor_studies as V
 
 
 def test_visualizations_render_html():

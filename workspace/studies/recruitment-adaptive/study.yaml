@@ -31,7 +31,7 @@ hypothesis: |
 
 objective: |
   Author the acceptance contract for the adaptive-receptor rung of the
-  faithful chemotaxis mechanism ladder (pbg_cpm_studies.model_building.
+  faithful chemotaxis mechanism ladder (viva_cpm_studies.model_building.
   mechanisms): three primary behavior tests plus a receptor-gating control,
   with pass/fail bands set from real measured recruitment_index values
   (3-12 seeds) already gathered while calibrating the ladder. The loop
@@ -58,7 +58,7 @@ description: |
   non-receptor-mediated static mechanism, which is the discriminating
   knockout the loop must climb past). `conditions.baseline.composite`
   points at the real, registered base recruitment world
-  (pbg_cpm_studies.composites.chemotaxis.recruitment -- source secretion +
+  (viva_cpm_studies.composites.chemotaxis.recruitment -- source secretion +
   responder chemotaxis, shared by all three ladder mechanisms); the
   adaptive_receptor mechanism itself (kd/hill/epsilon) is what the loop
   INSTALLS on top of that base world, documented under
@@ -109,7 +109,7 @@ catalog:
 conditions:
   baseline:
     name: adaptive
-    composite: pbg_cpm_studies.composites.chemotaxis.recruitment
+    composite: viva_cpm_studies.composites.chemotaxis.recruitment
     params: {cue_rate: 10.0, chemo_lambda: 14.0}
   variants: []
   model_settings:
@@ -118,7 +118,7 @@ conditions:
         The adaptive mechanism the loop installs on the base world: occupancy-space
         chemotaxis (Rust set_chemotaxis_occupancy) with an adaptive kd that tracks the
         local mean concentration. Params kd=1.0, hill=4.0, epsilon=0.5. Run via
-        pbg_cpm_studies.model_building.mechanisms.simulate_condition("adaptive_receptor", ...).
+        viva_cpm_studies.model_building.mechanisms.simulate_condition("adaptive_receptor", ...).
       params: {kd: 1.0, hill: 4.0, epsilon: 0.5}
 
 readouts:
@@ -217,7 +217,7 @@ key_assumptions:
     (Task 7) has not yet been driven against this locked contract.
   - >-
     `conditions.baseline.composite` is the real, registered base
-    recruitment world (pbg_cpm_studies.composites.chemotaxis.recruitment)
+    recruitment world (viva_cpm_studies.composites.chemotaxis.recruitment)
     shared by all three ladder mechanisms (static_lambda / hill_occupancy /
     adaptive_receptor); its params are only what that generator accepts
     (cue_rate, chemo_lambda). The adaptive_receptor mechanism itself
@@ -243,7 +243,7 @@ key_assumptions:
     discriminating work between the fixed-kd and adaptive mechanisms.
 
 model_change:
-  base_model: pbg_cpm_studies.composites.chemotaxis.recruitment
+  base_model: viva_cpm_studies.composites.chemotaxis.recruitment
   new_processes: []
   new_state_variables: []
   new_parameters: [kd, hill, epsilon]
@@ -251,7 +251,7 @@ model_change:
   new_listeners: []
   notes: >-
     Not yet realized as a run under this study -- the contract documents the
-    adaptive_receptor arm of pbg_cpm_studies.model_building.mechanisms,
+    adaptive_receptor arm of viva_cpm_studies.model_building.mechanisms,
     which layers an adaptive kd_eff tracking update on top of the existing
     chemotaxis-occupancy bias (world.set_chemotaxis_occupancy), itself built
     on the chemotaxis.recruitment world (source secretion + responder

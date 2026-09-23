@@ -8,7 +8,7 @@ import math
 
 import numpy as np
 
-from pbg_cpm_studies.influenza import params, price_ode, recruitment
+from viva_cpm_studies.influenza import params, price_ode, recruitment
 
 P = params.load_params()
 C = price_ode.resolve_constants(P["price_ode"], num_epithelial=900)
@@ -95,7 +95,7 @@ def test_recruitment_persists_and_grows_populations():
     calibration gap (same category as the Increment-7 chemotaxis-lambda finding),
     left for Increment 9. Constants are NOT tuned here.
     """
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
 
     # (1) default tiny-eta run: populations persist; rates recorded.
     base = run.run_global_coupling(side=30, steps=15, seed=5, with_immune=True,
@@ -129,7 +129,7 @@ def test_cd8_recruitment_is_apc_driven_asymmetry_preserved():
     keep their positive homeostatic baseline. This is the asymmetry a symmetric
     implementation would erase.
     """
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
 
     kw = dict(side=30, steps=12, seed=5, with_immune=True, with_recruitment=True)
     signal = run.run_global_coupling(**kw)

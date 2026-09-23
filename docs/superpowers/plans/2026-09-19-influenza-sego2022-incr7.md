@@ -29,19 +29,19 @@
 - [ ] Commit `feat(influenza): cite NK + CD8 constants (Incr 7)`.
 
 ### Task 7.1: NK + CD8 cell types + chemotaxis up chemokines
-**Files:** `pbg_cpm_studies/influenza/immune.py` (+NK/CD8 seeding + `set_nk_cd8_chemotaxis`), `pbg_cpm_studies/influenza/run.py` (extend the driver), `tests/test_influenza_nk_cd8.py`.
+**Files:** `viva_cpm_studies/influenza/immune.py` (+NK/CD8 seeding + `set_nk_cd8_chemotaxis`), `viva_cpm_studies/influenza/run.py` (extend the driver), `tests/test_influenza_nk_cd8.py`.
 **Interfaces:** seed NK (K) + CD8 (E) cells with source-cited adhesion; `set_chemotaxis(chemo_fi, K, 5000)`, `set_chemotaxis(chemo_fi, E, 10000)`. Extend the signaling/macrophage scenario so macrophages secrete chemokine (Incr 6) and NK/CD8 chemotax up it.
 - [ ] Failing INTEGRATION test (reuse the Incr-5 interior/multi-seed rigor pattern): NK and CD8 cells, seeded away from the infection, reduce their mean distance to the infection over the run (they follow the chemokine gradient), with a λ=0 control that does not — across multiple seeds (unbiased interior control, like Increment 5's fix). CD8 (λ=10000) localizes at least as strongly as NK (λ=5000).
 - [ ] Implement, PASS. Commit `feat(influenza): NK + CD8 cells + chemotaxis up the chemokine gradient`.
 
 ### Task 7.2: contact-mediated killing of infected cells
-**Files:** `pbg_cpm_studies/influenza/killing.py` (new; the kill-rate + the killing Step logic), `pbg_cpm_studies/influenza/run.py` (extend the driver to apply killing each update), `tests/test_influenza_killing.py`.
+**Files:** `viva_cpm_studies/influenza/killing.py` (new; the kill-rate + the killing Step logic), `viva_cpm_studies/influenza/run.py` (extend the driver to apply killing each update), `tests/test_influenza_killing.py`.
 **Interfaces:** pure `killing.contact_kill_rate(srf_immune, cell_resist, g_i, tot_ec, cell_volume) -> float` = `g_i*tot_ec*srf_immune*cell_resist/cell_volume` (resist DIRECT, per source #7). A driver step: for each infected cell, get `cell_contact_area_by_type(cid)` → srf_nk = area with K, srf_cd8 = area with E; compute NK + CD8 kill rates; `Pr = 1−exp(−rate)`; on success set the infected cell to D. (Combine with the existing infection/death/Allee fate driver.)
 - [ ] Failing tests: (a) pure rate function (monotone in srf_immune + resist; 0 when srf_immune=0). (b) INTEGRATION: with NK/CD8 present + chemotaxing to the infection, the infected-cell count (and/or peak infection) is LOWER at a comparable step than a no-NK/CD8 run from the same seed — cytotoxic clearance. Deterministic/seeded.
 - [ ] Implement (flag discrepancy #7 in code + report), PASS. Commit `feat(influenza): NK/CD8 contact-mediated killing of infected cells`.
 
 ### Task 7.3: cytotoxic-killing study + viz + membership
-**Files:** `workspace/studies/cytotoxic-killing/study.yaml` (hand-author), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member), `pbg_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test). Do NOT touch visualizations/ or composites/__init__.py.
+**Files:** `workspace/studies/cytotoxic-killing/study.yaml` (hand-author), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member), `viva_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test). Do NOT touch visualizations/ or composites/__init__.py.
 - [ ] Add `viz.cytotoxic_killing_figure(run_result)` (NK/CD8 localization + infected-count with vs without NK/CD8). Test returns a Figure (Agg).
 - [ ] Hand-author `cytotoxic-killing/study.yaml`: report HONESTLY the NK/CD8 localization + the infected-cell reduction (cite actual Task 7.1/7.2 numbers). Caveats: nearby-population killing term deferred; haptotaxis DEFERRED (secondary bias + new engine capability, Incr 9); recruitment stubbed; 2D-approx geometry; DISCREPANCY #7 (resist-direct killing) flagged; chemotaxis linear-form gap; reproduction PENDING (Incr 9). verdict = documented. Wire a baseline composite (reuse/add in composites/influenza.py — auto-registers; do NOT edit __init__.py). Validate lint; add member.
 - [ ] Run targeted influenza tests (all pass). Commit `feat(influenza): cytotoxic-killing study + viz`.

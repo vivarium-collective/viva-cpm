@@ -1,10 +1,10 @@
 """The influenza-sego2022 interactive visualization system (Plotly cards).
 
 Distinct from test_influenza_viz.py, which covers the in-package matplotlib
-figures (pbg_cpm_studies/influenza/viz.py). This covers the shared v2
-visualization system in pbg_cpm_studies/visualizations/influenza_studies.py.
+figures (viva_cpm_studies/influenza/viz.py). This covers the shared v2
+visualization system in viva_cpm_studies/visualizations/influenza_studies.py.
 """
-from pbg_cpm_studies.visualizations import influenza_studies as V
+from viva_cpm_studies.visualizations import influenza_studies as V
 
 
 def test_visualizations_render_html():
@@ -66,7 +66,7 @@ def test_spatial_data_is_real_multiframe():
     # the baked spatial blob is a FULL-RESOLUTION, full-duration frame series
     # per study, each frame a zlib+base64-compressed cell-type/owner lattice.
     import numpy as np
-    from pbg_cpm_studies.visualizations.influenza_studies import _SP, _decode_grid
+    from viva_cpm_studies.visualizations.influenza_studies import _SP, _decode_grid
     assert len(_SP) == 7  # 6 distinct scenes + the shared full-model repro scene
     # (the 3 tiny Incr-5/6/7 demos consolidated into one tissue-scale immune scene)
     for slug, d in _SP.items():
@@ -89,7 +89,7 @@ def test_capstone_spatial_is_full_scale_and_sweeps_to_death():
     # resolution (NOT coarsened <=60), full ~3.5-day duration, and — on the
     # Increment-10 ROS-death branch — the epithelium visibly dies (green H ->
     # grey D sweep: dead cells go from none to a large fraction of the sheet).
-    from pbg_cpm_studies.visualizations.influenza_studies import _SP, _decode_grid
+    from viva_cpm_studies.visualizations.influenza_studies import _SP, _decode_grid
     d = _SP["repro-full-model"]
     assert min(d["nx"], d["ny"]) >= 150        # full-res domain (35x35-cell patch + margins)
     assert d["frames"][-1]["mcs"] >= 5000       # ~3.5 days at 7 MCS/record
@@ -106,7 +106,7 @@ def test_capstone_spatial_is_full_scale_and_sweeps_to_death():
 
 def test_data_is_real_engine_output():
     # baked series match the study's reported values (n_I 9->16, virus->~1216)
-    from pbg_cpm_studies.visualizations.influenza_studies import _D
+    from viva_cpm_studies.visualizations.influenza_studies import _D
     ser = _D["infection"]["series"]
     assert ser["n_I"][0] == 9 and ser["n_I"][-1] == 16
     assert ser["n_H"][0] + ser["n_I"][0] == ser["n_H"][-1] + ser["n_I"][-1]  # conserved
@@ -116,7 +116,7 @@ def test_data_is_real_engine_output():
 def test_backfilled_study_data_matches_reported_values():
     # spot-check the baked Increment 3-8 series against each study.yaml's
     # reported metrics — guards against a stale/garbled data blob.
-    from pbg_cpm_studies.visualizations.influenza_studies import _SD
+    from viva_cpm_studies.visualizations.influenza_studies import _SD
     # Incr 3: IFN gate roughly halves virus load at step 20 (819.16 vs 1750.69)
     assert _SD["ifn"]["with"]["total_virus"][20] < 0.6 * _SD["ifn"]["without"]["total_virus"][20]
     assert 0.5 < _SD["ifn"]["with"]["mean_resist"][40] < 0.6  # plateau ~0.55, not ~1
@@ -135,7 +135,7 @@ def test_repro_study_data_matches_reported_values():
     # (same seed0=0 config the studies report) -- guards against a stale/
     # garbled data blob AND against the dashboard card silently disagreeing
     # with the study's written verdict.
-    from pbg_cpm_studies.visualizations.influenza_studies import _SD
+    from viva_cpm_studies.visualizations.influenza_studies import _SD
     # repro-fig3b study.yaml: replicas=2, cells_per_side=15, steps=20,
     # band_eval.passed=False (0/12 observables in-band at reduced scale).
     r3 = _SD["repro_fig3b"]
