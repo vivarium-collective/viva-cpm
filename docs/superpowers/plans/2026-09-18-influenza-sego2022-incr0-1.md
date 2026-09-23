@@ -4,7 +4,7 @@
 
 **Goal:** Establish the cited parameter authority + reproduction targets (Increment 0) and a validated, performant epithelial-sheet CPM substrate at paper scale (Increment 1) for the native reproduction of Sego et al. 2022.
 
-**Architecture:** A new `pbg_cpm_studies/influenza/` package holds the canonical parameters (transcribed from the paper's CompuCell3D source), the digitized figure targets, and the epithelial-sheet builder that emits a `load_world` spec for the existing Rust `cpm_core.World`. No engine (Rust) changes in these two increments — the sheet uses primitives that already exist (`add_cell`, `set_contact`, volume constraint, `step_parallel`).
+**Architecture:** A new `viva_cpm_studies/influenza/` package holds the canonical parameters (transcribed from the paper's CompuCell3D source), the digitized figure targets, and the epithelial-sheet builder that emits a `load_world` spec for the existing Rust `cpm_core.World`. No engine (Rust) changes in these two increments — the sheet uses primitives that already exist (`add_cell`, `set_contact`, volume constraint, `step_parallel`).
 
 **Tech Stack:** Python 3.12, `cpm.cpm_core` (Rust/PyO3 CPM engine), `process_bigraph`, PyYAML, pytest, numpy. viva-superpowers dashboard skills (`/viva-investigation`, `/viva-study`, `/viva-cite-bands`) for the investigation shell.
 
@@ -72,22 +72,22 @@ git commit -m "docs(influenza): transcribe Sego 2022 parameters (Tables 1-4)"
 ### Task 0.3: Machine-readable parameters + loader + type constants
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/__init__.py`
-- Create: `pbg_cpm_studies/influenza/types.py`
-- Create: `pbg_cpm_studies/influenza/params.yaml`
-- Create: `pbg_cpm_studies/influenza/params.py`
+- Create: `viva_cpm_studies/influenza/__init__.py`
+- Create: `viva_cpm_studies/influenza/types.py`
+- Create: `viva_cpm_studies/influenza/params.yaml`
+- Create: `viva_cpm_studies/influenza/params.py`
 - Test: `tests/test_influenza_params.py`
 
 **Interfaces:**
 - Produces:
-  - `pbg_cpm_studies.influenza.types`: `MEDIUM=0, H=1, I=2, D=3, M=4, K=5, E=6` (ints).
-  - `pbg_cpm_studies.influenza.params.load_params() -> dict` — parsed `params.yaml`.
-  - `pbg_cpm_studies.influenza.params.PARAMS` — module-level cached dict.
+  - `viva_cpm_studies.influenza.types`: `MEDIUM=0, H=1, I=2, D=3, M=4, K=5, E=6` (ints).
+  - `viva_cpm_studies.influenza.params.load_params() -> dict` — parsed `params.yaml`.
+  - `viva_cpm_studies.influenza.params.PARAMS` — module-level cached dict.
 
 - [ ] **Step 1: Write the failing test.**
 ```python
 # tests/test_influenza_params.py
-from pbg_cpm_studies.influenza import params, types
+from viva_cpm_studies.influenza import params, types
 
 
 def test_type_codes_are_distinct_and_ordered():
@@ -125,11 +125,11 @@ def test_diffusion_coefficients_match_table3():
 
 - [ ] **Step 2: Run test to verify it fails.**
 Run: `PYTHONPATH=~/code/viva-cpm--influenza-sego2022 pytest tests/test_influenza_params.py -v`
-Expected: FAIL (module `pbg_cpm_studies.influenza` not found).
+Expected: FAIL (module `viva_cpm_studies.influenza` not found).
 
 - [ ] **Step 3: Create `types.py`.**
 ```python
-# pbg_cpm_studies/influenza/types.py
+# viva_cpm_studies/influenza/types.py
 """Cell-type integer codes for the influenza-sego2022 investigation.
 
 Fixed across every increment so composites, transitions and viz agree.
@@ -145,7 +145,7 @@ E = 6  # CD8+ T cell
 
 - [ ] **Step 4: Create `params.yaml`** (mirror the transcription in Task 0.2; every section carries a `source:` string). Minimal shape the test requires:
 ```yaml
-# pbg_cpm_studies/influenza/params.yaml
+# viva_cpm_studies/influenza/params.yaml
 # Canonical parameters for the Sego et al. 2022 influenza reproduction.
 # Mirrors docs/cc3d-reference/sego2022-parameters.md. Every section cites a source.
 cpm:
@@ -198,7 +198,7 @@ Note: the `null` adhesion entries are the one legitimate TODO carried forward �
 
 - [ ] **Step 5: Create `params.py` loader.**
 ```python
-# pbg_cpm_studies/influenza/params.py
+# viva_cpm_studies/influenza/params.py
 """Load the canonical Sego-2022 parameter set from params.yaml."""
 from __future__ import annotations
 from functools import lru_cache
@@ -218,7 +218,7 @@ PARAMS = load_params()
 
 - [ ] **Step 6: Create `__init__.py`.**
 ```python
-# pbg_cpm_studies/influenza/__init__.py
+# viva_cpm_studies/influenza/__init__.py
 """Native viva-cpm reproduction of Sego et al. 2022 influenza model."""
 ```
 
@@ -228,28 +228,28 @@ Expected: PASS (4 tests).
 
 - [ ] **Step 8: Commit.**
 ```bash
-git add pbg_cpm_studies/influenza/ tests/test_influenza_params.py
+git add viva_cpm_studies/influenza/ tests/test_influenza_params.py
 git commit -m "feat(influenza): cited canonical parameter set + type codes"
 ```
 
 ### Task 0.4: Digitize figure targets + loader
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/targets/fig3b.json`
-- Create: `pbg_cpm_studies/influenza/targets/fig5.json`
-- Create: `pbg_cpm_studies/influenza/targets/fig7.json`
-- Create: `pbg_cpm_studies/influenza/targets.py`
+- Create: `viva_cpm_studies/influenza/targets/fig3b.json`
+- Create: `viva_cpm_studies/influenza/targets/fig5.json`
+- Create: `viva_cpm_studies/influenza/targets/fig7.json`
+- Create: `viva_cpm_studies/influenza/targets.py`
 - Test: `tests/test_influenza_targets.py`
 
 **Interfaces:**
-- Consumes: `pbg_cpm_studies/influenza/params.py` (scenario lists).
-- Produces: `pbg_cpm_studies.influenza.targets.load_target(name) -> dict` with, per observable, a list of `{t_days, value, lo, hi}` band points.
+- Consumes: `viva_cpm_studies/influenza/params.py` (scenario lists).
+- Produces: `viva_cpm_studies.influenza.targets.load_target(name) -> dict` with, per observable, a list of `{t_days, value, lo, hi}` band points.
 
 - [ ] **Step 1: Write the failing test.**
 ```python
 # tests/test_influenza_targets.py
 import pytest
-from pbg_cpm_studies.influenza import targets
+from viva_cpm_studies.influenza import targets
 
 
 @pytest.mark.parametrize("name", ["fig3b", "fig5", "fig7"])
@@ -291,7 +291,7 @@ Expected: FAIL (module `targets` not found).
 
 - [ ] **Step 4: Create `targets.py` loader.**
 ```python
-# pbg_cpm_studies/influenza/targets.py
+# viva_cpm_studies/influenza/targets.py
 """Load digitized figure targets (acceptance bands) for the reproduction studies."""
 from __future__ import annotations
 import json
@@ -310,7 +310,7 @@ Expected: PASS.
 
 - [ ] **Step 6: Commit.**
 ```bash
-git add pbg_cpm_studies/influenza/targets* tests/test_influenza_targets.py
+git add viva_cpm_studies/influenza/targets* tests/test_influenza_targets.py
 git commit -m "feat(influenza): digitized Fig 3B/5/7 reproduction targets + loader"
 ```
 
@@ -346,17 +346,17 @@ Build and validate the confluent epithelial CPM substrate (no fields, no immune 
 ### Task 1.1: Epithelial-sheet spec builder
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/sheet.py`
+- Create: `viva_cpm_studies/influenza/sheet.py`
 - Test: `tests/test_influenza_sheet.py`
 
 **Interfaces:**
 - Consumes: `params.load_params()`, `types` (MEDIUM, H).
-- Produces: `pbg_cpm_studies.influenza.sheet.build_sheet_spec(patch_mm: float, seed: int = 17) -> dict` returning a `load_world` spec dict `{"potts": {...}, "cells": [...], "contact": [...]}` — same shape consumed by `cpm.processes.cpm_process` composites (see `pbg_cpm_studies/composites/gg1993.py:build_spec`). All epithelial cells are type `H`, uniform 5×5-site blocks tiling the domain, `target_volume=25`, `lambda_volume=9`.
+- Produces: `viva_cpm_studies.influenza.sheet.build_sheet_spec(patch_mm: float, seed: int = 17) -> dict` returning a `load_world` spec dict `{"potts": {...}, "cells": [...], "contact": [...]}` — same shape consumed by `cpm.processes.cpm_process` composites (see `viva_cpm_studies/composites/gg1993.py:build_spec`). All epithelial cells are type `H`, uniform 5×5-site blocks tiling the domain, `target_volume=25`, `lambda_volume=9`.
 
 - [ ] **Step 1: Write the failing test.**
 ```python
 # tests/test_influenza_sheet.py
-from pbg_cpm_studies.influenza import sheet, types
+from viva_cpm_studies.influenza import sheet, types
 
 
 def test_sheet_lattice_and_cell_count_0p3mm():
@@ -389,7 +389,7 @@ Expected: FAIL (module `sheet` not found).
 
 - [ ] **Step 3: Implement `sheet.py`.**
 ```python
-# pbg_cpm_studies/influenza/sheet.py
+# viva_cpm_studies/influenza/sheet.py
 """Confluent epithelial sheet as a load_world spec for the Rust CPM engine.
 
 A uniform grid of 5x5-site (10 um) cells of type H (uninfected), tiling a
@@ -447,7 +447,7 @@ Expected: PASS (3 tests).
 
 - [ ] **Step 5: Commit.**
 ```bash
-git add pbg_cpm_studies/influenza/sheet.py tests/test_influenza_sheet.py
+git add viva_cpm_studies/influenza/sheet.py tests/test_influenza_sheet.py
 git commit -m "feat(influenza): epithelial-sheet load_world spec builder"
 ```
 
@@ -455,16 +455,16 @@ git commit -m "feat(influenza): epithelial-sheet load_world spec builder"
 
 **Files:**
 - Modify: `tests/test_influenza_sheet.py` (add an engine-level test)
-- Create: `pbg_cpm_studies/influenza/build.py`
+- Create: `viva_cpm_studies/influenza/build.py`
 
 **Interfaces:**
 - Consumes: `sheet.build_sheet_spec`, `cpm.cpm_core.World`.
-- Produces: `pbg_cpm_studies.influenza.build.world_from_spec(spec) -> cpm_core.World` (finalized, ready to `step`).
+- Produces: `viva_cpm_studies.influenza.build.world_from_spec(spec) -> cpm_core.World` (finalized, ready to `step`).
 
 - [ ] **Step 1: Write the failing test** (append to `tests/test_influenza_sheet.py`).
 ```python
 def test_world_builds_and_holds_volume_after_relaxation():
-    from pbg_cpm_studies.influenza import build, sheet
+    from viva_cpm_studies.influenza import build, sheet
     spec = sheet.build_sheet_spec(0.3)
     w = build.world_from_spec(spec)
     assert w.n_cells() == 900
@@ -481,7 +481,7 @@ Expected: FAIL (`build` module not found).
 
 - [ ] **Step 3: Implement `build.py`.** Follow the low-level API used in `tests/test_bindings.py` (`World(dims, boundary, neighbor_order, temperature)`, `add_cell(type, target_volume, lambda_volume, target_surface, lambda_surface)`, `set_contact(a, b, j)`, `seed_block(id, x0,y0,z0,x1,y1,z1)`, `finalize(seed)`).
 ```python
-# pbg_cpm_studies/influenza/build.py
+# viva_cpm_studies/influenza/build.py
 """Instantiate a finalized cpm_core.World from a load_world sheet spec."""
 from __future__ import annotations
 from cpm import cpm_core
@@ -509,7 +509,7 @@ Expected: PASS (4 tests). If mean volume falls outside the band, adjust the epit
 
 - [ ] **Step 5: Commit.**
 ```bash
-git add pbg_cpm_studies/influenza/build.py tests/test_influenza_sheet.py
+git add viva_cpm_studies/influenza/build.py tests/test_influenza_sheet.py
 git commit -m "feat(influenza): build finalized CPM world from sheet spec + geometry test"
 ```
 
@@ -527,7 +527,7 @@ git commit -m "feat(influenza): build finalized CPM world from sheet spec + geom
 # tests/test_influenza_perf.py
 import time
 import pytest
-from pbg_cpm_studies.influenza import build, sheet
+from viva_cpm_studies.influenza import build, sheet
 
 
 @pytest.mark.perf
@@ -560,18 +560,18 @@ git commit -m "test(influenza): 1mm^2 MCS throughput budget gate"
 ### Task 1.4: Composite factory + `epithelial-sheet-baseline` study
 
 **Files:**
-- Create: `pbg_cpm_studies/composites/influenza.py`
+- Create: `viva_cpm_studies/composites/influenza.py`
 - Test: `tests/test_influenza_composite.py`
 - Create (via skills): the `epithelial-sheet-baseline` study in the investigation.
 
 **Interfaces:**
-- Consumes: `sheet.build_sheet_spec`, the `CPMProcess` address `local:!cpm.processes.cpm_process.CPMProcess` (see `pbg_cpm_studies/composites/gg1993.py`).
-- Produces: `pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline() -> dict` — a process-bigraph composite document the dashboard can run; `build_spec(patch_mm)` for a modest live-demo aggregate.
+- Consumes: `sheet.build_sheet_spec`, the `CPMProcess` address `local:!cpm.processes.cpm_process.CPMProcess` (see `viva_cpm_studies/composites/gg1993.py`).
+- Produces: `viva_cpm_studies.composites.influenza.epithelial_sheet_baseline() -> dict` — a process-bigraph composite document the dashboard can run; `build_spec(patch_mm)` for a modest live-demo aggregate.
 
 - [ ] **Step 1: Write the failing test.**
 ```python
 # tests/test_influenza_composite.py
-from pbg_cpm_studies.composites import influenza as inf
+from viva_cpm_studies.composites import influenza as inf
 
 
 def test_composite_document_runs_and_emits():
@@ -587,9 +587,9 @@ def test_composite_document_runs_and_emits():
 Run: `PYTHONPATH=~/code/viva-cpm--influenza-sego2022 pytest tests/test_influenza_composite.py -v`
 Expected: FAIL (module not found).
 
-- [ ] **Step 3: Implement the composite factory**, mirroring `pbg_cpm_studies/composites/gg1993.py` (same `CPM_ADDR`, `composite_generator` usage, `build_spec` for a modest demo). Reuse `sheet.build_sheet_spec` for the geometry; wrap it in a `CPMProcess` config (`mcs_per_update`, `n_fields=0`, `secretory_types=[]`). Keep the live-demo patch small (0.1 mm) so the dashboard "run baseline" is fast; the full-scale run comes from a driver later.
+- [ ] **Step 3: Implement the composite factory**, mirroring `viva_cpm_studies/composites/gg1993.py` (same `CPM_ADDR`, `composite_generator` usage, `build_spec` for a modest demo). Reuse `sheet.build_sheet_spec` for the geometry; wrap it in a `CPMProcess` config (`mcs_per_update`, `n_fields=0`, `secretory_types=[]`). Keep the live-demo patch small (0.1 mm) so the dashboard "run baseline" is fast; the full-scale run comes from a driver later.
 ```python
-# pbg_cpm_studies/composites/influenza.py
+# viva_cpm_studies/composites/influenza.py
 """process-bigraph composite factories for the influenza-sego2022 studies.
 
 Increment 1: the confluent epithelial sheet baseline (CPM only, no fields).
@@ -624,13 +624,13 @@ Note: match the exact composite wrapping in `gg1993.composite_document` (read it
 Run: `PYTHONPATH=~/code/viva-cpm--influenza-sego2022 pytest tests/test_influenza_composite.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Create the `epithelial-sheet-baseline` study** with `/viva-study` (Build/Simulate phase): baseline composite = `pbg_cpm_studies.composites.influenza.epithelial_sheet_baseline`; readouts = mean cell volume, cell count, MCS/s (from Task 1.3); acceptance = cells hold ~25 sites & confluent, throughput >= recorded floor. Link to the investigation.
+- [ ] **Step 5: Create the `epithelial-sheet-baseline` study** with `/viva-study` (Build/Simulate phase): baseline composite = `viva_cpm_studies.composites.influenza.epithelial_sheet_baseline`; readouts = mean cell volume, cell count, MCS/s (from Task 1.3); acceptance = cells hold ~25 sites & confluent, throughput >= recorded floor. Link to the investigation.
 
 - [ ] **Step 6: Add a visualization** with `/viva-viz`: a snapshot of the sheet (cell types colored) plus the cell-volume distribution histogram, so the increment ships a figure (spec §5).
 
 - [ ] **Step 7: Commit.**
 ```bash
-git add pbg_cpm_studies/composites/influenza.py tests/test_influenza_composite.py workspace/
+git add viva_cpm_studies/composites/influenza.py tests/test_influenza_composite.py workspace/
 git commit -m "feat(influenza): epithelial-sheet-baseline composite + study + viz"
 ```
 

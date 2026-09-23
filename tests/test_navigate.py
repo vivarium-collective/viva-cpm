@@ -1,4 +1,4 @@
-from pbg_cpm_studies.model_building import navigate
+from viva_cpm_studies.model_building import navigate
 
 
 def test_climbs_static_to_hill_to_adaptive():

@@ -482,7 +482,7 @@ key_assumptions:
 literature_anchors:
   - expectation: "Sego 2022 Fig. 3B (Sec. 3.1): spatial and ODE model results are in close overall agreement for the 0.3mm/1225-cell, 5%-initial-infection scenario over the first several simulated days, with the most notable spatial-vs-ODE spread in Type I IFN and downstream signals/immune cells."
     model_observable: "run.repro_fig3b's ensemble (mapped to targets/fig3b.json's exact observable keys via bands.evaluate_study) at REDUCED scale (replicas=2, cells_per_side=15, steps=20): band_eval['passed']=False, 0/12 observables in-band at every checkpoint -- population-count observables miss most (uninfected_cells 1/8, dead_cells 0/8), soft-flagged systemic/signaling observables miss less (type1_ifn 7/8, antibodies 7/8), driven by this config's ~5.4x-smaller population and ~0.09-day (vs 3.5-day) run duration, not a claim about mechanism fidelity."
-    source: "Sego et al. 2022, Fig. 3B, p.7 (digitized by eye, approximate) via pbg_cpm_studies/influenza/targets/fig3b.json"
+    source: "Sego et al. 2022, Fig. 3B, p.7 (digitized by eye, approximate) via viva_cpm_studies/influenza/targets/fig3b.json"
     status_in_workspace: "Driver wired and evaluable (F-01); reduced-scale comparison reported honestly as a scale/duration-driven miss (F-02), NOT a reproduction claim. Paper-scale 50-replica ensemble is the Mac-mini Phase-B follow-up that will set the reproduced verdict."
     cites: [sego2022influenza]
 
@@ -494,17 +494,17 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.full_model
+  base_model: viva_cpm_studies.composites.influenza.full_model
   new_processes: []
   new_state_variables: [repro_fig3b ensemble-mean series per fig3b observable key, band_eval per-observable in_band/n_checked/n_in/worst_miss]
   new_parameters: [replicas, seed0]
   modified_processes: []
   new_listeners: []
   notes: |
-    `run.repro_fig3b` is a driver-level function (`pbg_cpm_studies/
+    `run.repro_fig3b` is a driver-level function (`viva_cpm_studies/
     influenza/run.py`), not a new dashboard-loadable composite; it drives
     `run.run_full_model` directly (a raw `cpm_core.World` loop, same as
-    every other Increment 9 driver), reusing `pbg_cpm_studies.composites.
+    every other Increment 9 driver), reusing `viva_cpm_studies.composites.
     influenza.full_model` (Task 9.1's composite wrapper) as this study's
     `base_model` for provenance/report-card purposes. The composite wrapper
     itself is unchanged by this task.
@@ -561,7 +561,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.full_model
+    composite: viva_cpm_studies.composites.influenza.full_model
     params: {replicas: 2, cells_per_side: 15, steps: 20, seed0: 0}  # the reduced fast-test config this study's numbers come from; run.repro_fig3b is a driver function, not exercised through this composite directly -- see model_change.notes
 
   model_settings: []

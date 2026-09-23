@@ -36,7 +36,7 @@ findings:
     kind: computational
     status: confirms
     statement: gamma_ld<0 yields a defect-ridden checkerboard with dominant light-dark contact and two transitions (~T=0 freeze, ~T=15 mixing), matching Figs 7-9 and Table I.
-conclusion: 'Reproduced the paper''s Checkerboard (negative surface tension) example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 7, Fig 8, Fig 9, Table I.'
+conclusion: 'Reproduced the paper''s Checkerboard (negative surface tension) example with the exact energies and initial condition; the viva-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 7, Fig 8, Fig 9, Table I.'
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
@@ -94,11 +94,11 @@ runs:
         result: PASS
         measured_value: 0.837
         notes: frac_ld=0.837 vs frac_ll=0.042, frac_dd=0.061
-        evaluated_by: pbg_cpm_studies.gg1993.validate
+        evaluated_by: viva_cpm_studies.gg1993.validate
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    composite: viva_cpm_studies.composites.gg1993.gg1993
     params: {study: checkerboard}
   model_settings: []
 inputs: []

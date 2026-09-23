@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import math
 
-from pbg_cpm_studies.influenza import build, fields, run, sheet, types
-from pbg_cpm_studies.influenza.fields import VIRUS_DIFFUSION_LENGTH_SITES
+from viva_cpm_studies.influenza import build, fields, run, sheet, types
+from viva_cpm_studies.influenza.fields import VIRUS_DIFFUSION_LENGTH_SITES
 
 
 def test_seeded_lesion_spreads_over_time():

@@ -36,7 +36,7 @@ findings:
     kind: computational
     status: confirms
     statement: 'Sorting stalls partial: no light monolayer forms and clusters trap inclusions, markedly slower than normal sorting (Figs 22-24).'
-conclusion: 'Reproduced the paper''s Partial cell sorting example with the exact energies and initial condition; the pbg-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 22, Fig 23, Fig 24.'
+conclusion: 'Reproduced the paper''s Partial cell sorting example with the exact energies and initial condition; the viva-cpm CPM engine yields the same qualitative behaviour and topology. Figures: Fig 22, Fig 23, Fig 24.'
 key_assumptions:
   - Second-nearest-neighbour (Moore-8) square lattice, order 2.
   - 1 paper-MCS = 16 lattice-site sweeps (paper convention).
@@ -94,11 +94,11 @@ runs:
         result: PASS
         measured_value: 0.618
         notes: frac_ld 0.400→0.126, corr_lM_final=0.618 (no monolayer)
-        evaluated_by: pbg_cpm_studies.gg1993.validate
+        evaluated_by: viva_cpm_studies.gg1993.validate
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    composite: viva_cpm_studies.composites.gg1993.gg1993
     params: {study: partial_sorting}
   model_settings: []
 inputs: []

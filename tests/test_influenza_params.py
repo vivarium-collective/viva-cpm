@@ -1,4 +1,4 @@
-from pbg_cpm_studies.influenza import params, types
+from viva_cpm_studies.influenza import params, types
 
 
 def test_type_codes_are_distinct_and_ordered():

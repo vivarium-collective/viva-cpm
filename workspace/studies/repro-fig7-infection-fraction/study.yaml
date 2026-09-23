@@ -148,7 +148,7 @@ report:
     re-measurement. `repro_fig5`'s ~1200x extracellular_virus miss was
     diagnosed and fixed as a structural raw-sum-vs-mean units bug in the
     repro-observable mapping layer (`_map_full_model_observables`,
-    `pbg_cpm_studies/influenza/run.py`; see `repro-fig5-viral-load`'s F-04)
+    `viva_cpm_studies/influenza/run.py`; see `repro-fig5-viral-load`'s F-04)
     -- the same fix now applies to this study's `_FIG5_OBSERVABLE_MAP`-based
     mapping too (fig7 reuses that map). Re-running this study's exact
     reduced config (`fracs=(0.001,0.05), replicas=1, cells_per_side=12,
@@ -565,7 +565,7 @@ findings:
       bug in the repro-observable mapping layer, not a genuine PFU-scale
       calibration gap, fixed by reporting field observables as spatial-mean
       concentration (`_map_full_model_observables`,
-      `pbg_cpm_studies/influenza/run.py`). This study's OWN
+      `viva_cpm_studies/influenza/run.py`). This study's OWN
       extracellular_virus numbers above are CONFIRMED UNCHANGED by direct
       re-measurement after the fix (byte-identical n_in/worst_miss at both
       fractions) -- this finding's original read (a scale coincidence, not a
@@ -745,7 +745,7 @@ key_assumptions:
 literature_anchors:
   - expectation: "Sego 2022 Fig. 7 / Sec. 3.4, p.11: all replicas are non-lethal (the epithelial patch recovers) for initial infection fraction <=1%, even though the ODE model alone is fatal for all of these fractions; at fraction=5% the spatial model is comparably severe to the ODE model (the Fig. 3B scenario), though some replicas still retain surviving uninfected cells -- another spatial-vs-ODE disagreement, this time in initial-condition sensitivity rather than viral-dose sensitivity (Fig. 5's comparison)."
     model_observable: "run.repro_fig7's per-fraction ensemble (mapped to targets/fig7.json's exact observable keys, evaluated per fraction via _fig7_target_subset/_evaluate_fig7_subset) at REDUCED scale (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15): band_eval['passed']=False for both fractions (population-scale/run-duration mismatch plus a frac=0.001 rounding degeneracy, per report.key_metrics); the qualitative monotone dose-response direction holds (uninfected_final_frac 1.0 at frac=0.001's degenerate control -> 0.958333 at frac=0.05's real seed), a directional echo of the paper's own severity-rises-with-initial-fraction narrative, NOT a magnitude or threshold-value reproduction (only 2 of 4 fractions tested, and frac=0.001 did not actually seed any infection at this reduced population)."
-    source: "Sego et al. 2022, Fig. 7, p.11 (digitized by eye from log-scale panels, approximate) via pbg_cpm_studies/influenza/targets/fig7.json"
+    source: "Sego et al. 2022, Fig. 7, p.11 (digitized by eye from log-scale panels, approximate) via viva_cpm_studies/influenza/targets/fig7.json"
     status_in_workspace: "Driver wired and evaluable, scenario-grouping guard generalized + verified in pytest for both fig5 and fig7 (F-01, F-02); monotone dose-response direction holds at reduced scale with an honestly-flagged degenerate-fraction caveat (F-02/F-03); per-fraction band containment reported honestly as a scale/duration/rounding-driven miss, NOT a reproduction claim. Paper-scale 20-replica, all-4-fraction ensemble is the Mac-mini Phase-B follow-up that will set the reproduced verdict."
     cites: [sego2022influenza]
 
@@ -757,17 +757,17 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.full_model
+  base_model: viva_cpm_studies.composites.influenza.full_model
   new_processes: []
   new_state_variables: [repro_fig7 per-fraction ensemble-mean series per fig7 observable key, per-fraction band_eval (in_band/n_checked/n_in/worst_miss), lethal_threshold]
   new_parameters: [fracs, replicas, seed0]
   modified_processes: []
   new_listeners: []
   notes: |
-    `run.repro_fig7` is a driver-level function (`pbg_cpm_studies/
+    `run.repro_fig7` is a driver-level function (`viva_cpm_studies/
     influenza/run.py`), not a new dashboard-loadable composite; it drives
     `run.run_full_model` directly (a raw `cpm_core.World` loop, same as
-    every other Increment 9 driver), reusing `pbg_cpm_studies.composites.
+    every other Increment 9 driver), reusing `viva_cpm_studies.composites.
     influenza.full_model` (Task 9.1's composite wrapper) as this study's
     `base_model` for provenance/report-card purposes. The composite wrapper
     itself is unchanged by this task. This task also generalized
@@ -813,7 +813,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.full_model
+    composite: viva_cpm_studies.composites.influenza.full_model
     params: {fracs: [0.001, 0.05], replicas: 1, cells_per_side: 12, steps: 15, seed0: 0}  # the reduced fast-test config this study's numbers come from; run.repro_fig7 is a driver function, not exercised through this composite directly -- see model_change.notes
 
   model_settings: []

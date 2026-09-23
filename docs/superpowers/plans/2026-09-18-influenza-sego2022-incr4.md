@@ -19,7 +19,7 @@
   - NK/CD8⁺ contact-killing γ terms are Increment 7 — DEFER.
 - resist = f̄/(a_rf+f̄) from Increment 3 (`resistance.cell_resistance`); consumers use (1−resist). Cell types: MEDIUM=0,H=1,I=2,D=3 (immune 4-6 not populated yet).
 - params.yaml single authority. No AI attribution. Death is set_cell_type (no removal).
-- Work only in worktree `~/code/viva-cpm--influenza-incr4` (branch `investigation/influenza-incr4`); never touch `~/code/viva-cpm`, and **do NOT touch `pbg_cpm_studies/composites/__init__.py`** (a peer session owns a registration fix there). Tests: `~/code/viva-cpm--influenza-incr4/.venv/bin/python -m pytest <path> -v`.
+- Work only in worktree `~/code/viva-cpm--influenza-incr4` (branch `investigation/influenza-incr4`); never touch `~/code/viva-cpm`, and **do NOT touch `viva_cpm_studies/composites/__init__.py`** (a peer session owns a registration fix there). Tests: `~/code/viva-cpm--influenza-incr4/.venv/bin/python -m pytest <path> -v`.
 - **Rust rebuild (VERIFIED):** after edits under `crates/`, from the worktree root run `VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --release`. Rust unit tests via `cargo test -p cpm-core`.
 
 ---
@@ -39,18 +39,18 @@
 - [ ] No-regression: `tests/test_influenza_*.py`, `tests/test_fields.py` → PASS. Commit `feat(engine): per-cell contact-area-by-type query (Allee surface substrate)`.
 
 ### Task 4.2: infected death transition (I→D)
-**Files:** `pbg_cpm_studies/influenza/transitions.py` (+`infected_death_step`), `tests/test_influenza_transitions.py`.
+**Files:** `viva_cpm_studies/influenza/transitions.py` (+`infected_death_step`), `tests/test_influenza_transitions.py`.
 **Interfaces:** `transitions.infected_death_step(types_list, resist_at_cell, mu_i, rng) -> list` — pure: for each `types.I` cell, `Pr = 1−exp(−mu_i·(1−resist))`; on success → `types.D`. Others unchanged.
 - [ ] Failing tests: high mu_i·(1−resist) → I dies (→D); resist=1 (fully resistant) → never dies; non-I unchanged; determinism; empirical fraction ≈ 1−exp(−rate). Implement, PASS. Commit `feat(influenza): infected-cell death transition I->D (mu_i*(1-resist))`.
 
 ### Task 4.3: Allee death (H→D) + recovery (D→H)
-**Files:** `pbg_cpm_studies/influenza/allee.py`, `pbg_cpm_studies/influenza/run.py` (extend the driver to apply all fate transitions per update), `tests/test_influenza_allee.py`.
+**Files:** `viva_cpm_studies/influenza/allee.py`, `viva_cpm_studies/influenza/run.py` (extend the driver to apply all fate transitions per update), `tests/test_influenza_allee.py`.
 **Interfaces:** pure functions `allee.uninfected_death_rate(srf_uninfected, srf_total, b_h, resist, srf_threshold)` and `allee.recovery_rate(...)` implementing the transcribed forms; a driver `run.run_epithelial_fate(...)` that each update reads per-cell resist (IFN) + `cell_contact_area_by_type` and applies infected death, Allee death, and recovery via set_cell_type.
 - [ ] Failing tests: (a) the rate pure-functions match the transcribed formula at sample inputs (0 above threshold; positive below; monotone in the surface deficit). (b) INTEGRATION — the key claims: starting from a seeded infected patch, a contiguous DEAD region forms (H→I→D), AND a dead cell fully surrounded by H recovers to H over time (D→H), while a dead cell surrounded by dead/infected does NOT. Deterministic/seeded, small/fast.
 - [ ] Implement, PASS. Commit `feat(influenza): cellularized Allee death (H->D) + recovery (D->H)`.
 
 ### Task 4.4: epithelial-fate study + viz + membership
-**Files:** `workspace/studies/epithelial-fate/study.yaml` (hand-author), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member), `pbg_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test). Do NOT touch `pbg_cpm_studies/visualizations/` (peer owns).
+**Files:** `workspace/studies/epithelial-fate/study.yaml` (hand-author), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member), `viva_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test). Do NOT touch `viva_cpm_studies/visualizations/` (peer owns).
 - [ ] Add `viz.epithelial_fate_figure(run_result)` (cell-type composition H/I/D over time + a lesion snapshot showing dead region + recovered cells). Test returns a Figure (Agg).
 - [ ] Hand-author `epithelial-fate/study.yaml` (schema v3, Simulate, in-progress): report HONESTLY the measured fate dynamics (lesion forms; recovery of surrounded dead cells) with the actual numbers from Task 4.3. Caveats: infected death is the SOURCE's SIMPLIFIED flat form (ROS/Hill term omitted — conceptual target noted); NK/CD8 contact-killing deferred (Increment 7); reproduction PENDING (Increment 9). verdict = documented. Wire a baseline composite (reuse virus_infection or add a fate variant in composites/influenza.py — it auto-registers via the peer's __init__ import; do NOT edit __init__.py). Validate with lint-workspace.py; add investigation member; keep status honest.
 - [ ] Run `-k influenza` (all pass). Commit `feat(influenza): epithelial-fate study + viz`.

@@ -4,8 +4,8 @@ matplotlib.use("Agg")  # headless: no display backend required
 from matplotlib.figure import Figure
 
 from cpm.schema import load_world
-from pbg_cpm_studies.influenza import sheet, viz
-from pbg_cpm_studies.influenza.run import (
+from viva_cpm_studies.influenza import sheet, viz
+from viva_cpm_studies.influenza.run import (
     run_virus_infection, run_virus_infection_with_ifn, run_global_coupling,
     repro_fig3b, repro_fig5, repro_fig7,
 )

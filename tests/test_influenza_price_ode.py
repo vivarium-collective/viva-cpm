@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from pbg_cpm_studies.influenza import params, price_ode
+from viva_cpm_studies.influenza import params, price_ode
 
 P = params.load_params()
 
@@ -58,7 +58,7 @@ def test_step_tnf_rises_with_infection():
 
 
 def test_run_global_coupling_smoke_and_shapes():
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     r = run.run_global_coupling(side=30, steps=8, seed=1, with_immune=True)
     n = len(r["mcs"])
     assert n == 8
@@ -74,7 +74,7 @@ def test_run_global_coupling_smoke_and_shapes():
 
 
 def test_sig1_is_dynamic_not_stubbed():
-    from pbg_cpm_studies.influenza import run, params
+    from viva_cpm_studies.influenza import run, params
     P = params.load_params()
     stub = P["il10"]["sig_1_stub"]
     r = run.run_global_coupling(side=30, steps=20, seed=3, with_immune=True, seed_infection_frac=0.05)

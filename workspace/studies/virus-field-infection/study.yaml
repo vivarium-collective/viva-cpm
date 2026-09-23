@@ -71,7 +71,7 @@ report:
     per-cell resistance state variable arrives in Increment 3), no
     death/recovery, and no immune cells (macrophages/NK/CD8+ T arrive in
     later increments). The virus secretion magnitude uses the documented
-    z=1/per-pixel convention (`pbg_cpm_studies/influenza/fields.py`'s
+    z=1/per-pixel convention (`viva_cpm_studies/influenza/fields.py`'s
     `_virus_field_params`, pre-dim.z halving of the source's `secretion_g_vi`
     spread evenly over each cell's 25 pixels) — this reproduces the source's
     RATE convention but its exact magnitude against the paper's field scale
@@ -120,15 +120,15 @@ hypothesis: |
   scattered across the whole sheet, and n_H + n_I conserved every update.
 
 objective: |
-  Wire the virus field (Task 2.1, `pbg_cpm_studies/influenza/fields.py`) and
+  Wire the virus field (Task 2.1, `viva_cpm_studies/influenza/fields.py`) and
   the stochastic infection transition (Task 2.2,
-  `pbg_cpm_studies/influenza/transitions.py`) together over the Increment-1
+  `viva_cpm_studies/influenza/transitions.py`) together over the Increment-1
   sheet, drive them for 60 updates from a small seeded lesion
-  (`pbg_cpm_studies/influenza/run.py::run_virus_infection`, Task 2.3), and
+  (`viva_cpm_studies/influenza/run.py::run_virus_infection`, Task 2.3), and
   report the measured spread/locality/null-control behavior from the
   integration test (`tests/test_influenza_virus_infection.py`). Wrap the
   same mechanism as a process-bigraph composite
-  (`pbg_cpm_studies.composites.influenza.viral_infection`, CPMProcess +
+  (`viva_cpm_studies.composites.influenza.viral_infection`, CPMProcess +
   InfectionProcess wired through `fates`) for the dashboard live demo (Task
   2.4, this study) — measurements come from `run_virus_infection`, not the
   live-demo composite (see caveat and Task 2.3's report on why the two
@@ -142,7 +142,7 @@ description: |
   arrive in Increments 3+. The virus field's diffusion coefficient, decay
   rate, and target diffusion length (5 cell diameters = 25 lattice sites)
   are taken from the CC3D ViralInfectionVTM source (see
-  `pbg_cpm_studies/influenza/params.yaml`'s `virus:` block); the infection
+  `viva_cpm_studies/influenza/params.yaml`'s `virus:` block); the infection
   rate coefficient `g_hv` is likewise source-cited. Two independent
   seed-derived RNG streams make the driver run
   (`run.run_virus_infection`) fully deterministic: one chooses the initial
@@ -352,7 +352,7 @@ biological_summary: |
   A small seeded lesion of InfectedReleasing (I) epithelial cells secretes
   virus into a diffusing, decaying extracellular field (source-cited
   diffusion coefficient and decay rate; target diffusion length 5 cell
-  diameters = 25 lattice sites, per `pbg_cpm_studies/influenza/params.yaml`
+  diameters = 25 lattice sites, per `viva_cpm_studies/influenza/params.yaml`
   `virus:` block). Nearby Healthy (H) cells stochastically transition to
   Infected as a function of the local mean field concentration they
   experience (`Pr(infect) = 1 - exp(-g_hv * v_bar)`), so the lesion grows
@@ -369,7 +369,7 @@ biological_summary: |
 
 key_assumptions:
   - Virus secretion magnitude uses the documented z=1/per-pixel convention
-    (`pbg_cpm_studies/influenza/fields.py`'s `_virus_field_params` — the
+    (`viva_cpm_studies/influenza/fields.py`'s `_virus_field_params` — the
     source's per-cell `secretion_g_vi` is halved to remove the source's z=2
     slab thickness for our single-layer z=1 sheet, then spread evenly over
     each cell's 25 pixels). This reproduces the source's RATE convention
@@ -388,7 +388,7 @@ key_assumptions:
     a full replicate study), not a statistically characterized rate across
     a systematic replicate sweep.
   - The live-demo composite
-    (`pbg_cpm_studies.composites.influenza.viral_infection`) and the
+    (`viva_cpm_studies.composites.influenza.viral_infection`) and the
     measurement driver (`run.run_virus_infection`) use independent RNG
     streams for the same `seed` and are NOT expected to produce bit-
     identical trajectories (Task 2.3 report) — the composite exists for a
@@ -396,14 +396,14 @@ key_assumptions:
 
 literature_anchors:
   - expectation: "The virus field's diffusion length should be ~5 epithelial-cell diameters (source `exp_virus_dl` = exp_cell_diameter * 5.0)."
-    model_observable: "pbg_cpm_studies/influenza/fields.py VIRUS_DIFFUSION_LENGTH_SITES = 25 sites (5 cell diameters x 5 sites/diameter); new-infection distances (5.0-32.0 sites, raw) land ~0.61x as far from prior infection as a uniform-random null baseline (ratio threshold <0.75; shuffled-field non-local control fails at ~1.13), and the first 3 updates with new infections stay under a tighter 50-site (2x diffusion-length) absolute bound."
-    source: "CC3D ViralInfectionVTM source (pbg_cpm_studies/influenza/params.yaml virus.diffusion_length_cell_diam)"
+    model_observable: "viva_cpm_studies/influenza/fields.py VIRUS_DIFFUSION_LENGTH_SITES = 25 sites (5 cell diameters x 5 sites/diameter); new-infection distances (5.0-32.0 sites, raw) land ~0.61x as far from prior infection as a uniform-random null baseline (ratio threshold <0.75; shuffled-field non-local control fails at ~1.13), and the first 3 updates with new infections stay under a tighter 50-site (2x diffusion-length) absolute bound."
+    source: "CC3D ViralInfectionVTM source (viva_cpm_studies/influenza/params.yaml virus.diffusion_length_cell_diam)"
     status_in_workspace: "Diffusion length wired into the field; the study's primary locality behavior test compares against a discriminating uniform-random null baseline (not a fixed multiple of this length), with the diffusion length itself used only for the secondary early-update absolute-bound check (50 sites = 2x). No acceptance-band comparison to a digitized figure yet."
     cites: [sego2022influenza]
   - expectation: "Sego et al. 2022 Fig 6 shows the spatial pattern of virus concentration and infected cells spreading outward from an initial lesion over simulated time."
     model_observable: "This study's discriminating locality result (new infections land ~0.61x as far from prior infection as a uniform-random null baseline would predict, vs ~1.13x for a shuffled-field non-local control) is the same qualitative phenomenon (local outward spread from an active lesion) that Fig 6 depicts."
     source: "Sego 2022 Fig 6"
-    status_in_workspace: "Referenced QUALITATIVELY only -- no digitized acceptance band exists for Fig 6 in this workspace (unlike Figs 3B/5/7, which are cell-count time-series targets in pbg_cpm_studies/influenza/targets/ and are not spatial-pattern targets). A quantitative Fig-6 comparison is not attempted by this study."
+    status_in_workspace: "Referenced QUALITATIVELY only -- no digitized acceptance band exists for Fig 6 in this workspace (unlike Figs 3B/5/7, which are cell-count time-series targets in viva_cpm_studies/influenza/targets/ and are not spatial-pattern targets). A quantitative Fig-6 comparison is not attempted by this study."
     cites: [sego2022influenza]
 
 gate_status: passed
@@ -414,11 +414,11 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.viral_infection
-  new_processes: [pbg_cpm_studies.influenza.infection_process.InfectionProcess]
+  base_model: viva_cpm_studies.composites.influenza.viral_infection
+  new_processes: [viva_cpm_studies.influenza.infection_process.InfectionProcess]
   new_state_variables: [virus field (per-site concentration)]
   new_parameters: [patch_mm, seed, init_infected_frac]
-  modified_processes: [pbg_cpm_studies.composites.influenza.epithelium (adds fields + secretory_types)]
+  modified_processes: [viva_cpm_studies.composites.influenza.epithelium (adds fields + secretory_types)]
   new_listeners: []
   notes: |
     Wraps the existing CPMProcess (now with `n_fields=1`,
@@ -473,7 +473,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.viral_infection
+    composite: viva_cpm_studies.composites.influenza.viral_infection
     params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch; the measured readouts above come from run_virus_infection at 0.3mm/900 cells (Task 2.3), not this live-demo composite
 
   model_settings: []

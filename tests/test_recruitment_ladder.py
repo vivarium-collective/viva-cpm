@@ -1,8 +1,8 @@
 # tests/test_recruitment_ladder.py — the emergent ladder must separate
 import process_bigraph as pb
 from statistics import mean
-from pbg_cpm_studies.composites import chemotaxis_adaptive as CA
-from pbg_cpm_studies.chemotaxis import metrics as M
+from viva_cpm_studies.composites import chemotaxis_adaptive as CA
+from viva_cpm_studies.chemotaxis import metrics as M
 
 SEEDS = [17, 29, 43]; STEPS = 40
 

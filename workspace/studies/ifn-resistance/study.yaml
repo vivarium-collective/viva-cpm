@@ -136,16 +136,16 @@ hypothesis: |
   has had time to accumulate.
 
 objective: |
-  Wire the type-I IFN field (Task 3.2, `pbg_cpm_studies/influenza/fields.py`
+  Wire the type-I IFN field (Task 3.2, `viva_cpm_studies/influenza/fields.py`
   `add_ifn_field`) and the pure per-cell resistance function (Task 3.3,
-  `pbg_cpm_studies/influenza/resistance.py::cell_resistance`) into a new
+  `viva_cpm_studies/influenza/resistance.py::cell_resistance`) into a new
   driver, `run.run_virus_infection_with_ifn` (Task 3.3), alongside the
   unmodified Increment-2 `run_virus_infection`, and compare their per-update
   series (n_I, n_H, total_virus, plus `mean_resist` recorded only by the
   with-IFN driver) at identical seed/parameters (Task 3.3's integration test
   `tests/test_influenza_virus_infection.py::test_ifn_resistance_slows_spread_vs_no_ifn`
   and the fuller with/without series in Task 3.3's report). A minimal
-  in-package figure (`pbg_cpm_studies/influenza/viz.py::ifn_resistance_figure`,
+  in-package figure (`viva_cpm_studies/influenza/viz.py::ifn_resistance_figure`,
   Task 3.4) renders both series side by side plus the mean_resist trajectory.
 
 description: |
@@ -156,7 +156,7 @@ description: |
   cells, and no APC-driven global IFN amplification — those arrive in later
   increments. The IFN field's diffusion/decay/secretion constants and the
   resistance formula's `a_rf` constant are taken from the CC3D
-  ViralInfectionVTM source (see `pbg_cpm_studies/influenza/params.yaml`'s
+  ViralInfectionVTM source (see `viva_cpm_studies/influenza/params.yaml`'s
   `ifn:` and `resistance:` blocks); the resistance formula matches the
   source's stored convention (`resist = f_bar/(a_rf+f_bar)`, a plain
   Hill/saturation function), NOT the paper's printed form
@@ -387,7 +387,7 @@ biological_summary: |
   Infected epithelial cells secrete type-I interferon (IFN) into a second
   diffusing, decaying extracellular field (source-cited diffusion
   coefficient, decay rate, and secretion constant, per
-  `pbg_cpm_studies/influenza/params.yaml`'s `ifn:` block), layered on the
+  `viva_cpm_studies/influenza/params.yaml`'s `ifn:` block), layered on the
   Increment-2 virus field. Each update, every currently-infected cell reads
   its own locally-diffused mean IFN concentration and converts it into a
   resistance scalar via the CC3D-source formula `resist =
@@ -446,7 +446,7 @@ key_assumptions:
     the WITH-IFN driver — `run_virus_infection_with_ifn` is a raw
     `cpm_core.World` loop (Task 3.3), not wrapped as a composite. The
     `conditions.baseline` entry below reuses the SAME Increment-2
-    live-demo composite (`pbg_cpm_studies.composites.influenza.viral_infection`,
+    live-demo composite (`viva_cpm_studies.composites.influenza.viral_infection`,
     no IFN/resistance wiring) purely so this study has a dashboard-loadable
     baseline; it is NOT the composite this study's readouts are measured
     from, and it does not reproduce the IFN mechanism. All readouts above
@@ -460,13 +460,13 @@ key_assumptions:
 literature_anchors:
   - expectation: "Type-I IFN secreted by infected cells confers a per-cell resistance that reduces virus release (Sego 2022 Sec. 2.2, cellular viral resistance rho)."
     model_observable: "mean_resist over currently-infected cells (this study's `resist` field, `resistance.cell_resistance`) rises from 0.0 to ~0.53 after the first update and plateaus at ~0.55-0.57 through step 40; total_virus with the resulting (1-resist) gate is roughly halved vs the no-IFN path at steps 20/30/40 (819.16/1222.88/1624.58 vs 1750.69/2752.34/3905.38)."
-    source: "CC3D ViralInfectionVTM source (Type1InterferonModelSteppable.update_resistance) via pbg_cpm_studies/influenza/params.yaml resistance: block"
+    source: "CC3D ViralInfectionVTM source (Type1InterferonModelSteppable.update_resistance) via viva_cpm_studies/influenza/params.yaml resistance: block"
     status_in_workspace: "Wired and measured directly (resist gates virus secretion by (1-resist) each update). The MAGNITUDE of the plateau (~0.55, not saturating toward 1) is an OPEN Increment-9 calibration question — flagged in report.caveat and key_assumptions, not resolved here. No acceptance-band comparison to a digitized figure yet."
     cites: [sego2022influenza]
   - expectation: "Sego et al. 2022's reproduction (Figs 3B/5/7) implicitly requires the IFN-resistance mechanism to be strong enough to shape infected/uninfected epithelial-cell trajectories at paper scale."
     model_observable: "This study's with/without comparison shows the mechanism moves trajectories in the correct (protective) direction, with a robust, non-trivial magnitude on total_virus (roughly halved at every sampled step) but only a WEAK effect on n_I at the tested step (48 vs 50 at step 20, ~4%), widening to a more meaningful ~23% by step 40 (53 vs 69) — at 0.3mm/900-cell reduced scale, using source-cited constants throughout."
     source: "Sego 2022 Figs 3B, 5, 7 (digitized acceptance bands, Increment 0)"
-    status_in_workspace: "Referenced QUALITATIVELY only — this study does not compare against the digitized Fig 3B/5/7 acceptance bands (pbg_cpm_studies/influenza/targets/); that quantitative reproduction comparison is Increment 9's capstone, not attempted here."
+    status_in_workspace: "Referenced QUALITATIVELY only — this study does not compare against the digitized Fig 3B/5/7 acceptance bands (viva_cpm_studies/influenza/targets/); that quantitative reproduction comparison is Increment 9's capstone, not attempted here."
     cites: [sego2022influenza]
 
 gate_status: passed
@@ -477,7 +477,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.viral_infection
+  base_model: viva_cpm_studies.composites.influenza.viral_infection
   new_processes: []
   new_state_variables: [type-I IFN field (per-site concentration), per-cell resistance (derived, not stored on the composite)]
   new_parameters: [a_rf]
@@ -530,7 +530,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.viral_infection
+    composite: viva_cpm_studies.composites.influenza.viral_infection
     params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch, no IFN/resistance wiring; the measured readouts above come from run_virus_infection_with_ifn / run_virus_infection at 0.3mm/900 cells (Task 3.3), not this composite -- see key_assumptions
 
   model_settings: []

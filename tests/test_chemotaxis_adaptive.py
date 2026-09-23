@@ -1,6 +1,6 @@
 import process_bigraph as pb
-from pbg_cpm_studies.composites import chemotaxis_adaptive as CA
-from pbg_cpm_studies.chemotaxis import metrics as M
+from viva_cpm_studies.composites import chemotaxis_adaptive as CA
+from viva_cpm_studies.chemotaxis import metrics as M
 
 
 def _final_index(condition, seed=17, steps=40):

@@ -1,4 +1,4 @@
-# pbg-cpm — a native process-bigraph Cellular Potts framework
+# viva-cpm — a native process-bigraph Cellular Potts framework
 
 **Status:** design approved 2026-07-04 · **Scope of this doc:** umbrella design + spec for Sub-project A (CPM core engine). Sub-projects B–E get their own specs later.
 
@@ -23,7 +23,7 @@ Two hard, explicit success criteria beyond "it works":
 
 - **CPM core: native compiled Rust**, exposed to Python via pyo3 + maturin. Rust owns the lattice; process-bigraph orchestrates.
 - **CPM and PDE are two separate Rust-backed pbg Processes** sharing the field buffer (faithful to CC3D's Potts-vs-Steppable split; lets PDE solvers be swapped independently).
-- **Repo name:** `pbg-cpm`.
+- **Repo name:** `viva-cpm`.
 - **Parallelization ordering:** build single-threaded and correct first, land + benchmark it, *then* add checkerboard/sublattice parallelism as an isolated, separately-validated step.
 - **First milestone:** 2D cell sorting end-to-end, then 3D cell sorting.
 
@@ -61,7 +61,7 @@ Two hard, explicit success criteria beyond "it works":
 ## Repo structure
 
 ```
-pbg-cpm/
+viva-cpm/
   crates/
     cpm-core/      # lattice, cells, energy, Metropolis sweep (2D+3D, generic over dim)
     cpm-pde/       # field solver (Sub-project B)

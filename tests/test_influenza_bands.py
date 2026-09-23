@@ -1,4 +1,4 @@
-from pbg_cpm_studies.influenza import bands
+from viva_cpm_studies.influenza import bands
 
 
 def test_series_in_band_basic():

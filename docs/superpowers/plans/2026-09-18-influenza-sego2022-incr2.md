@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12, `cpm.cpm_core` (existing CPM+field engine), `process_bigraph`, numpy, pytest, PyYAML.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-influenza-sego2022-reproduction-design.md` (Increment 2 row of §5). Builds directly on Increment 1 (merged): `pbg_cpm_studies/influenza/{params.yaml,sheet.py,build.py,types.py}` and `pbg_cpm_studies/composites/influenza.py`.
+**Spec:** `docs/superpowers/specs/2026-09-18-influenza-sego2022-reproduction-design.md` (Increment 2 row of §5). Builds directly on Increment 1 (merged): `viva_cpm_studies/influenza/{params.yaml,sheet.py,build.py,types.py}` and `viva_cpm_studies/composites/influenza.py`.
 
 ## Global Constraints
 
@@ -16,7 +16,7 @@
 - Virus field units (engine field units, from `docs/cc3d-reference/sego2022-parameters.md` §3): unitless diffusion **D ≈ 0.1788 lattice²/MCS**, decay **≈ 2.861e-4 /MCS**; target diffusion length **5 cell diameters** (= 25 lattice sites, since 1 cell = 5 sites).
 - Virus secretion: infected cells release at flat rate `g_vi` scaled by `(1 − resist)`; **resist = 0 in Increment 2** (no IFN field yet) → full release. The `(1−resist)` gating is deferred to Increment 3.
 - Infection transition (source `ViralInternalizationSteppable`, transcription §6): per uninfected cell per MCS-update, `rate = g_hv · v̄(s)` (v̄ = local mean virus over the cell's pixels, no saturation), `Pr(infect) = 1 − exp(−rate)`; on success type H→I. Source flips straight to the releasing/infected type — we use `types.I`.
-- Cell-type codes (existing `pbg_cpm_studies/influenza/types.py`): MEDIUM=0, H=1, I=2, D=3, M=4, K=5, E=6. (D and immune types are not yet populated in Increment 2.)
+- Cell-type codes (existing `viva_cpm_studies/influenza/types.py`): MEDIUM=0, H=1, I=2, D=3, M=4, K=5, E=6. (D and immune types are not yet populated in Increment 2.)
 - Honesty: the `virus-field-infection` study validates the MECHANISM (field diffusion length, infection spread), not the full Fig-3B/5/7 reproduction — that stays PENDING (Increment 9). No fabricated reproduction verdict. No AI attribution in commits.
 - Work only in the worktree `~/code/viva-cpm--influenza-incr2` (branch `investigation/influenza-incr2`); never touch `~/code/viva-cpm`. Tests: `/Users/eranagmon/code/viva-cpm--influenza-incr2/.venv/bin/python -m pytest <path> -v`.
 
@@ -25,7 +25,7 @@
 ### Task 2.0: Extract & cite virus/infection constants into params.yaml
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/params.yaml` (add a `virus` section)
+- Modify: `viva_cpm_studies/influenza/params.yaml` (add a `virus` section)
 - Modify: `docs/cc3d-reference/sego2022-parameters.md` (fill exact `g_vi`, `g_hv`, initial-condition constants if not already present)
 - Test: `tests/test_influenza_params.py` (extend)
 
@@ -40,7 +40,7 @@
 ### Task 2.1: Virus field on the sheet (diffusion + infected-cell secretion)
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/fields.py`
+- Create: `viva_cpm_studies/influenza/fields.py`
 - Test: `tests/test_influenza_fields.py`
 
 **Interfaces:**
@@ -55,7 +55,7 @@
 ### Task 2.2: Stochastic infection transition (H→I) Step
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/transitions.py`
+- Create: `viva_cpm_studies/influenza/transitions.py`
 - Test: `tests/test_influenza_transitions.py`
 
 **Interfaces:**
@@ -70,12 +70,12 @@
 ### Task 2.3: Virus-infection composite + spread integration test
 
 **Files:**
-- Modify: `pbg_cpm_studies/composites/influenza.py` (add `virus_infection` factory)
+- Modify: `viva_cpm_studies/composites/influenza.py` (add `virus_infection` factory)
 - Test: `tests/test_influenza_virus_infection.py`
 
 **Interfaces:**
 - Consumes: `sheet.build_sheet_spec`, `build.world_from_spec`, `fields.add_virus_field`, `transitions.infection_step`, the CPMProcess.
-- Produces: `composites.influenza.virus_infection(patch_mm, seed, initial_infected_frac_or_load)` returning a composite document, and a driver-style helper `run_virus_infection(patch_mm, steps, seed) -> dict` (returns per-step counts of H/I and total virus) usable by the study + integration test. Wiring: each update = CPM step (motility) → advance virus field (secretion+diffusion+decay) → read `field_mean_at_cell` per cell → `infection_step` → write back types via `set_cell_type`. Reuse the CPMProcess where it fits; if the transition/field loop is simpler as a small explicit driver over the Rust world (like `pbg_cpm_studies/gg1993` driver), do that and keep the composite as the dashboard-runnable wrapper.
+- Produces: `composites.influenza.virus_infection(patch_mm, seed, initial_infected_frac_or_load)` returning a composite document, and a driver-style helper `run_virus_infection(patch_mm, steps, seed) -> dict` (returns per-step counts of H/I and total virus) usable by the study + integration test. Wiring: each update = CPM step (motility) → advance virus field (secretion+diffusion+decay) → read `field_mean_at_cell` per cell → `infection_step` → write back types via `set_cell_type`. Reuse the CPMProcess where it fits; if the transition/field loop is simpler as a small explicit driver over the Rust world (like `viva_cpm_studies/gg1993` driver), do that and keep the composite as the dashboard-runnable wrapper.
 
 - [ ] **Step 1:** Write failing integration test: seed a small sheet (0.3mm) with a few infected cells (or an initial virus blob), run `run_virus_infection` for N updates, assert (a) infected-cell count strictly increases over time (lesion spreads), (b) spread is LOCAL early (infected cells are spatially contiguous with the seed, not random across the sheet), (c) with zero initial virus AND zero initial infected, nothing infects.
 - [ ] **Step 2:** Run → FAIL.
@@ -87,7 +87,7 @@
 **Files:**
 - Create: `workspace/studies/virus-field-infection/study.yaml`
 - Modify: `workspace/investigations/influenza-sego2022/investigation.yaml` (add member)
-- Create/Modify: `pbg_cpm_studies/influenza/viz.py` (add a virus+infection figure)
+- Create/Modify: `viva_cpm_studies/influenza/viz.py` (add a virus+infection figure)
 - Test: `tests/test_influenza_viz.py` (extend)
 
 **Interfaces:** hand-author the study (no dashboard server); model on `workspace/studies/epithelial-sheet-baseline/study.yaml`.

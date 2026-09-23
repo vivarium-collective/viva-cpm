@@ -1,5 +1,5 @@
-"""Regression + extension tests for pbg_cpm_studies.chemotaxis.metrics."""
-from pbg_cpm_studies.chemotaxis import metrics as M
+"""Regression + extension tests for viva_cpm_studies.chemotaxis.metrics."""
+from viva_cpm_studies.chemotaxis import metrics as M
 
 
 def test_single_responder_type_unchanged():

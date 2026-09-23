@@ -12,7 +12,7 @@ a small/fast reduced scale -- NOT figure-band matching (that is Tasks
 """
 import pytest
 
-from pbg_cpm_studies.influenza import run
+from viva_cpm_studies.influenza import run
 
 
 def test_full_model_smoke_all_observables():
@@ -71,8 +71,8 @@ def test_recruit_pool_four_strip_capacity_and_per_type_sizing():
     # Incr 13: the 4-strip packing (top+bottom+left+right gutters) holds far
     # more reserves than the old top/bottom-only pack, and _seed_recruit_pool
     # accepts a per-type {type: count} dict, seeding exactly that many each.
-    from pbg_cpm_studies.influenza import build, immune, types
-    from pbg_cpm_studies.influenza.run import (
+    from viva_cpm_studies.influenza import build, immune, types
+    from viva_cpm_studies.influenza.run import (
         _recruit_pool_origins, _seed_recruit_pool, RECRUIT_RESERVE_TYPE)
     spec = immune.build_cytotoxic_scenario_spec(
         epithelial_cells_per_side=12, n_infected=1, n_macrophages=4,
@@ -95,7 +95,7 @@ def test_bootstrap_immune_config_sizes_pool_to_equilibrium():
     # The pool is sized to the model's own ODE recruitment equilibria (M ~ chemo-
     # saturated ~380, capped types flagged), NOT fitted to bands; seeds are the
     # scenario t=0 immune ICs.
-    from pbg_cpm_studies.influenza import types
+    from viva_cpm_studies.influenza import types
     cfg = run.bootstrap_immune_config(1225)
     assert cfg["n_macrophages"] == 10 and cfg["n_nk"] == 5 and cfg["n_cd8"] == 2
     pool = cfg["recruit_pool_per_type"]
@@ -109,7 +109,7 @@ def test_full_model_bootstrap_activates_beyond_old_pool_cap():
     # WELL past the old n_seed+6 cap. Small/short so it stays fast: assert the
     # reserve pool actually seeded the requested (large) count -- i.e. auto-margin
     # grew the domain to fit it -- and the run completes.
-    from pbg_cpm_studies.influenza import types
+    from viva_cpm_studies.influenza import types
     boot = run.bootstrap_immune_config(15 * 15)
     r = run.run_full_model(cells_per_side=15, steps=3, seed=1,
                            init_infection_frac=0.05, **boot)
@@ -176,7 +176,7 @@ def test_fig5_viral_load_dose_response_restored():
     load drove total loss (no dose-response). The IC now deposits v0/cell_sites
     per pixel (source `v0` = virus PER CELL), so low doses are survivable.
     See docs/cc3d-reference/known-divergences.md D8."""
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     lo = run.run_full_model(cells_per_side=12, steps=150, seed=0, init_viral_load=1.0)
     hi = run.run_full_model(cells_per_side=12, steps=150, seed=0, init_viral_load=1000.0)
     un_lo = lo["counts"]["uninfected"][-1]
@@ -191,7 +191,7 @@ def test_fig5_virus_observable_t0_equals_load():
     """The extracellular_virus observable at t=0 reads the viral-load multiplier
     (per-cell v0), matching fig5.json -- via repro_fig5's field_divisor=tot_cell
     reconciliation now that the IC deposits v0/cell_sites per pixel."""
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     r = run.repro_fig5(loads=(1000,), replicas=1, cells_per_side=12, steps=2, seed0=0)
     t0_virus = r["by_load"][1000]["ensemble"]["extracellular_virus"][0][1]
     assert 0.5 * 1000 < t0_virus < 2 * 1000    # reads ~load, not load/cell_sites

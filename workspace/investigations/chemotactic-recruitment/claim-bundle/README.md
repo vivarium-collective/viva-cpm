@@ -57,7 +57,7 @@ pass:
 gate verdict's `evaluated_by: code`). Regenerate with:
 
 ```
-python pbg_cpm_studies/claim_bundle_closure.py
+python viva_cpm_studies/claim_bundle_closure.py
 ```
 
 It reports the four closure predicates for this slice: `well_formed: true`,

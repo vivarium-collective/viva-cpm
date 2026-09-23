@@ -92,7 +92,7 @@ z
     <text style="font-size: 9.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #1f2937" x="204.336" y="205.038516" transform="rotate(-0 204.336 205.038516)">frac_lM 0.073→0.513 (7.0×), boundary 39617→51795</text>
    </g>
    <g id="text_10">
-    <text style="font-size: 7.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #6b7280" x="30.96" y="240.088535" transform="rotate(-0 30.96 240.088535)">Validated against Glazier &amp; Graner, Phys. Rev. E 47, 2128 (1993) · pbg-cpm reproduction — every value computed from our own simulation run</text>
+    <text style="font-size: 7.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #6b7280" x="30.96" y="240.088535" transform="rotate(-0 30.96 240.088535)">Validated against Glazier &amp; Graner, Phys. Rev. E 47, 2128 (1993) · viva-cpm reproduction — every value computed from our own simulation run</text>
    </g>
    <g id="text_11">
     <text style="font-weight: 700; font-size: 13px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #ffffff" x="543.348" y="38.656953" transform="rotate(-0 543.348 38.656953)">✓ PASS</text>

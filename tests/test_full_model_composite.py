@@ -1,5 +1,5 @@
-from pbg_cpm_studies.composites.influenza import full_model_composite_document
-from pbg_cpm_studies.core import build_core
+from viva_cpm_studies.composites.influenza import full_model_composite_document
+from viva_cpm_studies.core import build_core
 from process_bigraph import Composite
 
 
@@ -34,7 +34,7 @@ def test_full_model_composite_epithelium_enables_chemokine_il10_gate():
     includes "chemokine"). Proves the fix at both the document level (the
     config the composite ships) and the constructed-instance level (what
     `EpitheliumProcess.initialize` actually resolves it to)."""
-    from pbg_cpm_studies.composites.influenza import FULL_MODEL_EPITHELIUM_ENABLE
+    from viva_cpm_studies.composites.influenza import FULL_MODEL_EPITHELIUM_ENABLE
 
     assert "chemokine" in FULL_MODEL_EPITHELIUM_ENABLE
 
@@ -51,7 +51,7 @@ def test_full_model_composite_epithelium_enables_chemokine_il10_gate():
 
 
 def test_run_full_model_composite_shape_and_decline():
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     r = run.run_full_model_composite(cells_per_side=8, steps=12, seed=1, init_infection_frac=0.1)
     for k in ("counts", "fields", "ode", "t_days", "params"):
         assert k in r
@@ -71,9 +71,9 @@ def test_run_full_model_composite_immune_killing_wired():
     `immune_kills` directly each MCS (`run_full_model_composite`'s own result
     dict doesn't expose the per-MCS kill list, only aggregate counts/fields/
     ode series) -- proof the wiring is live, not just that the driver runs."""
-    from pbg_cpm_studies.composites.influenza import full_model_composite_document
-    from pbg_cpm_studies.core import build_core
-    from pbg_cpm_studies.influenza import types as inf_types
+    from viva_cpm_studies.composites.influenza import full_model_composite_document
+    from viva_cpm_studies.core import build_core
+    from viva_cpm_studies.influenza import types as inf_types
 
     mcs_per_step = 7
     # separation_sites/margin_sites shrunk from the defaults (8/10) so the
@@ -220,10 +220,10 @@ def test_composite_epithelial_parity_reduced_scale():
     baseline (`dead_ref` is nonzero from record 8 on; `uninfected_ref`
     genuinely declines 45->41), so this is a real, non-trivial, element-wise
     parity check, not a "didn't explode" check."""
-    from pbg_cpm_studies.influenza import run
-    from pbg_cpm_studies.composites.influenza import full_model_composite_document
-    from pbg_cpm_studies.core import build_core
-    from pbg_cpm_studies.influenza import types as inf_types
+    from viva_cpm_studies.influenza import run
+    from viva_cpm_studies.composites.influenza import full_model_composite_document
+    from viva_cpm_studies.core import build_core
+    from viva_cpm_studies.influenza import types as inf_types
 
     minimal_enable = {"infection", "ifn", "death", "allee"}
     cells_per_side, steps, seed, init_infection_frac = 8, 30, 2, 0.3
@@ -381,7 +381,7 @@ def test_composite_immune_not_pool_capped():
     Measured macrophage series (deterministic, seed=1) at these exact args:
     [6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8,
     8, 10, 10, 10, 12, 12, 12, 13, 14, 14, 14] -- max=14."""
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
 
     got = run.run_full_model_composite(cells_per_side=48, steps=35, seed=1,
                                        init_infection_frac=0.05)
@@ -400,7 +400,7 @@ def test_run_full_model_composite_init_viral_load_seeds_infection():
     """fig5/fig7 path: init_viral_load lays down a ~uniform virus-field IC with
     NO pre-infected cells; infection then EMERGES from the field (mirrors
     run_full_model's init_viral_load branch, now supported by the composite)."""
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     r = run.run_full_model_composite(cells_per_side=8, steps=18, seed=1,
                                      init_viral_load=1000.0)
     assert r["counts"]["infected"][0] == 0        # no pre-infected cells at t0
@@ -411,7 +411,7 @@ def test_run_full_model_composite_init_viral_load_seeds_infection():
 def test_repro_fig5_runs_on_composite_engine():
     """The fig5 viral-load sweep runs end-to-end through the pb-Composite
     (engine='composite') now that init_viral_load is wired."""
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     r = run.repro_fig5(loads=(1, 10000), replicas=1, cells_per_side=8, steps=10,
                        seed0=0, engine="composite")
     assert set(r["by_load"].keys()) == {1, 10000}
@@ -422,7 +422,7 @@ def test_repro_fig5_runs_on_composite_engine():
 
 def test_repro_fig7_runs_on_composite_engine():
     """The fig7 infection-fraction sweep runs end-to-end through the composite."""
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     r = run.repro_fig7(fracs=(0.001, 0.05), replicas=1, cells_per_side=8, steps=10,
                        seed0=0, engine="composite")
     assert set(r["by_frac"].keys()) == {0.001, 0.05}

@@ -29,7 +29,7 @@
 - [ ] Commit `feat(influenza): cite chemokine + IL-10 field constants (Incr 6)`.
 
 ### Task 6.1: chemokine + IL-10 fields with regulated macrophage/uninfected sources
-**Files:** `pbg_cpm_studies/influenza/fields.py` (+`add_chemokine_field`, `add_il10_field`), `pbg_cpm_studies/influenza/signaling.py` (new; the per-cell Hill/resist regulation helpers), `pbg_cpm_studies/influenza/run.py` (extend the driver to add the fields + apply per-cell secretion scales each update), `tests/test_influenza_signaling.py`.
+**Files:** `viva_cpm_studies/influenza/fields.py` (+`add_chemokine_field`, `add_il10_field`), `viva_cpm_studies/influenza/signaling.py` (new; the per-cell Hill/resist regulation helpers), `viva_cpm_studies/influenza/run.py` (extend the driver to add the fields + apply per-cell secretion scales each update), `tests/test_influenza_signaling.py`.
 **Interfaces:**
 - `fields.add_chemokine_field(world) -> int`, `fields.add_il10_field(world) -> int` — add the fields (params D/decay), set per-type base secretion (`set_secretion(chemo_fi, M, b_c_base)`; `set_secretion(il10_fi, M, b_l_base)` and `set_secretion(il10_fi, H, mu_l*b_lh_base)`), stability via `set_field_dynamics`.
 - `signaling.macrophage_secretion_scale(il10_local, sig_1, g_1, g_2, d_2) -> float` = `sig_1/(sig_1 + (g_1*il10_local + g_2)/(il10_local + d_2))` (the IL-10-Hill factor; pure). `signaling.uninfected_il10_scale(resist) -> float` = `1 - resist` (pure).
@@ -38,7 +38,7 @@
 - [ ] Implement, PASS. Commit `feat(influenza): macrophage-released chemokine + IL-10 fields (IL-10-Hill + resist regulated)`.
 
 ### Task 6.2: signaling-fields study + viz + membership
-**Files:** `workspace/studies/signaling-fields/study.yaml` (hand-author), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member), `pbg_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test). Do NOT touch visualizations/ or composites/__init__.py.
+**Files:** `workspace/studies/signaling-fields/study.yaml` (hand-author), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member), `viva_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test). Do NOT touch visualizations/ or composites/__init__.py.
 - [ ] Add `viz.signaling_fields_figure(run_result)` (chemokine + IL-10 field heatmaps / radial profiles centered on the macrophage cluster). Test returns a Figure (Agg).
 - [ ] Hand-author `signaling-fields/study.yaml`: report HONESTLY that the chemokine field forms a gradient centered on the macrophage cluster (cite the actual Task 6.1 numbers — peak-near-macrophages, decay-with-distance) and IL-10 accumulates. Caveats: global/boundary chemokine+IL-10 terms deferred (Incr 8); IL-10 uniform IC skipped (no field-write API; builds from sources — Incr-9 detail); recruitment still stubbed; reproduction PENDING (Incr 9). verdict = documented. Wire a baseline composite (reuse macrophage_response or add a signaling variant in composites/influenza.py — auto-registers; do NOT edit __init__.py). Validate with lint-workspace.py; add member.
 - [ ] Run targeted influenza tests (all pass). Commit `feat(influenza): signaling-fields study + viz`.

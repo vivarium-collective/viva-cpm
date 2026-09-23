@@ -25,7 +25,7 @@ faithful-to-source re-scope, recorded here and in the investigation.
 - Chemotaxis functional-form gap: the paper uses the saturating/COM form `λc·c/(1+c_CM)`; the engine uses the linear CC3D form `ΔH=-λ(c_dest-c_source)`. Use the existing LINEAR form for macrophage localization (behavior: macrophages climb the virus gradient) and NOTE the gap (Increment-9 calibration). Do NOT add the saturating form unless trivial.
 - Recruitment STUB: seed macrophages at a simple fixed/first-order rate at the immune layer (interspersed / on medium). Real recruitment (Hill on chemokines C / APCs P) is Increment 6/8 — clearly flagged, not faked as calibrated.
 - Phagocytosis: macrophages take up extracellular virus (reduce the local virus field). Source `MacrophageInternalizationSteppable`/equivalent — extract the uptake form in Task 5.0.
-- params.yaml single authority. No AI attribution. Death/type changes via set_cell_type (no removal). Work only in worktree `~/code/viva-cpm--influenza-incr5` (branch `investigation/influenza-incr5`); never touch `~/code/viva-cpm`, `pbg_cpm_studies/composites/__init__.py`, or `pbg_cpm_studies/visualizations/` (peer-owned). Tests: `~/code/viva-cpm--influenza-incr5/.venv/bin/python -m pytest <path> -v`.
+- params.yaml single authority. No AI attribution. Death/type changes via set_cell_type (no removal). Work only in worktree `~/code/viva-cpm--influenza-incr5` (branch `investigation/influenza-incr5`); never touch `~/code/viva-cpm`, `viva_cpm_studies/composites/__init__.py`, or `viva_cpm_studies/visualizations/` (peer-owned). Tests: `~/code/viva-cpm--influenza-incr5/.venv/bin/python -m pytest <path> -v`.
 - Rust rebuild (only if a Rust change proves necessary): `VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --release`.
 
 ---
@@ -37,20 +37,20 @@ faithful-to-source re-scope, recorded here and in the investigation.
 - [ ] Commit `feat(influenza): cite macrophage constants + record 5/6 re-scope (Incr 5)`.
 
 ### Task 5.1: Macrophage in the world + chemotaxis up virus
-**Files:** `pbg_cpm_studies/influenza/immune.py` (new; macrophage seeding + world wiring), `pbg_cpm_studies/influenza/run.py` (extend the driver to add macrophages + chemotaxis), `tests/test_influenza_macrophage.py`.
+**Files:** `viva_cpm_studies/influenza/immune.py` (new; macrophage seeding + world wiring), `viva_cpm_studies/influenza/run.py` (extend the driver to add macrophages + chemotaxis), `tests/test_influenza_macrophage.py`.
 **Interfaces:** `immune.seed_macrophages(world, spec, n_or_frac, rng)` — add macrophage (type M) cells to the world (interspersed / on medium), with the Table-3 adhesion + volume; `immune.set_macrophage_chemotaxis(world, virus_fi)` — `set_chemotaxis(virus_fi, M, chemotaxis_v_macro)`. Extend `run.run_epithelial_fate` (or a new `run_with_macrophages`) to seed macrophages and enable virus-chemotaxis each update.
 - [ ] Confirm the engine's chemotaxis works for a NEW type M on the virus field (set_contact for M with all types, set_chemotaxis). If seeding macrophages into a confluent sheet needs medium space, decide the geometry (e.g. a sparser sheet, or macrophages replacing some medium at the boundary) — document it.
 - [ ] Failing INTEGRATION test: seed a virus blob / infected patch, add macrophages away from it, run; assert macrophages' mean distance to the virus centroid DECREASES over time (they climb the gradient / localize to the infection). Deterministic/seeded, small/fast. (Mirror the chemotactic-recruitment study's localization readout if useful.)
 - [ ] Implement, PASS. Commit `feat(influenza): macrophage cell type + chemotaxis up the virus field`.
 
 ### Task 5.2: Macrophage phagocytosis of virus
-**Files:** `pbg_cpm_studies/influenza/immune.py` (+uptake), `pbg_cpm_studies/influenza/run.py`, `tests/test_influenza_macrophage.py` (+test).
+**Files:** `viva_cpm_studies/influenza/immune.py` (+uptake), `viva_cpm_studies/influenza/run.py`, `tests/test_influenza_macrophage.py` (+test).
 **Interfaces:** wire macrophage virus UPTAKE — reduce the virus field where macrophages are (source-cited rate). Prefer a per-type negative secretion `set_secretion(virus_fi, M, -uptake)` if the engine supports it, else per-cell uptake via `set_cell_secretion_scale` on a negative base; confirm the mechanism in code and document.
 - [ ] Failing test: with macrophages present + chemotaxing to the infection, total_virus at a comparable step is LOWER than a no-macrophage run from the same seed (macrophages clear virus). Deterministic.
 - [ ] Implement, PASS. Commit `feat(influenza): macrophage phagocytosis (virus uptake)`.
 
 ### Task 5.3: macrophage-response study + viz + membership
-**Files:** `workspace/studies/macrophage-response/study.yaml` (hand-author), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member + re-scope note), `pbg_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test). Do NOT touch visualizations/ or composites/__init__.py.
+**Files:** `workspace/studies/macrophage-response/study.yaml` (hand-author), `workspace/investigations/influenza-sego2022/investigation.yaml` (+member + re-scope note), `viva_cpm_studies/influenza/viz.py` (+figure), `tests/test_influenza_viz.py` (+test). Do NOT touch visualizations/ or composites/__init__.py.
 - [ ] Add `viz.macrophage_response_figure(run_result)` (macrophage distance-to-infection over time + virus with/without macrophages, and/or a snapshot showing macrophages clustered at the lesion). Test returns a Figure (Agg).
 - [ ] Hand-author `macrophage-response/study.yaml`: report HONESTLY the macrophage localization (mean distance to infection decreases) + virus reduction (cite the actual Task 5.1/5.2 numbers). Caveats: recruitment is STUBBED (real Hill recruitment on chemokines/APCs is Increment 6/8); chemotaxis uses the engine's LINEAR form not the paper's saturating/COM form (Increment-9 calibration); chemokine/IL-10 fields + NK/CD8 + global ODE are later increments; reproduction PENDING (Increment 9). verdict = documented. Record the 5/6 re-scope in the investigation overview. Wire a baseline composite (reuse or add a macrophage composite in composites/influenza.py — auto-registers via the peer __init__ import; do NOT edit __init__.py). Validate with lint-workspace.py; add investigation member.
 - [ ] Run `-k influenza` (all pass). Commit `feat(influenza): macrophage-response study + viz`.

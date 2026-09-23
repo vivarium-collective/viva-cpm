@@ -75,7 +75,7 @@ objective: |
   Build the epithelial-sheet `load_world` spec (Task 1.1), instantiate and
   relax the CPM world (Task 1.2), and measure step throughput on the full
   1mm^2 patch (Task 1.3). Wrap the geometry in a process-bigraph composite
-  (`pbg_cpm_studies.composites.influenza.epithelium`) so the
+  (`viva_cpm_studies.composites.influenza.epithelium`) so the
   dashboard can run a modest (0.1mm, 100-cell) live demo of the same
   substrate (Task 1.4, this study).
 
@@ -85,7 +85,7 @@ description: |
   cells. A uniform grid of 5x5-site (10 um) type-H cells tiles the patch;
   adhesion is the source-literal CC3D value (H-H=5.0, H-medium=25.0,
   CONTROLLER OVERRIDE vs the CC3D-typical 4.0/16.0 — see
-  `pbg_cpm_studies/influenza/sheet.py`). This study validates that the
+  `viva_cpm_studies/influenza/sheet.py`). This study validates that the
   substrate is mechanically sound (confluent, stable target volume) and
   computationally fast enough — it does NOT attempt, and is not scored
   against, any biological reproduction target. The live-demo composite here
@@ -231,7 +231,7 @@ biological_summary: |
   cell-medium (H-medium) adhesion energies are taken source-literally from
   the CC3D ViralInfectionVTM reference (H-H=5.0, H-medium=25.0 — a
   CONTROLLER OVERRIDE of the CC3D-typical 4.0/16.0 pair, see
-  `pbg_cpm_studies/influenza/params.yaml` provenance). This produces a
+  `viva_cpm_studies/influenza/params.yaml` provenance). This produces a
   confluent monolayer with no biological dynamics yet: no infection, immune
   response, or cell death. It is the mechanical substrate the subsequent 8
   increments (virus field, IFN/resistance, death/recovery, chemokines,
@@ -256,7 +256,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.influenza.epithelium
+  base_model: viva_cpm_studies.composites.influenza.epithelium
   new_processes: []
   new_state_variables: []
   new_parameters: [patch_mm]
@@ -264,7 +264,7 @@ model_change:
   new_listeners: []
   notes: |
     Wraps the existing CPMProcess over the epithelial-sheet geometry
-    (`pbg_cpm_studies.influenza.sheet.build_sheet_spec`) — no new process
+    (`viva_cpm_studies.influenza.sheet.build_sheet_spec`) — no new process
     code. The live-demo composite runs a small 0.1mm/100-cell patch for a
     fast dashboard run; the 0.3mm/900-cell geometry check and the
     1mm^2/10000-cell throughput benchmark that back this study's readouts
@@ -311,7 +311,7 @@ discovery_implications:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.epithelium
+    composite: viva_cpm_studies.composites.influenza.epithelium
     params: {patch_mm: 0.1}  # small live-demo patch; full 1mm^2 perf characterized separately (Task 1.3)
 
   model_settings: []

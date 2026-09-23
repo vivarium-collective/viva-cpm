@@ -6,7 +6,7 @@ The trajectory is NOT scripted. `navigate.next_mechanism` reads the graded
 behavior tests each iteration, takes the failing HARD test with the
 most-negative margin, and installs the mechanism `mechanisms._FIXES` maps it
 to. Every observation is `mechanisms.simulate_condition` running the real
-Rust CPM engine (`pbg_cpm_studies.composites.chemotaxis.recruitment`); every
+Rust CPM engine (`viva_cpm_studies.composites.chemotaxis.recruitment`); every
 verdict is computed by `viva_superpowers.test_contract`.
 
 Also captures: a two-round sufficiency audit (a one-sided `recruits_high`
@@ -22,8 +22,8 @@ from __future__ import annotations
 import json
 import os
 
-from pbg_cpm_studies.model_building import mechanisms as M
-from pbg_cpm_studies.model_building import navigate
+from viva_cpm_studies.model_building import mechanisms as M
+from viva_cpm_studies.model_building import navigate
 from viva_superpowers import loop_state as ls, test_audit, test_contract as tc
 
 HERE = os.path.dirname(os.path.abspath(__file__))

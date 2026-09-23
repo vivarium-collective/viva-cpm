@@ -1299,7 +1299,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pbg-cpm"
+name = "viva-cpm"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -1351,8 +1351,8 @@ requires-dist = [
     { name = "matplotlib" },
     { name = "matplotlib", marker = "extra == 'ftu'" },
     { name = "numpy", marker = "extra == 'ftu'" },
-    { name = "pbg-cpm", extras = ["sbml", "ftu"], marker = "extra == 'all'" },
-    { name = "pbg-cpm", extras = ["sbml", "ftu"], marker = "extra == 'dev'" },
+    { name = "viva-cpm", extras = ["sbml", "ftu"], marker = "extra == 'all'" },
+    { name = "viva-cpm", extras = ["sbml", "ftu"], marker = "extra == 'dev'" },
     { name = "plotly" },
     { name = "process-bigraph", specifier = ">=1.8.3" },
     { name = "pypdf", specifier = ">=4.0" },

@@ -288,7 +288,7 @@ runtime:
   post_run_scripts: []
 
 model_change:
-  base_model: pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
+  base_model: viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
   new_processes: []
   new_state_variables: []
   new_parameters: [cue_rate, chemo_lambda, kd, blocked]
@@ -335,7 +335,7 @@ runs:
         result: PASS
         measured_value: 0.0667
         notes: "0.0667 (95% CI 0.0-0.1467) across 5 seeds with the cue present; kd=2.9 nM (Nasser 2009)"
-        evaluated_by: pbg_cpm_studies.evaluators
+        evaluated_by: viva_cpm_studies.evaluators
 
 discovery_implications:
   followup_study_proposals:
@@ -345,7 +345,7 @@ discovery_implications:
 conditions:
   baseline:
     name: blocked
-    composite: pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
+    composite: viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor
     params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: 2.9, blocked: true} # cue ON, response BLOCKED (intervention)
 
   model_settings: []

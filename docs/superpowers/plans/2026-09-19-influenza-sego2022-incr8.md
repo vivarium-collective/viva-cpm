@@ -6,7 +6,7 @@
 
 **Architecture:** The CC3D source runs a **hybrid**, not a standalone full ODE (dossier discrepancy #9). A libRoadRunner ODE integrates only the 10 *systemic* species `{NB, N, T, X, A, B, P, W, G, O}` (+ nearby surrogates `M_nb,K_nb,E_nb`); the spatial/field species `{H, I, M, E, K, L, C, F, V, DH}` are overwritten from CPM/field state every MCS. We reproduce this hybrid in Python: a `GlobalODEProcess` (scipy) integrated once per MCS (Δt = 1 min), fed by spatial aggregates, feeding back the three stubs. Additive to Increments 0–7; no Rust change (all primitives already exist).
 
-**Tech Stack:** Python, scipy `solve_ivp` (LSODA/BDF, matching RoadRunner's stiff CVODE), numpy; existing `pbg_cpm_studies/influenza/*` package; process-bigraph composite; matplotlib(Agg) viz.
+**Tech Stack:** Python, scipy `solve_ivp` (LSODA/BDF, matching RoadRunner's stiff CVODE), numpy; existing `viva_cpm_studies/influenza/*` package; process-bigraph composite; matplotlib(Agg) viz.
 
 **Spec:** `docs/superpowers/specs/2026-09-18-influenza-sego2022-reproduction-design.md` (Increment 8 row).
 
@@ -22,7 +22,7 @@
 - **Asymmetric recruitment (discrepancy #12).** CD8⁺ inflow is APC(`P`)-driven with NO homeostatic baseline; macrophage/NK are chemokine(`C`)-driven with a `mu·b` baseline. NK/CD8 outflow carry extra resistance-weighted `G_ki`/`B_ei` terms. Do NOT symmetrize.
 - **Nearby-killing multiplies `cell_resist` DIRECTLY (discrepancy #7), not `(1−resist)`** — same as the Increment-7 local term. Preserve verbatim; flag in code + report.
 - **Honesty:** the `global-coupling` study is `verdict: documented`, `biological_validation: PENDING` (quantitative Fig 3B reproduction is Increment 9). Report what the hybrid demonstrates (systemic species evolve, stubs resolved, loop closes) and what it does NOT (no quantitative Fig-3B match yet; any calibration gaps flagged for Incr 9). Keep ALL caveats visible.
-- **No AI attribution** in commits/PRs. Work ONLY in worktree `/Users/eranagmon/code/viva-cpm--influenza-incr8`; NEVER touch canonical `/Users/eranagmon/code/viva-cpm`. Do NOT edit `pbg_cpm_studies/visualizations/` or `pbg_cpm_studies/composites/__init__.py` (peer-owned; composites auto-register via `@composite_generator`).
+- **No AI attribution** in commits/PRs. Work ONLY in worktree `/Users/eranagmon/code/viva-cpm--influenza-incr8`; NEVER touch canonical `/Users/eranagmon/code/viva-cpm`. Do NOT edit `viva_cpm_studies/visualizations/` or `viva_cpm_studies/composites/__init__.py` (peer-owned; composites auto-register via `@composite_generator`).
 - **Per-worktree venv:** tests run with `/Users/eranagmon/code/viva-cpm--influenza-incr8/.venv/bin/python`. No Rust rebuild expected.
 
 ---
@@ -30,13 +30,13 @@
 ## File Structure
 
 - `docs/cc3d-reference/sego2022-global-ode.md` — **already written** (the dossier); commit it in Task 8.0.
-- `pbg_cpm_studies/influenza/params.yaml` — ADD `price_ode:` + `coupling:` blocks (Task 8.0).
-- `pbg_cpm_studies/influenza/price_ode.py` — NEW. Pure ODE RHS for the 10 integrated states + nearby surrogates, a scaled-constant loader, ICs, and a `GlobalODE` integrator wrapper (Task 8.1).
-- `pbg_cpm_studies/influenza/recruitment.py` — NEW. Pure Hill inflow/outflow rate functions per immune type (Task 8.4).
-- `pbg_cpm_studies/influenza/killing.py` — MODIFY. Add `nearby_kill_rate` (well-mixed term) beside the Incr-7 `contact_kill_rate` (Task 8.5).
-- `pbg_cpm_studies/influenza/run.py` — MODIFY. Add `run_global_coupling(...)` driver wiring spatial→ODE→spatial each MCS (Tasks 8.2–8.5).
-- `pbg_cpm_studies/influenza/viz.py` — MODIFY. Add `global_coupling_figure` (Task 8.6).
-- `pbg_cpm_studies/composites/influenza.py` — MODIFY. Add a `global_coupling` live-demo composite (auto-registers) (Task 8.6).
+- `viva_cpm_studies/influenza/params.yaml` — ADD `price_ode:` + `coupling:` blocks (Task 8.0).
+- `viva_cpm_studies/influenza/price_ode.py` — NEW. Pure ODE RHS for the 10 integrated states + nearby surrogates, a scaled-constant loader, ICs, and a `GlobalODE` integrator wrapper (Task 8.1).
+- `viva_cpm_studies/influenza/recruitment.py` — NEW. Pure Hill inflow/outflow rate functions per immune type (Task 8.4).
+- `viva_cpm_studies/influenza/killing.py` — MODIFY. Add `nearby_kill_rate` (well-mixed term) beside the Incr-7 `contact_kill_rate` (Task 8.5).
+- `viva_cpm_studies/influenza/run.py` — MODIFY. Add `run_global_coupling(...)` driver wiring spatial→ODE→spatial each MCS (Tasks 8.2–8.5).
+- `viva_cpm_studies/influenza/viz.py` — MODIFY. Add `global_coupling_figure` (Task 8.6).
+- `viva_cpm_studies/composites/influenza.py` — MODIFY. Add a `global_coupling` live-demo composite (auto-registers) (Task 8.6).
 - `tests/test_influenza_price_ode.py` — NEW (Tasks 8.1–8.3).
 - `tests/test_influenza_recruitment.py` — NEW (Task 8.4).
 - `tests/test_influenza_killing.py` — MODIFY (Task 8.5, add nearby-term tests; keep fast).
@@ -50,7 +50,7 @@
 ### Task 8.0: params `price_ode:` + `coupling:` blocks + dossier + Price-2015 reference
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/params.yaml`
+- Modify: `viva_cpm_studies/influenza/params.yaml`
 - Modify: `tests/test_influenza_params.py`
 - Add (already on disk): `docs/cc3d-reference/sego2022-global-ode.md`
 - Reference: add Price et al. 2015 to the bib if the workspace uses one (check `workspace/*.bib` / expert-doc bib; if none applies, record the citation in the `price_ode.source` comment and skip).
@@ -93,14 +93,14 @@ def test_params_carry_price_ode_and_coupling():
 
 - [ ] **Step 4: Run tests, verify pass.** Also run `scripts/lint-workspace.py` — must stay OK.
 
-- [ ] **Step 5: Commit** — `git add pbg_cpm_studies/influenza/params.yaml tests/test_influenza_params.py docs/cc3d-reference/sego2022-global-ode.md && git commit -m "feat(influenza): cite Price-2015 global ODE + coupling params (Incr 8)"`
+- [ ] **Step 5: Commit** — `git add viva_cpm_studies/influenza/params.yaml tests/test_influenza_params.py docs/cc3d-reference/sego2022-global-ode.md && git commit -m "feat(influenza): cite Price-2015 global ODE + coupling params (Incr 8)"`
 
 ---
 
 ### Task 8.1: `GlobalODE` integrator core (10 systemic species)
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/price_ode.py`
+- Create: `viva_cpm_studies/influenza/price_ode.py`
 - Create: `tests/test_influenza_price_ode.py`
 
 **Interfaces:**
@@ -116,7 +116,7 @@ def test_params_carry_price_ode_and_coupling():
 ```python
 import math
 import numpy as np
-from pbg_cpm_studies.influenza import params, price_ode
+from viva_cpm_studies.influenza import params, price_ode
 
 P = params.load_params()
 
@@ -178,7 +178,7 @@ def test_step_tnf_rises_with_infection():
 ### Task 8.2: spatial→ODE coupling + `run_global_coupling` driver
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/run.py`
+- Modify: `viva_cpm_studies/influenza/run.py`
 - Modify: `tests/test_influenza_price_ode.py`
 
 **Interfaces:**
@@ -189,7 +189,7 @@ def test_step_tnf_rises_with_infection():
 
 ```python
 def test_run_global_coupling_smoke_and_shapes():
-    from pbg_cpm_studies.influenza import run
+    from viva_cpm_studies.influenza import run
     r = run.run_global_coupling(side=30, steps=8, seed=1, with_immune=True)
     n = len(r["mcs"])
     assert n == 8
@@ -219,8 +219,8 @@ def test_run_global_coupling_smoke_and_shapes():
 ### Task 8.3: resolve the `sig_1` stub with dynamic ODE TNF
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/run.py` (in `run_global_coupling` / the secretion wiring)
-- Modify: `pbg_cpm_studies/influenza/signaling.py` (docstring only — the stub note becomes "resolved in Incr 8")
+- Modify: `viva_cpm_studies/influenza/run.py` (in `run_global_coupling` / the secretion wiring)
+- Modify: `viva_cpm_studies/influenza/signaling.py` (docstring only — the stub note becomes "resolved in Incr 8")
 - Modify: `tests/test_influenza_price_ode.py`
 
 **Interfaces:**
@@ -231,7 +231,7 @@ def test_run_global_coupling_smoke_and_shapes():
 
 ```python
 def test_sig1_is_dynamic_not_stubbed():
-    from pbg_cpm_studies.influenza import run, params
+    from viva_cpm_studies.influenza import run, params
     P = params.load_params()
     stub = P["il10"]["sig_1_stub"]
     r = run.run_global_coupling(side=30, steps=20, seed=3, with_immune=True, seed_infection_frac=0.05)
@@ -254,9 +254,9 @@ def test_sig1_is_dynamic_not_stubbed():
 ### Task 8.4: immune-cell recruitment (Hill inflows, asymmetric)
 
 **Files:**
-- Create: `pbg_cpm_studies/influenza/recruitment.py`
+- Create: `viva_cpm_studies/influenza/recruitment.py`
 - Create: `tests/test_influenza_recruitment.py`
-- Modify: `pbg_cpm_studies/influenza/run.py` (wire recruitment into `run_global_coupling`)
+- Modify: `viva_cpm_studies/influenza/run.py` (wire recruitment into `run_global_coupling`)
 
 **Interfaces:**
 - Consumes: `params.coupling.recruitment` (8.0); the ODE fields `C` (chemokine), `P` (APC) and outflow terms `G_ki`,`B_ei` (8.2).
@@ -268,7 +268,7 @@ def test_sig1_is_dynamic_not_stubbed():
 
 ```python
 import math
-from pbg_cpm_studies.influenza import params, price_ode, recruitment
+from viva_cpm_studies.influenza import params, price_ode, recruitment
 P = params.load_params()
 C = price_ode.resolve_constants(P["price_ode"], num_epithelial=900)
 
@@ -304,8 +304,8 @@ def test_outflow_terms_carry_resistance_load():
 ### Task 8.5: nearby-population contact-killing term
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/killing.py`
-- Modify: `pbg_cpm_studies/influenza/run.py` (apply nearby term in `run_global_coupling`)
+- Modify: `viva_cpm_studies/influenza/killing.py`
+- Modify: `viva_cpm_studies/influenza/run.py` (apply nearby term in `run_global_coupling`)
 - Modify: `tests/test_influenza_killing.py` (add nearby-term tests; keep FAST)
 
 **Interfaces:**
@@ -315,7 +315,7 @@ def test_outflow_terms_carry_resistance_load():
 - [ ] **Step 1: Failing tests** — add to `tests/test_influenza_killing.py`:
 
 ```python
-from pbg_cpm_studies.influenza import killing
+from viva_cpm_studies.influenza import killing
 
 def test_nearby_kill_rate_form():
     r = killing.nearby_kill_rate(g_i=1e-3, eta=0.0049, num_nearby=4.0, cell_resist=0.5)
@@ -340,8 +340,8 @@ def test_nearby_kill_rate_resist_direct_discrepancy7():
 ### Task 8.6: `global-coupling` study + viz + composite + membership
 
 **Files:**
-- Modify: `pbg_cpm_studies/influenza/viz.py` (add `global_coupling_figure`)
-- Modify: `pbg_cpm_studies/composites/influenza.py` (add `global_coupling` composite — auto-registers; do NOT edit `__init__.py`)
+- Modify: `viva_cpm_studies/influenza/viz.py` (add `global_coupling_figure`)
+- Modify: `viva_cpm_studies/composites/influenza.py` (add `global_coupling` composite — auto-registers; do NOT edit `__init__.py`)
 - Create: `workspace/studies/global-coupling/study.yaml`
 - Modify: `workspace/investigations/influenza-sego2022/investigation.yaml` (add member)
 - Modify: `tests/test_influenza_viz.py` (add a fast non-vacuous test)

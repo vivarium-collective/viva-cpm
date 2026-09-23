@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 
-from pbg_cpm_studies.influenza import build, fields, sheet, types
+from viva_cpm_studies.influenza import build, fields, sheet, types
 
 
 def _dims_and_conc(world, field_idx):

@@ -22,8 +22,8 @@ secretion magnitudes are not meant to be load-bearing here.
 """
 from __future__ import annotations
 
-from pbg_cpm_studies.influenza import fields, run, signaling
-from pbg_cpm_studies.influenza.params import load_params
+from viva_cpm_studies.influenza import fields, run, signaling
+from viva_cpm_studies.influenza.params import load_params
 
 _PARAMS = load_params()
 SIG_1, G_1, G_2, D_2 = fields.il10_hill_constants()

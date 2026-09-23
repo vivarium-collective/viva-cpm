@@ -123,7 +123,7 @@ gate_status: passed
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.influenza.cytotoxic_immunity
+    composite: viva_cpm_studies.composites.influenza.cytotoxic_immunity
     params: {patch_mm: 0.1, seed: 17, init_infected_frac: 0.05}  # small live-demo patch; the measured tissue-scale immune-response scene comes from run.run_cytotoxic_response at ~900 cells, not this composite
   model_settings: []
 

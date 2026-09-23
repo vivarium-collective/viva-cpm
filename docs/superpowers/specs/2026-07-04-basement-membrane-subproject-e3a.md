@@ -1,7 +1,7 @@
 # Sub-project E3a — Basement Membrane (basal anchor energy)
 
 **Status:** design approved 2026-07-04
-**Umbrella:** [pbg-cpm design](2026-07-04-pbg-cpm-design.md), Sub-project E (tissue
+**Umbrella:** [viva-cpm design](2026-07-04-viva-cpm-design.md), Sub-project E (tissue
 mechanics). Builds on E1 (connectivity) and E2 (3D crypt structure).
 
 ## Goal

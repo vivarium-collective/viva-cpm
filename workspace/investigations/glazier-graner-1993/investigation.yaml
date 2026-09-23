@@ -15,7 +15,7 @@ hypothesis: 'Varying only the type-dependent adhesion energies J(tau,tau'') and 
   '
 executive:
   what_is_this: A faithful, full-scale reproduction of every simulation example in Glazier & Graner 1993
-    using the pbg-cpm Rust CPM engine, one study per parameter set, remaking all figures (Figs 2-5, 7-9,
+    using the viva-cpm Rust CPM engine, one study per parameter set, remaking all figures (Figs 2-5, 7-9,
     12-28; Tables I-III).
   verdict: The extended Potts model reproduces all reported phenomena from a single mechanism (differential
     adhesion + area constraint).
@@ -62,7 +62,7 @@ scientific_argument:
 biological_story: 'Living tissues rearrange by differential adhesion (Steinberg''s DAH): cells of different
   types adhere with different strengths, and thermal-like membrane fluctuations let them explore configurations
   toward lower total surface energy. Glazier & Graner captured this with an extended large-Q Potts model.
-  This investigation reproduces each of their examples with the pbg-cpm engine: negative heterotypic tension
+  This investigation reproduces each of their examples with the viva-cpm engine: negative heterotypic tension
   gives a checkerboard; the ordered positive tensions give complete sorting (dark inside, light monolayer)
   independent of initial condition (engulfment); raising light-medium tension reverses the layering; violating
   the Young condition stalls sorting partway; negative light-medium tension sloughs light cells into the

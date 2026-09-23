@@ -1,5 +1,5 @@
 import process_bigraph as pb
-from pbg_cpm_studies.composites import chemotaxis_receptor as CR
+from viva_cpm_studies.composites import chemotaxis_receptor as CR
 
 
 def test_contact_j_invariant_activated_matches_naive():
@@ -35,7 +35,7 @@ def test_document_preinitializes_fates_for_all_responders():
 
 
 def test_smoke_run_baseline_recruits_more_than_blocked():
-    from pbg_cpm_studies.chemotaxis import metrics as M
+    from viva_cpm_studies.chemotaxis import metrics as M
     core = pb.allocate_core()
 
     def final_index(blocked):

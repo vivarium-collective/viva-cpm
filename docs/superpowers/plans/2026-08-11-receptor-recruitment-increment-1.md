@@ -234,18 +234,18 @@ git commit -m "feat(cpm): receptor_coupling helper (fates wiring + pre-init)"
 ### Task 3: `recruitment_receptor` composite
 
 **Files:**
-- Create: `pbg_cpm_studies/composites/chemotaxis_receptor.py`
+- Create: `viva_cpm_studies/composites/chemotaxis_receptor.py`
 - Test: `tests/test_recruitment_receptor.py`
 
 **Interfaces:**
-- Consumes: `receptor_coupling` (Task 2); `pbg_cpm_studies.composites.chemotaxis.build_spec` and its module constants (`SOURCE_TYPE=1`, `RESPONDER_TYPE=2`, `CUE_RATE`, `CHEMO_LAMBDA`, `_cell`, the responder seed layout).
+- Consumes: `receptor_coupling` (Task 2); `viva_cpm_studies.composites.chemotaxis.build_spec` and its module constants (`SOURCE_TYPE=1`, `RESPONDER_TYPE=2`, `CUE_RATE`, `CHEMO_LAMBDA`, `_cell`, the responder seed layout).
 - Produces: `@composite_generator name="recruitment_receptor"` factory `recruitment_receptor(core=None, cue_rate=…, chemo_lambda=…, kd=…, seed=…, blocked=False)` returning a composite document. Helper `build_receptor_spec(*, cue_rate, chemo_lambda, blocked, seed)` returning the CPM `spec` with the naive(2)/activated(3) responder sub-types and matched contact-J. Module constants `ACTIVATED_TYPE=3`, `NAIVE_TYPE=2`, `KD_DEFAULT`.
 
 - [ ] **Step 1: Write the failing tests** — `tests/test_recruitment_receptor.py`
 
 ```python
 import process_bigraph as pb
-from pbg_cpm_studies.composites import chemotaxis_receptor as CR
+from viva_cpm_studies.composites import chemotaxis_receptor as CR
 
 
 def test_contact_j_invariant_activated_matches_naive():
@@ -281,7 +281,7 @@ def test_document_preinitializes_fates_for_all_responders():
 
 
 def test_smoke_run_baseline_recruits_more_than_blocked():
-    from pbg_cpm_studies.chemotaxis import metrics as M
+    from viva_cpm_studies.chemotaxis import metrics as M
     core = pb.allocate_core()
 
     def final_index(blocked):
@@ -294,14 +294,14 @@ def test_smoke_run_baseline_recruits_more_than_blocked():
     assert final_index(blocked=False) > final_index(blocked=True)
 ```
 
-*Note on the smoke test's world access:* mirror how `pbg_cpm_studies/chemotaxis/run.py` reaches the live `CPMProcess.world` after a run; if the access path differs, copy run.py's exact idiom rather than the sketch above. Keep the assertion (baseline recruits strictly more than blocked over a short run).
+*Note on the smoke test's world access:* mirror how `viva_cpm_studies/chemotaxis/run.py` reaches the live `CPMProcess.world` after a run; if the access path differs, copy run.py's exact idiom rather than the sketch above. Keep the assertion (baseline recruits strictly more than blocked over a short run).
 
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pytest tests/test_recruitment_receptor.py -q`
 Expected: FAIL — module `chemotaxis_receptor` missing.
 
-- [ ] **Step 3: Write the composite** — `pbg_cpm_studies/composites/chemotaxis_receptor.py`
+- [ ] **Step 3: Write the composite** — `viva_cpm_studies/composites/chemotaxis_receptor.py`
 
 Build on `chemotaxis.build_spec`: start from its cells + contact + fields, then (a) relabel each responder that should be able to activate — responders remain seeded as `NAIVE_TYPE=2`, and add contact rows for `ACTIVATED_TYPE=3` **copied from the type-2 rows** (pair-by-pair) so J is identical; (b) set the field `chemotaxis` list to `[{type: 3, lambda: chemo_lambda}]` (naive type 2 omitted ⇒ λ=0), or `[]`/λ=0 when `blocked`; (c) build the per-responder `ReceptorSubcell` wiring + pre-init via `receptor_coupling(responder_ids, receptor_config=…)`, merging its fragment into the document alongside the `cpm` node. Responder ids are the CPM cell ids of the type-2 cells (ids assigned in cell order; source is id 1, responders 2..N — confirm against `chemotaxis.build_spec`'s cell order and `CPMProcess` id assignment). Decorate with `@composite_generator(name="recruitment_receptor", parameters={…cue_rate, chemo_lambda, kd, blocked…}, visualizations=…)` mirroring `chemotaxis.recruitment`.
 
@@ -315,7 +315,7 @@ Expected: PASS (5 tests). If the smoke test is flaky at 40 steps, raise steps un
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/composites/chemotaxis_receptor.py tests/test_recruitment_receptor.py
+git add viva_cpm_studies/composites/chemotaxis_receptor.py tests/test_recruitment_receptor.py
 git commit -m "feat(studies): recruitment_receptor composite (emergent response via receptor occupancy)"
 ```
 
@@ -325,18 +325,18 @@ git commit -m "feat(studies): recruitment_receptor composite (emergent response 
 
 **Files:**
 - Modify: `workspace/references/papers.bib`
-- Create: `pbg_cpm_studies/chemotaxis/run_receptor.py`
+- Create: `viva_cpm_studies/chemotaxis/run_receptor.py`
 - Test: `tests/test_run_receptor.py`
 
 **Interfaces:**
-- Produces: `run_receptor(*, blocked: bool, seeds: list[int], steps: int, kd: float) -> dict` writing a summary JSON to `workspace/chemotaxis_data/results/receptor_<condition>.json` with keys `mcs: [..]`, `recruitment_index_mean: [..]`, `recruitment_index_ci: [[lo,hi],..]`, `final_mean`, `final_ci`, `activation_by_cell` (per-responder activation fraction over time for the spatial figure), `kd`, `seeds`. Mirrors `pbg_cpm_studies/chemotaxis/run.py`'s series construction.
+- Produces: `run_receptor(*, blocked: bool, seeds: list[int], steps: int, kd: float) -> dict` writing a summary JSON to `workspace/chemotaxis_data/results/receptor_<condition>.json` with keys `mcs: [..]`, `recruitment_index_mean: [..]`, `recruitment_index_ci: [[lo,hi],..]`, `final_mean`, `final_ci`, `activation_by_cell` (per-responder activation fraction over time for the spatial figure), `kd`, `seeds`. Mirrors `viva_cpm_studies/chemotaxis/run.py`'s series construction.
 
 - [ ] **Step 1: Add the cited chemokine–receptor entry** to `workspace/references/papers.bib`. Use a well-characterized chemokine–receptor affinity — default **fMLP–FPR1** (formyl-peptide receptor), a nanomolar Kd. Add a real BibTeX entry with `doi`, and record the numeric Kd (in the paper's units) in the entry's `note`. Confirm the Kd value against the cited paper before using it downstream (open question #2 — pick and verify one concrete affinity; do not invent a number).
 
 - [ ] **Step 2: Write the failing test** — `tests/test_run_receptor.py`
 
 ```python
-from pbg_cpm_studies.chemotaxis.run_receptor import run_receptor
+from viva_cpm_studies.chemotaxis.run_receptor import run_receptor
 
 
 def test_summary_shape_and_recruitment_ordering(tmp_path):
@@ -353,17 +353,17 @@ def test_summary_shape_and_recruitment_ordering(tmp_path):
 Run: `pytest tests/test_run_receptor.py -q`
 Expected: FAIL — module missing.
 
-- [ ] **Step 4: Implement `run_receptor.py`** by adapting `pbg_cpm_studies/chemotaxis/run.py`: for each seed, build `recruitment_receptor(blocked=…, seed=…, kd=…)`, run to `steps`, sample `metrics.recruitment_index_from_coms` at intervals, aggregate mean + 95% CI across seeds (normal-approx or seed spread), and record per-responder activation (fate==ACTIVATED_TYPE) per frame. Write the JSON summary.
+- [ ] **Step 4: Implement `run_receptor.py`** by adapting `viva_cpm_studies/chemotaxis/run.py`: for each seed, build `recruitment_receptor(blocked=…, seed=…, kd=…)`, run to `steps`, sample `metrics.recruitment_index_from_coms` at intervals, aggregate mean + 95% CI across seeds (normal-approx or seed spread), and record per-responder activation (fate==ACTIVATED_TYPE) per frame. Write the JSON summary.
 
 - [ ] **Step 5: Run test to verify it passes** — `pytest tests/test_run_receptor.py -q`. Expected: PASS.
 
 - [ ] **Step 6: Generate the real summaries** for ≥5 seeds and commit the data:
 
 ```bash
-python -c "from pbg_cpm_studies.chemotaxis.run_receptor import run_receptor; \
+python -c "from viva_cpm_studies.chemotaxis.run_receptor import run_receptor; \
 run_receptor(blocked=False, seeds=[17,29,43,61,89], steps=500, kd=<KD>); \
 run_receptor(blocked=True,  seeds=[17,29,43,61,89], steps=500, kd=<KD>)"
-git add workspace/references/papers.bib pbg_cpm_studies/chemotaxis/run_receptor.py \
+git add workspace/references/papers.bib viva_cpm_studies/chemotaxis/run_receptor.py \
         tests/test_run_receptor.py workspace/chemotaxis_data/results/receptor_*.json
 git commit -m "feat(studies): cited chemokine Kd + multi-seed receptor run harness"
 ```
@@ -380,7 +380,7 @@ git commit -m "feat(studies): cited chemokine Kd + multi-seed receptor run harne
 - Test: `tests/test_receptor_studies.py`
 
 **Interfaces:**
-- Consumes: the composite `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`; the summaries from Task 4; the existing `recruitment_index` measure kind.
+- Consumes: the composite `viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`; the summaries from Task 4; the existing `recruitment_index` measure kind.
 - Produces: two schema-v3 `study.yaml` files mirroring `workspace/studies/recruitment-baseline/study.yaml`, each with a `behavior_tests[].pass_if` and a `calibration_anchor{literature_target: <Kd>, cites: [<bibkey>], resolution: model}` on the receptor `kd` parameter; `model_settings[]` recording `kd/hill/conc_scale/activate_occupancy` with `cites`/provenance.
 
 - [ ] **Step 1: Write the failing test** — `tests/test_receptor_studies.py`
@@ -416,7 +416,7 @@ def test_baseline_wired_and_cites_kd_source():
 - [ ] **Step 2: Run test to verify it fails** — `pytest tests/test_receptor_studies.py -q`. Expected: FAIL (file missing).
 
 - [ ] **Step 3: Author the two study.yaml files** mirroring `recruitment-baseline/study.yaml` (schema_version 3, `investigation: chemotactic-recruitment`).
-  - **Baseline** `recruitment-receptor-baseline`: `baseline[0].composite = pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`, `params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: 2.9}`. behavior_test `measure: {kind: recruitment_index, condition: recruitment-receptor-baseline, stat: final}`, `pass_if: {op: gt, value: 0.5}` (observed final_mean ≈ 0.567 from the Task-4 summary `receptor_baseline.json`), with per-test `cites: [nasser2009]` linking the receptor-affinity source that sets the concentration threshold.
+  - **Baseline** `recruitment-receptor-baseline`: `baseline[0].composite = viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`, `params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: 2.9}`. behavior_test `measure: {kind: recruitment_index, condition: recruitment-receptor-baseline, stat: final}`, `pass_if: {op: gt, value: 0.5}` (observed final_mean ≈ 0.567 from the Task-4 summary `receptor_baseline.json`), with per-test `cites: [nasser2009]` linking the receptor-affinity source that sets the concentration threshold.
   - **Blocked** `recruitment-receptor-blocked`: `params: {cue_rate: 10.0, chemo_lambda: 14.0, kd: 2.9, blocked: true}`, `pass_if: {op: lt, value: 0.1}` (observed ≈ 0.067).
   - **The cited Kd is a *parameter* calibration, not a band target.** Record the receptor parameters in the study's `model_settings` (mirror how the workspace documents `conditions.model_settings[]`; if there is no local example, add a minimal block): `{name: kd, current: 2.9, units: nM, cites: [nasser2009], notes: "CXCL8 monomer–CXCR1 Kd (Nasser 2009)"}` and `{name: conc_scale, current: 0.02, provenance: theory, notes: "CPM field-unit → nM mapping; modeling choice, not fit"}`. **Do NOT put `literature_target: 2.9` on the recruitment behavior_test** — recruitment index is a fraction (0–1), so a Kd-valued target would corrupt `divergence_factor`. The Kd's evidence role is `calibrates`, recorded in `model_settings`.
   - Fill observed values + CIs from the Task-4 summaries. Add both studies to `investigation.yaml` `studies:` and `acceptance_criteria:`, and add the receptor realization's `at_a_glance` rows.
@@ -436,7 +436,7 @@ git commit -m "feat(studies): receptor baseline + blocked studies with cited Kd 
 ### Task 6: Figures — spatial activation map + condition overlay
 
 **Files:**
-- Create: `pbg_cpm_studies/visualizations/receptor_studies.py`
+- Create: `viva_cpm_studies/visualizations/receptor_studies.py`
 - Test: `tests/test_receptor_viz.py`
 
 **Interfaces:**
@@ -446,7 +446,7 @@ git commit -m "feat(studies): receptor baseline + blocked studies with cited Kd 
 - [ ] **Step 1: Write the failing test** — `tests/test_receptor_viz.py`
 
 ```python
-from pbg_cpm_studies.visualizations import receptor_studies as V
+from viva_cpm_studies.visualizations import receptor_studies as V
 
 
 def test_visualizations_render_html():
@@ -457,7 +457,7 @@ def test_visualizations_render_html():
 
 - [ ] **Step 2: Run test to verify it fails** — `pytest tests/test_receptor_viz.py -q`. Expected: FAIL (module missing).
 
-- [ ] **Step 3: Implement the two viz functions** in `pbg_cpm_studies/visualizations/receptor_studies.py`, following `pbg_cpm_studies/visualizations/chemotaxis_studies.py` exactly (imports `from viva_superpowers.visualization import as_visualization`, baked series, Plotly trace dicts, dark theme). `ReceptorRecruitment`: three conditions with CI ribbons (`fill="tonexty"`) from `receptor_*.json`. `ReceptorActivationMap`: a heatmap / scatter of per-responder activation state vs distance-to-source over MCS (the activation front), from `activation_by_cell`.
+- [ ] **Step 3: Implement the two viz functions** in `viva_cpm_studies/visualizations/receptor_studies.py`, following `viva_cpm_studies/visualizations/chemotaxis_studies.py` exactly (imports `from viva_superpowers.visualization import as_visualization`, baked series, Plotly trace dicts, dark theme). `ReceptorRecruitment`: three conditions with CI ribbons (`fill="tonexty"`) from `receptor_*.json`. `ReceptorActivationMap`: a heatmap / scatter of per-responder activation state vs distance-to-source over MCS (the activation front), from `activation_by_cell`.
 
 - [ ] **Step 4: Run test to verify it passes** — `pytest tests/test_receptor_viz.py -q`. Expected: PASS.
 
@@ -466,7 +466,7 @@ def test_visualizations_render_html():
 - [ ] **Step 6: Commit**
 
 ```bash
-git add pbg_cpm_studies/visualizations/receptor_studies.py tests/test_receptor_viz.py \
+git add viva_cpm_studies/visualizations/receptor_studies.py tests/test_receptor_viz.py \
         workspace/studies/recruitment-receptor-baseline/study.yaml \
         workspace/studies/recruitment-receptor-blocked/study.yaml
 git commit -m "feat(viz): receptor recruitment overlay + spatial activation map"

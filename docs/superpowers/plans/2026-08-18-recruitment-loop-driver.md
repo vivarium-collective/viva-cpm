@@ -31,10 +31,10 @@ Whether the CPM adaptive mechanism actually exhibits the clean ladder (`adaptive
 New:
 - `cpm/subcellular/adaptive_receptor.py` — `AdaptiveReceptorSubcell` (Process)
 - `cpm/coupling.py` — ADD `adaptation_coupling(...)` alongside `receptor_coupling` (same file)
-- `pbg_cpm_studies/composites/chemotaxis_adaptive.py` — `build_adaptive_spec`, `composite_document`, `@composite_generator recruitment_adaptive`, the 5 background conditions
-- `pbg_cpm_studies/model_building/__init__.py`
-- `pbg_cpm_studies/model_building/mechanisms.py` — the LIBRARY (static/hill/adaptive → composite+config) + `simulate_condition`
-- `pbg_cpm_studies/model_building/navigate.py` — deterministic NAVIGATE policy
+- `viva_cpm_studies/composites/chemotaxis_adaptive.py` — `build_adaptive_spec`, `composite_document`, `@composite_generator recruitment_adaptive`, the 5 background conditions
+- `viva_cpm_studies/model_building/__init__.py`
+- `viva_cpm_studies/model_building/mechanisms.py` — the LIBRARY (static/hill/adaptive → composite+config) + `simulate_condition`
+- `viva_cpm_studies/model_building/navigate.py` — deterministic NAVIGATE policy
 - `workspace/studies/recruitment-adaptive/study.yaml` — the locked contract
 - `scripts/build_recruitment_loop.py` — the loop driver → `trajectory.json`
 - Tests: `tests/test_adaptive_receptor.py`, `tests/test_adaptation_coupling.py`, `tests/test_chemotaxis_adaptive.py`, `tests/test_recruitment_ladder.py` (the validation), `tests/test_recruitment_loop.py`
@@ -251,7 +251,7 @@ git commit -m "feat: adaptation_coupling — per-cell adaptive receptor wiring w
 ### Task 3: `chemotaxis_adaptive` composite + background conditions
 
 **Files:**
-- Create: `pbg_cpm_studies/composites/chemotaxis_adaptive.py`
+- Create: `viva_cpm_studies/composites/chemotaxis_adaptive.py`
 - Test: `tests/test_chemotaxis_adaptive.py`
 
 **Interfaces:**
@@ -263,8 +263,8 @@ git commit -m "feat: adaptation_coupling — per-cell adaptive receptor wiring w
 ```python
 # tests/test_chemotaxis_adaptive.py
 import process_bigraph as pb
-from pbg_cpm_studies.composites import chemotaxis_adaptive as CA
-from pbg_cpm_studies.chemotaxis import metrics as M
+from viva_cpm_studies.composites import chemotaxis_adaptive as CA
+from viva_cpm_studies.chemotaxis import metrics as M
 
 def _final_index(condition, seed=17, steps=40):
     core = pb.allocate_core()
@@ -323,14 +323,14 @@ def recruitment_adaptive(core=None, cue_rate=CUE_RATE, chemo_lambda=CHEMO_LAMBDA
 Run:
 ```bash
 .venv/bin/python -m pytest tests/test_chemotaxis_adaptive.py -q
-.venv/bin/python -c "import pbg_cpm_studies.composites.chemotaxis_adaptive; from viva_superpowers.composite_generator import discover_generators; print('recruitment_adaptive' in str(sorted(discover_generators(extra_packages=['pbg_cpm_studies.composites']))))"
+.venv/bin/python -c "import viva_cpm_studies.composites.chemotaxis_adaptive; from viva_superpowers.composite_generator import discover_generators; print('recruitment_adaptive' in str(sorted(discover_generators(extra_packages=['viva_cpm_studies.composites']))))"
 ```
 Expected: tests PASS; generator discovery prints `True`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/composites/chemotaxis_adaptive.py tests/test_chemotaxis_adaptive.py
+git add viva_cpm_studies/composites/chemotaxis_adaptive.py tests/test_chemotaxis_adaptive.py
 git commit -m "feat: chemotaxis_adaptive composite + 5 background conditions"
 ```
 
@@ -340,7 +340,7 @@ git commit -m "feat: chemotaxis_adaptive composite + 5 background conditions"
 
 **Files:**
 - Create: `tests/test_recruitment_ladder.py`
-- Modify (calibration only): `pbg_cpm_studies/composites/chemotaxis_adaptive.py` (`CONDITIONS` background levels, default `epsilon`, `activate_occupancy`)
+- Modify (calibration only): `viva_cpm_studies/composites/chemotaxis_adaptive.py` (`CONDITIONS` background levels, default `epsilon`, `activate_occupancy`)
 
 **Interfaces:**
 - Produces: a proven parameter set where the ladder separates, encoded in `CONDITIONS` + defaults. This is the empirical foundation the contract (Task 6) cites.
@@ -351,8 +351,8 @@ git commit -m "feat: chemotaxis_adaptive composite + 5 background conditions"
 # tests/test_recruitment_ladder.py — the emergent ladder must separate
 import process_bigraph as pb
 from statistics import mean
-from pbg_cpm_studies.composites import chemotaxis_adaptive as CA
-from pbg_cpm_studies.chemotaxis import metrics as M
+from viva_cpm_studies.composites import chemotaxis_adaptive as CA
+from viva_cpm_studies.chemotaxis import metrics as M
 
 SEEDS = [17, 29, 43]; STEPS = 40
 
@@ -402,7 +402,7 @@ Record each sweep line with `log`-style prints. Land on values where all three t
 - [ ] **Step 4: Commit the validated parameters**
 
 ```bash
-git add tests/test_recruitment_ladder.py pbg_cpm_studies/composites/chemotaxis_adaptive.py
+git add tests/test_recruitment_ladder.py viva_cpm_studies/composites/chemotaxis_adaptive.py
 git commit -m "test: empirical recruitment ladder separation + calibrated adaptive params"
 ```
 
@@ -411,7 +411,7 @@ git commit -m "test: empirical recruitment ladder separation + calibrated adapti
 ### Task 5: Mechanism library + NAVIGATE policy
 
 **Files:**
-- Create: `pbg_cpm_studies/model_building/__init__.py`, `pbg_cpm_studies/model_building/mechanisms.py`, `pbg_cpm_studies/model_building/navigate.py`
+- Create: `viva_cpm_studies/model_building/__init__.py`, `viva_cpm_studies/model_building/mechanisms.py`, `viva_cpm_studies/model_building/navigate.py`
 - Test: extend `tests/test_recruitment_ladder.py` or a new `tests/test_navigate.py`
 
 **Interfaces:**
@@ -425,7 +425,7 @@ git commit -m "test: empirical recruitment ladder separation + calibrated adapti
 
 ```python
 # tests/test_navigate.py
-from pbg_cpm_studies.model_building import mechanisms, navigate
+from viva_cpm_studies.model_building import mechanisms, navigate
 
 def test_library_has_three_rungs():
     assert set(mechanisms.LIBRARY) == {"static_lambda", "hill_occupancy", "adaptive_receptor"}
@@ -451,7 +451,7 @@ def test_navigate_climbs_static_to_hill_to_adaptive():
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pbg_cpm_studies/model_building tests/test_navigate.py
+git add viva_cpm_studies/model_building tests/test_navigate.py
 git commit -m "feat: mechanism library (static/hill/adaptive) + deterministic NAVIGATE policy"
 ```
 

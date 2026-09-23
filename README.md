@@ -14,7 +14,7 @@ A living 3D colonic crypt (stem cells dividing at the base, differentiating, and
 
 ## Install
 
-The importable engine is `cpm` (a compiled Rust extension) and the research package is `pbg_cpm_studies`. Install from the repo:
+The importable engine is `cpm` (a compiled Rust extension) and the research package is `viva_cpm_studies`. Install from the repo:
 
 ```bash
 # with uv (recommended)
@@ -73,7 +73,7 @@ stemness ODE + Boolean fate switch), run with the process-bigraph `Composite` en
 
 ## Research workspace: investigations & studies
 
-`workspace/` is a process-bigraph research workspace: composites in `pbg_cpm_studies/`,
+`workspace/` is a process-bigraph research workspace: composites in `viva_cpm_studies/`,
 studies under `workspace/studies/`, grouped into **investigations**. Each study carries a
 model, readouts, simulation runs, and acceptance-criteria **behavior tests** that grade a
 run into a signed pass/fail verdict. Two investigations ship today (browse them live on the
@@ -90,7 +90,7 @@ run into a signed pass/fail verdict. Two investigations ship today (browse them 
   navigate — climbs an emergent mechanism ladder (`static → hill_occupancy → adaptive`) in
   which occupancy-space chemotaxis makes the fixed-`kd` rung collapse at high background and
   adaptation rescues it; the run is captured as a `model_build_trajectory`. The
-  calibration tooling (`pbg_cpm_studies/model_building/calibrate.py`) is a sensitivity
+  calibration tooling (`viva_cpm_studies/model_building/calibrate.py`) is a sensitivity
   screen + common-random-numbers + refine, not a hand grid.
 
 The loop, contract, audit, and grading machinery live in
@@ -110,7 +110,7 @@ of its research workspaces.
 ```
 crates/            Rust workspace: cpm-core (engine) + cpm-py (pyo3 bindings → cpm.cpm_core)
 cpm/               Python framework: schema, processes, subcellular, composites, metrics, ftu
-pbg_cpm_studies/   research package: composites, model-building mechanisms + calibrate, visualizations
+viva_cpm_studies/   research package: composites, model-building mechanisms + calibrate, visualizations
 workspace/         the research workspace: studies/, investigations/, references/, reports/
 demos/             runnable demos (each validates + exports a viewer model)
 viewer/            browser 2D/3D viewer for the exported models

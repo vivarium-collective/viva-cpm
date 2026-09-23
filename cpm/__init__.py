@@ -1,4 +1,4 @@
-"""pbg-cpm — a process-bigraph Cellular Potts Model framework.
+"""viva-cpm — a process-bigraph Cellular Potts Model framework.
 
 A fast Rust CPM engine (``cpm.cpm_core``) with a process-bigraph Python layer:
 CPM and subcellular processes, schema-driven world construction, connectivity /

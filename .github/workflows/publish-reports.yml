@@ -18,7 +18,7 @@ on:
     branches: [main]
     paths:
       - 'workspace/**'
-      - 'pbg_cpm_studies/**'
+      - 'viva_cpm_studies/**'
       - 'scripts/publish_investigation_reports.py'
       - '.github/workflows/publish-reports.yml'
   workflow_dispatch:

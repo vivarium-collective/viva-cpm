@@ -7,8 +7,8 @@ see that block's CONVENTION note for why).
 """
 from __future__ import annotations
 
-from pbg_cpm_studies.influenza.resistance import cell_resistance
-from pbg_cpm_studies.influenza.params import load_params
+from viva_cpm_studies.influenza.resistance import cell_resistance
+from viva_cpm_studies.influenza.params import load_params
 
 A_RF = float(load_params()["resistance"]["a_rf"])
 
