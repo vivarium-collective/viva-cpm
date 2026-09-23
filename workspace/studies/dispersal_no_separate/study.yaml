@@ -97,7 +97,7 @@ runs:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.dispersal_no_separate
-    params: {}
+    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    params: {study: dispersal_no_separate}
   model_settings: []
 inputs: []

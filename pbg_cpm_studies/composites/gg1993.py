@@ -96,25 +96,31 @@ def composite_document(slug):
     }
 
 
-def _make(slug):
-    # spec_id = f"{module}.{name}" -> pbg_cpm_studies.composites.gg1993.<slug>,
-    # matching each study's baseline[].composite ref exactly.
-    @composite_generator(name=slug, default_n_steps=16,
-                         description=f"GG1993 composite: {STUDIES[slug]['title']}")
-    def factory(core=None, **kwargs):
-        return composite_document(slug)
-    return factory
+_STUDY_SLUGS = list(STUDIES.keys())
 
 
-# one registry-resolvable factory per study slug
-annealing = _make("annealing")
-global_equilibration = _make("global_equilibration")
-checkerboard = _make("checkerboard")
-cell_sorting = _make("cell_sorting")
-engulfment = _make("engulfment")
-position_reversal = _make("position_reversal")
-partial_sorting = _make("partial_sorting")
-dispersal_sloughing = _make("dispersal_sloughing")
-dispersal_separate = _make("dispersal_separate")
-dispersal_no_separate = _make("dispersal_no_separate")
-vacancy_cavity = _make("vacancy_cavity")
+# ONE parameterized composite for all 11 examples, not one-per-study. Every
+# example wraps the SAME single CPMProcess; the 11 differ only in the config
+# (energies / temperature / area constraint / initial condition) pulled from
+# STUDIES[study]. The `study` parameter selects which one — each study passes
+# it via baseline[].params, e.g. ``params: {study: annealing}`` — and the
+# dashboard renders it as a dropdown of the allowed slugs.
+@composite_generator(
+    name="gg1993", default_n_steps=16,
+    parameters={
+        "study": {
+            "type": "string",
+            "default": _STUDY_SLUGS[0],
+            "choices": _STUDY_SLUGS,
+            "description": "which Glazier & Graner (1993) paper example to encode",
+        },
+    },
+    description=("Glazier & Graner (1993) CPM example (single CPMProcess). The `study` "
+                 "parameter selects which of the 11 paper examples to encode; its exact "
+                 "energies, temperature, area constraint and initial condition come from "
+                 "pbg_cpm_studies.gg1993.params.STUDIES[study]."))
+def gg1993(core=None, study=_STUDY_SLUGS[0]):
+    if study not in STUDIES:
+        raise ValueError(
+            f"unknown gg1993 study {study!r}; choices: {', '.join(_STUDY_SLUGS)}")
+    return composite_document(study)

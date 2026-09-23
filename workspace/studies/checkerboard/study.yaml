@@ -98,7 +98,7 @@ runs:
 conditions:
   baseline:
     name: baseline
-    composite: pbg_cpm_studies.composites.gg1993.checkerboard
-    params: {}
+    composite: pbg_cpm_studies.composites.gg1993.gg1993
+    params: {study: checkerboard}
   model_settings: []
 inputs: []
