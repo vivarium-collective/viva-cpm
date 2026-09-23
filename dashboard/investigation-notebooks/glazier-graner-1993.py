@@ -161,15 +161,15 @@ def _render_one(address, config, runs_db, study_yaml):
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.annealing` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=annealing |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.annealing`** — `spec_pbg_cpm_studies_composites_gg1993_annealing` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.annealing` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -222,15 +222,15 @@ _save_viz('annealing', 'Annealing_interactive', _render_one('local:GG1993Anneali
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.global_equilibration` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=global_equilibration |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.global_equilibration`** — `spec_pbg_cpm_studies_composites_gg1993_global_equilibration` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.global_equilibration` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -275,15 +275,15 @@ _save_viz('global_equilibration', 'Global_pattern_equilibration_interactive', _r
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.checkerboard` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=checkerboard |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.checkerboard`** — `spec_pbg_cpm_studies_composites_gg1993_checkerboard` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.checkerboard` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -328,15 +328,15 @@ _save_viz('checkerboard', 'Checkerboard_negative_surface_tension_interactive', _
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.cell_sorting` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=cell_sorting |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.cell_sorting`** — `spec_pbg_cpm_studies_composites_gg1993_cell_sorting` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.cell_sorting` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -381,15 +381,15 @@ _save_viz('cell_sorting', 'Cell_sorting_interactive', _render_one('local:GG1993C
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.engulfment` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=engulfment |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.engulfment`** — `spec_pbg_cpm_studies_composites_gg1993_engulfment` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.engulfment` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -434,15 +434,15 @@ _save_viz('engulfment', 'Engulfment_interactive', _render_one('local:GG1993Engul
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.position_reversal` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=position_reversal |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.position_reversal`** — `spec_pbg_cpm_studies_composites_gg1993_position_reversal` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.position_reversal` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -487,15 +487,15 @@ _save_viz('position_reversal', 'Position_reversal_interactive', _render_one('loc
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.partial_sorting` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=partial_sorting |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.partial_sorting`** — `spec_pbg_cpm_studies_composites_gg1993_partial_sorting` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.partial_sorting` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -540,15 +540,15 @@ _save_viz('partial_sorting', 'Partial_cell_sorting_interactive', _render_one('lo
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.dispersal_sloughing` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=dispersal_sloughing |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.dispersal_sloughing`** — `spec_pbg_cpm_studies_composites_gg1993_dispersal_sloughing` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.dispersal_sloughing` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -593,15 +593,15 @@ _save_viz('dispersal_sloughing', 'Dispersal_light-cell_sloughing_interactive', _
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.dispersal_separate` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=dispersal_separate |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.dispersal_separate`** — `spec_pbg_cpm_studies_composites_gg1993_dispersal_separate` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.dispersal_separate` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -646,15 +646,15 @@ _save_viz('dispersal_separate', 'Dispersal_clusters_separate_interactive', _rend
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.dispersal_no_separate` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=dispersal_no_separate |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.dispersal_no_separate`** — `spec_pbg_cpm_studies_composites_gg1993_dispersal_no_separate` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.dispersal_no_separate` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -699,15 +699,15 @@ _save_viz('dispersal_no_separate', 'Dispersal_clusters_do_not_separate_interacti
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.gg1993.vacancy_cavity` | 0 | — |
+# | `baseline` | `pbg_cpm_studies.composites.gg1993.gg1993` | 0 | study=vacancy_cavity |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.gg1993.vacancy_cavity`** — `spec_pbg_cpm_studies_composites_gg1993_vacancy_cavity` (a plain, editable dict)
+# **Composite `pbg_cpm_studies.composites.gg1993.gg1993`** — `spec_pbg_cpm_studies_composites_gg1993_gg1993` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.gg1993.vacancy_cavity` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `pbg_cpm_studies.composites.gg1993.gg1993` not found under `pbg_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
