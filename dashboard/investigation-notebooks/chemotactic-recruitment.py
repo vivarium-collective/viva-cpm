@@ -85,7 +85,7 @@ os.chdir(REPO)
 RERUN = True
 
 # --- standard process-bigraph protocol: register the workspace's Core ---
-from pbg_cpm_studies.core import build_core
+from viva_cpm_studies.core import build_core
 core = build_core()
 
 # --- imported from the repo this notebook was generated for ---
@@ -183,15 +183,15 @@ def _render_one(address, config, runs_db, study_yaml):
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=14.0 |
+# | `baseline` | `viva_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=14.0 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.chemotaxis.recruitment`** — `spec_pbg_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.chemotaxis.recruitment`** — `spec_viva_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.chemotaxis.recruitment` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.chemotaxis.recruitment` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -260,15 +260,15 @@ _save_viz('recruitment-baseline', 'Recruitment_over_time_all_conditions', _rende
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `inhibited` | `pbg_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=0.0 |
+# | `inhibited` | `viva_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=0.0 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.chemotaxis.recruitment`** — `spec_pbg_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.chemotaxis.recruitment`** — `spec_viva_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.chemotaxis.recruitment` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.chemotaxis.recruitment` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -319,15 +319,15 @@ _save_viz('recruitment-inhibited', 'Recruitment_over_time_all_conditions', _rend
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `adversarial` | `pbg_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=0.0, chemo_lambda=14.0 |
+# | `adversarial` | `viva_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=0.0, chemo_lambda=14.0 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.chemotaxis.recruitment`** — `spec_pbg_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.chemotaxis.recruitment`** — `spec_viva_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.chemotaxis.recruitment` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.chemotaxis.recruitment` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -387,15 +387,15 @@ _save_viz('recruitment-adversarial', 'Recruitment_over_time_all_conditions', _re
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` | 0 | cue_rate=10.0, chemo_lambda=14.0, kd=2.9 |
+# | `baseline` | `viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` | 0 | cue_rate=10.0, chemo_lambda=14.0, kd=2.9 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`** — `spec_pbg_cpm_studies_composites_chemotaxis_receptor_recruitment_receptor` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`** — `spec_viva_cpm_studies_composites_chemotaxis_receptor_recruitment_receptor` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -466,15 +466,15 @@ _save_viz('recruitment-receptor-baseline', 'Receptor-gated_recruitment_baseline_
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `blocked` | `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` | 0 | cue_rate=10.0, chemo_lambda=14.0, kd=2.9, blocked=True |
+# | `blocked` | `viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` | 0 | cue_rate=10.0, chemo_lambda=14.0, kd=2.9, blocked=True |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`** — `spec_pbg_cpm_studies_composites_chemotaxis_receptor_recruitment_receptor` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor`** — `spec_viva_cpm_studies_composites_chemotaxis_receptor_recruitment_receptor` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.chemotaxis_receptor.recruitment_receptor` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -534,7 +534,7 @@ _save_viz('recruitment-receptor-blocked', 'Receptor-gated_recruitment_baseline_v
 # (Task 7) must clear for "the adaptive model works" to be true.
 #
 # **Objective.** Author the acceptance contract for the adaptive-receptor rung of the
-# faithful chemotaxis mechanism ladder (pbg_cpm_studies.model_building.
+# faithful chemotaxis mechanism ladder (viva_cpm_studies.model_building.
 # mechanisms): three primary behavior tests plus a receptor-gating control,
 # with pass/fail bands set from real measured recruitment_index values
 # (3-12 seeds) already gathered while calibrating the ladder. The loop
@@ -568,15 +568,15 @@ _save_viz('recruitment-receptor-blocked', 'Receptor-gated_recruitment_baseline_v
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `adaptive` | `pbg_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=14.0 |
+# | `adaptive` | `viva_cpm_studies.composites.chemotaxis.recruitment` | 0 | cue_rate=10.0, chemo_lambda=14.0 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.chemotaxis.recruitment`** — `spec_pbg_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.chemotaxis.recruitment`** — `spec_viva_cpm_studies_composites_chemotaxis_recruitment` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.chemotaxis.recruitment` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.chemotaxis.recruitment` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #

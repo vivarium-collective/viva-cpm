@@ -85,7 +85,7 @@ os.chdir(REPO)
 RERUN = True
 
 # --- standard process-bigraph protocol: register the workspace's Core ---
-from pbg_cpm_studies.core import build_core
+from viva_cpm_studies.core import build_core
 core = build_core()
 
 # --- imported from the repo this notebook was generated for ---
@@ -188,15 +188,15 @@ def _render_one(address, config, runs_db, study_yaml):
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.epithelium` | 0 | patch_mm=0.1, seed=17 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.epithelium` | 0 | patch_mm=0.1, seed=17 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.epithelium`** — `spec_pbg_cpm_studies_composites_influenza_epithelium` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.epithelium`** — `spec_viva_cpm_studies_composites_influenza_epithelium` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.epithelium` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.epithelium` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -238,7 +238,7 @@ _save_viz('parameter-provenance', 'Acceptance-band_targets_Fig_3B', _render_one(
 # **Objective.** Build the epithelial-sheet `load_world` spec (Task 1.1), instantiate and
 # relax the CPM world (Task 1.2), and measure step throughput on the full
 # 1mm^2 patch (Task 1.3). Wrap the geometry in a process-bigraph composite
-# (`pbg_cpm_studies.composites.influenza.epithelium`) so the
+# (`viva_cpm_studies.composites.influenza.epithelium`) so the
 # dashboard can run a modest (0.1mm, 100-cell) live demo of the same
 # substrate (Task 1.4, this study).
 #
@@ -260,15 +260,15 @@ _save_viz('parameter-provenance', 'Acceptance-band_targets_Fig_3B', _render_one(
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.epithelium` | 0 | patch_mm=0.1 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.epithelium` | 0 | patch_mm=0.1 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.epithelium`** — `spec_pbg_cpm_studies_composites_influenza_epithelium` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.epithelium`** — `spec_viva_cpm_studies_composites_influenza_epithelium` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.epithelium` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.epithelium` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -314,15 +314,15 @@ _save_viz('epithelial-sheet-baseline', 'Confluent_epithelial_sheet', _render_one
 # infected cells) rather than uniformly, with total cell population
 # conserved?
 #
-# **Objective.** Wire the virus field (Task 2.1, `pbg_cpm_studies/influenza/fields.py`) and
+# **Objective.** Wire the virus field (Task 2.1, `viva_cpm_studies/influenza/fields.py`) and
 # the stochastic infection transition (Task 2.2,
-# `pbg_cpm_studies/influenza/transitions.py`) together over the Increment-1
+# `viva_cpm_studies/influenza/transitions.py`) together over the Increment-1
 # sheet, drive them for 60 updates from a small seeded lesion
-# (`pbg_cpm_studies/influenza/run.py::run_virus_infection`, Task 2.3), and
+# (`viva_cpm_studies/influenza/run.py::run_virus_infection`, Task 2.3), and
 # report the measured spread/locality/null-control behavior from the
 # integration test (`tests/test_influenza_virus_infection.py`). Wrap the
 # same mechanism as a process-bigraph composite
-# (`pbg_cpm_studies.composites.influenza.viral_infection`, CPMProcess +
+# (`viva_cpm_studies.composites.influenza.viral_infection`, CPMProcess +
 # InfectionProcess wired through `fates`) for the dashboard live demo (Task
 # 2.4, this study) — measurements come from `run_virus_infection`, not the
 # live-demo composite (see caveat and Task 2.3's report on why the two
@@ -350,15 +350,15 @@ _save_viz('epithelial-sheet-baseline', 'Confluent_epithelial_sheet', _render_one
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.viral_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.viral_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.viral_infection`** — `spec_pbg_cpm_studies_composites_influenza_viral_infection` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.viral_infection`** — `spec_viva_cpm_studies_composites_influenza_viral_infection` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.viral_infection` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.viral_infection` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -409,16 +409,16 @@ _save_viz('virus-field-infection', 'Infection_dynamics_locality', _render_one('l
 # measurably slow infection spread and reduce total virus versus the same
 # seed/parameters with no IFN (Increment 2's unmodified path)?
 #
-# **Objective.** Wire the type-I IFN field (Task 3.2, `pbg_cpm_studies/influenza/fields.py`
+# **Objective.** Wire the type-I IFN field (Task 3.2, `viva_cpm_studies/influenza/fields.py`
 # `add_ifn_field`) and the pure per-cell resistance function (Task 3.3,
-# `pbg_cpm_studies/influenza/resistance.py::cell_resistance`) into a new
+# `viva_cpm_studies/influenza/resistance.py::cell_resistance`) into a new
 # driver, `run.run_virus_infection_with_ifn` (Task 3.3), alongside the
 # unmodified Increment-2 `run_virus_infection`, and compare their per-update
 # series (n_I, n_H, total_virus, plus `mean_resist` recorded only by the
 # with-IFN driver) at identical seed/parameters (Task 3.3's integration test
 # `tests/test_influenza_virus_infection.py::test_ifn_resistance_slows_spread_vs_no_ifn`
 # and the fuller with/without series in Task 3.3's report). A minimal
-# in-package figure (`pbg_cpm_studies/influenza/viz.py::ifn_resistance_figure`,
+# in-package figure (`viva_cpm_studies/influenza/viz.py::ifn_resistance_figure`,
 # Task 3.4) renders both series side by side plus the mean_resist trajectory.
 #
 # **Hypothesis.** Layered on the Increment-2 virus field + infection transition: a type-I
@@ -443,15 +443,15 @@ _save_viz('virus-field-infection', 'Infection_dynamics_locality', _render_one('l
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.viral_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.viral_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.viral_infection`** — `spec_pbg_cpm_studies_composites_influenza_viral_infection` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.viral_infection`** — `spec_viva_cpm_studies_composites_influenza_viral_infection` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.viral_infection` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.viral_infection` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -500,7 +500,7 @@ _save_viz('ifn-resistance', 'IFN_per-cell_resistance', _render_one('local:Influe
 # path?
 #
 # **Objective.** Wire infected death (Task 4.2, `transitions.infected_death_step`) and the
-# cellularized Allee effect (Task 4.3, `pbg_cpm_studies/influenza/allee.py`)
+# cellularized Allee effect (Task 4.3, `viva_cpm_studies/influenza/allee.py`)
 # into a new driver, `run.run_epithelial_fate` (Task 4.3), alongside the
 # unmodified Increment-2/3 infection + IFN-resistance path, and measure the
 # resulting n_H/n_I/n_D series plus the diagnostic n_allee_death/
@@ -509,7 +509,7 @@ _save_viz('ifn-resistance', 'IFN_per-cell_resistance', _render_one('local:Influe
 # `::test_dead_cell_surrounded_by_uninfected_recovers`,
 # `::test_dead_cell_surrounded_by_dying_does_not_recover`, and the fuller
 # 200/500-step series in task-4.3-report.md). A minimal in-package figure
-# (`pbg_cpm_studies/influenza/viz.py::epithelial_fate_figure`, Task 4.4)
+# (`viva_cpm_studies/influenza/viz.py::epithelial_fate_figure`, Task 4.4)
 # renders the cell-type composition over time plus cumulative Allee event
 # counts.
 #
@@ -538,15 +538,15 @@ _save_viz('ifn-resistance', 'IFN_per-cell_resistance', _render_one('local:Influe
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.viral_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.viral_infection` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.viral_infection`** — `spec_pbg_cpm_studies_composites_influenza_viral_infection` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.viral_infection`** — `spec_viva_cpm_studies_composites_influenza_viral_infection` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.viral_infection` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.viral_infection` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -608,15 +608,15 @@ _save_viz('epithelial-fate', 'Epithelial-fate_lifecycle', _render_one('local:Inf
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.cytotoxic_immunity` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.cytotoxic_immunity` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.cytotoxic_immunity`** — `spec_pbg_cpm_studies_composites_influenza_cytotoxic_immunity` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.cytotoxic_immunity`** — `spec_viva_cpm_studies_composites_influenza_cytotoxic_immunity` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.cytotoxic_immunity` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.cytotoxic_immunity` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -660,7 +660,7 @@ _save_viz('immune-response', 'InfluenzaSpatialImmune', _render_one('', {}, RUNS_
 # documented test-seam override
 # (`tests/test_influenza_price_ode.py`, `tests/test_influenza_recruitment.py`,
 # `tests/test_influenza_killing.py`, task-8.1 through task-8.5-report.md).
-# A minimal in-package figure (`pbg_cpm_studies/influenza/viz.py::
+# A minimal in-package figure (`viva_cpm_studies/influenza/viz.py::
 # global_coupling_figure`, Task 8.6) renders the systemic ODE species
 # (T/X/A/P) and the spatial aggregates (I/M/K/E) plus dynamic sig_1 over
 # MCS.
@@ -693,15 +693,15 @@ _save_viz('immune-response', 'InfluenzaSpatialImmune', _render_one('', {}, RUNS_
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.systemic_ode` | 0 | chemotaxis_v_macro=5000.0, chemotaxis_v_nk=500000.0, chemotaxis_v_cd8=1000000.0, seed=17 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.systemic_ode` | 0 | chemotaxis_v_macro=5000.0, chemotaxis_v_nk=500000.0, chemotaxis_v_cd8=1000000.0, seed=17 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.systemic_ode`** — `spec_pbg_cpm_studies_composites_influenza_systemic_ode` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.systemic_ode`** — `spec_viva_cpm_studies_composites_influenza_systemic_ode` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.systemic_ode` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.systemic_ode` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -795,15 +795,15 @@ _save_viz('global-coupling', 'Hybrid_global_ODE_coupling', _render_one('local:In
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.full_model` | 20 | replicas=2, cells_per_side=15, seed0=0 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 20 | replicas=2, cells_per_side=15, seed0=0 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.full_model`** — `spec_pbg_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.full_model`** — `spec_viva_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.full_model` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.full_model` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -902,15 +902,15 @@ _save_viz('repro-fig3b', 'Fig-3B_reproduction_ensemble_vs_acceptance_band', _ren
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.full_model` | 15 | loads=[1, 10000], replicas=1, cells_per_side=12, seed0=0 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 15 | loads=[1, 10000], replicas=1, cells_per_side=12, seed0=0 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.full_model`** — `spec_pbg_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.full_model`** — `spec_viva_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.full_model` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.full_model` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #
@@ -1019,15 +1019,15 @@ _save_viz('repro-fig5-viral-load', 'Fig-5_reproduction_dose-response_vs_acceptan
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `pbg_cpm_studies.composites.influenza.full_model` | 15 | fracs=[0.001, 0.05], replicas=1, cells_per_side=12, seed0=0 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 15 | fracs=[0.001, 0.05], replicas=1, cells_per_side=12, seed0=0 |
 
 # ### Specification (process-bigraph) — load, inspect, edit
 #
 # Each composite is a process-bigraph *document*: named processes (`_type: process`) bound to an `address`, wired by `inputs`/`outputs` ports over shared stores. For every composite below the first cell loads the spec into a plain **editable Python dict** and prints its structure; the second cell is a **control panel** listing every configuration value and per-process `interval` so you can tweak any of them. Your edits are read when the composite is built and run, in the **Run** section.
 
-# **Composite `pbg_cpm_studies.composites.influenza.full_model`** — `spec_pbg_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
+# **Composite `viva_cpm_studies.composites.influenza.full_model`** — `spec_viva_cpm_studies_composites_influenza_full_model` (a plain, editable dict)
 
-# _composite spec file for `pbg_cpm_studies.composites.influenza.full_model` not found under `pbg_cpm_studies/composites/` — skipped._
+# _composite spec file for `viva_cpm_studies.composites.influenza.full_model` not found under `viva_cpm_studies/composites/` — skipped._
 
 # ### Run
 #

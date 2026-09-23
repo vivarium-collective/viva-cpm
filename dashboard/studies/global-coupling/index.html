@@ -639,7 +639,7 @@ the nearby-killing term fires via natural recruitment buildup vs a
 documented test-seam override
 (`tests/test_influenza_price_ode.py`, `tests/test_influenza_recruitment.py`,
 `tests/test_influenza_killing.py`, task-8.1 through task-8.5-report.md).
-A minimal in-package figure (`pbg_cpm_studies/influenza/viz.py::
+A minimal in-package figure (`viva_cpm_studies/influenza/viz.py::
 global_coupling_figure`, Task 8.6) renders the systemic ODE species
 (T/X/A/P) and the spatial aggregates (I/M/K/E) plus dynamic sig_1 over
 MCS.
@@ -1057,6 +1057,18 @@ exercise the wiring without waiting on this slow natural buildup.
   </div>
 
   
+  <div class="overview-section" id="study-analyses-section">
+    <h3>Analyses to run <span class="muted" style="font-size:0.85em;font-weight:normal">— which of the workspace's <code>ANALYSIS_REGISTRY</code> entries to compute on dispatch</span></h3>
+    <div id="study-analyses-list" data-study="global-coupling">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading analyses…</span></div>
+    </div>
+    <div style="margin-top:8px">
+      <button class="action-btn" type="button" onclick="_saveStudyAnalyses()">Save analyses</button>
+      <span id="study-analyses-status" style="margin-left:8px;font-size:0.9em;color:#555"></span>
+    </div>
+  </div>
+
+  
   
   
 
@@ -1070,20 +1082,24 @@ exercise the wiring without waiting on this slow natural buildup.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.systemic_ode" data-model-overrides='{"chemotaxis_v_cd8": 1000000.0, "chemotaxis_v_macro": 5000.0, "chemotaxis_v_nk": 500000.0, "seed": 17}'>
+    <div class="cond-block" data-model-composite="viva_cpm_studies.composites.influenza.systemic_ode" data-model-overrides='{"chemotaxis_v_cd8": 1000000.0, "chemotaxis_v_macro": 5000.0, "chemotaxis_v_nk": 500000.0, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <strong>global-coupling</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.systemic_ode</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">viva_cpm_studies.composites.influenza.systemic_ode</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.systemic_ode')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('viva_cpm_studies.composites.influenza.systemic_ode')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="global-coupling"
-               value="pbg_cpm_studies.composites.influenza.systemic_ode" placeholder="pkg.composites.name"
-               style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
+        
+        <select class="baseline-composite-input" data-baseline-name="global-coupling"
+                data-current="viva_cpm_studies.composites.influenza.systemic_ode"
+                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px">
+          <option value="viva_cpm_studies.composites.influenza.systemic_ode" selected>viva_cpm_studies.composites.influenza.systemic_ode</option>
+          
+        </select>
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
                 data-baseline-name="global-coupling">Set composite</button>
       </div>
@@ -1129,7 +1145,7 @@ exercise the wiring without waiting on this slow natural buildup.
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.cytotoxic_immunity</code></p>
+    <p><strong>Base model:</strong> <code>viva_cpm_studies.composites.influenza.cytotoxic_immunity</code></p>
     
     
     <p><strong>New state variables:</strong></p>
@@ -1146,7 +1162,7 @@ exercise the wiring without waiting on this slow natural buildup.
     
     
     <p class="muted" style="font-size:0.88em">A new dashboard-loadable composite IS added this increment:
-`pbg_cpm_studies.composites.influenza.systemic_ode` (Task 8.6) --
+`viva_cpm_studies.composites.influenza.systemic_ode` (Task 8.6) --
 reuses `cytotoxic_response_composite_document` verbatim (the Task-7.1
 three-cluster scenario + virus/chemokine field stack + macrophage/NK/
 CD8 chemotaxis wiring). This is a LIVE-DEMO SCENARIO-GEOMETRY wrapper
@@ -1359,7 +1375,7 @@ composite does (see that study&#39;s own model_change.notes precedent).
           <em>Model observable:</em> <code>price_ode.GlobalODE integrates the 10 systemic states once/MCS, fed by spatial aggregates; the freshly-integrated TNF + spatial dead count drives a dynamic sig_1 (replacing the Increment-6 stub); ODE-driven recruitment and a nearby-population killing term are both wired and individually verified correct (dynamic sig_1&#39;s monotone TNF-tracking, CD8&#39;s no-baseline asymmetry, nearby-killing&#39;s test-seam-verified clearance). At this reduced-scale default, none of the three mechanisms&#39; magnitudes yet reach the scale needed to matter within a feasible run -- honestly reported, not a reproduction claim.</code>
         </div>
         
-        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (ImmuneModelLib.py immune_model_string, spatial-coupling variant) via pbg_cpm_studies/influenza/price_ode.py, recruitment.py, killing.py, signaling.py, and params.yaml&#39;s price_ode:/coupling: blocks</div>
+        <div class="anchor-source"><em>Source:</em> CC3D ViralInfectionVTM source (ImmuneModelLib.py immune_model_string, spatial-coupling variant) via viva_cpm_studies/influenza/price_ode.py, recruitment.py, killing.py, signaling.py, and params.yaml&#39;s price_ode:/coupling: blocks</div>
         
       </li>
     
@@ -1947,7 +1963,7 @@ this study's calibration gaps resolved first.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "f17fb8307437dbc992e05e4cd20f9d3523734f1c", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/f17fb8307437dbc992e05e4cd20f9d3523734f1c", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-23 02:41 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "94b8259bc506b9af6e5cc3c8e06299734ba2953f", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/94b8259bc506b9af6e5cc3c8e06299734ba2953f", "branch": "main", "lockfile": "uv.lock@8479c779b00a", "generated_at": "2026-09-23 14:34 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "global-coupling";
@@ -2074,6 +2090,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
      Model card stays stuck on "Resolving composite…". -->
 <script src="/viva-cpm/dashboard/assets/loom-embed.js"></script>
 <script src="/viva-cpm/dashboard/assets/composite-card.js"></script>
+<script src="/viva-cpm/dashboard/assets/checklist-select.js"></script>
 <script src="/viva-cpm/dashboard/assets/study-detail.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which

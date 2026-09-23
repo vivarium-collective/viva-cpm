@@ -684,7 +684,7 @@ interactively for fig5, not in pytest for either figure.
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
       <p class="ctr-text">The reduced-scale result here is dominated by a DIFFERENT mechanism than `repro_fig5`&#39;s reduced-scale report: not a virus-field-units mismatch (extracellular_virus is actually FULLY in-band, 6/6, at frac=0.05, and 5/6 at frac=0.001 -- unlike fig5&#39;s ~1200x worst_miss for the same observable at both tested loads), but a POPULATION-SCALE ROUNDING ARTIFACT specific to `init_infection_frac` scenarios at small `cells_per_side`: frac=0.001 * 144 cells rounds to 0 pre-infected cells, so that &#34;run&#34; never seeds any infection at all, trivially landing uninfected_cells at 144/144 for all 15 records -- a value nowhere near fig7.json&#39;s frac=0.001 band (which expects infection to emerge and recede, e.g. t_days=6: lo=2000,hi=9000 at paper scale, or as a fraction of 10000 cells ~0.2-0.9, vs this run&#39;s degenerate 1.0 constant), hence uninfected_cells&#39; 0/6 in-band and worst_miss=2.29 (the largest relative miss of any observable/fraction pair in this report). frac=0.05&#39;s 7 initially-infected-of-144 cells is a real (non-degenerate) seed, and its extracellular_virus/antibodies land fully in-band while uninfected_cells/infected_cells do not -- consistent with the same short-duration (~0.068 vs up to 15 simulated days) and population-scale (144 vs 10000 cells) mismatch `repro_fig5`&#39;s study already documented for cell-count observables, which don&#39;t rescale cleanly with a smaller population the way field-integral/ODE-state observables sometimes land inside a wide digitized band by coincidence. The honest read: the DIRECTION of the fraction-response (more initially infected cells -&gt; fewer surviving uninfected cells) is correctly reproduced by the wired mechanism at frac=0.05, but frac=0.001&#39;s reduced-scale result reflects a rounding degeneracy, not the mechanism&#39;s fidelity at that specific fraction -- a distinct, additional honesty caveat beyond `repro_fig5`&#39;s scale/duration findings.
-UNITS FIX CONFIRMATION (Task-9.3-review MUST-FIX, this update): this study&#39;s own prior reasoning above is now CONFIRMED correct by direct re-measurement. `repro_fig5`&#39;s ~1200x extracellular_virus miss was diagnosed and fixed as a structural raw-sum-vs-mean units bug in the repro-observable mapping layer (`_map_full_model_observables`, `pbg_cpm_studies/influenza/run.py`; see `repro-fig5-viral-load`&#39;s F-04) -- the same fix now applies to this study&#39;s `_FIG5_OBSERVABLE_MAP`-based mapping too (fig7 reuses that map). Re-running this study&#39;s exact reduced config (`fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, seed0=0`) after the fix gives BYTE-IDENTICAL extracellular_virus n_in/worst_miss to the pre-fix numbers reported above (5/6 worst_miss 0.33 at frac=0.001; 6/6 worst_miss 0.0 at frac=0.05) -- confirming this study&#39;s own earlier read was right: `init_infection_frac` scenarios (fig3b, fig7) never triggered the bug at reduced scale because the virus field here builds up gradually via secretion from a handful of infected cells rather than starting from a large uniform-load initial condition (only `init_viral_load` scenarios, i.e. fig5, seed a large enough raw field sum for the sites-factor to dominate at this reduced scale).</p>
+UNITS FIX CONFIRMATION (Task-9.3-review MUST-FIX, this update): this study&#39;s own prior reasoning above is now CONFIRMED correct by direct re-measurement. `repro_fig5`&#39;s ~1200x extracellular_virus miss was diagnosed and fixed as a structural raw-sum-vs-mean units bug in the repro-observable mapping layer (`_map_full_model_observables`, `viva_cpm_studies/influenza/run.py`; see `repro-fig5-viral-load`&#39;s F-04) -- the same fix now applies to this study&#39;s `_FIG5_OBSERVABLE_MAP`-based mapping too (fig7 reuses that map). Re-running this study&#39;s exact reduced config (`fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15, seed0=0`) after the fix gives BYTE-IDENTICAL extracellular_virus n_in/worst_miss to the pre-fix numbers reported above (5/6 worst_miss 0.33 at frac=0.001; 6/6 worst_miss 0.0 at frac=0.05) -- confirming this study&#39;s own earlier read was right: `init_infection_frac` scenarios (fig3b, fig7) never triggered the bug at reduced scale because the virus field here builds up gradually via secretion from a handful of infected cells rather than starting from a large uniform-load initial condition (only `init_viral_load` scenarios, i.e. fig5, seed a large enough raw field sum for the sites-factor to dominate at this reduced scale).</p>
       
       
     <div class="overview-section findings-section">
@@ -856,7 +856,7 @@ deliberately left uninvestigated has now been diagnosed and fixed
 bug in the repro-observable mapping layer, not a genuine PFU-scale
 calibration gap, fixed by reporting field observables as spatial-mean
 concentration (`_map_full_model_observables`,
-`pbg_cpm_studies/influenza/run.py`). This study&#39;s OWN
+`viva_cpm_studies/influenza/run.py`). This study&#39;s OWN
 extracellular_virus numbers above are CONFIRMED UNCHANGED by direct
 re-measurement after the fix (byte-identical n_in/worst_miss at both
 fractions) -- this finding&#39;s original read (a scale coincidence, not a
@@ -940,6 +940,18 @@ units-bug escape) stands correct.
   </div>
 
   
+  <div class="overview-section" id="study-analyses-section">
+    <h3>Analyses to run <span class="muted" style="font-size:0.85em;font-weight:normal">— which of the workspace's <code>ANALYSIS_REGISTRY</code> entries to compute on dispatch</span></h3>
+    <div id="study-analyses-list" data-study="repro-fig7-infection-fraction">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading analyses…</span></div>
+    </div>
+    <div style="margin-top:8px">
+      <button class="action-btn" type="button" onclick="_saveStudyAnalyses()">Save analyses</button>
+      <span id="study-analyses-status" style="margin-left:8px;font-size:0.9em;color:#555"></span>
+    </div>
+  </div>
+
+  
   
   
 
@@ -953,20 +965,24 @@ units-bug escape) stands correct.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.full_model" data-model-overrides='{"cells_per_side": 12, "fracs": [0.001, 0.05], "replicas": 1, "seed0": 0, "steps": 15}'>
+    <div class="cond-block" data-model-composite="viva_cpm_studies.composites.influenza.full_model" data-model-overrides='{"cells_per_side": 12, "fracs": [0.001, 0.05], "replicas": 1, "seed0": 0, "steps": 15}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <strong>repro-fig7-infection-fraction</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.full_model</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">viva_cpm_studies.composites.influenza.full_model</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.full_model')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('viva_cpm_studies.composites.influenza.full_model')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="repro-fig7-infection-fraction"
-               value="pbg_cpm_studies.composites.influenza.full_model" placeholder="pkg.composites.name"
-               style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
+        
+        <select class="baseline-composite-input" data-baseline-name="repro-fig7-infection-fraction"
+                data-current="viva_cpm_studies.composites.influenza.full_model"
+                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px">
+          <option value="viva_cpm_studies.composites.influenza.full_model" selected>viva_cpm_studies.composites.influenza.full_model</option>
+          
+        </select>
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
                 data-baseline-name="repro-fig7-infection-fraction">Set composite</button>
       </div>
@@ -1014,7 +1030,7 @@ units-bug escape) stands correct.
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.full_model</code></p>
+    <p><strong>Base model:</strong> <code>viva_cpm_studies.composites.influenza.full_model</code></p>
     
     
     <p><strong>New state variables:</strong></p>
@@ -1030,10 +1046,10 @@ units-bug escape) stands correct.
     
     
     
-    <p class="muted" style="font-size:0.88em">`run.repro_fig7` is a driver-level function (`pbg_cpm_studies/
+    <p class="muted" style="font-size:0.88em">`run.repro_fig7` is a driver-level function (`viva_cpm_studies/
 influenza/run.py`), not a new dashboard-loadable composite; it drives
 `run.run_full_model` directly (a raw `cpm_core.World` loop, same as
-every other Increment 9 driver), reusing `pbg_cpm_studies.composites.
+every other Increment 9 driver), reusing `viva_cpm_studies.composites.
 influenza.full_model` (Task 9.1&#39;s composite wrapper) as this study&#39;s
 `base_model` for provenance/report-card purposes. The composite wrapper
 itself is unchanged by this task. This task also generalized
@@ -1236,7 +1252,7 @@ behavior change (verified: all pre-existing fig5 tests still pass).
           <em>Model observable:</em> <code>run.repro_fig7&#39;s per-fraction ensemble (mapped to targets/fig7.json&#39;s exact observable keys, evaluated per fraction via _fig7_target_subset/_evaluate_fig7_subset) at REDUCED scale (fracs=(0.001,0.05), replicas=1, cells_per_side=12, steps=15): band_eval[&#39;passed&#39;]=False for both fractions (population-scale/run-duration mismatch plus a frac=0.001 rounding degeneracy, per report.key_metrics); the qualitative monotone dose-response direction holds (uninfected_final_frac 1.0 at frac=0.001&#39;s degenerate control -&gt; 0.958333 at frac=0.05&#39;s real seed), a directional echo of the paper&#39;s own severity-rises-with-initial-fraction narrative, NOT a magnitude or threshold-value reproduction (only 2 of 4 fractions tested, and frac=0.001 did not actually seed any infection at this reduced population).</code>
         </div>
         
-        <div class="anchor-source"><em>Source:</em> Sego et al. 2022, Fig. 7, p.11 (digitized by eye from log-scale panels, approximate) via pbg_cpm_studies/influenza/targets/fig7.json</div>
+        <div class="anchor-source"><em>Source:</em> Sego et al. 2022, Fig. 7, p.11 (digitized by eye from log-scale panels, approximate) via viva_cpm_studies/influenza/targets/fig7.json</div>
         
       </li>
     
@@ -1675,7 +1691,7 @@ make any number in this report look better than it is.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "f17fb8307437dbc992e05e4cd20f9d3523734f1c", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/f17fb8307437dbc992e05e4cd20f9d3523734f1c", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-23 02:41 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "94b8259bc506b9af6e5cc3c8e06299734ba2953f", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/94b8259bc506b9af6e5cc3c8e06299734ba2953f", "branch": "main", "lockfile": "uv.lock@8479c779b00a", "generated_at": "2026-09-23 14:34 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "repro-fig7-infection-fraction";
@@ -1802,6 +1818,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
      Model card stays stuck on "Resolving composite…". -->
 <script src="/viva-cpm/dashboard/assets/loom-embed.js"></script>
 <script src="/viva-cpm/dashboard/assets/composite-card.js"></script>
+<script src="/viva-cpm/dashboard/assets/checklist-select.js"></script>
 <script src="/viva-cpm/dashboard/assets/study-detail.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which

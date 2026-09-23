@@ -816,6 +816,18 @@ edited to narrow this gap.
   </div>
 
   
+  <div class="overview-section" id="study-analyses-section">
+    <h3>Analyses to run <span class="muted" style="font-size:0.85em;font-weight:normal">— which of the workspace's <code>ANALYSIS_REGISTRY</code> entries to compute on dispatch</span></h3>
+    <div id="study-analyses-list" data-study="repro-fig3b">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading analyses…</span></div>
+    </div>
+    <div style="margin-top:8px">
+      <button class="action-btn" type="button" onclick="_saveStudyAnalyses()">Save analyses</button>
+      <span id="study-analyses-status" style="margin-left:8px;font-size:0.9em;color:#555"></span>
+    </div>
+  </div>
+
+  
   
   
 
@@ -829,20 +841,24 @@ edited to narrow this gap.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.full_model" data-model-overrides='{"cells_per_side": 15, "replicas": 2, "seed0": 0, "steps": 20}'>
+    <div class="cond-block" data-model-composite="viva_cpm_studies.composites.influenza.full_model" data-model-overrides='{"cells_per_side": 15, "replicas": 2, "seed0": 0, "steps": 20}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <strong>repro-fig3b</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.full_model</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">viva_cpm_studies.composites.influenza.full_model</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.full_model')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('viva_cpm_studies.composites.influenza.full_model')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="repro-fig3b"
-               value="pbg_cpm_studies.composites.influenza.full_model" placeholder="pkg.composites.name"
-               style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
+        
+        <select class="baseline-composite-input" data-baseline-name="repro-fig3b"
+                data-current="viva_cpm_studies.composites.influenza.full_model"
+                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px">
+          <option value="viva_cpm_studies.composites.influenza.full_model" selected>viva_cpm_studies.composites.influenza.full_model</option>
+          
+        </select>
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
                 data-baseline-name="repro-fig3b">Set composite</button>
       </div>
@@ -888,7 +904,7 @@ edited to narrow this gap.
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.influenza.full_model</code></p>
+    <p><strong>Base model:</strong> <code>viva_cpm_studies.composites.influenza.full_model</code></p>
     
     
     <p><strong>New state variables:</strong></p>
@@ -904,10 +920,10 @@ edited to narrow this gap.
     
     
     
-    <p class="muted" style="font-size:0.88em">`run.repro_fig3b` is a driver-level function (`pbg_cpm_studies/
+    <p class="muted" style="font-size:0.88em">`run.repro_fig3b` is a driver-level function (`viva_cpm_studies/
 influenza/run.py`), not a new dashboard-loadable composite; it drives
 `run.run_full_model` directly (a raw `cpm_core.World` loop, same as
-every other Increment 9 driver), reusing `pbg_cpm_studies.composites.
+every other Increment 9 driver), reusing `viva_cpm_studies.composites.
 influenza.full_model` (Task 9.1&#39;s composite wrapper) as this study&#39;s
 `base_model` for provenance/report-card purposes. The composite wrapper
 itself is unchanged by this task.
@@ -1106,7 +1122,7 @@ itself is unchanged by this task.
           <em>Model observable:</em> <code>run.repro_fig3b&#39;s ensemble (mapped to targets/fig3b.json&#39;s exact observable keys via bands.evaluate_study) at REDUCED scale (replicas=2, cells_per_side=15, steps=20): band_eval[&#39;passed&#39;]=False, 0/12 observables in-band at every checkpoint -- population-count observables miss most (uninfected_cells 1/8, dead_cells 0/8), soft-flagged systemic/signaling observables miss less (type1_ifn 7/8, antibodies 7/8), driven by this config&#39;s ~5.4x-smaller population and ~0.09-day (vs 3.5-day) run duration, not a claim about mechanism fidelity.</code>
         </div>
         
-        <div class="anchor-source"><em>Source:</em> Sego et al. 2022, Fig. 3B, p.7 (digitized by eye, approximate) via pbg_cpm_studies/influenza/targets/fig3b.json</div>
+        <div class="anchor-source"><em>Source:</em> Sego et al. 2022, Fig. 3B, p.7 (digitized by eye, approximate) via viva_cpm_studies/influenza/targets/fig3b.json</div>
         
       </li>
     
@@ -1494,7 +1510,7 @@ to make any number in this report look better than it is.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "f17fb8307437dbc992e05e4cd20f9d3523734f1c", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/f17fb8307437dbc992e05e4cd20f9d3523734f1c", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-23 02:41 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "94b8259bc506b9af6e5cc3c8e06299734ba2953f", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/94b8259bc506b9af6e5cc3c8e06299734ba2953f", "branch": "main", "lockfile": "uv.lock@8479c779b00a", "generated_at": "2026-09-23 14:34 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "repro-fig3b";
@@ -1621,6 +1637,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
      Model card stays stuck on "Resolving composite…". -->
 <script src="/viva-cpm/dashboard/assets/loom-embed.js"></script>
 <script src="/viva-cpm/dashboard/assets/composite-card.js"></script>
+<script src="/viva-cpm/dashboard/assets/checklist-select.js"></script>
 <script src="/viva-cpm/dashboard/assets/study-detail.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which

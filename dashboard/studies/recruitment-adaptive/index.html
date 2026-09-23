@@ -580,7 +580,7 @@ that isolates receptor-mediated gating as the necessary cause.
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Test</h2>
       <p class="ctr-text">Author the acceptance contract for the adaptive-receptor rung of the
-faithful chemotaxis mechanism ladder (pbg_cpm_studies.model_building.
+faithful chemotaxis mechanism ladder (viva_cpm_studies.model_building.
 mechanisms): three primary behavior tests plus a receptor-gating control,
 with pass/fail bands set from real measured recruitment_index values
 (3-12 seeds) already gathered while calibrating the ladder. The loop
@@ -627,6 +627,18 @@ these bands; this study does not itself constitute a completed run.
   </div>
 
   
+  <div class="overview-section" id="study-analyses-section">
+    <h3>Analyses to run <span class="muted" style="font-size:0.85em;font-weight:normal">— which of the workspace's <code>ANALYSIS_REGISTRY</code> entries to compute on dispatch</span></h3>
+    <div id="study-analyses-list" data-study="recruitment-adaptive">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading analyses…</span></div>
+    </div>
+    <div style="margin-top:8px">
+      <button class="action-btn" type="button" onclick="_saveStudyAnalyses()">Save analyses</button>
+      <span id="study-analyses-status" style="margin-left:8px;font-size:0.9em;color:#555"></span>
+    </div>
+  </div>
+
+  
   
   
 
@@ -640,20 +652,24 @@ these bands; this study does not itself constitute a completed run.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.chemotaxis.recruitment" data-model-overrides='{"chemo_lambda": 14.0, "cue_rate": 10.0}'>
+    <div class="cond-block" data-model-composite="viva_cpm_studies.composites.chemotaxis.recruitment" data-model-overrides='{"chemo_lambda": 14.0, "cue_rate": 10.0}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <strong>recruitment-adaptive</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.chemotaxis.recruitment</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">viva_cpm_studies.composites.chemotaxis.recruitment</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.chemotaxis.recruitment')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('viva_cpm_studies.composites.chemotaxis.recruitment')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="recruitment-adaptive"
-               value="pbg_cpm_studies.composites.chemotaxis.recruitment" placeholder="pkg.composites.name"
-               style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
+        
+        <select class="baseline-composite-input" data-baseline-name="recruitment-adaptive"
+                data-current="viva_cpm_studies.composites.chemotaxis.recruitment"
+                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px">
+          <option value="viva_cpm_studies.composites.chemotaxis.recruitment" selected>viva_cpm_studies.composites.chemotaxis.recruitment</option>
+          
+        </select>
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
                 data-baseline-name="recruitment-adaptive">Set composite</button>
       </div>
@@ -717,6 +733,7 @@ these bands; this study does not itself constitute a completed run.
             <td></td>
             <td><code></code></td>
             <td>
+              
               <input class="cond-ei-input"
                      type="text"
                      value=""
@@ -724,6 +741,7 @@ these bands; this study does not itself constitute a completed run.
                      
                      step="any"
                      style="width:100%;padding:3px 6px;border:1px solid #cbd5e1;border-radius:3px;font:inherit">
+              
               
               
             </td>
@@ -750,7 +768,7 @@ these bands; this study does not itself constitute a completed run.
   
   <div class="overview-section">
     <h3>Model change</h3>
-    <p><strong>Base model:</strong> <code>pbg_cpm_studies.composites.chemotaxis.recruitment</code></p>
+    <p><strong>Base model:</strong> <code>viva_cpm_studies.composites.chemotaxis.recruitment</code></p>
     
     
     
@@ -761,7 +779,7 @@ these bands; this study does not itself constitute a completed run.
     
     
     
-    <p class="muted" style="font-size:0.88em">Not yet realized as a run under this study -- the contract documents the adaptive_receptor arm of pbg_cpm_studies.model_building.mechanisms, which layers an adaptive kd_eff tracking update on top of the existing chemotaxis-occupancy bias (world.set_chemotaxis_occupancy), itself built on the chemotaxis.recruitment world (source secretion + responder chemotaxis). No new CPMProcess or listener was added; the mechanism reconfigures the existing engine&#39;s per-type chemotaxis parameters between SAMPLE-step run increments.</p>
+    <p class="muted" style="font-size:0.88em">Not yet realized as a run under this study -- the contract documents the adaptive_receptor arm of viva_cpm_studies.model_building.mechanisms, which layers an adaptive kd_eff tracking update on top of the existing chemotaxis-occupancy bias (world.set_chemotaxis_occupancy), itself built on the chemotaxis.recruitment world (source secretion + responder chemotaxis). No new CPMProcess or listener was added; the mechanism reconfigures the existing engine&#39;s per-type chemotaxis parameters between SAMPLE-step run increments.</p>
   </div>
   
 
@@ -1230,7 +1248,7 @@ model_build_trajectory/v2); loop state: .pbg/loop/recruitment-adaptive.json.</p>
     <div class="overview-section">
       <h3 class="overview-label">Key assumptions</h3>
       <ul style="margin:0 0 0 18px;padding:0;font-size:0.93em">
-        <li style="margin:2px 0">Measured bands are set from 3-12 seed means gathered during faithful mechanism-ladder calibration (docs/superpowers/notes/ 2026-08-18-faithful-ladder-calibration.md), not from a canonical run of THIS study -- status is in-progress / phase Build because the loop (Task 7) has not yet been driven against this locked contract.</li><li style="margin:2px 0">`conditions.baseline.composite` is the real, registered base recruitment world (pbg_cpm_studies.composites.chemotaxis.recruitment) shared by all three ladder mechanisms (static_lambda / hill_occupancy / adaptive_receptor); its params are only what that generator accepts (cue_rate, chemo_lambda). The adaptive_receptor mechanism itself (kd/hill/epsilon) is what the loop INSTALLS on top of that base world -- it is not a resolvable @composite_generator on its own, since mechanisms.py drives the Rust CPM engine&#39;s chemotaxis-occupancy API directly (world.set_chemotaxis_occupancy + a per-increment adaptation update) rather than assembling a separate process_bigraph Composite document -- so those params live under conditions.model_settings as documentation. The loop driver runs it via mechanisms.simulate_condition(mechanism=&#34;adaptive_receptor&#34;, condition, seeds, steps), reading kd/hill/epsilon from conditions.model_settings[0].params.</li><li style="margin:2px 0">low_bg / high_bg / high_bg_blocked are entries of mechanisms.CONDITIONS (background 0.0 / 400.0 / 400.0+blocked), not separate study conditions -- behavior_tests[].measure.condition names the CONDITIONS key the loop driver passes to simulate_condition, not a study slug.</li><li style="margin:2px 0">recruits_low&#39;s band [0.4, 1.0] is intentionally non-discriminating (both adaptive 0.82 and hill 0.58 clear it) -- it exists to confirm baseline chemotactic competence before recruits_high does the actual discriminating work between the fixed-kd and adaptive mechanisms.</li>
+        <li style="margin:2px 0">Measured bands are set from 3-12 seed means gathered during faithful mechanism-ladder calibration (docs/superpowers/notes/ 2026-08-18-faithful-ladder-calibration.md), not from a canonical run of THIS study -- status is in-progress / phase Build because the loop (Task 7) has not yet been driven against this locked contract.</li><li style="margin:2px 0">`conditions.baseline.composite` is the real, registered base recruitment world (viva_cpm_studies.composites.chemotaxis.recruitment) shared by all three ladder mechanisms (static_lambda / hill_occupancy / adaptive_receptor); its params are only what that generator accepts (cue_rate, chemo_lambda). The adaptive_receptor mechanism itself (kd/hill/epsilon) is what the loop INSTALLS on top of that base world -- it is not a resolvable @composite_generator on its own, since mechanisms.py drives the Rust CPM engine&#39;s chemotaxis-occupancy API directly (world.set_chemotaxis_occupancy + a per-increment adaptation update) rather than assembling a separate process_bigraph Composite document -- so those params live under conditions.model_settings as documentation. The loop driver runs it via mechanisms.simulate_condition(mechanism=&#34;adaptive_receptor&#34;, condition, seeds, steps), reading kd/hill/epsilon from conditions.model_settings[0].params.</li><li style="margin:2px 0">low_bg / high_bg / high_bg_blocked are entries of mechanisms.CONDITIONS (background 0.0 / 400.0 / 400.0+blocked), not separate study conditions -- behavior_tests[].measure.condition names the CONDITIONS key the loop driver passes to simulate_condition, not a study slug.</li><li style="margin:2px 0">recruits_low&#39;s band [0.4, 1.0] is intentionally non-discriminating (both adaptive 0.82 and hill 0.58 clear it) -- it exists to confirm baseline chemotactic competence before recruits_high does the actual discriminating work between the fixed-kd and adaptive mechanisms.</li>
       </ul>
     </div>
     
@@ -1294,7 +1312,7 @@ model_build_trajectory/v2); loop state: .pbg/loop/recruitment-adaptive.json.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "f17fb8307437dbc992e05e4cd20f9d3523734f1c", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/f17fb8307437dbc992e05e4cd20f9d3523734f1c", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-23 02:41 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "94b8259bc506b9af6e5cc3c8e06299734ba2953f", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/94b8259bc506b9af6e5cc3c8e06299734ba2953f", "branch": "main", "lockfile": "uv.lock@8479c779b00a", "generated_at": "2026-09-23 14:34 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "recruitment-adaptive";
@@ -1421,6 +1439,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
      Model card stays stuck on "Resolving composite…". -->
 <script src="/viva-cpm/dashboard/assets/loom-embed.js"></script>
 <script src="/viva-cpm/dashboard/assets/composite-card.js"></script>
+<script src="/viva-cpm/dashboard/assets/checklist-select.js"></script>
 <script src="/viva-cpm/dashboard/assets/study-detail.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which

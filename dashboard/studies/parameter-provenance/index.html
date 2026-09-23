@@ -578,7 +578,7 @@ types; diffusible virus, type-I IFN, chemokine, and IL-10 fields; per-cell
 resistance and death/recovery rules; and chemotactic recruitment
 strengths — all summarized with formulas and cited constants in
 docs/cc3d-reference/sego2022-parameters.md and encoded machine-readably in
-pbg_cpm_studies/influenza/params.yaml. Establishing this authority first,
+viva_cpm_studies/influenza/params.yaml. Establishing this authority first,
 and recording where the paper&#39;s own supplementary source disagrees with
 its printed tables, lets every later increment build on an audited
 foundation instead of quietly picking whichever number seemed
@@ -638,7 +638,7 @@ exists yet — this finding is about documentation completeness only.
             
             
             <div class="finding-evidence">
-              <strong>observed:</strong> params.yaml (pbg_cpm_studies/influenza/params.yaml) cites every section to either &#34;Sego 2022 Table N&#34; or the CC3D source directly; docs/cc3d-reference/sego2022-parameters.md mirrors it with formulas and constants; three figure-target JSON files (pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json) digitize acceptance bands from Figs 3B, 5, 7. · 
+              <strong>observed:</strong> params.yaml (viva_cpm_studies/influenza/params.yaml) cites every section to either &#34;Sego 2022 Table N&#34; or the CC3D source directly; docs/cc3d-reference/sego2022-parameters.md mirrors it with formulas and constants; three figure-target JSON files (viva_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json) digitize acceptance bands from Figs 3B, 5, 7. · 
               
               
               
@@ -749,6 +749,18 @@ carried forward as a decision_needed at the investigation level.
   </div>
 
   
+  <div class="overview-section" id="study-analyses-section">
+    <h3>Analyses to run <span class="muted" style="font-size:0.85em;font-weight:normal">— which of the workspace's <code>ANALYSIS_REGISTRY</code> entries to compute on dispatch</span></h3>
+    <div id="study-analyses-list" data-study="parameter-provenance">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading analyses…</span></div>
+    </div>
+    <div style="margin-top:8px">
+      <button class="action-btn" type="button" onclick="_saveStudyAnalyses()">Save analyses</button>
+      <span id="study-analyses-status" style="margin-left:8px;font-size:0.9em;color:#555"></span>
+    </div>
+  </div>
+
+  
   
   
 
@@ -762,20 +774,24 @@ carried forward as a decision_needed at the investigation level.
   <div class="overview-section" id="model-section">
     <h3>Runnable models <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study simulates</span></h3>
     
-    <div class="cond-block" data-model-composite="pbg_cpm_studies.composites.influenza.epithelium" data-model-overrides='{"patch_mm": 0.1, "seed": 17}'>
+    <div class="cond-block" data-model-composite="viva_cpm_studies.composites.influenza.epithelium" data-model-overrides='{"patch_mm": 0.1, "seed": 17}'>
       <div class="cond-block-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <strong>parameter-provenance</strong>
         
-        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">pbg_cpm_studies.composites.influenza.epithelium</code>
+        <code style="font-size:0.82em;color:#374151;background:#f1f5f9;padding:1px 6px;border-radius:3px">viva_cpm_studies.composites.influenza.epithelium</code>
         <button type="button" class="action-btn" style="font-size:0.8em"
-                onclick="_openCompositeLoom('pbg_cpm_studies.composites.influenza.epithelium')">🧬 explore &amp; run ↗</button>
+                onclick="_openCompositeLoom('viva_cpm_studies.composites.influenza.epithelium')">🧬 explore &amp; run ↗</button>
         
       </div>
       
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="text" class="baseline-composite-input" data-baseline-name="parameter-provenance"
-               value="pbg_cpm_studies.composites.influenza.epithelium" placeholder="pkg.composites.name"
-               style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px" />
+        
+        <select class="baseline-composite-input" data-baseline-name="parameter-provenance"
+                data-current="viva_cpm_studies.composites.influenza.epithelium"
+                style="flex:1;min-width:200px;font-family:monospace;font-size:0.82em;padding:3px 6px">
+          <option value="viva_cpm_studies.composites.influenza.epithelium" selected>viva_cpm_studies.composites.influenza.epithelium</option>
+          
+        </select>
         <button type="button" class="action-btn baseline-composite-set" style="font-size:0.8em"
                 data-baseline-name="parameter-provenance">Set composite</button>
       </div>
@@ -826,7 +842,7 @@ carried forward as a decision_needed at the investigation level.
     <p class="muted" style="font-size:0.88em">No engine/composite code is introduced by this study. It is pure
 documentation: params.yaml, docs/cc3d-reference/sego2022-source-notes.md,
 docs/cc3d-reference/sego2022-parameters.md, and
-pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json.
+viva_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json.
 </p>
   </div>
   
@@ -1004,7 +1020,7 @@ pbg_cpm_studies/influenza/targets/{fig3b,fig5,fig7}.json.
           
         </div>
         <div class="anchor-observable">
-          <em>Model observable:</em> <code>pbg_cpm_studies/influenza/params.yaml (every section cites Table 1-4 or the CC3D source)</code>
+          <em>Model observable:</em> <code>viva_cpm_studies/influenza/params.yaml (every section cites Table 1-4 or the CC3D source)</code>
         </div>
         
         <div class="anchor-source"><em>Source:</em> Sego 2022 Tables 3-4</div>
@@ -1375,7 +1391,7 @@ simulation code.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "f17fb8307437dbc992e05e4cd20f9d3523734f1c", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/f17fb8307437dbc992e05e4cd20f9d3523734f1c", "branch": "main", "lockfile": "uv.lock@97a55da265ce", "generated_at": "2026-09-23 02:41 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "94b8259bc506b9af6e5cc3c8e06299734ba2953f", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/94b8259bc506b9af6e5cc3c8e06299734ba2953f", "branch": "main", "lockfile": "uv.lock@8479c779b00a", "generated_at": "2026-09-23 14:34 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "parameter-provenance";
@@ -1502,6 +1518,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
      Model card stays stuck on "Resolving composite…". -->
 <script src="/viva-cpm/dashboard/assets/loom-embed.js"></script>
 <script src="/viva-cpm/dashboard/assets/composite-card.js"></script>
+<script src="/viva-cpm/dashboard/assets/checklist-select.js"></script>
 <script src="/viva-cpm/dashboard/assets/study-detail.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which
