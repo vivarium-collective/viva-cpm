@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 """Export every investigation's self-contained HTML report.
 
-The investigation report is generated SERVER-SIDE by the vivarium-workbench app
-(`GET /api/investigation-report/<slug>` → `lib.investigation_report`), a
-deterministic, data-only, fully self-contained HTML document with each study's
-figures embedded as `iframe srcdoc` + data URIs. So this script just serves the
-dashboard and fetches that endpoint per investigation — no headless browser.
+The report is built SERVER-SIDE by the vivarium-workbench route
+``GET /api/investigation-report/<slug>`` — a single, deterministic, data-only
+HTML document (every panel read from ``investigation.yaml`` / ``study.yaml`` /
+loop-trajectory JSON; interactive figures inlined). This script serves the
+dashboard, fetches that route for each investigation, validates the result, and
+writes ``<out>/investigations/<slug>.html``.
 
-(Earlier this drove the SPA's client-side `_generateInvestigationReport()` button
-in headless Chromium and captured the browser download. That global was removed
-when report generation moved server-side, so the render silently timed out for
-every investigation — hence the switch to the endpoint.)
+(Historical note: reports used to be generated CLIENT-SIDE by driving the SPA's
+``_generateInvestigationReport()`` button in headless Chromium. That function
+was removed when generation moved server-side, so the old Playwright path now
+times out — this script fetches the route directly instead. No browser needed.)
 
 Flow:
   1. discover investigations under workspace/investigations/*/investigation.yaml
@@ -44,10 +45,9 @@ from pathlib import Path
 
 import yaml
 
-# A report with figures must embed them; a report that lost its embeds (the
-# `_generateReportHtmlForCurrentIset` shortcut bug) has none. We treat "claims
-# figures but embeds none" as a hard failure rather than silently publishing a
-# stripped report.
+# A report with figures must embed them; a report that lost its embeds has none.
+# We treat "claims figures but embeds none" as a hard failure rather than
+# silently publishing a stripped report.
 MIN_REPORT_BYTES = 20_000
 
 
@@ -188,32 +188,30 @@ def serve_dashboard(ws_root: Path, port: int) -> subprocess.Popen:
 
 def export_report(base_url: str, slug: str, out_path: Path,
                   expect_figures: bool) -> tuple[bool, str]:
-    """Fetch one investigation's server-rendered report. Returns (ok, msg).
+    """Fetch one investigation's server-rendered report and write it. (ok, msg).
 
-    ``GET /api/investigation-report/<slug>`` returns the full, self-contained
-    HTML (figure embeds included) built by ``lib.investigation_report``. We fetch
-    it directly — no headless browser — and surface any HTTP error as the cause.
+    ``GET /api/investigation-report/<slug>`` returns the full self-contained HTML
+    document. We validate size + figure embeds BEFORE writing ``out_path`` so a
+    failed/stripped report leaves no file — the gh-pages copy step then preserves
+    the last-good published copy instead of clobbering it.
     """
-    url = f"{base_url}/api/investigation-report/{urllib.parse.quote(slug)}"
-    # Reports can be large (tens of MB of embedded figures) and are rendered on
-    # demand, so allow a generous read timeout.
+    url = f"{base_url.rstrip('/')}/api/investigation-report/{urllib.parse.quote(slug)}"
     try:
-        with urllib.request.urlopen(url, timeout=300) as r:
-            if r.status != 200:
-                return False, f"HTTP {r.status} from {url}"
-            html = r.read().decode("utf-8", errors="replace")
+        with urllib.request.urlopen(url, timeout=180) as r:
+            status = r.status
+            body = r.read()
     except urllib.error.HTTPError as e:
-        detail = e.read().decode("utf-8", errors="replace")[:200] if e.fp else ""
-        return False, f"HTTP {e.code} from endpoint: {detail}".strip()
-    except Exception as e:  # noqa: BLE001 — network/serve failure, report per-slug
+        detail = (e.read()[:200].decode(errors="replace")) if hasattr(e, "read") else ""
+        return False, f"HTTP {e.code}{(': ' + detail) if detail else ''}"
+    except Exception as e:  # noqa: BLE001
         return False, f"fetch failed: {e}"
-
-    # Validate BEFORE writing out_path. The gh-pages copy step publishes every
-    # file under the output dir, so writing an invalid report here would
-    # OVERWRITE a previously-good published copy with a stripped one. Only write
-    # on success, so a failed report leaves no file → the copy step preserves the
-    # last-good published copy.
-    size = len(html)
+    if status != 200:
+        return False, f"HTTP {status}"
+    html = body.decode("utf-8", errors="replace")
+    size = len(body)
+    if "<html" not in html.lower():
+        # 404s / errors come back as JSON, not an HTML document.
+        return False, f"not an HTML report ({size} B) — slug missing?"
     embeds = html.count("<iframe") + html.count("srcdoc") + html.count("data:image")
     if size < MIN_REPORT_BYTES:
         return False, f"report too small ({size} B < {MIN_REPORT_BYTES}); not published"
@@ -221,7 +219,7 @@ def export_report(base_url: str, slug: str, out_path: Path,
         return False, (f"{size} B but ZERO figure embeds while studies reference "
                        f"figures — report stripped; not published (kept last-good)")
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(html, encoding="utf-8")
+    out_path.write_bytes(body)
     return True, f"{size:,} B, {embeds} embed-markers"
 
 
@@ -285,6 +283,7 @@ def main() -> int:
     all_slugs = discover_investigations(ws_root)
     fragment = build_index_fragment(ws_root, all_slugs)
     index_fragment_path = out_dir / "investigations_index.html"
+    index_fragment_path.parent.mkdir(parents=True, exist_ok=True)
     index_fragment_path.write_text(fragment + "\n", encoding="utf-8")
     print(f"wrote landing-page fragment ({len(all_slugs)} investigations) to "
           f"{index_fragment_path}")
