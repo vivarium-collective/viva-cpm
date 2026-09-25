@@ -10,7 +10,7 @@ from dataclasses import dataclass, field, asdict
 
 import numpy as np
 
-from cpm import cpm_core
+from viva_cpm import cpm_core
 from . import engine, metrics
 from .engine import WorldParams, energies_from_paper
 from .types import MEDIUM, DARK, LIGHT

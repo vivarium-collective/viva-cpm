@@ -1,7 +1,7 @@
 import json
 import os
-from cpm.schema import load_world
-from cpm.metrics import heterotypic_boundary
+from viva_cpm.schema import load_world
+from viva_cpm.metrics import heterotypic_boundary
 
 DEMO = os.path.join(os.path.dirname(__file__), "..", "demos", "cell_sorting_2d.json")
 

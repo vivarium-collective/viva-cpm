@@ -6,7 +6,7 @@ the `fates` port declared with the affordance instead.
 """
 from __future__ import annotations
 
-RECEPTOR_ADDR = "local:!cpm.subcellular.receptor.ReceptorSubcell"
+RECEPTOR_ADDR = "local:!viva_cpm.subcellular.receptor.ReceptorSubcell"
 
 
 def receptor_coupling(cell_ids, *, receptor_config, receptor_addr=RECEPTOR_ADDR):
@@ -27,7 +27,7 @@ def receptor_coupling(cell_ids, *, receptor_config, receptor_addr=RECEPTOR_ADDR)
     return frag
 
 
-ADAPTIVE_ADDR = "local:!cpm.subcellular.adaptive_receptor.AdaptiveReceptorSubcell"
+ADAPTIVE_ADDR = "local:!viva_cpm.subcellular.adaptive_receptor.AdaptiveReceptorSubcell"
 
 
 def adaptation_coupling(cell_ids, *, receptor_config, addr=ADAPTIVE_ADDR):

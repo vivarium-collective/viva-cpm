@@ -1,6 +1,6 @@
-from cpm import cpm_core
-from cpm.crypt3d import build_crypt3d
-from cpm.metrics import (radial_thickness, interior_medium_pockets, connected_components,
+from viva_cpm import cpm_core
+from viva_cpm.crypt3d import build_crypt3d
+from viva_cpm.metrics import (radial_thickness, interior_medium_pockets, connected_components,
                          central_axis_column, open_lumen_depth)
 
 

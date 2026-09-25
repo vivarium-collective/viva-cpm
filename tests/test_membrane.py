@@ -1,6 +1,6 @@
-from cpm import cpm_core
-from cpm.schema import load_world
-from cpm.metrics import membrane_distance_field, mean_membrane_distance, interior_medium_pockets
+from viva_cpm import cpm_core
+from viva_cpm.schema import load_world
+from viva_cpm.metrics import membrane_distance_field, mean_membrane_distance, interior_medium_pockets
 
 
 def _flat_sheet_labels(nx, ny, nz, z_sheet):

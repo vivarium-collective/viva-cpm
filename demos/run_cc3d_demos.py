@@ -17,7 +17,7 @@ import math
 import os
 import random
 
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, "..", "viewer", "data"))

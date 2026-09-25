@@ -1,5 +1,5 @@
 from process_bigraph import Process
-from cpm.subcellular.receptor import ReceptorSubcell
+from viva_cpm.subcellular.receptor import ReceptorSubcell
 
 
 class AdaptiveReceptorSubcell(Process):

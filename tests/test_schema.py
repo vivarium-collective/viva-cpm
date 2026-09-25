@@ -1,4 +1,4 @@
-from cpm.schema import load_world
+from viva_cpm.schema import load_world
 
 
 def test_load_world_builds_and_steps():
@@ -22,7 +22,7 @@ def test_load_world_builds_and_steps():
 
 
 def test_load_world_builds_fields():
-    from cpm.schema import load_world
+    from viva_cpm.schema import load_world
     spec = {
         "potts": {"dims": [20, 20, 1], "boundary": "noflux",
                   "neighbor_order": 2, "temperature": 10.0, "seed": 1},

@@ -18,7 +18,7 @@ import json
 import math
 import os
 
-from cpm import load_world
+from viva_cpm import load_world
 
 from ..composites.chemotaxis import build_spec, CUE_RATE, CHEMO_LAMBDA, NX, NY
 

@@ -1,5 +1,5 @@
 import process_bigraph as pb
-from cpm.subcellular.boolean import BooleanSubcell
+from viva_cpm.subcellular.boolean import BooleanSubcell
 
 CFG = {"stemness_threshold": 0.4, "goblet_type": 3, "absorptive_type": 2}
 

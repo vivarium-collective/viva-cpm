@@ -1,4 +1,4 @@
-from cpm.coupling import adaptation_coupling, ADAPTIVE_ADDR
+from viva_cpm.coupling import adaptation_coupling, ADAPTIVE_ADDR
 
 def test_fragment_shape_and_preinit():
     cfg = {"kd": 2.9, "hill": 2.0, "conc_scale": 0.02, "activate_occupancy": 0.5,

@@ -1,4 +1,4 @@
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 
 def test_set_cell_type_changes_only_type():

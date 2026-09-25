@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import os
 
-from cpm import load_world
+from viva_cpm import load_world
 
 from ..composites.chemotaxis import (
     build_spec, meta, CUE_RATE, CHEMO_LAMBDA, SOURCE_TYPE, RESPONDER_TYPE,

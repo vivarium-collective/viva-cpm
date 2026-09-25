@@ -20,8 +20,8 @@ thing is advanced by ``Composite.run`` -- there is no bypass of the engine.
 """
 import process_bigraph as pb
 
-from cpm.ftu import load_crypt_labels
-from cpm.schema import load_world
+from viva_cpm.ftu import load_crypt_labels
+from viva_cpm.schema import load_world
 
 # Stemness ODE (Task 5): Wnt drives synthesis of stemness factor S via a Hill
 # term; S decays. High local Wnt (crypt base) keeps S high (stem); as cells
@@ -38,9 +38,9 @@ k_on = 0.8; K = 0.3; k_off = 0.1;
 # key its gates on the stemness STATE rather than the transient ``stem`` type.
 STEMNESS_THRESHOLD = 0.4
 
-CPM_ADDR = "local:!cpm.processes.cpm_process.CPMProcess"
-SBML_ADDR = "local:!cpm.subcellular.sbml.SBMLSubcell"
-BOOL_ADDR = "local:!cpm.subcellular.boolean.BooleanSubcell"
+CPM_ADDR = "local:!viva_cpm.processes.cpm_process.CPMProcess"
+SBML_ADDR = "local:!viva_cpm.subcellular.sbml.SBMLSubcell"
+BOOL_ADDR = "local:!viva_cpm.subcellular.boolean.BooleanSubcell"
 
 
 def build_crypt_composite(core, *, downscale=1.0, mcs_per_update=8, subcell_every=1):

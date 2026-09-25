@@ -1,5 +1,5 @@
 import process_bigraph as pb
-from cpm.subcellular.adaptive_receptor import AdaptiveReceptorSubcell
+from viva_cpm.subcellular.adaptive_receptor import AdaptiveReceptorSubcell
 
 def _proc(**over):
     cfg = {"kd": 2.9, "hill": 2.0, "conc_scale": 0.02, "activate_occupancy": 0.5,

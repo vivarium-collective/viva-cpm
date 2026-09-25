@@ -42,7 +42,7 @@ from ..influenza import types as inf_types
 from ..influenza.epithelium_process import _DEFAULT_ENABLE as _EPITHELIUM_DEFAULT_ENABLE
 from ..influenza.params import load_params
 
-CPM_ADDR = "local:!cpm.processes.cpm_process.CPMProcess"
+CPM_ADDR = "local:!viva_cpm.processes.cpm_process.CPMProcess"
 INFECTION_ADDR = "local:!viva_cpm_studies.influenza.infection_process.InfectionProcess"
 EPITHELIUM_ADDR = "local:!viva_cpm_studies.influenza.epithelium_process.EpitheliumProcess"
 IMMUNE_ADDR = "local:!viva_cpm_studies.influenza.immune_process.ImmuneProcess"

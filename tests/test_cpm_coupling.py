@@ -1,5 +1,5 @@
 import process_bigraph as pb
-from cpm.processes.cpm_process import CPMProcess
+from viva_cpm.processes.cpm_process import CPMProcess
 
 SPEC = {
     "potts": {"dims": [24, 24, 1], "boundary": "periodic",

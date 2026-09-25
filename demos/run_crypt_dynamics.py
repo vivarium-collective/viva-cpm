@@ -25,9 +25,9 @@ import os
 import sys
 from collections import Counter, deque
 
-from cpm import cpm_core
-from cpm.crypt3d import build_crypt3d
-from cpm.metrics import connected_components, open_lumen_depth
+from viva_cpm import cpm_core
+from viva_cpm.crypt3d import build_crypt3d
+from viva_cpm.metrics import connected_components, open_lumen_depth
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "viewer", "data"))
 STEM, TA, GOB, COL, DEAD = 1, 2, 3, 4, 5

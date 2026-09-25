@@ -32,9 +32,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# SBML/ODE subcellular models (cpm.subcellular.sbml -> viva-tellurium/RoadRunner).
+# SBML/ODE subcellular models (viva_cpm.subcellular.sbml -> viva-tellurium/RoadRunner).
 sbml = ["libroadrunner>=2.9", "tellurium>=2.2", "viva-tellurium"]
-# Human Reference Atlas FTU illustration -> CPM conversion (cpm.ftu).
+# Human Reference Atlas FTU illustration -> CPM conversion (viva_cpm.ftu).
 ftu = ["numpy", "matplotlib"]
 # Everything, for running the full demo suite.
 all = ["viva-cpm[sbml,ftu]"]
@@ -56,7 +56,7 @@ viva-tellurium = { git = "https://github.com/vivarium-collective/viva-tellurium.
 
 [tool.maturin]
 manifest-path = "crates/cpm-py/Cargo.toml"
-module-name = "cpm.cpm_core"
+module-name = "viva_cpm.cpm_core"
 python-source = "."
 
 [tool.pytest.ini_options]

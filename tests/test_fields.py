@@ -1,4 +1,4 @@
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 
 def test_field_secretion_and_diffusion_through_bindings():
