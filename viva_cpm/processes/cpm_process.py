@@ -1,6 +1,6 @@
 from process_bigraph import Process
 
-from cpm.schema import load_world
+from viva_cpm.schema import load_world
 
 
 class CPMProcess(Process):

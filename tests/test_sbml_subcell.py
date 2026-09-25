@@ -1,5 +1,5 @@
 import process_bigraph as pb
-from cpm.subcellular.sbml import SBMLSubcell
+from viva_cpm.subcellular.sbml import SBMLSubcell
 
 # S is produced at a Wnt-gated rate and decays; Wnt is a held floating species
 MODEL = """

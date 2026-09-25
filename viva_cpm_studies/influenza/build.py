@@ -1,6 +1,6 @@
 """Instantiate a finalized cpm_core.World from a load_world sheet spec."""
 from __future__ import annotations
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 
 def world_from_spec(spec: dict, finalize: bool = True):

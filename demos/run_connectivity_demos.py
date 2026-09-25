@@ -18,10 +18,10 @@ import json
 import os
 import sys
 
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from cpm.metrics import connected_components, interior_medium_pockets
+from viva_cpm.metrics import connected_components, interior_medium_pockets
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "viewer", "data"))
 

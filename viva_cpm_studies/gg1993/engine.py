@@ -21,7 +21,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import numpy as np
 
-from cpm import cpm_core
+from viva_cpm import cpm_core
 from .types import MEDIUM, DARK, LIGHT
 
 MCS_SCALE = 16  # engine sweeps per paper Monte-Carlo step

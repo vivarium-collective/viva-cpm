@@ -23,7 +23,7 @@ from ..gg1993.params import STUDIES
 from ..gg1993 import engine, run as runmod
 from ..gg1993.types import MEDIUM, DARK, LIGHT
 
-CPM_ADDR = "local:!cpm.processes.cpm_process.CPMProcess"
+CPM_ADDR = "local:!viva_cpm.processes.cpm_process.CPMProcess"
 
 # modest live-demo aggregate (full-scale runs come from the driver)
 _DEMO_NX = 90

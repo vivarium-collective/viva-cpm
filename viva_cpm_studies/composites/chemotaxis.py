@@ -24,7 +24,7 @@ import itertools
 
 from process_bigraph.composite_generator import composite_generator
 
-CPM_ADDR = "local:!cpm.processes.cpm_process.CPMProcess"
+CPM_ADDR = "local:!viva_cpm.processes.cpm_process.CPMProcess"
 
 SOURCE_TYPE = 1
 RESPONDER_TYPE = 2

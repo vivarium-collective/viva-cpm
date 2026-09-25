@@ -29,14 +29,14 @@ From source (editable, requires a Rust toolchain + [maturin](https://www.maturin
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install maturin
-maturin develop -m crates/cpm-py/Cargo.toml   # builds cpm.cpm_core
+maturin develop -m crates/cpm-py/Cargo.toml   # builds viva_cpm.cpm_core
 pytest                                          # Python suite; `cargo test` for the Rust core
 ```
 
 ## Use the engine from another project
 
 ```python
-from cpm import load_world, cpm_core
+from viva_cpm import load_world, cpm_core
 
 spec = {
     "potts": {"dims": [50, 50, 1], "boundary": "periodic",
@@ -52,7 +52,7 @@ world.step(100)                     # run 100 Monte-Carlo sweeps
 print(world.cell_volumes())
 ```
 
-The engine itself is `cpm.cpm_core` (a compiled Rust extension). `load_world` builds a
+The engine itself is `viva_cpm.cpm_core` (a compiled Rust extension). `load_world` builds a
 world from a plain dict spec (cells or a seeded label array, contact energies, diffusion
 fields, connectivity, basement membrane). Chemotaxis can operate on the raw field or, via
 `set_chemotaxis_occupancy`, in receptor-**occupancy** space — the substrate for fold-change
@@ -63,10 +63,10 @@ detection (see the recruitment investigation below).
 Cells are wired as process-bigraph processes via import-path addresses, so any
 process-bigraph `Composite` can embed them:
 
-- `local:!cpm.processes.cpm_process.CPMProcess` — the CPM step as a process
-- `local:!cpm.subcellular.sbml.SBMLSubcell` — a per-cell SBML/ODE model (needs `[sbml]`)
-- `local:!cpm.subcellular.boolean.BooleanSubcell` — a per-cell Boolean fate network
-- `local:!cpm.subcellular.adaptive_receptor.AdaptiveReceptorSubcell` — a per-cell receptor with slow adaptation
+- `local:!viva_cpm.processes.cpm_process.CPMProcess` — the CPM step as a process
+- `local:!viva_cpm.subcellular.sbml.SBMLSubcell` — a per-cell SBML/ODE model (needs `[sbml]`)
+- `local:!viva_cpm.subcellular.boolean.BooleanSubcell` — a per-cell Boolean fate network
+- `local:!viva_cpm.subcellular.adaptive_receptor.AdaptiveReceptorSubcell` — a per-cell receptor with slow adaptation
 
 See `cpm/composites/crypt.py` for a full crypt-differentiation composite (CPM + SBML
 stemness ODE + Boolean fate switch), run with the process-bigraph `Composite` engine.
@@ -108,7 +108,7 @@ of its research workspaces.
 ## Layout
 
 ```
-crates/            Rust workspace: cpm-core (engine) + cpm-py (pyo3 bindings → cpm.cpm_core)
+crates/            Rust workspace: cpm-core (engine) + cpm-py (pyo3 bindings → viva_cpm.cpm_core)
 cpm/               Python framework: schema, processes, subcellular, composites, metrics, ftu
 viva_cpm_studies/   research package: composites, model-building mechanisms + calibrate, visualizations
 workspace/         the research workspace: studies/, investigations/, references/, reports/

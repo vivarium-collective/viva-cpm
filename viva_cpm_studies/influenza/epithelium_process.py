@@ -41,7 +41,7 @@ import math
 
 import numpy as np
 
-from cpm.processes.cpm_process import CPMProcess
+from viva_cpm.processes.cpm_process import CPMProcess
 
 from . import allee, build, fields, price_ode, signaling, transitions, types
 from .params import load_params

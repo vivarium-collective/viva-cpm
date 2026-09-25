@@ -1,4 +1,4 @@
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 
 def test_seed_from_labels_two_blocks():

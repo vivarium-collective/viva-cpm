@@ -1,5 +1,5 @@
 import process_bigraph as pb
-from cpm.composites.crypt import build_crypt_composite
+from viva_cpm.composites.crypt import build_crypt_composite
 
 
 def test_crypt_composite_runs_and_differentiates():

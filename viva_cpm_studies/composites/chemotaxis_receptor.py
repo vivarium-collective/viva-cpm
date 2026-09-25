@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from process_bigraph.composite_generator import composite_generator
 
-from cpm.coupling import receptor_coupling
+from viva_cpm.coupling import receptor_coupling
 from viva_cpm_studies.composites import chemotaxis as CT
 
 NAIVE_TYPE = 2

@@ -1,5 +1,5 @@
-import cpm
-from cpm.cpm_core import World
+import viva_cpm
+from viva_cpm.cpm_core import World
 
 
 def test_field_value_and_deposit_at_point():

@@ -1,6 +1,6 @@
-from cpm import cpm_core
-from cpm.schema import load_world
-from cpm.metrics import intercell_gap_faces
+from viva_cpm import cpm_core
+from viva_cpm.schema import load_world
+from viva_cpm.metrics import intercell_gap_faces
 
 
 def _two_cell_block(nx, ny):

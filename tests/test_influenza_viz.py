@@ -3,7 +3,7 @@ matplotlib.use("Agg")  # headless: no display backend required
 
 from matplotlib.figure import Figure
 
-from cpm.schema import load_world
+from viva_cpm.schema import load_world
 from viva_cpm_studies.influenza import sheet, viz
 from viva_cpm_studies.influenza.run import (
     run_virus_infection, run_virus_infection_with_ifn, run_global_coupling,

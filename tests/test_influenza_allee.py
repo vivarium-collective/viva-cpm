@@ -22,7 +22,7 @@ from viva_cpm_studies.influenza import allee, run, types
 from viva_cpm_studies.influenza.params import load_params
 
 try:
-    from cpm import cpm_core
+    from viva_cpm import cpm_core
 except ImportError:  # pragma: no cover
     cpm_core = None
 

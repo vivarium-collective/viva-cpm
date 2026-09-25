@@ -1,4 +1,4 @@
-from cpm.coupling import receptor_coupling
+from viva_cpm.coupling import receptor_coupling
 
 RCFG = {"kd": 10.0, "hill": 1.0, "conc_scale": 1.0, "activate_occupancy": 0.5,
         "naive_type": 2, "activated_type": 3}

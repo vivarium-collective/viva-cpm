@@ -23,7 +23,7 @@ finalizes a `World` from it. Sections (all optional unless noted):
 Energy terms compose additively in the Metropolis Hamiltonian; each `*_type`
 list opts specific cell types into a term, so tissues can mix behaviours.
 """
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 
 def load_world(spec):

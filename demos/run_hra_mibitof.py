@@ -17,8 +17,8 @@ from collections import Counter
 import numpy as np
 import squidpy as sq
 
-from cpm import cpm_core
-from cpm.metrics import connected_components
+from viva_cpm import cpm_core
+from viva_cpm.metrics import connected_components
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "viewer", "data"))
 DOWN = 4          # downsample factor for the 1024^2 mask -> 256^2 lattice

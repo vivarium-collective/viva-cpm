@@ -1,4 +1,4 @@
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 
 def test_single_cell_shrinks_to_target():

@@ -1,4 +1,4 @@
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 
 def test_connectivity_setters_survive_finalize():
@@ -22,7 +22,7 @@ def test_connectivity_setters_survive_finalize():
 
 
 def _dumbbell_world(connectivity):
-    from cpm.schema import load_world
+    from viva_cpm.schema import load_world
     spec = {
         "potts": {"dims": [25, 9, 1], "boundary": "noflux",
                   "neighbor_order": 2, "temperature": 30.0, "seed": 1},
@@ -37,7 +37,7 @@ def _dumbbell_world(connectivity):
 
 
 def test_connected_components_metric_and_constraint():
-    from cpm.metrics import connected_components
+    from viva_cpm.metrics import connected_components
     # WITH the constraint the cell stays one connected component
     w_on = _dumbbell_world(True)
     w_on.step(40)
@@ -50,7 +50,7 @@ def test_connected_components_metric_and_constraint():
 
 
 def test_interior_medium_pockets_metric():
-    from cpm.metrics import interior_medium_pockets
+    from viva_cpm.metrics import interior_medium_pockets
     # a 6x6 lattice: fill all but one interior medium pixel -> exactly 1 pocket
     w = cpm_core_world_all_cells_with_hole()
     assert interior_medium_pockets(w) == 1

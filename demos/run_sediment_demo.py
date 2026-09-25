@@ -11,7 +11,7 @@ Usage (repo root, venv active):  python demos/run_sediment_demo.py
 import json
 import os
 
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "viewer", "data"))
 W, H, TEMP = 40, 48, 12.0

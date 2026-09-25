@@ -1,6 +1,6 @@
 import json
-from cpm import cpm_core
-from cpm.pack import write_pack
+from viva_cpm import cpm_core
+from viva_cpm.pack import write_pack
 
 
 def test_write_pack_roundtrip(tmp_path):

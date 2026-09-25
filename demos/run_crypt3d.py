@@ -12,11 +12,11 @@ import json
 import os
 import sys
 
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from cpm.crypt3d import build_crypt3d
-from cpm.metrics import (radial_thickness, radial_cell_counts,
+from viva_cpm.crypt3d import build_crypt3d
+from viva_cpm.metrics import (radial_thickness, radial_cell_counts,
                          connected_components, central_axis_column,
                          open_lumen_depth)
 

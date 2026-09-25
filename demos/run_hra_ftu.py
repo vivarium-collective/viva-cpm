@@ -21,11 +21,11 @@ import os
 import sys
 from collections import Counter
 
-from cpm import cpm_core
+from viva_cpm import cpm_core
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from cpm.ftu import load_ftu_cells, rasterize
-from cpm.metrics import connected_components
+from viva_cpm.ftu import load_ftu_cells, rasterize
+from viva_cpm.metrics import connected_components
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, "..", "viewer", "data"))

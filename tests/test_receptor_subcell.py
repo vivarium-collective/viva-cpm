@@ -1,5 +1,5 @@
 import process_bigraph as pb
-from cpm.subcellular.receptor import ReceptorSubcell
+from viva_cpm.subcellular.receptor import ReceptorSubcell
 
 CFG = {"kd": 10.0, "hill": 1.0, "conc_scale": 1.0, "activate_occupancy": 0.5,
        "naive_type": 2, "activated_type": 3}
