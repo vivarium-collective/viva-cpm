@@ -18,4 +18,4 @@ from viva_cpm import cpm_core
 from viva_cpm.schema import load_world
 
 __all__ = ["cpm_core", "load_world"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
