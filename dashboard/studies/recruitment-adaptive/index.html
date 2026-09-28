@@ -627,16 +627,6 @@ these bands; this study does not itself constitute a completed run.
   </div>
 
   
-  <div class="overview-section" id="study-analyses-section">
-    <h3>Analyses to run <span class="muted" style="font-size:0.85em;font-weight:normal">— which of the workspace's <code>ANALYSIS_REGISTRY</code> entries to compute on dispatch</span></h3>
-    <div id="study-analyses-list" data-study="recruitment-adaptive">
-      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading analyses…</span></div>
-    </div>
-    <div style="margin-top:8px">
-      <button class="action-btn" type="button" onclick="_saveStudyAnalyses()">Save analyses</button>
-      <span id="study-analyses-status" style="margin-left:8px;font-size:0.9em;color:#555"></span>
-    </div>
-  </div>
 
   
   
@@ -828,6 +818,18 @@ these bands; this study does not itself constitute a completed run.
 
 
 <section class="study-tab-panel" data-kind="analyses" id="panel-analyses" hidden>
+
+  
+  <div class="overview-section" id="study-analyses-section">
+    <h3>Analyses to run <span class="muted" style="font-size:0.85em;font-weight:normal">— which of the workspace's <code>ANALYSIS_REGISTRY</code> entries to compute on dispatch</span></h3>
+    <div id="study-analyses-list" data-study="recruitment-adaptive">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading analyses…</span></div>
+    </div>
+    <div style="margin-top:8px">
+      <button class="action-btn" type="button" onclick="_saveStudyAnalyses()">Save analyses</button>
+      <span id="study-analyses-status" style="margin-left:8px;font-size:0.9em;color:#555"></span>
+    </div>
+  </div>
 
 <div class="overview-section" id="analyses-results-section">
   <h2>Analyses</h2>
@@ -1312,7 +1314,7 @@ model_build_trajectory/v2); loop state: .pbg/loop/recruitment-adaptive.json.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c5528d1e183a3e64f04f00ec3f9aecb1038d6194", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c5528d1e183a3e64f04f00ec3f9aecb1038d6194", "branch": "main", "lockfile": "uv.lock@8479c779b00a", "generated_at": "2026-09-25 22:38 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "4ece5ee213ceed88dc0f96d27a8adc8579c887c3", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/4ece5ee213ceed88dc0f96d27a8adc8579c887c3", "branch": "main", "lockfile": "uv.lock@dbe1123be1e9", "generated_at": "2026-09-28 14:14 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script>
 window._studyName = "recruitment-adaptive";
