@@ -48,14 +48,16 @@ jobs:
           path: dist
 
   macos:
+    # Apple Silicon only. The Intel (macos-13 / x86_64) hosted runners queue for
+    # a long time and were blocking the whole publish; Intel-mac users install
+    # from the sdist instead. Re-add a `- runner: macos-13 / target: x86_64`
+    # entry here if a prebuilt Intel-mac wheel is needed.
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
         include:
           - runner: macos-14
             target: aarch64
-          - runner: macos-13
-            target: x86_64
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
