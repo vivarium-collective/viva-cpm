@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "viva-cpm"
-version = "0.1.1"
+version = "0.1.2"
 description = "A process-bigraph Cellular Potts Model framework: a fast Rust CPM engine (2D/3D) with pluggable subcellular models, structural constraints, and metrics."
 readme = "README.md"
 requires-python = ">=3.12"

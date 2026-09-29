@@ -1,9 +1,9 @@
 from process_bigraph import Process
-from pbg_tellurium.processes import TelluriumProcess
+from viva_tellurium.processes import TelluriumProcess
 
 
 class SBMLSubcell(Process):
-    """Per-cell SBML ODE via pbg-tellurium. The environmental ligand is pushed
+    """Per-cell SBML ODE via viva-tellurium. The environmental ligand is pushed
     into a held floating species each step; a chosen species is published as
     the cell's scalar ``state`` (e.g. stemness)."""
 
