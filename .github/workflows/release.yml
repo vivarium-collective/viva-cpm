@@ -108,3 +108,7 @@ jobs:
           merge-multiple: true
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Idempotent re-runs: skip any file already on PyPI (e.g. re-running a
+          # release to add a missing sdist without clobbering existing wheels).
+          skip-existing: true

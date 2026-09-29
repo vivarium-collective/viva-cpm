@@ -58,6 +58,11 @@ viva-tellurium = { git = "https://github.com/vivarium-collective/viva-tellurium.
 manifest-path = "crates/cpm-py/Cargo.toml"
 module-name = "viva_cpm.cpm_core"
 python-source = "."
+# LICENSE lives at the repo root, outside the crate dir, so maturin's sdist
+# doesn't pick it up by default — yet the metadata declares `License-File:
+# LICENSE`, which makes PyPI reject the sdist ("License-File LICENSE does not
+# exist in distribution file"). Include it explicitly so the sdist is valid.
+include = ["LICENSE"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
