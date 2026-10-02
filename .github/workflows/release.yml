@@ -32,6 +32,10 @@ jobs:
         target: [x86_64, aarch64]
     steps:
       - uses: actions/checkout@v4
+      - name: Stage the studies workspace into the package (federation)
+        run: |
+          cp workspace.yaml viva_cpm_studies/workspace.yaml
+          python3 -c "import shutil; shutil.copytree('workspace','viva_cpm_studies/workspace', ignore=shutil.ignore_patterns('out','runs.db','assets','*.log'), dirs_exist_ok=True)"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -60,6 +64,10 @@ jobs:
             target: aarch64
     steps:
       - uses: actions/checkout@v4
+      - name: Stage the studies workspace into the package (federation)
+        run: |
+          cp workspace.yaml viva_cpm_studies/workspace.yaml
+          python3 -c "import shutil; shutil.copytree('workspace','viva_cpm_studies/workspace', ignore=shutil.ignore_patterns('out','runs.db','assets','*.log'), dirs_exist_ok=True)"
       - uses: actions/setup-python@v5
         with:
           python-version: |
@@ -80,6 +88,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Stage the studies workspace into the package (federation)
+        run: |
+          cp workspace.yaml viva_cpm_studies/workspace.yaml
+          python3 -c "import shutil; shutil.copytree('workspace','viva_cpm_studies/workspace', ignore=shutil.ignore_patterns('out','runs.db','assets','*.log'), dirs_exist_ok=True)"
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
