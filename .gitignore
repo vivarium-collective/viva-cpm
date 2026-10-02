@@ -28,3 +28,9 @@ workspace/reports/assets/*
 workspace/gg1993_data/canonical_ic.npz
 workspace/gg1993_data/results/*/*_frames.npz
 workspace/gg1993_data/*.log
+
+# Release-build staging: release.yml copies the studies workspace here so the
+# wheel federates them (see [tool.maturin] include). Never commit the copy —
+# the canonical dev layout is workspace/ + workspace.yaml at the repo root.
+/viva_cpm_studies/workspace.yaml
+/viva_cpm_studies/workspace/

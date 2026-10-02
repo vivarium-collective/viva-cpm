@@ -62,7 +62,19 @@ python-source = "."
 # doesn't pick it up by default — yet the metadata declares `License-File:
 # LICENSE`, which makes PyPI reject the sdist ("License-File LICENSE does not
 # exist in distribution file"). Include it explicitly so the sdist is valid.
-include = ["LICENSE"]
+include = [
+  "LICENSE",
+  # The studies workspace, staged into the package dir at release-build time
+  # (see .github/workflows/release.yml) so a wheel/PyPI install federates the
+  # studies — mirroring viva-munk #24 / viva-tumor-tcell #5, but adapted for the
+  # maturin build. The dev layout (workspace/ + workspace.yaml at the repo root)
+  # is unchanged; these in-package paths exist only during the release build and
+  # are git-ignored. python-source="." means they land at the same in-package
+  # path in the wheel (no remap), which is where federation's
+  # find_spec("viva_cpm_studies") lookup resolves them.
+  "viva_cpm_studies/workspace.yaml",
+  "viva_cpm_studies/workspace/**/*",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
