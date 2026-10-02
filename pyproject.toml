@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "viva-cpm"
-version = "0.1.2"
+version = "0.1.3"
 description = "A process-bigraph Cellular Potts Model framework: a fast Rust CPM engine (2D/3D) with pluggable subcellular models, structural constraints, and metrics."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 dependencies = [
-    "process-bigraph>=1.8.3",  # @composite_generator (composite discovery)
+    "process-bigraph>=1.8.5",  # @composite_generator (composite discovery)
     "bigraph-schema>=1.4.4",  # fill_sites / sites substrate
     "bigraph-viz>=2.0.3",
     "pyyaml>=6.0",
