@@ -1,0 +1,112 @@
+# merks-ecm-reciprocity-2d/investigation.yaml — schema v2
+schema_version: 2
+name: merks-ecm-reciprocity-2d
+title: "Cell-ECM mechanical reciprocity (Merks 3D CPM-ECM, reproduced in 2D with the real engine)"
+created: '2026-10-03'
+status: running
+
+question: |
+  Can we reproduce the cell-ECM mechanical-reciprocity phenomena of Keijzer &
+  Merks 2026 (arXiv:2609.02375, a 3D hybrid cellular Potts model coupled to a
+  discrete deformable fiber network — code unreleased) by driving the REAL
+  published 2D ancestor engine (Tsingos et al. 2023 static-adhesion TST-MD)
+  on ordinary hardware?
+
+hypothesis: |
+  The 3D paper extends a published, open 2D engine. Bridged and run CPU-only,
+  that real engine should reproduce — at the mechanism level, in 2D — the same
+  reciprocity phenomena: a contractile cell deforms a crosslinked bead-spring
+  ECM, fibers reorient toward the cell (q/q0 > 1), and crosslinking builds
+  network connectivity (percolation).
+
+lead: |
+  The 3D target paper has no public code and runs on a GPU/HPC cluster. Rather
+  than reimplement it, this investigation bridges the actual published 2D
+  engine it descends from (Tsingos 2023) and runs it on a laptop via Docker,
+  then asks how much of the 3D paper's story the real 2D ancestor reproduces.
+  The honest answer: the mechanisms reproduce clearly; the quantitative
+  equilibrium figures need model calibration that is documented, not faked.
+
+executive:
+  what_is_this: |
+    A real-engine, 2D reproduction of the mechanical-reciprocity phenomena in a
+    recent (unreleased) 3D cell-ECM model from the Merks lab. The deliverable
+    has two parts: (1) viva-tstmd — a reusable process-bigraph bridge that runs
+    the genuine TST-MD simulator (TST C++ + HOOMD + MUSCLE3) CPU-only inside
+    Docker, with 19 tests; and (2) this investigation, which uses it to measure
+    the paper's observables on real runs. It is framed deliberately as a
+    mechanism-level reproduction, not a quantitative figure match.
+  verdict: |
+    The infrastructure goal is fully met and the MECHANISMS reproduce; the
+    quantitative equilibrium figures do not yet, and that gap is characterized
+    rather than hidden.
+
+    What reproduces, from real runs of the real engine (2D):
+      * Contraction — a contractile cell contracts against the crosslinked ECM
+        (cell area 13135 -> ~10 lattice sites over ~80 MCS).
+      * Reorientation — the contracting cell aligns nearby fibers toward itself
+        (q/q0 rises 1.00 -> ~1.09 and holds), matching the DIRECTION of the 3D
+        paper's Fig 4.
+      * Connectivity — crosslinking sharply raises network connectivity
+        (giant component 0.0007 -> 0.18 -> ~0.29), the percolation ONSET behind
+        Fig 2B.
+
+    What does NOT yet reproduce (documented calibration gap): the quantitative
+    equilibrium relationships — Fig 2's equilibrium-area-rises-with-crosslinking
+    and Fig 3's stiffness drag. Across ~9 real probe simulations a fully
+    contractile cell collapses to ~0 at every tractable regime, and the network
+    saturates below full percolation. The authors' calibrated parameters
+    (Keijzer 2025, Table 1) are in physical units requiring a non-trivial
+    scaling to the engine's internal units, and their published experiments are
+    cell SPREADING (a dynamic-focal-adhesion phenomenon) rather than the 3D
+    paper's static-adhesion contraction. Closing this is model-calibration
+    research, flagged as the open next step — no constant was tuned to fake a fit.
+  verdict_status: mechanism-confirmed
+  decisions_needed:
+    - question: "Invest in physical->ymmsl unit-scaling calibration to reproduce the quantitative Fig 2/3 equilibrium figures?"
+      context: "Would require deriving the scaling from Keijzer 2025 Table 1 + the K=YA/L relations and near-paper-scale sweeps. Open-ended; the mechanism-level result stands without it."
+
+scientific_argument:
+  main_claim: "The real published 2D engine, bridged and run on a laptop, reproduces the DIRECTION of the 3D paper's cell-ECM reciprocity phenomena (contraction, fiber reorientation q/q0>1, crosslink-driven connectivity); the quantitative equilibrium magnitudes are a documented calibration gap."
+  evidence_for:
+    - "Contraction: cell area 13135 -> ~10 over ~80 MCS (tstmd-contraction-reorientation)."
+    - "Reorientation: q/q0 1.00 -> ~1.09, matching Fig 4 direction (tstmd-contraction-reorientation)."
+    - "Connectivity: giant component 0.0007 -> ~0.29 with crosslinking, percolation onset of Fig 2B (tstmd-network-connectivity)."
+    - "The engine is the REAL TST-MD (not a reimplementation/mock); 19 bridge tests pass."
+  evidence_against:
+    - "A fully contractile cell collapses to ~0 at all probed regimes — no quantitative Fig-2 equilibrium-vs-crosslinking trend yet."
+    - "Network saturates at giant component ~0.29, short of full percolation (~1.0) at tractable densities."
+  key_figures:
+    - "tstmd-contraction-reorientation: contraction + q/q0 time series with start/end ECM snapshots."
+    - "tstmd-network-connectivity: giant component vs crosslinks created."
+  caveats:
+    - "2D (engine) vs 3D (target paper): mechanism/direction analog, not a dimensional match."
+    - "Static adhesions (as the 3D paper uses), not the dynamic focal adhesions of Keijzer 2025."
+    - "Reduced sizes for CPU tractability; single seed per condition."
+    - "Quantitative equilibrium figures (Fig 2 magnitude, Fig 3) require unit-scaling calibration — not attempted/claimed here."
+
+how_to_read: |
+  Start with the verdict above. Each study's interactive figure is built from
+  REAL engine output (no synthetic data). 'Mechanism-confirmed' means the
+  direction/qualitative behavior matches the paper; it is deliberately NOT a
+  claim of quantitative figure reproduction. The two 'evidence_against' points
+  and the calibration gap are the honest limits, not footnotes.
+
+glossary:
+  - {term: "TST-MD", definition: "The real 2D hybrid cellular Potts + bead-spring ECM engine (Tsingos et al. 2023), TST C++ + HOOMD + MUSCLE3. Bridged by viva-tstmd and run CPU-only via Docker."}
+  - {term: "Mechanical reciprocity", definition: "Cells deform/remodel the ECM while the ECM's mechanics shape the cell — the mutual coupling this investigation reproduces."}
+  - {term: "q/q0 (reorientation)", definition: "Fraction of fibers nearly radial to the cell (alignment gamma>=0.9, paper eq. 7) over its initial value; >1 means fibers reorient toward the cell."}
+  - {term: "Giant component", definition: "Fraction of ECM beads in the largest connected component of the bond+crosslink graph; a percolation measure (paper Fig 2B)."}
+  - {term: "Calibration gap", definition: "The quantitative equilibrium figures (Fig 2 magnitude, Fig 3) are not reproduced because mapping the authors' physical-unit parameters to the engine's internal units is unsolved here. Documented, not tuned away."}
+
+at_a_glance:
+  - {study: tstmd-contraction-reorientation, role: "Real coupled run (single contractile cell): the cell contracts against the crosslinked ECM (13135->~10 lattice sites) and reorients fibers toward itself (q/q0 1.00->~1.09). Reproduces the DIRECTION of the 3D paper's Fig 4 remodeling; the ECM-limited equilibrium magnitude (Fig 2) is a documented calibration gap, not claimed."}
+  - {study: tstmd-network-connectivity, role: "Real crosslink sweep: giant-component fraction jumps from 0.0007 (no crosslinks) to ~0.29 (>=1600 created) — the percolation-ONSET mechanism of Fig 2B. Saturates below full percolation at these reduced densities; the onset direction is the claim, not a percolation-threshold value."}
+
+members:
+  - tstmd-contraction-reorientation
+  - tstmd-network-connectivity
+
+acceptance_criteria:
+  - {study: tstmd-contraction-reorientation, behavior: "On the real engine, a contractile cell contracts to <10% of its initial area AND aligns nearby fibers toward itself (q/q0 >= 1.05 at peak and final), reproducing the direction of Keijzer & Merks 2026 Fig 4. The ECM-limited equilibrium magnitude of Fig 2 is explicitly NOT claimed (documented calibration gap)."}
+  - {study: tstmd-network-connectivity, behavior: "On the real engine, introducing crosslinks raises the giant-component fraction by >10x over the uncrosslinked network (0.0007 -> 0.18 at onset), reproducing the percolation-onset mechanism of Fig 2B. Full percolation (~1.0) is NOT claimed at these reduced densities."}
