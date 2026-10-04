@@ -66,6 +66,30 @@ executive:
     - question: "Invest in physical->ymmsl unit-scaling calibration to reproduce the quantitative Fig 2/3 equilibrium figures?"
       context: "Would require deriving the scaling from Keijzer 2025 Table 1 + the K=YA/L relations and near-paper-scale sweeps. Open-ended; the mechanism-level result stands without it."
 
+biological_story: |
+  Cells and the extracellular matrix (ECM) are in constant mechanical dialogue.
+  A cell anchors to the surrounding fiber network through adhesions and pulls:
+  the ECM resists, deforms, and remembers — fibers reorient toward the cell and
+  the matrix densifies locally. That resistance in turn shapes how far the cell
+  can contract or spread. This mutual push-and-pull, "mechanical reciprocity,"
+  is how tissues set their form in development, wound healing, and cancer
+  invasion.
+
+  The stiffness of the matrix is not a fixed material constant — it is built by
+  crosslinks that tie neighboring collagen fibers together. Below a critical
+  crosslink density the network is a loose collection of disconnected strands
+  that a cell can rearrange freely; above it, the fibers form a single connected
+  (percolated) scaffold that transmits force over long range and genuinely
+  resists the cell. Crosslinking is thus the knob that converts a floppy gel
+  into a load-bearing tissue.
+
+  This investigation watches that dialogue directly in a real simulator: a
+  contractile cell embedded in a crosslinked bead-spring ECM. We see the cell
+  contract and drag nearby fibers into radial alignment (reorientation), and we
+  see crosslinking knit the loose network into a connected scaffold (the onset
+  of percolation) — the two sides of the reciprocity the Merks-lab models were
+  built to study.
+
 scientific_argument:
   main_claim: "The real published 2D engine, bridged and run on a laptop, reproduces the DIRECTION of the 3D paper's cell-ECM reciprocity phenomena (contraction, fiber reorientation q/q0>1, crosslink-driven connectivity); the quantitative equilibrium magnitudes are a documented calibration gap."
   evidence_for:

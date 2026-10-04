@@ -91,6 +91,9 @@ findings:
   - id: F-01
     kind: computational
     status: confirms
+    evidence:
+      from_test: Contractile cell contracts against the ECM
+      observed: "cell area 13135 -> ~10 lattice sites; q/q0 1.00 -> ~1.09"
     statement: >-
       The real TST-MD engine reproduces the DIRECTION of the 3D paper's
       remodeling result in 2D: a contractile cell contracts against the
@@ -120,6 +123,22 @@ key_assumptions:
   - Reduced size vs the paper's HPC scale (1200 strands, 300 MCS) for CPU tractability.
   - 1 seed; q uses the gamma>=0.9 radial-alignment threshold of paper eq. 7.
 
+variants:
+  - name: reference
+    description: Single contractile cell in a crosslinked ECM (sic=120, target_area=10, 5000 crosslinks, 1200 strands, 300 MCS) — the published-style reference regime.
+
+simulation_set:
+  - name: reference-coupled-run
+    kind: coupled CPM + bead-spring ECM (real TST-MD via viva-tstmd/Docker)
+    status: completed
+    base_model: viva_cpm_studies.composites.tstmd.tstmd_coupled
+    duration_steps: 300
+    seeds: [12345678]
+    metrics: [cell_area, q_ratio]
+    pass_fail_tests:
+      - Contractile cell contracts against the ECM
+      - Fibers reorient toward the contracting cell (q/q0 > 1)
+
 conditions:
   baseline:
     name: baseline
@@ -136,3 +155,15 @@ runs:
     timestamp: '2026-10-03'
     seeds:
       - 12345678
+    emitter: baked real-run data in viva_cpm_studies/visualizations/_tstmd_data.py (engine run externally via viva-tstmd; not through the dashboard run-logger)
+    outcomes:
+      Contractile cell contracts against the ECM:
+        result: PASS
+        measured_value: "13135 -> 10 lattice sites (>99% reduction by MCS ~80)"
+        notes: single contractile cell contracts against the crosslinked ECM
+        evaluated_by: viva-tstmd (pbg_tstmd.processes.run_once / cell_area)
+      Fibers reorient toward the contracting cell (q/q0 > 1):
+        result: PASS
+        measured_value: "q/q0 peak ~1.10, final ~1.09"
+        notes: fibers align radially toward the cell during contraction
+        evaluated_by: viva-tstmd (pbg_tstmd.analysis.reorientation_q)

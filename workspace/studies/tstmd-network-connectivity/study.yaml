@@ -67,6 +67,9 @@ findings:
   - id: F-01
     kind: computational
     status: confirms
+    evidence:
+      from_test: Crosslinking connects the fiber network (percolation onset)
+      observed: "giant component 0.0007 (0 crosslinks) -> 0.177 (397) -> ~0.29 (>=1661)"
     statement: >-
       Crosslinking sharply raises ECM network connectivity: the giant component
       jumps from 0.0007 (no crosslinks) to 0.18 at ~400 crosslinks and ~0.29 at
@@ -91,6 +94,21 @@ key_assumptions:
   - Reduced densities vs paper HPC scale; 1 seed per crosslink setting.
   - requested crosslinks != created (crosslink_max_r=6 gating); the created count is the honest x-axis.
 
+variants:
+  - name: reference
+    description: Crosslink sweep over requested {0, 500, 2000, 5000, 10000, 20000} on a 1500-strand network; giant component measured on the built network.
+
+simulation_set:
+  - name: crosslink-sweep
+    kind: real ECM network generation (TST-MD via viva-tstmd/Docker), 6 crosslink settings
+    status: completed
+    base_model: viva_cpm_studies.composites.tstmd.tstmd_coupled
+    duration_steps: 20
+    seeds: [12345678]
+    metrics: [giant_component, crosslinks_created]
+    pass_fail_tests:
+      - Crosslinking connects the fiber network (percolation onset)
+
 conditions:
   baseline:
     name: baseline
@@ -107,3 +125,10 @@ runs:
     timestamp: '2026-10-03'
     seeds:
       - 12345678
+    emitter: baked real-run data in viva_cpm_studies/visualizations/_tstmd_data.py (engine run externally via viva-tstmd; not through the dashboard run-logger)
+    outcomes:
+      Crosslinking connects the fiber network (percolation onset):
+        result: PASS
+        measured_value: "giant component 0.0007 -> 0.177 (397 xlinks) -> ~0.29 (>=1661)"
+        notes: ">250x jump at onset; saturates ~0.29 (no full percolation at reduced densities)"
+        evaluated_by: viva-tstmd (pbg_tstmd.analysis.giant_component_fraction)
