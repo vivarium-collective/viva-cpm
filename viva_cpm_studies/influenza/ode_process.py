@@ -106,16 +106,21 @@ class SystemicODEProcess(Process):
             "dP/dt  = p_0*(g_pv*V/(a_pv + V) + g_pi*DI)*(g_p + b_pg*G/(a_pg + G)) - mu_p*(P - b_p)",
             "dW/dt  = b_wo*O/(a_wo + O)*P - mu_w*W",
             "dG/dt  = b_go*W/(a_go + W)*O + b_gk*W/(a_gk + W)*K - mu_g*G",
-            "dO/dt  = b_op*P^h_o/(P^h_o + a_op^h_o) - mu_o*O",
-            "# frozen algebraic vars (derived_inputs): "
-            "D = N_ep - H - I ;  Sigma1 = a_11*T + a_12*D ;  "
-            "Sigma2 = Sigma1 + a_21*V/(a_22 + V) ;  DI = N_ep - H - I - DH",
-            "# recruitment driver rates, hill(v,a,h) = 1/(1+(a/v)^h), 0 at v<=0: "
-            "macro_inflow = b_mc*hill(C,a_mc,h_m) + mu_m*b_m ;  "
-            "nk_inflow = b_kc*hill(C,a_kc,h_k) + mu_k*b_k ;  "
+            "dO/dt  = b_op*P^{h_o}/(P^{h_o} + a_op^{h_o}) - mu_o*O",
+            # derived algebraic inputs, held fixed over the ODE step:
+            "D = N_ep - H - I",
+            "Sigma1 = a_11*T + a_12*D",
+            "Sigma2 = Sigma1 + a_21*V/(a_22 + V)",
+            "DI = N_ep - H - I - DH",
+            # recruitment driver rates (hill clamped to 0 at v<=0):
+            "hill(v,a,h) = 1/(1 + (a/v)^h)",
+            "macro_inflow = b_mc*hill(C,a_mc,h_m) + mu_m*b_m",
+            "nk_inflow = b_kc*hill(C,a_kc,h_k) + mu_k*b_k",
             "cd8_inflow = b_ep*hill(P,a_ep,h_e)",
-            "# recruitment outflow rates: "
-            "macro_outflow = mu_m ;  nk_outflow = G_ki + mu_k ;  cd8_outflow = B_ei + mu_e",
+            # recruitment outflow rates:
+            "macro_outflow = mu_m",
+            "nk_outflow = G_ki + mu_k",
+            "cd8_outflow = B_ei + mu_e",
             "sig_1 = a_11*T + a_12*D",
         ],
         symbols={

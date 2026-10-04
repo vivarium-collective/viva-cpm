@@ -290,7 +290,7 @@ class ImmuneProcess(Process):
         },
         math=[
             "g = ∇field(ix, iy)  (central difference, edge-clamped to one-sided)",
-            "move = step_len · g/‖g‖ + N(0, (0.1·step_len)²)   (per agent per update)",
+            "move = step_len · g/\\lVert g\\rVert + N(0, (0.1·step_len)²)   (per agent per update)",
             "(x', y') = clamp((x, y) + move, [0, nx−1] × [0, ny−1])",
             "rate = g_i · tot_ec · srf_immune · cell_resist / cell_volume,  with srf_immune = cell_resist = cell_volume = 1",
             "P(kill) = 1 − exp(−rate)   (drawn per cytotoxic-agent × in-range infected-cell pair)",
