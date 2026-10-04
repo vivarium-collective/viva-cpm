@@ -41,6 +41,8 @@ import math
 
 import numpy as np
 
+from bigraph_schema.contract import ProcessContract
+
 from viva_cpm.processes.cpm_process import CPMProcess
 
 from . import allee, build, fields, price_ode, signaling, transitions, types
@@ -72,6 +74,158 @@ class EpitheliumProcess(CPMProcess):
     big `world.step(mcs_per_update)` with no interleaved fates) -- the base
     per-cell/neighbor outputs are recomputed here instead, after the loop.
     """
+
+    contract = ProcessContract(
+        summary=(
+            "Epithelial-sheet half of the influenza-Sego2022 immune composite: a Cellular "
+            "Potts (Potts/CPM) lattice of epithelial cells carrying a viral-infection state "
+            "(healthy H -> infected I -> dead D, with D->H Allee recovery) coupled to four "
+            "diffusing fields (virus, IFN, chemokine, IL-10). Each update() advances mcs_per_step "
+            "raw Monte-Carlo steps; every MCS runs world.step(1) then a source-ordered cell-fate "
+            "pipeline (infection, immune kills, IFN resistance, field secretion, Allee death/recovery, "
+            "infected apoptosis, ROS death) so cell state and the virus/signalling fields co-evolve "
+            "in lockstep. It also exposes the raw fields and spatial->ODE integrals a downstream "
+            "immune/global-ODE process consumes."
+        ),
+        description=(
+            "Reproduces run.py run_full_model's per-MCS epithelial pipeline (_one_mcs steps 2-8.5) "
+            "inside a process-bigraph Process, extending CPMProcess with all-field per-cell readouts, "
+            "raw field outputs, a point-deposit input, and spatial->ODE coupling outputs. Which fate "
+            "tokens fire is gated by the `enable` config set."
+        ),
+        inputs={
+            "fates": (
+                "Inherited from CPMProcess. Map keyed by string cell id -> target cell type; an "
+                "external (e.g. subcellular) process can override a single cell's fate. Applied once "
+                "per update() call before the MCS loop (cid>0 only)."
+            ),
+            "field_deposit": (
+                "List of point deposits, each [field_idx, x, y, z, amount], applied once per update() "
+                "via world.field_add_source_at so a downstream agent-based immune process can inject "
+                "into any field (e.g. cytokine release at a macrophage site)."
+            ),
+            "ode_state": (
+                "Well-mixed global-ODE state map pushed in each update; only the ROS oxidant scalar "
+                "X is consumed here (drives step 8.5 ROS death). The remaining entries are owned by a "
+                "separate global-ODE process."
+            ),
+            "immune_kills": (
+                "List of infected cell ids the immune layer decided to kill this record; each id still "
+                "in infected_ids is switched I->D (step gated by the 'killing' enable token), replacing "
+                "run.py's in-place contact/nearby-kill computation."
+            ),
+        },
+        outputs={
+            "volumes": "Inherited. Per-cell pixel volumes (list indexed by cell id) after the MCS loop.",
+            "types": "Inherited. Per-cell integer type after the MCS loop (index 0 = medium sentinel).",
+            "positions": "Inherited. Per-cell centre-of-mass [x,y,z] coordinates.",
+            "field_at_cell": (
+                "Inherited. Map str(cid) -> mean VIRUS (field 0) concentration over the cell's pixels."
+            ),
+            "neighbor_secretory": (
+                "Inherited. Map str(cid) -> count of face-adjacent cells whose type is in secretory_types."
+            ),
+            "field_at_cell_all": (
+                "Map str(cid) -> [mean of each of the 4 fields over the cell] (order virus, IFN, "
+                "chemokine, IL-10), so a downstream immune process can read the full local environment."
+            ),
+            "virus_field": "Raw flat virus field (index 0) as a list, for numpy gradient sampling downstream.",
+            "chemo_field": "Raw flat chemokine field (index 2) as a list.",
+            "il10_field": (
+                "Raw flat IL-10 field (index 3) as a list, so an immune process can read local IL-10 "
+                "for self-limiting macrophage feedback (field_mean_at_cell equivalent)."
+            ),
+            "dims": "Lattice dimensions [nx, ny, nz].",
+            "counts": "Map of epithelial population counts {H, I, D} after the loop.",
+            "ode_inputs": (
+                "Spatial->ODE coupling map a downstream global-ODE process needs: H, I epithelial counts, "
+                "DH (dead-from-healthy), per-z-slice field integrals V/F/C/L of the virus/IFN/chemokine/"
+                "IL-10 fields, and B_ei/G_ki (sum of infected-cell resistance scaled by b_ei / g_ki)."
+            ),
+        },
+        config={
+            "spec": (
+                "Inherited. Declarative world spec (potts block with seed, cells, lattice). This process "
+                "owns field construction, so spec must NOT carry a 'fields' key."
+            ),
+            "mcs_per_update": "Inherited. Historical single-knob MCS count; the default for mcs_per_step.",
+            "n_fields": (
+                "Inherited from CPMProcess but overridden: this process always builds exactly 4 fields "
+                "(virus, IFN, chemokine, IL-10) regardless of the config value."
+            ),
+            "secretory_types": "Inherited. Cell types counted as secretory for the neighbor_secretory readout.",
+            "mcs_per_step": (
+                "Raw MCS advanced per update() call; each MCS runs world.step(1) then the full fate "
+                "pipeline. Defaults to mcs_per_update."
+            ),
+            "enable": (
+                "Set of fate tokens that fire each MCS: 'infection', 'ifn', 'death', 'ros', 'allee', "
+                "'killing' (default), plus optional 'chemokine' to turn on the uninfected-H IL-10 "
+                "secretion gate. Mirrors run_full_model's enable set."
+            ),
+            "init_viral_load": (
+                "If > 0, seeds a ~uniform virus-field initial condition at construction (the fig5/fig7 "
+                "'viral load' scenario, no pre-infected cells); 0.0 uses the init_infection_frac path."
+            ),
+        },
+        math=[
+            "Infection H->I:        rate = g_hv * v_bar;   Pr(infect) = 1 - exp(-rate)",
+            "Resistance:            rho = f_bar / (a_rf + f_bar)",
+            "Virus release scale:   s_virus(cid) = 1 - rho(cid)   (infected cells)",
+            "Uninfected IL-10 gate: s_il10(cid)  = clip(1 - rho(cid), 0, 1)   (H cells, 'chemokine')",
+            "Infected apoptosis I->D: rate = mu_i * (1 - rho);  Pr(die) = 1 - exp(-rate)",
+            "Allee death H->D:      rate = b_h*(1-rho)*srf_D*(srf_thr - srf_u)/srf_tot^2,  srf_thr = theta*srf_tot",
+            "Allee recovery D->H:   rate = b_h*(1-rho)*srf_u*(srf_u - srf_thr)/srf_tot^2",
+            "ROS death:             Pr_I = 1 - exp(-g_ix*hill(X,a_ix,h_x)),  Pr_H = 1 - exp(-g_hx*hill(X,a_hx,h_x))",
+            "Hill:                  hill(X,a,h) = 1 / (1 + (a/X)^h)   (0 for X<=0)",
+            "ODE integrals:         V,F,C,L = sum(field_conc) / nz;   B_ei = b_ei*sum_I(rho),  G_ki = g_ki*sum_I(rho)",
+        ],
+        symbols={
+            "v_bar": "mean local virus-field concentration over a cell's pixels (virus-field units)",
+            "f_bar": "mean local IFN-field concentration over a cell's pixels (IFN-field units)",
+            "rho": "per-cell viral resistance from local IFN, in [0,1) (dimensionless)",
+            "g_hv": "infection rate coefficient, per MCS per unit virus concentration (1/MCS per conc)",
+            "a_rf": "IFN half-saturation constant for resistance (IFN-field units)",
+            "mu_i": "base infected-cell apoptosis rate (1/MCS)",
+            "b_h": "Allee death/recovery rate coefficient (1/MCS, per contact-geometry factor)",
+            "theta": "Allee surface-fraction threshold srf_thr/srf_tot (dimensionless)",
+            "srf_u": "cell surface area in contact with uninfected neighbours (lattice sites)",
+            "srf_D": "cell surface area in contact with dead neighbours (lattice sites)",
+            "srf_tot": "total cell surface area (lattice sites)",
+            "X": "well-mixed ROS oxidant level from ode_state (ODE concentration units)",
+            "g_ix": "ROS kill-rate coefficient for infected cells (1/MCS)",
+            "g_hx": "ROS kill-rate coefficient for healthy cells (1/MCS)",
+            "a_ix": "ROS Hill half-max for infected-cell death (X units)",
+            "a_hx": "ROS Hill half-max for healthy-cell death (X units)",
+            "h_x": "ROS Hill exponent (dimensionless)",
+            "b_ei": "scaling from summed infected resistance to the B_ei ODE input (dimensionless)",
+            "g_ki": "scaling from summed infected resistance to the G_ki ODE input (dimensionless)",
+            "nz": "lattice z-depth, the divisor turning field sums into per-slice integrals (lattice sites)",
+            "V, F, C, L": "per-slice integrals of the virus, IFN, chemokine, IL-10 fields (conc * area)",
+        },
+        assumptions=[
+            "Fates fire EVERY raw MCS (per world.step(1)), not once per update() call, matching "
+            "run_full_model's _one_mcs cadence; update() does not delegate to CPMProcess.update.",
+            "The four fields are built imperatively pre-finalize (virus, IFN, chemokine, IL-10 = "
+            "indices 0,1,2,3); initialize() does NOT call super().initialize because World.add_field "
+            "raises after finalize.",
+            "Infected-cell death uses the CC3D source's simplified flat form rate = mu_i*(1-rho), with "
+            "no viral-load/ROS Hill saturation term (deviates from the paper's printed Table 2 row).",
+            "Resistance uses the source's saturating form rho = f_bar/(a_rf+f_bar), not the paper's "
+            "printed rho = 1 - f_bar'/(theta*a_f + f_bar'); consumers apply (1-rho) protectively.",
+            "Immune killing (I->D) consumes a precomputed immune_kills list rather than computing "
+            "contact/nearby kills in place (the future agent-based ImmuneProcess owns that decision).",
+            "Macrophage-driven dynamic chemokine/IL-10 secretion (sig_1) is out of scope; only the "
+            "macrophage-independent uninfected-H IL-10 gate is implemented, under the 'chemokine' token.",
+            "init_viral_load seeds a documented ~uniform virus IC (one transient H-cell source advance), "
+            "an IC approximation, not a secretion-rate tune.",
+        ],
+        references=[
+            "Sego et al. (2022), 'A modular framework for multiscale, multicellular, spatiotemporal "
+            "modeling of acute primary viral infection and immune response in epithelial tissues' "
+            "(CC3D ViralInfectionVTM), reproduced here natively.",
+        ],
+    )
 
     config_schema = dict(CPMProcess.config_schema)
     config_schema.update({

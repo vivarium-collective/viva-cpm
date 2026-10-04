@@ -155,6 +155,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+from bigraph_schema.contract import ProcessContract
 from process_bigraph import Process
 
 from . import recruitment, types
@@ -220,6 +221,115 @@ class ImmuneProcess(Process):
     agent's nearest lattice site and moves the agent ``step_len`` sites
     up-gradient, plus a small random component.
     """
+
+    contract = ProcessContract(
+        summary=(
+            "Advance a population of OFF-LATTICE immune agents (macrophages M, NK cells K, "
+            "CD8+ T cells E) — plain dicts {id, type, x, y} — one CPM step on a diffusive field "
+            "lattice the process never occupies. Each agent samples the local central-difference "
+            "gradient of its routed field (M → virus, K/E → chemokine) at its nearest lattice site "
+            "and steps step_len sites up-gradient plus a small Gaussian jitter. NK/CD8 agents within "
+            "kill_radius of an infected epithelial cell's centroid kill it with probability "
+            "1 − exp(−rate); macrophages deposit chemokine and IL-10 point sources self-limited by a "
+            "local IL-10 Hill term. Each update also mints/removes agents directly (uncapped) from the "
+            "ODE-driven per-step inflow/outflow rates."
+        ),
+        description=(
+            "Off-lattice immune layer for the influenza CPM reproduction. The whole flat field crosses "
+            "the store boundary each update because process-bigraph has no within-update request/response "
+            "channel, so an off-lattice agent cannot ask the lattice for a point sample mid-step; the "
+            "process reshapes and samples the gradient itself in numpy. Proximity (within kill_radius) "
+            "replaces the on-lattice contact-area gate, with srf_immune=cell_resist=cell_volume=1.0 so "
+            "contact_kill_rate collapses to the recorded pr_cf_nk_loc/pr_cf_cd8_loc constants. Macrophage "
+            "deposits use whole-cell flux (× cell_sites) to match the on-lattice per-macrophage mass. "
+            "Recruitment is uncapped (no CPM reserve-pool seat limit), with local_ratio=1.0 for every "
+            "type, so the spatial population can reach the ODE-predicted equilibrium."
+        ),
+        inputs={
+            "chemo_field": (
+                "Flat row-major chemokine field (field idx 2), length nx·ny, reshaped to (ny, nx). "
+                "Gradient routed to NK (K) and CD8 (E) agents for chemotaxis."
+            ),
+            "virus_field": (
+                "Flat row-major virus field, length nx·ny, reshaped to (ny, nx). Gradient routed to "
+                "macrophage (M) agents for chemotaxis."
+            ),
+            "il10_field": (
+                "Flat row-major IL-10 field (field idx 3), reshaped to (ny, nx); sampled at each "
+                "macrophage's nearest site as L_local for the self-limiting secretion Hill term. "
+                "Empty ⇒ all-zero field (unself-limited fallback)."
+            ),
+            "dims": "Lattice dimensions [nx, ny, nz]; nx, ny set the field reshape and clamp agent positions to the grid.",
+            "immune_agents": "Current agent list; each agent is a dict {id:int, type:int, x:float, y:float}. The state advanced this step.",
+            "epithelial_positions": "Map cell-id-string → [x, y] centroid of each epithelial cell, used as the distance target for proximity killing.",
+            "infected_ids": "Integer ids of currently-infected epithelial cells eligible to be killed this update.",
+            "sig_1": "Dynamic ODE signalling value s_1 feeding macrophage_secretion_scale (read fresh each update, replacing the il10_hill_constants stub).",
+            "recruit_drivers": (
+                "Map of per-step ODE inflow/outflow rates — macro_inflow, macro_outflow, nk_inflow, "
+                "nk_outflow, cd8_inflow, cd8_outflow — driving uncapped spawn/removal."
+            ),
+            "margin_box": "Spawn region [x0, y0, x1, y1]; newly recruited agents are placed uniformly at random inside it.",
+            "apply_recruitment": "Cadence gate set by the Composite; recruitment runs this update only when truthy.",
+        },
+        outputs={
+            "immune_agents": "Overwrites the agent list with post-move / post-kill / post-recruitment agents (moved, newly minted, survivors).",
+            "immune_kills": "Sorted integer ids of infected epithelial cells killed this update (each killed at most once per update).",
+            "field_deposit": (
+                "List of [field_idx, x, y, z, amount] point sources deposited by macrophages — chemokine "
+                "(idx 2) and IL-10 (idx 3) at each macrophage's (x, y) — consumed by EpitheliumProcess.field_add_source_at."
+            ),
+            "immune_counts": "Map {M, K, E} → integer count of agents of each type after this update; feeds the ODE's M/K/E inputs.",
+        },
+        config={
+            "seed": "Base RNG seed; movement noise uses seed, kill draws seed+500, recruitment draws seed+900 (independent streams).",
+            "step_len": "Chemotaxis step length in lattice sites per update; also scales the Gaussian movement noise (σ = 0.1·step_len).",
+            "kill_radius": (
+                "Proximity radius (lattice sites) within which an NK/CD8 agent can kill an infected cell; "
+                "defaults to sqrt(cpm.cell_sites) ≈ 5, one CPM epithelial-cell footprint width."
+            ),
+        },
+        math=[
+            "g = ∇field(ix, iy)  (central difference, edge-clamped to one-sided)",
+            "move = step_len · g/‖g‖ + N(0, (0.1·step_len)²)   (per agent per update)",
+            "(x', y') = clamp((x, y) + move, [0, nx−1] × [0, ny−1])",
+            "rate = g_i · tot_ec · srf_immune · cell_resist / cell_volume,  with srf_immune = cell_resist = cell_volume = 1",
+            "P(kill) = 1 − exp(−rate)   (drawn per cytotoxic-agent × in-range infected-cell pair)",
+            "scale = macrophage_secretion_scale(L_local, s_1, g_1, g_2, d_2)",
+            "amount_c = b_c_per_site · cell_sites · scale,   amount_l = b_l_per_site · cell_sites · scale",
+            "P(remove) = ul_rate_to_prob(local_ratio · outflow),   n_new ~ Poisson(local_ratio · inflow),   local_ratio = 1",
+        ],
+        symbols={
+            "nx, ny": "lattice width, height (sites)",
+            "(x, y)": "agent position in continuous lattice coordinates (sites)",
+            "(ix, iy)": "agent's nearest integer lattice site (sites)",
+            "g": "local field gradient ∇field at (ix, iy) (field units per site)",
+            "step_len": "chemotaxis step length (sites per update)",
+            "kill_radius": "proximity kill cutoff (sites)",
+            "g_i": "per-type kill-rate coefficient g_ik (NK) or g_ie (CD8) (dimensionless source constant)",
+            "tot_ec": "ODE epithelial population scaling constant (cells, dimensionless)",
+            "rate": "per-pair contact kill rate feeding 1 − exp(−rate) (per update)",
+            "L_local": "local IL-10 concentration at the macrophage's nearest site (field units)",
+            "s_1": "dynamic ODE signalling input sig_1 (field/signal units)",
+            "g_1, g_2, d_2": "IL-10 Hill constants from il10_hill_constants() (dimensionless / field units)",
+            "scale": "macrophage secretion scale factor in [0, 1] (dimensionless)",
+            "b_c_per_site, b_l_per_site": "per-site chemokine / IL-10 base secretion rates (field units per site)",
+            "cell_sites": "lattice sites in one CPM cell footprint (sites; default 25)",
+            "inflow, outflow": "per-type ODE recruitment inflow / outflow rates (agents per update)",
+            "local_ratio": "fraction of ODE flux sent to spatial agents; fixed at 1.0 here (dimensionless)",
+        },
+        assumptions=[
+            "Agents are off-lattice and occupy no CPM sites, so the whole field is reshaped and gradient-sampled in-process at each agent's nearest site rather than queried from the lattice.",
+            "Field routing is type-based: macrophages (M) chemotax up the virus field; NK (K) and CD8 (E) up the chemokine field.",
+            "Proximity replaces contact area for killing: an agent within kill_radius contributes unit contact area, with cell_resist and cell_volume held at 1, so contact_kill_rate reduces to g_i·tot_ec (the recorded pr_cf_nk_loc / pr_cf_cd8_loc constants) — a neutral/identity choice, not a fit.",
+            "An infected cell already killed earlier in the same update is skipped, so each cell dies at most once per update.",
+            "Macrophage deposits are scaled by cell_sites (whole-cell flux) to match the on-lattice per-macrophage total secreted mass, and self-limited by the local IL-10 Hill term.",
+            "Recruitment is uncapped (no reserve-pool seat limit) and uses local_ratio = 1.0 for every type, routing the full ODE inflow/outflow to spatial agents with no nearby surrogate; outflow is applied before inflow, per type in M, K, E order.",
+            "Movement, kill, and recruitment draws use three independent RNG streams (seed, seed+500, seed+900); new-agent ids come from a monotonic counter seeded above the max id seen on the first update.",
+        ],
+        references=[
+            "Sego et al. (2022) — CC3D ViralInfectionVTM influenza model (immune chemotaxis, killing, recruitment source authority).",
+        ],
+    )
 
     config_schema = {
         "seed": {"_type": "integer", "_default": 17},
