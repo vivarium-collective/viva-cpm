@@ -1164,7 +1164,11 @@
         var name = _esc(doc.name || doc.path || '(unnamed)');
         var path = doc.path ? ' <small class="muted">' + _esc(doc.path) + '</small>' : '';
         var dl = doc.path ? ' ' + _inputsDownloadLink(doc.path, 'Download') : '';
-        return '<li><strong>' + name + '</strong>' + path + dl + '</li>';
+        var desc = doc.description
+          ? '<div class="muted" style="font-size:0.85em;margin-top:2px">' +
+            _esc(doc.description) + '</div>'
+          : '';
+        return '<li><strong>' + name + '</strong>' + path + dl + desc + '</li>';
       }).join('') + '</ul>';
   }
 
@@ -1402,6 +1406,14 @@
       _inputsDatasetsHtml(glob.datasets);
     html += '<h4 style="margin:12px 0 4px">Repo-wide references</h4>' +
       _inputsRefsHtml(glob.references);
+    // Repo-wide expert docs — workspace.yaml top-level `expert_docs` (source
+    // dossiers / background docs the whole workspace draws on, not scoped to one
+    // investigation). Omit the header entirely when there are none so workspaces
+    // without any see no empty section.
+    if (glob.expert_docs && glob.expert_docs.length) {
+      html += '<h4 style="margin:12px 0 4px">Repo-wide expert docs</h4>' +
+        _inputsExpertDocsHtml(glob.expert_docs);
+    }
     html += '</div>';
 
     el.innerHTML = html;
@@ -2106,7 +2118,10 @@
     if (v === null || v === undefined) return '';
     if (typeof v === 'string') return v;
     if (typeof v === 'object') {
-      if (v._type) return String(v._type);
+      // Show the physical unit beside the type ("float · volt") so a port /
+      // config param reads with its units, not a bare "float". _units is the
+      // schema metadata the processes declare.
+      if (v._type) return v._units ? String(v._type) + ' · ' + String(v._units) : String(v._type);
       var keys = Object.keys(v).filter(function (k) { return k.charAt(0) !== '_'; });
       if (keys.length) return '{' + keys.slice(0, 4).join(', ') + (keys.length > 4 ? ', …' : '') + '}';
       return 'store';
@@ -2488,7 +2503,7 @@
         ' title="Double-click to zoom in on this ' + (p.kind || 'process') + '">' +
       '<div class="reg-card-row">' +
         '<div class="reg-card-main">' +
-          '<div class="reg-card-head"><strong class="reg-card-name">' + esc(p.name) + '</strong>' + _procKindBadge(p.kind) + _procBridgeBadge(p) + defaultBadge + _regUseBadge(p) + '</div>' +
+          '<div class="reg-card-head"><strong class="reg-card-name">' + esc(p.name) + '</strong>' + _procKindBadge(p.kind) + _procBridgeBadge(p) + defaultBadge + _regUseBadge(p) + _contractBadge(p.contract_audit) + '</div>' +
           '<code class="reg-card-addr">' + addr + '</code>' +
           (short ? '<p class="reg-card-desc">' + esc(short) + '</p>' : '') +
         '</div>' +
@@ -2526,7 +2541,7 @@
       }).join('');
     }
     var bodyHead =
-      '<div class="loom-body-head"><span class="loom-name">' + _esc(p.name) + '</span>' + _procKindBadge(kind) + _regUseBadge(p) + '</div>' +
+      '<div class="loom-body-head"><span class="loom-name">' + _esc(p.name) + '</span>' + _procKindBadge(kind) + _regUseBadge(p) + _contractBadge(p.contract_audit) + '</div>' +
       '<code class="loom-addr">' + _esc(p.address || kind) + '</code>' +
       (desc ? '<p class="loom-desc">' + _esc(desc) + '</p>' : '');
 
@@ -2618,6 +2633,58 @@
     });
   }
   window._toggleCompositeJson = _toggleCompositeJson;
+  // Contract-audit panel toggle — mirrors _toggleCompositeJson. The REAL
+  // composite audit is expensive (it builds the composite's core), so it's
+  // fetched lazily on first open from /api/composite-contract-audit and the
+  // header badge is back-patched with the real status once it lands.
+  function _toggleCompositeContract(btn) {
+    var card = btn.closest('.registry-entry-full'); if (!card) return;
+    var panel = card.querySelector('[data-role="composite-contract"]'); if (!panel) return;
+    var show = panel.hidden;
+    panel.hidden = !show;
+    btn.classList.toggle('active', show);
+    if (!show || panel._loaded) return;
+    panel._loaded = true;
+    var id = card.getAttribute('data-address');
+    var body = panel.querySelector('.pcard-contract-body');
+    if (body) body.innerHTML = '<span class="muted" style="font-size:0.85em">Auditing composite contracts… (building the core)</span>';
+    fetch('/api/composite-contract-audit?id=' + encodeURIComponent(id))
+      .then(function (r) { return r.json(); })
+      .then(function (a) {
+        if (body) {
+          body.innerHTML = (typeof _compositeContractPanelBody === 'function')
+            ? _compositeContractPanelBody(a)
+            : '<pre>' + _esc(JSON.stringify(a, null, 2)) + '</pre>';
+        }
+        panel._audit = a;
+        // Back-patch the header badge so the at-a-glance status is now real,
+        // not the coreless "contract n/a" stub.
+        try {
+          var badge = card.querySelector('.contract-badge');
+          if (badge && a && a.status && typeof _contractBadge === 'function') {
+            var tmp = document.createElement('div');
+            tmp.innerHTML = _contractBadge(a);
+            if (tmp.firstChild) badge.replaceWith(tmp.firstChild);
+          }
+        } catch (e) { /* badge back-patch is best-effort */ }
+      })
+      .catch(function (e) {
+        if (body) body.innerHTML = '<span class="loom-run-err">Audit failed: ' + _esc(String(e)) + '</span>';
+        panel._loaded = false;
+      });
+  }
+  window._toggleCompositeContract = _toggleCompositeContract;
+  // Process-card contract toggle — the per-process audit is already inline on
+  // the card (pre-rendered into the panel), so this just reveals it. No fetch,
+  // no badge back-patch (the header badge is already the real status).
+  function _toggleProcessContract(btn) {
+    var card = btn.closest('.registry-entry-full'); if (!card) return;
+    var panel = card.querySelector('[data-role="process-contract"]'); if (!panel) return;
+    var show = panel.hidden;
+    panel.hidden = !show;
+    btn.classList.toggle('active', show);
+  }
+  window._toggleProcessContract = _toggleProcessContract;
   function _copyCompositeJson(btn) {
     var panel = btn.closest('[data-role="composite-json"]');
     var pre = panel && panel.querySelector('.pcard-json-raw');
@@ -2804,9 +2871,10 @@
       '<div class="loom-card loom-card-stack loom-card-' + kind + '">' +
         '<div class="pcard-top">' +
           '<div class="pcard-header pcard-title" onclick="_pinCardTop(this)" title="Click to pin to top">' +
-            '<span class="loom-name">' + _esc(p.name) + '</span>' + kindBadge + _regUseBadge(p) +
+            '<span class="loom-name">' + _esc(p.name) + '</span>' + kindBadge + _regUseBadge(p) + _contractBadge(p.contract_audit) +
             '<code class="loom-addr">' + _esc(p.address || kind) + '</code>' +
             (/^(process|step)$/.test(kind) ? _processCodeBtn(p.address) : '') +
+            (p.contract_audit ? _processContractBtn() : '') +
             _cardPopoutBtn(p.address || kind, kind) +
           '</div>' +
           '<div class="pcard-summary">' +
@@ -2816,6 +2884,14 @@
               (desc ? '<p class="loom-desc pcard-desc-clamp" onclick="_pcardToggleDesc(this)" title="Click to expand / collapse">' + _esc(desc) + '</p>' : '') +
             '</div>' +
           '</div>' +
+          // Contract-audit panel — hidden until the header "§ Contract" button
+          // toggles it (mirrors the composite card). The per-process audit is
+          // already inline on the card, so it's pre-rendered here, not fetched.
+          (p.contract_audit
+            ? '<div class="pcard-json-view pcard-contract-view" data-role="process-contract" hidden>' +
+                '<div class="pcard-contract-body">' + _contractPanelBody(p.contract_audit) + '</div>' +
+              '</div>'
+            : '') +
         '</div>' +
         '<div class="pcard-acc">' +
           section('configure', 'Configure', '<span class="pcard-sec-count">' + nCfg + '</span><span class="pcard-config-chips" data-role="config-chips" hidden></span>', configBody, { resizable: true }) +
@@ -4111,6 +4187,62 @@
     _renderRegistryNewActions(kind);
   }
   window._setRegistryTab = _setRegistryTab;
+
+  // <find-candidates>
+  // Registry "Find candidates" panel: enter a face, list registered processes
+  // that fit it via POST /api/find-candidates. The renderer is pure.
+  function _renderCandidateList(result) {
+    var r = result || {};
+    var note = function (t) { return '<div class="fc-note fc-muted">' + t + '</div>'; };
+    if (r.status === 'unavailable') return note('contract matching unavailable');
+    if (r.status === 'error') return note('Error: ' + _esc(r.error || 'request failed'));
+    var cands = Array.isArray(r.candidates) ? r.candidates : [];
+    if (!cands.length) return note('no matching processes');
+    return '<ul class="fc-list">' + cands.map(function (c) {
+      var full = c.match === 'full';
+      var tag = '<span class="fc-tag ' + (full ? 'fc-full' : 'fc-near') + '">' +
+        (full ? 'full' : 'near-miss') + '</span>';
+      var fails = (!full && Array.isArray(c.fails) && c.fails.length)
+        ? '<ul class="fc-fails">' + c.fails.map(function (f) {
+            return '<li><code>' + _esc(f && f.condition) + '</code> ' + _esc(f && f.reason) + '</li>';
+          }).join('') + '</ul>'
+        : '';
+      return '<li class="fc-item"><code class="fc-addr">' + _esc(c.address) + '</code> ' + tag + fails + '</li>';
+    }).join('') + '</ul>';
+  }
+  window._renderCandidateList = _renderCandidateList;
+
+  function _parsePortSpec(text) {
+    var out = {};
+    String(text || '').split(',').forEach(function (tok) {
+      tok = tok.trim();
+      if (!tok) return;
+      var i = tok.indexOf(':');
+      if (i < 0) out[tok] = 'any';
+      else out[tok.slice(0, i).trim()] = tok.slice(i + 1).trim() || 'any';
+    });
+    return out;
+  }
+
+  function _findCandidates() {
+    var inEl = document.getElementById('fc-inputs');
+    var outEl = document.getElementById('fc-outputs');
+    var res = document.getElementById('fc-results');
+    if (!res) return;
+    res.innerHTML = '<div class="fc-note fc-muted">Searching&hellip;</div>';
+    var body = { inputs: _parsePortSpec(inEl && inEl.value), outputs: _parsePortSpec(outEl && outEl.value) };
+    try {
+      apiFetch('POST', '/api/find-candidates', body)
+        .then(function (r) { return r.json(); })
+        .then(function (j) { res.innerHTML = _renderCandidateList(j); })
+        .catch(function (e) { res.innerHTML = _renderCandidateList({ status: 'error', error: String(e && e.message || e) }); });
+    } catch (e) {
+      res.innerHTML = _renderCandidateList({ status: 'error', error: String(e && e.message || e) });
+    }
+  }
+  window._findCandidates = _findCandidates;
+  // </find-candidates>
+
 
   // Context-aware "+ New" buttons for the active sub-tab. Only process/step and
   // composite/generator are authorable from here (emitters/viz/types/tests are
@@ -8887,8 +9019,67 @@
         '<span onclick="event.stopPropagation();_wsCloseStudyTab(\'' + _esc(slug) + '\')" ' +
         'title="close" style="color:#94a3b8;font-weight:700">×</span></span>';
     }).join('');
+    _wsHighlightActiveDagNode(st.active);
   }
   window._wsRenderStudyTabs = _wsRenderStudyTabs;
+
+  // Highlight the open study's node in the investigation graph (clearing any
+  // previously-open one), matching on the slug stamped on each node by
+  // _renderInvestigationDag. Called on every tab change AND re-applied after a
+  // graph re-render so the highlight survives. Node slug === the tab slug (both
+  // are s.name, the study slug the open handlers take).
+  function _wsHighlightActiveDagNode(slug) {
+    try {
+      var nodes = document.querySelectorAll('.iset-dag-node[data-study]');
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].classList.toggle(
+          'aig-node-active', !!slug && nodes[i].getAttribute('data-study') === slug);
+      }
+    } catch (e) { /* graph not mounted yet — no-op */ }
+  }
+  window._wsHighlightActiveDagNode = _wsHighlightActiveDagNode;
+
+  // The next study along this investigation's leads-to chain, for the study
+  // detail panel's "Next study →" button. Uses the server-computed studyEdges
+  // (source -> target == leads-to) captured in _lastDagArgs, falling back to the
+  // per-study children map. Returns the next slug, or null on a terminal study /
+  // when the graph isn't available. On a branch point, returns the first target.
+  function _nextStudySlug(current) {
+    if (!current) return null;
+    try {
+      var strip = function (n) { return String(n == null ? '' : n).trim(); };
+      var args = _lastDagArgs || [];
+      // Primary: server-computed studyEdges (source -> target == leads-to).
+      var edges = args[2] || [];
+      for (var i = 0; i < edges.length; i++) {
+        var e = edges[i] || {};
+        if (strip(e.source) === current && strip(e.target)) return strip(e.target);
+      }
+      // Fallback: a study whose parent_studies lists `current` is its child
+      // (current leads-to it) — covers investigations with no server edges.
+      var studies = args[0] || [];
+      for (var j = 0; j < studies.length; j++) {
+        var sj = studies[j] || {};
+        var parents = sj.parent_studies || [];
+        for (var k = 0; k < parents.length; k++) {
+          var pk = parents[k];
+          var pname = (pk && typeof pk === 'object') ? (pk.study || pk.name || pk.slug) : pk;
+          if (strip(pname) === current) return strip(sj.name || sj.slug);
+        }
+      }
+      // Final fallback: a terminal / off-chain node (e.g. an adversarial control
+      // that refutes rather than leads-to) has no successor in the leads-to chain.
+      // Rather than dead-end the "Next study →" button, follow the investigation's
+      // study order so it keeps advancing through every study. Null only on the
+      // genuinely last study.
+      var order = studies.map(function (s) { return strip((s || {}).name || (s || {}).slug); })
+                         .filter(function (n) { return n; });
+      var idx = order.indexOf(current);
+      if (idx !== -1 && idx + 1 < order.length) return order[idx + 1];
+      return null;
+    } catch (e) { return null; }
+  }
+  window._nextStudySlug = _nextStudySlug;
 
   function _wsOpenStudyTab(slug, tab) {
     var st = window._wsStudyTabs;
@@ -9856,11 +10047,69 @@
         '<dl class="inv-brief-glossary">' + glossary.map(function(g) {
           return '<dt>' + _escInv(g.term || g.name || '') + '</dt><dd>' + _escInv(g.definition || g.def || '') + '</dd>';
         }).join('') + '</dl>' });
+    // Hypothesis & evidence — the top-level thesis as CITED claims (each
+    // {claim, cites}) plus the main claim, with citation chips resolved from
+    // references/papers.bib. So the investigation's headline reasoning traces to
+    // its sources, the same as the exported report. Only shown when declared.
+    var _refsMap = d.references_resolved || {};
+    function _invCite(keys) {
+      keys = Array.isArray(keys) ? keys : [];
+      if (!keys.length) return '';
+      return ' ' + keys.map(function(k) {
+        var r = _refsMap[k]; var lbl = (r && r.label) || k;
+        var ttl = (r && r.title) ? ' title="' + _escInv(r.title) + '"' : '';
+        return '<span class="inv-cite"' + ttl + ' style="display:inline-block;font-size:11px;' +
+          'font-weight:600;padding:1px 7px;border-radius:9px;margin:0 2px 2px 0;white-space:nowrap;' +
+          'background:' + (r ? '#eff6ff;color:#1d4ed8' : '#f1f5f9;color:#64748b') + '">' +
+          _escInv(lbl) + '</span>';
+      }).join('');
+    }
+    var kclaims = Array.isArray(d.key_claims) ? d.key_claims : [];
+    var sciArg = d.scientific_argument || {};
+    if (kclaims.length || sciArg.main_claim) {
+      var evBody = '';
+      if (sciArg.main_claim)
+        evBody += '<p class="inv-brief-prose" style="font-weight:600;margin:0 0 10px">' +
+          _escInv(sciArg.main_claim) + '</p>';
+      if (kclaims.length)
+        evBody += '<ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px">' +
+          kclaims.map(function(c) {
+            c = c || {};
+            var counter = /contest|unfavorab|challenge|less favorab/i.test(c.claim || '');
+            return '<li style="padding-left:12px;border-left:2px solid ' +
+              (counter ? '#d97706' : '#cbd5e1') + '">' +
+              _escInv(c.claim || c.text || '') + _invCite(c.cites) + '</li>';
+          }).join('') + '</ul>';
+      tabs.push({ id: 'evidence', label: 'Hypothesis & evidence', html: evBody });
+    }
+    // Competing frameworks — the interpretive lenses this investigation
+    // adjudicates among (each {name, relation}); comparative framing for the
+    // rigor scorecard. Only shown when the investigation declares them.
+    var frameworks = Array.isArray(d.competing_frameworks) ? d.competing_frameworks : [];
+    if (frameworks.length)
+      tabs.push({ id:'frameworks', label:'Competing frameworks', html:
+        '<ul class="inv-brief-frameworks" style="margin:0;padding-left:18px">' + frameworks.map(function(f) {
+          f = f || {};
+          return '<li><strong>' + _escInv(f.name || '') + '</strong>' +
+            (f.relation ? ' <span class="muted">— ' + _escInv(f.relation) + '</span>' : '') + '</li>';
+        }).join('') + '</ul>' });
+
+    // Decisions — the open expert decisions as their own tab, HIGHLIGHTED to draw
+    // attention when any are open (rather than a space-consuming always-open card).
+    var _decHtml = _invDecisionTabHtml(d);
+    if (_decHtml) {
+      var _nDec = (((d.executive || {}).decisions_needed) || []).length;
+      tabs.push({ id: 'decisions', label: 'Decisions', html: _decHtml,
+        badge: _nDec ? (_nDec + ' needed') : 'all clear', attention: _nDec > 0 });
+    }
 
     if (tabs.length) {
       H.push('<div class="inv-brief-tabs" role="tablist">' + tabs.map(function(t, i) {
-        return '<button type="button" class="inv-brief-tab' + (i === 0 ? ' active' : '') +
-          '" onclick="_invBriefTab(this,\'' + t.id + '\')">' + _esc(t.label) + '</button>';
+        var _cls = 'inv-brief-tab' + (i === 0 ? ' active' : '') + (t.attention ? ' inv-brief-tab-attn' : '');
+        var _badge = t.badge ? '<span class="inv-brief-tab-badge' + (t.attention ? ' attn' : '') +
+          '">' + _esc(t.badge) + '</span>' : '';
+        return '<button type="button" class="' + _cls +
+          '" onclick="_invBriefTab(this,\'' + t.id + '\')">' + _esc(t.label) + _badge + '</button>';
       }).join('') + '</div>');
       H.push('<div class="inv-brief-panels">' + tabs.map(function(t, i) {
         return '<div class="inv-brief-panel" data-panel="' + t.id + '"' + (i === 0 ? '' : ' style="display:none"') + '>' + t.html + '</div>';
@@ -9870,6 +10119,162 @@
     H.push('</div>');
     return H.join('');
   }
+
+  // ---------------------------------------------------------------------------
+  // Decision cockpit — the open expert decisions (executive.decisions_needed)
+  // surfaced as a prominent, actionable card high on the investigation page.
+  // Each open decision shows its question + context, a resolution-note field and
+  // a Resolve button (POST /api/investigation-decision-resolve, which moves it
+  // into executive.decisions_resolved). The campaign-plan docs (d.campaign_docs,
+  // incl. the Scientific Enrichment Plan) link at the top; resolved decisions
+  // fold into a log below. Renders nothing when there's nothing to show.
+  // ---------------------------------------------------------------------------
+  // The open expert decisions, rendered as the body of the "Decisions" brief tab
+  // (added to the tabs[] array below), not a space-consuming always-open card.
+  // Returns '' when there is nothing to show.
+  function _invDecisionTabHtml(d) {
+    d = d || {};
+    var ex = d.executive || {};
+    var needed = Array.isArray(ex.decisions_needed) ? ex.decisions_needed : [];
+    var resolved = Array.isArray(ex.decisions_resolved) ? ex.decisions_resolved : [];
+    var docs = Array.isArray(d.campaign_docs) ? d.campaign_docs : [];
+    // Resolving writes to disk — hide the controls in a read-only federated view
+    // or a published snapshot (no live backend); the decisions still display.
+    var readOnly = !!d.read_only || (window.__DASH_CONFIG__ || {}).mode === 'snapshot';
+    var invName = d.name || window._currentIset || '';
+
+    if (!needed.length && !resolved.length && !docs.length) return '';
+
+    var n = needed.length;
+    var accent = n ? '#b45309' : '#16a34a';      // amber when open, green when all clear
+    var H = [];
+    H.push('<div style="padding:2px 0 4px">');
+    H.push('<div class="muted" style="font-size:0.84em;margin:0 0 12px">Expert decisions steering this campaign</div>');
+
+    // Campaign-plan docs — the plan the decisions act on (links to e.g. the
+    // Scientific Enrichment Plan). Served at /<path> from the workspace root.
+    if (docs.length) {
+      H.push('<div style="margin:0 0 12px;font-size:0.9em">');
+      H.push('<span class="muted" style="font-weight:600">Campaign plan:</span> ');
+      H.push(docs.map(function (doc) {
+        doc = doc || {};
+        var label = _escInv(doc.name || doc.path || '(unnamed)');
+        if (doc.path) {
+          var href = '/' + String(doc.path).replace(/^\/+/, '');
+          var ttl = doc.description ? ' title="' + _escInv(doc.description) + '"' : '';
+          return '<a href="' + _esc(href) + '" target="_blank" rel="noopener"' + ttl +
+            ' style="display:inline-block;margin:2px 6px 2px 0;padding:2px 10px;border-radius:12px;' +
+            'background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none">📄 ' + label + '</a>';
+        }
+        return '<span style="display:inline-block;margin:2px 6px 2px 0;padding:2px 10px;border-radius:12px;' +
+          'background:#f1f5f9;color:#475569;font-weight:600">📄 ' + label + '</span>';
+      }).join(''));
+      H.push('</div>');
+    }
+
+    // Open decisions — each an actionable card.
+    if (n) {
+      H.push('<div style="display:grid;gap:10px">');
+      needed.forEach(function (dec, i) {
+        dec = dec || {};
+        var question = (typeof dec === 'string') ? dec : (dec.question || dec.title || '');
+        var context = (typeof dec === 'string') ? '' : (dec.context || dec.detail || '');
+        H.push('<div class="inv-decision" data-index="' + i + '" data-investigation="' + _esc(invName) +
+          '" data-question="' + _esc(question) + '"' +
+          ' style="background:#fff;border:1px solid #fde68a;border-radius:7px;padding:10px 12px">');
+        H.push('<div style="display:flex;gap:8px;align-items:flex-start">');
+        H.push('<span style="color:' + accent + ';font-weight:800;font-size:0.95em;line-height:1.5">' + (i + 1) + '.</span>');
+        H.push('<div style="flex:1;min-width:0">');
+        H.push('<div style="font-weight:650;color:#1e293b;line-height:1.4">' + _escInv(question) + '</div>');
+        if (context)
+          H.push('<div class="muted" style="font-size:0.86em;line-height:1.5;margin-top:4px">' +
+            _renderInvLeadMarkdown(context) + '</div>');
+        if (!readOnly) {
+          H.push('<div style="margin-top:8px">');
+          H.push('<textarea rows="2" placeholder="Resolution note — the call you made and why…" ' +
+            'style="width:100%;box-sizing:border-box;font:inherit;font-size:0.86em;padding:6px 8px;' +
+            'border:1px solid #cbd5e1;border-radius:6px;resize:vertical"></textarea>');
+          H.push('<div style="margin-top:6px;text-align:right">');
+          H.push('<button type="button" class="action-btn js-authoring" onclick="_resolveInvDecision(this,' + i + ')" ' +
+            'style="font-size:0.82em;padding:3px 12px;font-weight:600;background:' + accent + ';color:#fff;border:none">' +
+            '✓ Resolve</button>');
+          H.push('</div>');
+          H.push('</div>');
+        }
+        H.push('</div></div></div>');
+      });
+      H.push('</div>');
+    }
+
+    // Resolved-decision log — folded by default.
+    if (resolved.length) {
+      H.push('<details style="margin-top:' + (n ? '12px' : '0') + '">');
+      H.push('<summary style="cursor:pointer;font-size:0.88em;font-weight:600;color:#15803d">' +
+        '✓ Resolved decisions (' + resolved.length + ')</summary>');
+      H.push('<ul style="margin:8px 0 0;padding:0;list-style:none;display:grid;gap:6px">');
+      H.push(resolved.map(function (r) {
+        var txt = (typeof r === 'string') ? r : (r && (r.decision || r.question || r.text) || '');
+        return '<li style="font-size:0.86em;line-height:1.5;color:#334155;padding-left:12px;' +
+          'border-left:2px solid #86efac">' + _escInv(txt) + '</li>';
+      }).join(''));
+      H.push('</ul></details>');
+    }
+
+    H.push('</div>');
+    return H.join('');
+  }
+  // Back-compat: the cockpit moved into the "Decisions" brief tab; clear any
+  // legacy standalone host so nothing double-renders below the tabs.
+  function _renderInvDecisionCockpit(d) {
+    var host = document.getElementById('investigation-decision-cockpit');
+    if (host) host.innerHTML = '';
+  }
+  window._renderInvDecisionCockpit = _renderInvDecisionCockpit;
+  window._invDecisionTabHtml = _invDecisionTabHtml;
+
+  // Resolve one open decision: read the note from the card, POST, then refresh
+  // the investigation detail so the cockpit re-renders with the moved decision.
+  // Passes the question as an optimistic-concurrency guard (the server 409s if
+  // the list shifted under a concurrent resolve). CSRF is handled by the
+  // same-origin guard middleware, like every other mutating POST.
+  function _resolveInvDecision(btn, index) {
+    var card = btn.closest('.inv-decision');
+    if (!card) return;
+    var ta = card.querySelector('textarea');
+    var note = ((ta && ta.value) || '').trim();
+    if (!note) {
+      if (typeof _showToast === 'function') _showToast('Enter a resolution note before resolving.', { danger: true });
+      else alert('Enter a resolution note before resolving.');
+      if (ta) ta.focus();
+      return;
+    }
+    var question = card.getAttribute('data-question') || '';
+    var invName = card.getAttribute('data-investigation') || window._currentIset || '';
+    var prev = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Resolving…';
+    apiFetch('POST', '/api/investigation-decision-resolve', {
+      investigation: invName, index: index, resolution: note, question: question
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j, status: r.status }; }); })
+      .then(function (res) {
+        if (!res.ok || (res.j && res.j.error)) {
+          var msg = 'Could not resolve: ' + ((res.j && res.j.error) || ('HTTP ' + res.status));
+          if (typeof _showToast === 'function') _showToast(msg, { danger: true }); else alert(msg);
+          btn.disabled = false; btn.textContent = prev;
+          return;
+        }
+        var ok = 'Decision resolved — ' + ((res.j && res.j.remaining) || 0) + ' still open';
+        if (typeof _showToast === 'function') _showToast(ok);
+        // Refresh the detail so the cockpit, log and count badge re-render.
+        if (typeof _openInvestigationDetail === 'function') _openInvestigationDetail(invName);
+      })
+      .catch(function (err) {
+        var msg = 'Could not resolve: ' + err;
+        if (typeof _showToast === 'function') _showToast(msg, { danger: true }); else alert(msg);
+        btn.disabled = false; btn.textContent = prev;
+      });
+  }
+  window._resolveInvDecision = _resolveInvDecision;
 
   // Flat tab switcher for the inquiry brief (scoped to the clicked brief).
   function _invBriefTab(btn, id) {
@@ -9935,6 +10340,10 @@
         // The inquiry brief renders the full opening — headline, verdict, meta,
         // and the how-to-read / biology / background / glossary tabs — from `d`.
         leadEl.innerHTML = _renderInvOpening(d);
+
+        // Decision cockpit: the open expert decisions + campaign plan, surfaced
+        // prominently directly under the brief (built from d.executive).
+        try { _renderInvDecisionCockpit(d); } catch (_) { /* best-effort */ }
 
         // Phase B4: render today's study graph (unchanged), then layer each
         // study's typed evidence chain into its card. Falls back to the plain
@@ -10631,13 +11040,30 @@
 
       var node = document.createElement('div');
       node.className = 'iset-dag-node';
-      // Single click opens the full study view directly — no quick-look
-      // side-card, no double-click.
-      node.onclick = function() {
-        _openStudyInsideInvestigation(s.name);
+      // Stamp the slug so _wsHighlightActiveDagNode can mark the node whose
+      // study is open in the detail panel below.
+      node.dataset.study = s.name;
+      // Single click EXPANDS the card in place — interrogate the Asks/Finds and
+      // every finding without leaving the graph. The ↗ control opens the full
+      // study. (Previously a card click navigated straight to the study, which
+      // made the graph un-browsable.)
+      var _toggleExpand = function () {
+        var exp = node.classList.toggle('aig-node-expanded');
+        node.querySelectorAll('.aig-clamp').forEach(function (el) {
+          el.style.webkitLineClamp = exp ? 'unset' : (el.getAttribute('data-clamp') || '');
+          el.style.lineClamp = exp ? 'unset' : (el.getAttribute('data-clamp') || '');
+        });
+        var _more = node.querySelector('.aig-more-findings');
+        var _all = node.querySelector('.aig-all-findings');
+        if (_more) _more.style.display = exp ? 'none' : '';
+        if (_all) _all.style.display = exp ? 'block' : 'none';
+        node.style.zIndex = exp ? '60' : '';
+        node.style.boxShadow = exp ? '0 8px 24px rgba(0,0,0,0.18)' : '';
+        node.style.whiteSpace = '';
       };
-      node.title = s.name + ' — ' + confidence + (claim ? '\n\nFinds: ' + claim : '') +
-        '\n\nClick to open the study';
+      node.onclick = _toggleExpand;
+      node.title = s.name + ' — ' + confidence +
+        '\n\nClick to expand in place · ↗ opens the full study';
       var x = (orient === 'TB')
         ? rowStartX[depth[s.name]] + breadthIndex[s.name] * (CARD_W + BREADTH_GAP)
         : PAD_X + depth[s.name] * (CARD_W + DEPTH_GAP);
@@ -10664,31 +11090,45 @@
         // (no longer squeezed into a thin flex column beside the badge).
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px">' +
           '<span style="color:' + ss.color + ';font-size:1.05em;line-height:1;flex:none">' + ss.icon + '</span>' +
-          '<span class="aig-status-badge" role="button" tabindex="0" title="Why: open this study\'s finding & evidence" ' +
-            'style="font-size:0.62em;font-weight:700;color:' + ss.color + ';white-space:nowrap;cursor:pointer;text-decoration:underline dotted;flex:none">' +
-            _esc(confidence) + '</span>' +
+          '<span style="display:flex;align-items:center;gap:6px;flex:none">' +
+            '<span class="aig-status-badge" role="button" tabindex="0" title="Expand this card in place" ' +
+              'style="font-size:0.62em;font-weight:700;color:' + ss.color + ';white-space:nowrap;cursor:pointer;text-decoration:underline dotted">' +
+              _esc(confidence) + '</span>' +
+            '<button class="aig-open-study" title="Open the full study" aria-label="Open the full study" ' +
+              'onclick="event.stopPropagation(); _openStudyInsideInvestigation(\'' + _esc(s.name) + '\')" ' +
+              'style="border:1px solid #cbd5e1;background:#fff;color:#475569;border-radius:5px;font-size:0.72em;line-height:1;padding:2px 5px;cursor:pointer">↗</button>' +
+          '</span>' +
         '</div>' +
         '<strong style="display:block;font-size:0.85em;line-height:1.3;color:#1e293b">' + _esc(prettyTitle) + '</strong>' +
         (_opts.asks && asks
-          ? '<div style="font-size:0.72em;margin-top:7px;line-height:1.35;color:#64748b;' + _clamp(2) + '">' +
+          ? '<div class="aig-clamp" data-clamp="2" style="font-size:0.72em;margin-top:7px;line-height:1.35;color:#64748b;' + _clamp(2) + '">' +
               '<span style="font-weight:600;color:#475569">Asks:</span> ' + _esc(asks) + '</div>'
           : '') +
         (_opts.finds
-          ? '<div style="font-size:0.72em;margin-top:5px;line-height:1.35;color:#64748b;' + _clamp(5) + '">' +
+          ? '<div class="aig-clamp" data-clamp="5" style="font-size:0.72em;margin-top:5px;line-height:1.35;color:#64748b;' + _clamp(5) + '">' +
               '<span style="font-weight:600;color:#475569">Finds:</span> ' +
               (claim ? _esc(claim) : '<em style="color:#94a3b8">pending evidence</em>') +
             '</div>'
           : '') +
+        // Collapsed indicator (default) + the full findings list (revealed on
+        // expand). Clicking the card toggles between them.
         (_opts.finds && moreN
-          ? '<div title="' + _esc(findings.slice(1).map(function (f) {
-                return '• ' + ((f.summary || f.statement || f.id || '').replace(/\s+/g, ' ').trim());
-              }).join('\n')) + '" ' +
-            'style="font-size:0.72em;margin-top:2px;color:#94a3b8;cursor:help">+' + moreN +
-            ' more finding' + (moreN === 1 ? '' : 's') + '</div>'
+          ? '<div class="aig-more-findings" style="font-size:0.72em;margin-top:3px;color:#94a3b8;cursor:pointer">+' + moreN +
+              ' more finding' + (moreN === 1 ? '' : 's') + ' — click to show</div>' +
+            '<div class="aig-all-findings" style="display:none;font-size:0.72em;margin-top:4px;line-height:1.4;color:#64748b">' +
+              findings.map(function (f) {
+                return '<div style="margin-top:3px">• ' +
+                  _esc((f.summary || f.statement || f.id || '').replace(/\s+/g, ' ').trim()) + '</div>';
+              }).join('') +
+            '</div>'
           : '') +
         (_opts.followups ? followUpsChip : '') +
         (_opts.chain && chainsBySlug && typeof window._chainBlockHtml === 'function'
           ? window._chainBlockHtml(chainsBySlug[s.name]) : '') +
+        // "Methods · Simulations" block (band-2 near zoom only). Reads the
+        // backend projection fields on the study node `s`.
+        (_opts.methods && typeof window._methodsBlockHtml === 'function'
+          ? window._methodsBlockHtml(s) : '') +
         // Layer-4: cached/compute badge + downloads (↓figures/↓notebook, all
         // modes) + run/continue buttons (live only).
         _dagCacheBadgeHtml(s.name) +
@@ -10714,9 +11154,9 @@
       if (_badge) {
         var _openReason = function (ev) {
           ev.stopPropagation();
-          // The quick-look side-card is gone — the verdict badge opens the full
-          // study (its findings/evidence live there).
-          _openStudyInsideInvestigation(s.name);
+          // Interrogate in place — expand the card (its findings/evidence are
+          // right here). The ↗ button opens the full study.
+          _toggleExpand();
         };
         _badge.addEventListener('click', _openReason);
         _badge.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); _openReason(ev); } });
@@ -10727,7 +11167,15 @@
           node.querySelectorAll('.aig-claim-row').forEach(function (row) {
             row.addEventListener('click', function (ev) {
               ev.stopPropagation();
-              _openStudyInsideInvestigation(study.name);
+              // Open the claim drawer — it shows the full claim text and each
+              // chain stage labelled (● Finding, ◆ Evidence, ▣ Decision,
+              // ★ Conclusion), with its own "Open full study →" button. This is
+              // what "click to read the evidence" should do, instead of silently
+              // navigating away to the study card.
+              var ci = parseInt(row.getAttribute('data-claim-index'), 10);
+              var claim = claims[ci];
+              if (claim) window._openInvestigationDrawer('claim', { claim: claim, study: study });
+              else _openStudyInsideInvestigation(study.name);
             });
           });
         })(s, chainsBySlug[s.name]);
@@ -10913,6 +11361,8 @@
           _edgeLg('calibrates-threshold') + _edgeLg('refutes-alternative') +
         '</span>';
     }
+    // Re-apply the open-study highlight after a (re-)render so it survives.
+    _wsHighlightActiveDagNode(window._wsStudyTabs && window._wsStudyTabs.active);
   }
   window._renderInvestigationDag = _renderInvestigationDag;
 
@@ -10958,9 +11408,33 @@
     if (document.fullscreenElement) { document.exitFullscreen(); }
     else if (shell.requestFullscreen) { shell.requestFullscreen().then(function () { setTimeout(_aigFit, 150); }); }
   }
+  // Expand (snap-to-top): grow the graph pane to nearly the full viewport height
+  // and scroll it to the top of the screen, WITHOUT going fullscreen — so the whole
+  // workbench interface (rail, tabs) stays available. Toggles back to the normal
+  // pane height. A taller alternative to the browser-fullscreen (⛶) button.
+  function _aigExpand() {
+    var shell = document.getElementById('investigation-dag-shell');
+    if (!shell) return;
+    var expanded = shell.classList.toggle('aig-expanded');
+    var btn = document.getElementById('aig-expand-btn');
+    if (btn) {
+      btn.textContent = expanded ? '⤓' : '⤒';
+      btn.title = expanded ? 'Collapse graph to the normal pane height'
+                           : 'Expand graph — snap to top and grow it tall (workbench stays)';
+    }
+    if (expanded) {
+      // Snap the graph to the top of the viewport, then fit it to the taller area.
+      try { shell.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+      catch (_) { shell.scrollIntoView(true); }
+      setTimeout(_aigFit, 220);
+    } else {
+      setTimeout(_aigFit, 60);
+    }
+  }
   window._aigZoomBy = _aigZoomBy;
   window._aigFit = _aigFit;
   window._aigFullscreen = _aigFullscreen;
+  window._aigExpand = _aigExpand;
   // Drag anywhere on the shell background to pan (card clicks still work).
   document.addEventListener('pointerdown', function (e) {
     var shell = e.target.closest && e.target.closest('#investigation-dag-shell');
@@ -11356,13 +11830,6 @@
     }).catch(function (e) {
       _notify('Figures download failed: ' + e, { danger: true });
     });
-  };
-  // A study's ↓ notebook is its parent investigation's runnable notebook (there
-  // is no per-study notebook). In the graph the parent is the open investigation.
-  window._vivStudyNotebookFromCard = function (ev, slug) {
-    if (ev) ev.stopPropagation();
-    var inv = window._wsInvestigation || window._currentIset || '';
-    if (inv && window._vivNotebookFromCard) window._vivNotebookFromCard(ev, inv);
   };
   // ▶ run — launch a study's CURRENT baseline spec as a new run (live only).
   window._vivRunStudyFromRow = function (ev, slug) {

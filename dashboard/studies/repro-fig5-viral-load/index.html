@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Study: repro-fig5-viral-load</title>
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/style.css">
 <link rel="stylesheet" href="/viva-cpm/dashboard/assets/progress-track.css">
+<link rel="stylesheet" href="/viva-cpm/dashboard/assets/responsive.css">
 <!-- Inherit the workbench light/dark theme (this page loads in an iframe;
      same-origin, so it shares the parent's localStorage 'viv.theme'; the
      'storage' event, which the browser fires here when the parent toggles,
@@ -17,11 +19,7 @@
 <header class="study-header">
   <div style="display:flex; align-items:baseline; gap:12px; justify-content:space-between;">
   <h1 class="study-title">
-    <span class="study-name" id="study-name" data-slug="repro-fig5-viral-load" title="repro-fig5-viral-load">Reproduction — Fig 5 (viral-load sweep)</span>
-    
-    <span class="study-kind-tag study-kind-computational" data-study-kind="computational" title="Study kind">computational</span>
-    
-    <span class="phase-pill phase-evaluate" title="Lifecycle: Design → Build → Simulate → Evaluate → Decide">Evaluate</span>
+    <span class="study-name" id="study-name" data-slug="repro-fig5-viral-load" data-study-kind="computational" title="repro-fig5-viral-load">Reproduction — Fig 5 (viral-load sweep)</span>
     
   </h1>
   <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0;">
@@ -30,6 +28,8 @@
     <button type="button" id="study-run-current-spec" class="btn-mini" title="Run this study's CURRENT baseline spec (POST /api/study-run-baseline) as a brand-new run">▶ Run current spec</button>
     
     <button type="button" id="study-run-composite" class="btn-mini" title="Dispatch a specific process-bigraph composite_id to the remote compute backend (pbg-native multi_node/mbp, or the Nextflow campaign path) — advanced, independent of this study's own pinned baseline">⚙ Dispatch composite</button>
+    
+    <button type="button" id="study-next" class="btn-mini" style="display:none" data-investigation="influenza-sego2022" title="Go to the next study in this investigation's narrative (leads-to)">Next study →</button>
   </span>
   </div>
   <div class="study-status-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
@@ -53,8 +53,8 @@
         
         <span class="status-stepper">
           
-          <span class="status-step gate-step axis-design_status gate-state-not-assessed" title="Gate 1 · Plan">
-            <span class="dot"></span>1&nbsp;·&nbsp;Plan
+          <span class="status-step gate-step axis-design_status gate-state-not-assessed gate-current" title="Gate 1 · Plan — current stage">
+            <span class="dot"></span>1&nbsp;·&nbsp;Plan<span class="gate-current-tag">you are here</span>
           </span>
           
           <span class="status-step gate-step axis-simulation_status gate-state-passed set" title="Gate 2 · Execution">
@@ -260,6 +260,11 @@ absolute magnitudes at paper scale?
 .status-step.gate-status-passed .dot{background:#10b981;box-shadow:none}
 .status-step.gate-status-failed .dot{background:#ef4444;box-shadow:none}
 .status-step.gate-status-stale .dot{background:#8b5cf6;box-shadow:none}
+/* "You are here": the current lifecycle stage in the gate ladder (replaces the
+   old standalone phase pill — one clear, design-connected stage indicator). */
+.status-step.gate-current{color:#1e3a5f;font-weight:600;background:#eff6ff;border-radius:9999px;padding:1px 10px;box-shadow:inset 0 0 0 1px #bfdbfe}
+.status-step.gate-current .dot{background:#2563eb;box-shadow:none}
+.gate-current-tag{font-size:0.78em;font-weight:700;color:#2563eb;margin-left:6px;text-transform:uppercase;letter-spacing:0.04em}
 /* Fable G2 (§13.2 gate-state vocab; §9.3 palette: grey/green/amber/red/violet).
    One palette for the gate-ladder stepper dots + detail rows AND (via the
    [data-gate-state] selectors below) the act-rail dots, so "how urgent is
@@ -334,7 +339,7 @@ absolute magnitudes at paper scale?
 .charts-panel{display:flex;flex-direction:column;gap:16px}
 .figure-card{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#fff}
 .figure-media-frame{display:block;width:100%;border:0;background:#fff}
-.figure-media-frame--native{height:480px}
+.figure-media-frame--native{height:auto;min-height:320px}  /* JS (_autosizeNativeFrames) grows this to the figure's full content height */
 .figure-media-frame--embed{min-height:200px}
 /* SVGs/PNGs scale to fit their card; preserves aspect ratio so a 1400×484
    chart shrinks instead of overflowing horizontally + clipping. */
@@ -623,6 +628,42 @@ absolute magnitudes at paper scale?
     
     
 
+    
+    <style>
+      .study-overview .ov-metrics{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 4px}
+      .study-overview .ov-metric{flex:1 1 120px;min-width:110px;border:1px solid var(--border,#e5e7eb);
+        border-radius:8px;padding:9px 12px;background:var(--surface-2,#f8fafc)}
+      .study-overview .ov-metric-v{font-size:1.15em;font-weight:700;color:#0f172a;line-height:1.1}
+      .study-overview .ov-metric-k{font-size:0.72em;color:#64748b;margin-top:3px;text-transform:uppercase;letter-spacing:.02em}
+      .study-overview .ov-metric-pass{border-left:3px solid #10b981}
+      .study-overview .ov-metric-warn{border-left:3px solid #d97706}
+      .study-overview .ov-metric-fail{border-left:3px solid #b91c1c}
+      .study-overview .ov-methods{margin:4px 0 0 0;padding-left:18px}
+      .study-overview .ov-methods li{font-size:0.86em;color:#475569;line-height:1.45;margin:3px 0}
+      .study-overview .ov-tablink{font-size:0.8em;font-weight:600;text-decoration:none;color:#2563eb;margin-left:6px}
+      .study-overview .ov-tablink:hover{text-decoration:underline}
+      .study-overview .ov-keyfig{margin:12px 0 0}
+      .study-overview .ov-keyfig iframe{width:100%;height:440px;border:1px solid var(--border,#e5e7eb);border-radius:8px;background:#fff}
+      .study-overview .ov-keyfig-cap{font-size:0.75em;color:#94a3b8;margin:5px 2px 0}
+      /* provenance: citation chips + anchors + sources list */
+      .study-overview .ov-cite{display:inline-flex;align-items:center;font-size:0.7em;font-weight:600;
+        line-height:1.3;padding:1px 7px;border-radius:9999px;background:#eff6ff;color:#1d4ed8;
+        white-space:nowrap;text-decoration:none;border:1px solid transparent;margin:0 2px 2px 0}
+      .study-overview a.ov-cite:hover{border-color:#1d4ed8;text-decoration:none}
+      .study-overview .ov-cite.unknown{background:#f1f5f9;color:#64748b}
+      .study-overview .ov-anchor{padding:8px 0;border-bottom:1px solid var(--border,#e5e7eb);font-size:0.9em}
+      .study-overview .ov-anchor:last-child{border-bottom:none}
+      .study-overview .ov-anchor-exp{color:#0f172a;font-weight:600}
+      .study-overview .ov-anchor-obs{font-family:ui-monospace,Menlo,monospace;font-size:0.82em;color:#475569}
+      .study-overview .ov-anchor-src{color:#64748b;font-size:0.85em;margin-top:2px}
+      .study-overview .ov-anchor-met{color:#065f46;font-weight:600}
+      .study-overview .ov-sources{display:grid;gap:2px;margin-top:8px}
+      .study-overview .ov-src{padding:6px 10px;border-bottom:1px solid var(--border,#f1f5f9);font-size:0.85em;scroll-margin-top:90px}
+      .study-overview .ov-src:target{background:#eff6ff;border-radius:6px}
+      .study-overview .ov-src .ov-src-k{font-family:ui-monospace,Menlo,monospace;font-size:0.82em;color:#94a3b8}
+      .study-overview .ov-src .ov-src-t{color:#334155}
+    </style>
+
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
       <p class="ctr-text">`repro_fig5` is wired correctly: it sweeps a seeded ensemble of the full
@@ -695,8 +736,42 @@ not a units or IC effect. This does not change the study&#39;s verdict
       
     </div>
 
+    
     <div class="ctr-block">
-      <h2 class="overview-label ctr-h">Test</h2>
+      <h2 class="overview-label ctr-h">Background</h2>
+      <div class="ctr-meta">
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item">Does `run.repro_fig5` (Task 9.3) correctly sweep `run.run_full_model`
+(Task 9.1) over Sego-2022 Fig-5&#39;s initial-viral-load scenarios, evaluate
+EACH load against ONLY that load&#39;s own fig5.json band subset (never the
+unfiltered, multi-scenario list), and reproduce the paper&#39;s central
+monotone, threshold-like dose-response direction -- and, honestly, does a
+REDUCED-scale sweep (the only scale a fast CI test can run) show that
+direction even though it cannot match the digitized bands&#39; absolute
+magnitudes at paper scale?
+</span></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item">`run.repro_fig5` correctly wires the per-load ensemble-and-scenario-
+filtered-band-evaluation machinery: for each tested load it runs
+`replicas` seeded `run_full_model` calls with a uniform virus-field IC,
+maps every observable onto fig5&#39;s keys, ensemble-means them, filters
+fig5.json&#39;s observable lists down to that load&#39;s own scenario subset
+(the guard), and produces a well-formed per-load `band_eval`. At REDUCED
+scale (few loads/replicas, a small population, a short duration -- all
+needed to keep the added pytest test fast), the ensemble is NOT expected
+to land in-band against bands digitized from a 10000-cell, 50-replica,
+15-day paper-scale ensemble, but the MONOTONE dose-response direction
+(higher initial viral load -&gt; not-more surviving uninfected fraction)
+should still hold, since it is a qualitative mechanism check independent
+of population/time scale; any near-miss or in-band result at reduced
+scale should be reported as what it is (a coincidence of a wide,
+paper-reported-high-spread band and/or a near-instant collapse that
+happens to land inside it), not oversold as reproduction evidence.
+</span></div>
+      </div>
+    </div>
+    
+
+    <div class="ctr-block">
+      <h2 class="overview-label ctr-h">Model &amp; approach</h2>
       <p class="ctr-text">Implement `run.repro_fig5(*, loads=(1,10,100,1000,10000), replicas=3,
 cells_per_side=35, steps=240, seed0=0) -&gt; dict` (Task 9.3): for each
 `load`, loop `replicas` seeds through `run.run_full_model(
@@ -718,20 +793,33 @@ same reduced config directly (not the pytest assertions alone) to report
 the actual per-load, per-observable band_eval numbers in this study
 honestly.
 </p>
-      
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>repro-fig5-viral-load</code></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">`run.repro_fig5(loads=(1,10000), replicas=1, cells_per_side=12,
-steps=15, seed0=0)` must return `by_load` keyed by exactly `{1,
-10000}`, a non-more-surviving-uninfected dose-response
-(`uninfected_final_frac(10000) &lt;= uninfected_final_frac(1) + 1e-9`),
-and a `band_eval` key. Does NOT assert either load&#39;s `band_eval
-[&#34;passed&#34;]` -- reduced scale is not expected to pass the
-paper-scale-digitized bands.
-</span></div>
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Model</span> <code>repro-fig5-viral-load</code><a class="ov-tablink" href="#" onclick="_setStudyTab('compose');return false;">model →</a></div>
+        
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Measures</span> <span class="ctr-meta-item">1 behavior test</span><a class="ov-tablink" href="#" onclick="_setStudyTab('tests');return false;">see Tests →</a></div>
+        
       </div>
-      
     </div>
+
+    
+    
+    
+    
+    <div class="ctr-block ov-prov">
+      <h2 class="overview-label ctr-h">Provenance &amp; sources</h2>
+      <div class="ctr-meta-k" style="margin-top:12px">Sources (1)</div>
+      <div class="ov-sources">
+      
+        
+        <div class="ov-src" id="sref-sego2022influenza">
+          <b class="ov-src-t">Sego 2022}, publisher={Elsevier</b> <span class="ov-src-k">sego2022influenza</span>
+          <div class="ov-src-t">A multiscale multicellular spatiotemporal model of local influenza infection and immune response</div>
+          <div class="ctr-meta-k" style="text-transform:none">Sego, T. J. and Mochan, Ericka D. and Ermentrout, G. Bard and Glazier, James A. · 2022}, publisher={Elsevier · <a href="https://doi.org/10.1016/j.jtbi.2021.110918" target="_blank" rel="noopener">source ↗</a></div>
+        </div>
+      
+      </div>
+    </div>
+    
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
@@ -739,6 +827,92 @@ paper-scale-digitized bands.
 UNITS FIX (Task-9.3-review MUST-FIX, this update, supersedes the prior &#34;extracellular-virus units mismatch&#34; reading below): the ~1200x extracellular_virus miss this study previously reported at BOTH loads was a STRUCTURAL BUG, not a real calibration/PFU-scale gap -- `repro_fig5` was mapping `run_full_model`&#39;s RAW per-lattice-site SUM of `field_conc` straight to `extracellular_virus`, while `targets/ fig5.json` digitizes that observable as a PER-SITE CONCENTRATION (its t=0 value for a given `viral_load_multiplier` IS that multiplier itself). Reporting the field&#39;s SPATIAL-MEAN concentration instead (`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run&#39;s own `params.dims`) resolves the sites-factor: at the time of this units fix, extracellular_virus&#39;s worst_miss dropped from ~1200 to 0.208 (load=1, 4/6 in-band, not fully) and to 0.0 (load=10000, FULLY IN-BAND, 6/6), and A SMALL, HONEST RESIDUAL remained, not tuned away: at t=0 the spatial-mean model value was ~0.375x the target (e.g. load=1 -&gt; mean 0.375 vs target 1.0; load=10000 -&gt; mean 3750 vs target 10000) -- attributed to the ratio of the seeded PATCH&#39;s site count to the FULL simulation domain&#39;s site count (the domain reserves margin/separation sites around the patch for the immune-cell clusters and recruit reserve pool, per `run_full_model`&#39;s `margin_sites`/`separation_sites`; the virus is seeded only under the patch, so averaging over the larger full-domain lattice dilutes the concentration by the patch/domain area ratio).
 UPDATE (this study.yaml refresh, following the separate `init_viral_load` IC fix that corrected a ~25x initial-condition over-seeding bug): that ~0.375x residual is NO LONGER PRESENT. The ensemble&#39;s t=0 spatial-mean concentration now matches the per-load target almost exactly (load=1: ensemble first=1.0 vs target=1.0; load=10000: ensemble first=10000.0 vs target=10000). extracellular_virus&#39;s containment is now 5/6 (worst_miss 0.0) at load=1 and remains 6/6 (worst_miss 0.0, fully in-band) at load=10000. No constant was tuned and no band was widened; the improvement follows directly from the IC fix, not from any change to `bands.py` or `targets/fig5.json` (both unchanged).</p>
       
+      <div class="ov-metrics">
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">False</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">10000</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">True</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">0.958333</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">0.0</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">4/6</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">3/6</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">5/6</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">5/6</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">6/6</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">5/6</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">6/6</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">6/6</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">0.0681</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">144 vs 10000</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+        <div class="ov-metric ov-metric-info">
+          <div class="ov-metric-v">2 of 5</div>
+          <div class="ov-metric-k"></div>
+        </div>
+        
+      </div>
+      
+      
+      <div id="overview-key-figure" class="ov-keyfig" data-study="repro-fig5-viral-load"></div>
       
     <div class="overview-section findings-section">
       <h2 class="overview-label">🔬 Findings — what this study taught us</h2>
@@ -1265,18 +1439,16 @@ itself is unchanged by this task.
     <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
       <h3 class="section-title" style="margin-right:auto">Readouts</h3>
     </div>
-    <p class="muted">The Design-time emit <strong>contract</strong>: what the emitter is
-    configured to persist, which store paths it declares, and the shape of what lands on
-    disk. No observed values here — see Results for what actually came back from a run.</p>
+    <p class="muted">The observables this study records from a run — the composite's
+    store paths with authored names, units and descriptions on top. See
+    <strong>Results</strong> for the values a run returned.</p>
 
-    <h4>Emitter &amp; config</h4>
-    <p class="muted" style="font-size:0.9em">The emitter class, its write-path module, emit
-    interval/buffer, output location, and emit scope — from
-    <code>lib/emitters.py</code> and this study's (or the workspace's)
-    <code>runtime.default_emitter</code>.</p>
-    <div id="readouts-emitter" data-study="repro-fig5-viral-load">
-      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading emitter configuration…</span></div>
-    </div>
+    <details class="readouts-emitter-details" style="margin:4px 0 14px 0">
+      <summary class="muted" style="font-size:0.85em;cursor:pointer">Emitter &amp; config</summary>
+      <div id="readouts-emitter" data-study="repro-fig5-viral-load" style="margin-top:8px">
+        <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading emitter configuration…</span></div>
+      </div>
+    </details>
 
     <h4>Emitted paths</h4>
     <p class="muted" style="font-size:0.9em">Each row is an emitter <code>store_path</code>
@@ -1697,7 +1869,7 @@ tuned, and <code>targets/fig5.json</code> was not edited.</p>
         baseline · seed ? ·
         ?s simulated ·
         ? history rows ·
-        started ?
+        started 2026-09-19
       </div>
       
       
@@ -1815,7 +1987,7 @@ tuned, and <code>targets/fig5.json</code> was not edited.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "94cf737f43732f01cf8a5cfa85d320631ab1c3d7", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/94cf737f43732f01cf8a5cfa85d320631ab1c3d7", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-10-05 01:57 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "94cf737f43732f01cf8a5cfa85d320631ab1c3d7", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/94cf737f43732f01cf8a5cfa85d320631ab1c3d7", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-10-14 18:52 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script src="/viva-cpm/dashboard/assets/toast.js"></script>
 <script>

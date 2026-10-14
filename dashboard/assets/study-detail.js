@@ -104,6 +104,7 @@
     document.querySelectorAll('.study-tab-panel').forEach(function (p) {
       p.classList.toggle('active', p.dataset.kind === kind);
     });
+    if (kind === 'overview') { _loadOverviewKeyFigure(); }
     if (kind === 'tests') { _loadTestsPanel(window._study); }
     if (kind === 'readouts') { _loadReadouts(); _loadReadoutsDownloadPointer(); }
     if (kind === 'visualize') { _loadCharts('viz-charts-panel'); _loadNativeGallery(); _loadRemoteFigures(); }
@@ -799,6 +800,69 @@
       .catch(function () { panel.innerHTML = ''; _remoteFiguresLoaded = false; });
   }
   window._loadRemoteFigures = _loadRemoteFigures;
+  // Overview "key figure": embed this study's first native-gallery panel (the
+  // headline plotly) inline on the Overview, isolated in an iframe so its
+  // bundled plotly doesn't touch the page. Degrades to hidden when no run/panel.
+  var _overviewKeyFigureLoaded = false;
+  function _loadOverviewKeyFigure() {
+    var host = document.getElementById('overview-key-figure');
+    if (!host || _overviewKeyFigureLoaded) return;
+    _overviewKeyFigureLoaded = true;
+    fetch('/api/study-native-gallery/' + encodeURIComponent(studyName()))
+      .then(function (r) { return r.ok ? r.json() : { panels: {} }; })
+      .then(function (d) {
+        var panels = (d && d.panels) || {};
+        var names = Object.keys(panels);
+        if (!names.length) { host.style.display = 'none'; return; }
+        var ifr = document.createElement('iframe');
+        ifr.setAttribute('title', names[0]);
+        ifr.setAttribute('loading', 'lazy');
+        ifr.srcdoc = panels[names[0]];
+        host.innerHTML = '';
+        host.appendChild(ifr);
+        var cap = document.createElement('div');
+        cap.className = 'ov-keyfig-cap';
+        cap.textContent = 'Key figure — ' + names[0] + ' · full set in Visualizations';
+        host.appendChild(cap);
+      })
+      .catch(function () { host.style.display = 'none'; });
+  }
+
+  // Grow each native figure iframe to its full content height so the figure
+  // shows in full instead of scrolling inside a fixed-height window. srcdoc
+  // iframes are same-origin, so we can read the rendered height; Plotly lays out
+  // asynchronously, so we re-measure on load, after a few delays, and via a
+  // ResizeObserver on the iframe body.
+  function _autosizeNativeFrames(host) {
+    var frames = host.querySelectorAll('iframe.figure-media-frame--native');
+    Array.prototype.forEach.call(frames, function (ifr) {
+      function fit() {
+        try {
+          var doc = ifr.contentDocument || (ifr.contentWindow && ifr.contentWindow.document);
+          if (!doc || !doc.body) return;
+          var h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
+          if (h > 40) ifr.style.height = (h + 6) + 'px';
+        } catch (e) { /* cross-origin shouldn't happen for srcdoc */ }
+      }
+      ifr.addEventListener('load', function () {
+        fit();
+        [150, 450, 1000, 2000].forEach(function (ms) { setTimeout(fit, ms); });
+        try {
+          var doc = ifr.contentDocument;
+          if (doc && doc.body && window.ResizeObserver) {
+            new ResizeObserver(fit).observe(doc.body);
+          }
+        } catch (e) { /* no-op */ }
+      });
+      // Already-complete (e.g. cached) frames never fire a fresh load event.
+      try {
+        if (ifr.contentDocument && ifr.contentDocument.readyState === 'complete') {
+          fit(); [150, 450, 1000].forEach(function (ms) { setTimeout(fit, ms); });
+        }
+      } catch (e) { /* no-op */ }
+    });
+  }
+
   function _loadNativeGallery() {
     var host = document.getElementById('native-gallery-panel');
     if (!host || _nativeGalleryLoaded) return;
@@ -849,6 +913,7 @@
             + '</div>';
         }).join('');
         _wireFigureRunLinks(host);
+        _autosizeNativeFrames(host);
         _figuresSourceState.native = true;
         _updateFiguresEmptyState();
         _nativeGalleryRunId = runId || null;  // Task E3: settled
@@ -1262,6 +1327,15 @@
   function _loadModelCards(force) {
     var mount = document.getElementById('model-composite-cards');
     if (!mount) return;
+    // Planned design (Design phase): render the declared contract + proposed
+    // mechanisms/methods at the top of the Model tab, so a study with no built
+    // composite yet still shows its planned model/interface. Idempotent slot.
+    var _pdSpec = window._study || {};
+    var _pdHtml = _pdContractHtml(_pdSpec.contract, '§ Contract — declared interface (planned)') +
+                  _pdListHtml('Proposed mechanisms', _pdSpec.proposed_mechanisms) +
+                  _pdListHtml('Proposed models & methods', _pdSpec.proposed_models_methods);
+    var _pdSlotEl = _pdSlot(document.getElementById('panel-compose'), 'model-planned-design');
+    if (_pdSlotEl) _pdSlotEl.innerHTML = _pdHtml;
     if (_modelCardsLoaded && !force) return;
     _modelCardsLoaded = true;
     var panel = document.getElementById('panel-compose');
@@ -2887,6 +2961,73 @@
       });
   });
 
+  // Narrative navigation: "Next study →" follows this investigation's leads-to
+  // chain. Works in BOTH contexts: embedded in the investigation graph view (it
+  // delegates to the parent so the graph highlight + embedded tab stay in sync),
+  // AND standalone (opened from the Studies sidebar) — where it computes "next"
+  // from the investigation itself and navigates directly. Hidden only on a
+  // genuinely terminal study or outside any investigation.
+  (function _wireNextStudy() {
+    var btn = document.getElementById('study-next');
+    if (!btn) return;
+    var current = studyName();
+    function show(next, go) {
+      btn.style.display = '';
+      btn.textContent = 'Next study →';
+      btn.title = 'Go to "' + next + '" — the next study in this investigation';
+      btn.onclick = go;
+    }
+
+    // 1) Embedded in the investigation graph view — delegate to the parent.
+    try {
+      var p = window.parent;
+      if (p && p !== window && typeof p._nextStudySlug === 'function') {
+        var pn = p._nextStudySlug(current);
+        if (pn) {
+          show(pn, function () {
+            try { window.parent._openStudyEmbeddedNewTab(pn); } catch (e) { /* no-op */ }
+          });
+        } else {
+          btn.style.display = 'none';  // terminal within the graph view
+        }
+        return;
+      }
+    } catch (e) { /* fall through to standalone */ }
+
+    // 2) Standalone study page — compute "next" from the investigation. The
+    //    investigation slug is stamped on the button server-side (data-investigation)
+    //    so it's available synchronously, before the async study spec loads.
+    var inv = btn.getAttribute('data-investigation') || (window._study && window._study.investigation);
+    if (!inv) { btn.style.display = 'none'; return; }
+    var base = (window.__BASE_PATH__ || '');
+    fetch(base + '/api/investigation/' + encodeURIComponent(inv))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) { btn.style.display = 'none'; return; }
+        var studies = d.studies || d.members || [];
+        var slug = function (s) { return (typeof s === 'string') ? s : (s && (s.name || s.slug || s.study)); };
+        var next = null;
+        // Prefer a leads-to child: a study whose parent_studies lists current.
+        for (var i = 0; i < studies.length && !next; i++) {
+          var parents = (studies[i] && studies[i].parent_studies) || [];
+          for (var j = 0; j < parents.length; j++) {
+            var pk = parents[j];
+            var pname = (pk && typeof pk === 'object') ? (pk.study || pk.name || pk.slug) : pk;
+            if (String(pname).trim() === current) { next = slug(studies[i]); break; }
+          }
+        }
+        // Fallback: the next study in the investigation's declared order.
+        if (!next) {
+          var order = studies.map(slug).filter(Boolean);
+          var idx = order.indexOf(current);
+          if (idx >= 0 && idx < order.length - 1) next = order[idx + 1];
+        }
+        if (!next) { btn.style.display = 'none'; return; }
+        show(next, function () { window.location = base + '/studies/' + encodeURIComponent(next); });
+      })
+      .catch(function () { btn.style.display = 'none'; });
+  })();
+
   // btn-delete has class "btn-delete danger" — selector ".btn-delete" still matches.
   // Handler _post_investigation_delete uses body key "name".
   bindAll('.btn-delete', function(btn) {
@@ -3737,12 +3878,24 @@
   // Reproducibility MOVED here from the Tests panel's old _loadTestsPanel
   // (spec §3.6/§3.7); their loaders are unchanged, just dispatched from here.
   function _loadAudit(spec) {
+    _loadDeclaredContract(spec);
     _loadAuditSufficiency(spec);
     _loadQualityChecks(spec);
     _loadReproducibilityChecks(spec);
     _loadAuditSourcing(spec);
   }
   window._loadAudit = _loadAudit;
+
+  // Declared contract (§Contract) — the study's PLANNED typed interface +
+  // conservation predicates, rendered at the top of the Audit tab so it is
+  // populated at Design time (before any live-run audit exists). Connects the
+  // planning contract to the audit surface.
+  function _loadDeclaredContract(spec) {
+    var slot = _pdSlot(document.getElementById('panel-audit'), 'audit-declared-contract');
+    if (!slot) return;
+    var contract = ((spec || window._study || {}) || {}).contract;
+    slot.innerHTML = _pdContractHtml(contract, 'Declared contract (§Contract) — the study’s planned interface');
+  }
 
   // ── Build tab (Assurance) — model-build loop provenance ──────────────────
   // GET /api/study-loop-state?study=<slug> → viva_superpowers.loop_state
@@ -4165,18 +4318,27 @@
       ? '<div style="margin-top:6px;font-size:0.92em;color:#334155">' + e(String(test.description)) + '</div>'
       : '';
 
-    // 3. Band + measured.
+    // 3. Band + measured — carry the test's declared UNITS onto both the
+    // expected range and the measured value so the card reads as a quantity
+    // (e.g. "expected within [40, 91] °C · measured: 59 °C"), not a bare number.
     var passIf = test.pass_if || test.expect || null;
+    var units = (test.units != null && String(test.units).trim()) ? String(test.units).trim() : '';
+    var dimless = (units === '' || units === 'dimensionless' || units === '1');
+    var uSuffix = dimless ? '' : (' ' + units);
     var bandText = _humanPassIf(passIf);
+    if (bandText && uSuffix) bandText += uSuffix;
     var mv = outcome ? outcome.measured_value : null;
     var mvText;
     if (mv == null) mvText = '—  (not yet graded)';
-    else if (typeof mv === 'number') mvText = _fmtNum(mv);
+    else if (typeof mv === 'number') mvText = _fmtNum(mv) + uSuffix;
     else if (typeof mv === 'object') { try { mvText = JSON.stringify(mv); } catch (err) { mvText = String(mv); } }
     else mvText = String(mv);
+    var unitTag = (units && dimless)
+      ? ' <span class="muted" style="font-size:0.9em">· ' + e(units) + '</span>' : '';
     var bandLine = '<div style="margin-top:8px;font-size:0.85em;color:#475569">'
       + (bandText ? e(bandText) : '<span class="muted">no pass_if band declared</span>')
       + ' <span style="margin-left:10px"><strong>measured:</strong> ' + e(mvText) + '</span>'
+      + unitTag
       + '</div>';
 
     // 4. Margin bar — fixed: this MUST read axis.meter (check() already
@@ -4196,7 +4358,8 @@
     var cites = (passIf && passIf.cites) || test.cites || [];
     var anchor = (passIf && passIf.calibration_anchor) || test.calibration_anchor || null;
     var evidenceBits = [];
-    if (prov.note) evidenceBits.push('<span class="muted">basis:</span> ' + e(String(prov.note)));
+    var basisNote = prov.note || test.band_basis || null;
+    if (basisNote) evidenceBits.push('<span class="muted">basis:</span> ' + e(String(basisNote)));
     if (Array.isArray(cites) && cites.length) {
       evidenceBits.push('<span class="muted">cites:</span> ' + e(cites.join('; ')));
     }
@@ -4682,6 +4845,75 @@
     });
   }
 
+  // ── Planned-design helpers (Design-phase studies) ───────────────────────
+  // A study is authored at Design before any composite is built. Render its
+  // declared bigraph-schema contract (typed-ports face + conservation
+  // predicates), proposed mechanisms, and proposed models/methods so the
+  // Model + Audit tabs show the PLANNED design instead of a blank "no
+  // composite yet" panel. Pure render; all strings escaped.
+  function _pdBounds(sch) {
+    var lo = (sch && sch._min != null) ? sch._min : null;
+    var hi = (sch && sch._max != null) ? sch._max : null;
+    if (lo == null && hi == null) return '—';
+    return (lo == null ? '−∞' : lo) + ' .. ' + (hi == null ? '∞' : hi);
+  }
+  function _pdPortRows(face, dir) {
+    var ports = (face && face[dir]) || {};
+    return Object.keys(ports).map(function (n) {
+      var s = ports[n] || {};
+      return '<tr><td><code>' + _esc(n) + '</code></td><td class="muted">' + _esc(dir) +
+        '</td><td>' + _esc(s._type || '—') + '</td><td>' + _esc(s._units || '—') +
+        '</td><td class="muted">' + _esc(_pdBounds(s)) + '</td></tr>';
+    }).join('');
+  }
+  function _pdContractHtml(contract, title) {
+    contract = contract || {};
+    var face = contract.face || {};
+    var rows = _pdPortRows(face, 'inputs') + _pdPortRows(face, 'outputs');
+    var conds = contract.conditions || [];
+    if (!rows && !conds.length) return '';
+    var h = '<div class="overview-section planned-contract" style="margin-top:14px">' +
+      '<h2 class="overview-label">' + _esc(title || '§ Contract — declared interface') + '</h2>';
+    if (rows) {
+      h += '<table class="planned-contract-table" style="width:100%;border-collapse:collapse;font-size:0.9em">' +
+        '<thead><tr style="text-align:left;color:#475569;border-bottom:1px solid #e2e8f0">' +
+        '<th style="padding:3px 6px">port</th><th style="padding:3px 6px">dir</th>' +
+        '<th style="padding:3px 6px">type</th><th style="padding:3px 6px">units</th>' +
+        '<th style="padding:3px 6px">bounds</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    }
+    if (conds.length) {
+      h += '<div style="margin-top:8px"><strong style="font-size:0.9em">Conservation predicates</strong>' +
+        '<ul style="margin:4px 0 0 0">' + conds.map(function (c) {
+          c = c || {};
+          return '<li><code>' + _esc(c.name || c.kind || 'invariant') + '</code>' +
+            (c.expr ? ' <span class="muted">— ' + _esc(c.expr) + '</span>' : '') + '</li>';
+        }).join('') + '</ul></div>';
+    }
+    if (contract.note) h += '<p class="muted" style="font-size:0.82em;margin-top:6px">' + _esc(contract.note) + '</p>';
+    return h + '</div>';
+  }
+  function _pdListHtml(title, arr) {
+    arr = Array.isArray(arr) ? arr : [];
+    if (!arr.length) return '';
+    return '<div class="overview-section" style="margin-top:14px">' +
+      '<h2 class="overview-label">' + _esc(title) + '</h2>' +
+      '<ul style="margin:4px 0 0 0">' + arr.map(function (x) {
+        return '<li>' + _esc(String(x)) + '</li>';
+      }).join('') + '</ul></div>';
+  }
+  // Ensure a slot div with `id` exists in `parent` (prepended, or appended when
+  // atEnd), so repeated renders reuse it rather than stacking.
+  function _pdSlot(parent, id, atEnd) {
+    if (!parent) return null;
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = id;
+      if (atEnd) parent.appendChild(el); else parent.insertBefore(el, parent.firstChild);
+    }
+    return el;
+  }
+
   function _renderFeedbackTrackedPanel() {
     var container = document.getElementById('feedback-tracked-panel');
     if (!container) return;               // anchor missing — template version mismatch
@@ -4908,8 +5140,26 @@
     return !!window._study;
   }
 
+  // Open questions / decisions (Overview) — surface the study's
+  // expert_questions so the reviewer sees what this study needs decided.
+  function _renderPlanningOverview() {
+    var eq = Array.isArray((window._study || {}).expert_questions)
+      ? window._study.expert_questions : [];
+    var slot = _pdSlot(document.getElementById('panel-overview'), 'overview-expert-questions', true);
+    if (!slot) return;
+    slot.innerHTML = eq.length
+      ? '<div class="overview-section" style="margin-top:18px">' +
+          '<h2 class="overview-label">Open questions / decisions</h2>' +
+          '<ul style="margin:4px 0 0 0">' + eq.map(function (x) {
+            return '<li>' + _esc(String(x)) + '</li>';
+          }).join('') + '</ul></div>'
+      : '';
+  }
+
   function _runStudyInit() {
     // All renderers that need window._study to be populated.
+    _renderPlanningOverview();
+    _loadOverviewKeyFigure();   // embed the headline figure on the Overview
     _renderFeedbackTrackedPanel();
     _renderReadinessPanel();
     _populateConclusionVerdictBadges();
