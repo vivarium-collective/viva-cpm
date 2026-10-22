@@ -814,7 +814,7 @@ conditions:
   baseline:
     name: baseline
     composite: viva_cpm_studies.composites.influenza.full_model
-    params: {fracs: [0.001, 0.05], replicas: 1, cells_per_side: 12, steps: 15, seed0: 0}  # the reduced fast-test config this study's numbers come from; run.repro_fig7 is a driver function, not exercised through this composite directly -- see model_change.notes
+    params: {cells_per_side: 12, n_steps: 15, seed: 0}  # the reduced fast-test config this study's numbers come from; run.repro_fig7 is a driver function, not exercised through this composite directly -- see model_change.notes
 
   model_settings: []
 

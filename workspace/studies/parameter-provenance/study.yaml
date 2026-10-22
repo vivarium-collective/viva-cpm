@@ -254,5 +254,5 @@ conditions:
   baseline:
     name: baseline
     composite: viva_cpm_studies.composites.influenza.epithelium
-    params: {patch_mm: 0.1, seed: 17}  # nominal baseline; this is a documentation-only provenance study with no simulation of its own
+    params: {patch_mm: 0.1}  # nominal baseline; this is a documentation-only provenance study with no simulation of its own
   model_settings: []
