@@ -210,6 +210,19 @@ across the sheet) with population conserved?
 .figure-media-frame{display:block;width:100%;border:0;background:#fff}
 .figure-media-frame--native{height:auto;min-height:320px}  /* JS (_autosizeNativeFrames) grows this to the figure's full content height */
 .figure-media-frame--embed{min-height:200px}
+/* Explore-module launch card: a deeper interactive module (Corpus Explorer, 3D
+   viewers, …) is linked out full-size rather than squeezed into an iframe. */
+.explore-module-card{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 18px;border:1px solid #c7d2fe;background:linear-gradient(0deg,#f5f7ff,#fff)}
+.explore-module-main{min-width:0}
+.explore-module-badge{display:inline-block;font-size:0.68rem;font-weight:700;letter-spacing:0.04em;
+  text-transform:uppercase;color:#4338ca;background:#e0e7ff;border-radius:9999px;padding:2px 9px;margin-right:8px}
+.explore-module-launch{flex:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  text-decoration:none;font-weight:600;font-size:0.9rem;color:#fff;background:#4f46e5;
+  border-radius:7px;padding:9px 16px;transition:background .12s}
+.explore-module-launch:hover{background:#4338ca}
+:root[data-theme="dark"] .explore-module-card{border-color:#3730a3;background:linear-gradient(0deg,#1e1b4b,var(--surface))}
+:root[data-theme="dark"] .explore-module-badge{color:#c7d2fe;background:#312e81}
 /* SVGs/PNGs scale to fit their card; preserves aspect ratio so a 1400×484
    chart shrinks instead of overflowing horizontally + clipping. */
 .figure-card svg,.figure-card img.chart-img{display:block;width:100%;max-width:100%;height:auto}
@@ -904,6 +917,7 @@ the sole driver of new infections in this mechanism.
     
     
     
+    
     <div class="figure-card embed-viz-card">
       <iframe src="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/spatial-virus-field.html"
               class="figure-media-frame figure-media-frame--embed"
@@ -918,6 +932,8 @@ the sole driver of new infections in this mechanism.
         <a href="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/spatial-virus-field.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
       </div>
     </div>
+    
+    
     
     <div class="figure-card embed-viz-card">
       <iframe src="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/virus-field-scene.html"
@@ -934,6 +950,8 @@ the sole driver of new infections in this mechanism.
       </div>
     </div>
     
+    
+    
     <div class="figure-card embed-viz-card">
       <iframe src="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/infection-dynamics.html"
               class="figure-media-frame figure-media-frame--embed"
@@ -948,6 +966,7 @@ the sole driver of new infections in this mechanism.
         <a href="/viva-cpm/dashboard/workspace/studies/virus-field-infection/viz/infection-dynamics.html" target="_blank" class="figure-open-link">Open in new tab ↗</a>
       </div>
     </div>
+    
     
     
 
@@ -1330,11 +1349,14 @@ n_H 891 -&gt; 884, population conserved every update (Task 2.3).
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
+        
+          
           <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 16.0</code>
-        
+          
           <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: n_I 9 -&gt; 16, n_H 891 -&gt; 884 over 60 updates; n_H + n_I conserved every update (Task 2.3, test_seeded_lesion_spreads_over_time)</code>
-        
+          
           <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
+          
         
       </div>
       
@@ -1392,11 +1414,14 @@ bound.
       <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
         <strong>Latest result:</strong>
         
+        
+          
           <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">measured_value: 0.61</code>
-        
+          
           <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">notes: actual_mean=15.0 sites vs random_null_mean=24.6 sites, ratio ~0.61 (threshold &lt;0.75); shuffled-virus-field non-local control of the same run gives ratio ~1.13 and correctly fails (Task 2.3 fix round 1, test_new_infections_land_closer_to_prior_infection_than_random_chance)</code>
-        
+          
           <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: tests/test_influenza_virus_infection.py</code>
+          
         
       </div>
       
@@ -1760,7 +1785,7 @@ Increment 9 (the capstone).</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "8f09d73e5262646c253b9b6bc5ab47925a78a7cc", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/8f09d73e5262646c253b9b6bc5ab47925a78a7cc", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-10-22 12:04 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/dashboard", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "c82e2c00d8e9106ff6c2237d84d9703337810b24", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/c82e2c00d8e9106ff6c2237d84d9703337810b24", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-10-22 18:46 UTC"} };</script>
 <script src="/viva-cpm/dashboard/assets/data-source.js"></script>
 <script src="/viva-cpm/dashboard/assets/toast.js"></script>
 <script>
