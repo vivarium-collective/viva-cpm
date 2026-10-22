@@ -285,7 +285,7 @@ def _render_one(address, config, runs_db, study_yaml, overrides=None):
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `viva_cpm_studies.composites.influenza.epithelium` | 0 | patch_mm=0.1, seed=17 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.epithelium` | 0 | patch_mm=0.1 |
 
 # ### The model & its parameters
 #
@@ -859,7 +859,7 @@ _save_viz('epithelial-fate', 'Epithelial-fate_lifecycle', _render_one('local:Inf
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `viva_cpm_studies.composites.influenza.cytotoxic_immunity` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.cytotoxic_immunity` | 0 | chemotaxis_v_macro=5000.0, chemotaxis_v_nk=500000.0, chemotaxis_v_cd8=1000000.0, seed=17 |
 
 # ### The model & its parameters
 #
@@ -971,7 +971,7 @@ _save_viz('immune-response', 'InfluenzaSpatialImmune', _render_one('', {}, RUNS_
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `viva_cpm_studies.composites.influenza.systemic_ode` | 0 | chemotaxis_v_macro=5000.0, chemotaxis_v_nk=500000.0, chemotaxis_v_cd8=1000000.0, seed=17 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.systemic_ode` | 0 | patch_mm=0.1, seed=17, init_infected_frac=0.05 |
 
 # ### The model & its parameters
 #
@@ -1105,7 +1105,7 @@ _save_viz('global-coupling', 'Hybrid_global_ODE_coupling', _render_one('local:In
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 20 | replicas=2, cells_per_side=15, seed0=0 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 20 | cells_per_side=15, n_steps=20, seed=0 |
 
 # ### The model & its parameters
 #
@@ -1244,7 +1244,7 @@ _save_viz('repro-fig3b', 'Fig-3B_reproduction_ensemble_vs_acceptance_band', _ren
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 15 | loads=[1, 10000], replicas=1, cells_per_side=12, seed0=0 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 15 | cells_per_side=12, n_steps=15, seed=0 |
 
 # ### The model & its parameters
 #
@@ -1393,7 +1393,7 @@ _save_viz('repro-fig5-viral-load', 'Fig-5_reproduction_dose-response_vs_acceptan
 #
 # | simulation | composite | steps | params |
 # | --- | --- | --- | --- |
-# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 15 | fracs=[0.001, 0.05], replicas=1, cells_per_side=12, seed0=0 |
+# | `baseline` | `viva_cpm_studies.composites.influenza.full_model` | 15 | cells_per_side=12, n_steps=15, seed=0 |
 
 # ### The model & its parameters
 #
