@@ -119,6 +119,14 @@ jobs:
         run: |
           set -euo pipefail
           owner="${{ github.repository_owner }}"; repo="${{ github.event.repository.name }}"
+          # Cosmetic README banner must never red a successful publish (see the
+          # step comment). scripts/feature_dashboard_in_readme.py is not present in
+          # every workspace; referencing a missing file under `set -e` made python3
+          # exit 2 and fail the whole publish though the dashboard built + deployed.
+          if [ ! -f scripts/feature_dashboard_in_readme.py ]; then
+            echo "::notice::scripts/feature_dashboard_in_readme.py not present; skipping README dashboard banner (publish already succeeded)"
+            exit 0
+          fi
           python3 scripts/feature_dashboard_in_readme.py README.md \
             "https://${owner}.github.io/${repo}/dashboard/" \
             "https://${owner}.github.io/${repo}/"
