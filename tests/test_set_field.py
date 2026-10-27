@@ -8,6 +8,7 @@ be zeroed and the externally-set field is used verbatim.
 """
 
 import numpy as np
+import pytest
 
 import viva_cpm
 from viva_cpm.cpm_core import World
@@ -50,3 +51,24 @@ def test_native_dynamics_zeroed_keeps_field():
 
     out = w.field_conc(fi)
     assert np.allclose(np.asarray(out, dtype=np.float32), np.asarray(grid, dtype=np.float32), atol=1e-6), out
+
+
+def test_set_field_error_paths():
+    # Clean Python exceptions on bad arguments (no PyO3 PanicException).
+    w = World((4, 3, 1), "noflux", 2, 10.0)
+    fi = w.add_field("c", 0.0, 0.0)
+    w.finalize(1)
+    n = 4 * 3 * 1
+    good = [0.0] * n
+
+    # Out-of-range int index -> IndexError (not a panic).
+    with pytest.raises(IndexError):
+        w.set_field(fi + 1, good)
+
+    # Wrong-length grid -> ValueError.
+    with pytest.raises(ValueError):
+        w.set_field(fi, [0.0] * (n + 1))
+
+    # Unknown field name -> KeyError.
+    with pytest.raises(KeyError):
+        w.set_field("does-not-exist", good)

@@ -27,6 +27,12 @@ impl World {
     /// to a flat field index.
     fn resolve_field_index(&self, field: &Bound<'_, PyAny>) -> PyResult<usize> {
         if let Ok(idx) = field.extract::<usize>() {
+            let n = self.world_ref().fields.len();
+            if idx >= n {
+                return Err(pyo3::exceptions::PyIndexError::new_err(format!(
+                    "field index {idx} out of range ({n} field(s))"
+                )));
+            }
             return Ok(idx);
         }
         if let Ok(name) = field.extract::<String>() {
