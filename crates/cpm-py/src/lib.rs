@@ -22,6 +22,22 @@ impl World {
     fn world_mut(&mut self) -> &mut CoreWorld {
         if let Some(c) = &mut self.cpm { &mut c.world } else { self.core.as_mut().unwrap() }
     }
+
+    /// Resolve a `name_or_idx` argument (an int field index or a str field name)
+    /// to a flat field index.
+    fn resolve_field_index(&self, field: &Bound<'_, PyAny>) -> PyResult<usize> {
+        if let Ok(idx) = field.extract::<usize>() {
+            return Ok(idx);
+        }
+        if let Ok(name) = field.extract::<String>() {
+            return self.world_ref().field_index(&name).ok_or_else(|| {
+                pyo3::exceptions::PyKeyError::new_err(format!("no field named {name:?}"))
+            });
+        }
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "set_field: name_or_idx must be an int field index or a str field name",
+        ))
+    }
 }
 
 #[pymethods]
@@ -180,6 +196,27 @@ impl World {
 
     fn field_mean_at_cell(&self, field_idx: usize, cell_id: u32) -> f64 {
         self.world_ref().field_mean_at_cell(field_idx, cell_id)
+    }
+
+    /// Bulk-overwrite a whole field grid with `grid`, a flat sequence (list or
+    /// numpy array) in the same lattice-site layout `field_conc` returns, so
+    /// `set_field(f, x)` then `field_conc(f)` yields `x`. `name_or_idx` is the
+    /// field's int index or str name. For injecting a field computed by an
+    /// external authoritative engine each step; pair with zeroed native dynamics
+    /// (d=0, decay=0, no secretion) so CPM only reads the injected field (e.g.
+    /// for chemotaxis). Additive and backward-compatible.
+    fn set_field(&mut self, name_or_idx: &Bound<'_, PyAny>, grid: Vec<f32>) -> PyResult<()> {
+        let idx = self.resolve_field_index(name_or_idx)?;
+        let n = self.world_ref().lattice.n_sites();
+        if grid.len() != n {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "set_field expects a flat grid of {} sites (field_conc layout), got {}",
+                n,
+                grid.len()
+            )));
+        }
+        self.world_mut().set_field(idx, &grid);
+        Ok(())
     }
 
     /// Concentration of field `field_idx` at site (x, y, z); out-of-range

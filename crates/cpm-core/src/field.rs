@@ -187,6 +187,33 @@ impl World {
         self.fields[field_idx].conc.clone()
     }
 
+    /// Index of the field named `name`, if any.
+    pub fn field_index(&self, name: &str) -> Option<usize> {
+        self.fields.iter().position(|f| f.name == name)
+    }
+
+    /// Bulk-overwrite field `field_idx`'s whole grid with `grid`, using the same
+    /// flat lattice-site layout `field_conc` returns (so `set_field(x)` followed
+    /// by `field_conc()` yields `x`). Intended for injecting a field computed by
+    /// an external authoritative reaction-diffusion engine each step; pair it with
+    /// zeroed native dynamics (d=0, decay=0, no secretion) so the injected field
+    /// is used verbatim and CPM only reads it (e.g. for chemotaxis). Additive and
+    /// backward-compatible — existing behavior is untouched.
+    ///
+    /// Panics if `grid.len()` does not equal the lattice site count.
+    pub fn set_field(&mut self, field_idx: usize, grid: &[f32]) {
+        let n = self.lattice.n_sites();
+        assert_eq!(
+            grid.len(),
+            n,
+            "set_field grid length {} != lattice site count {}",
+            grid.len(),
+            n
+        );
+        self.fields[field_idx].conc.clear();
+        self.fields[field_idx].conc.extend_from_slice(grid);
+    }
+
     /// Concentration of field `field_idx` at a single flat lattice `site`.
     pub fn field_value_at(&self, field_idx: usize, site: usize) -> f64 {
         self.fields[field_idx].value_at(site)
