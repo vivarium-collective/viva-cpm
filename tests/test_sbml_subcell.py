@@ -1,3 +1,4 @@
+import numpy as np
 import process_bigraph as pb
 from viva_cpm.subcellular.sbml import SBMLSubcell
 
@@ -31,3 +32,19 @@ def test_high_ligand_sustains_stemness():
     for _ in range(20):
         s_last = p.update({"ligand": 1.0}, 1.0)["state"]
     assert s_last > 0.8            # saturating Wnt -> S held high
+
+
+def test_update_reads_state_from_array_species(monkeypatch):
+    """viva-tellurium >= 0.1.2 bulk mode returns `species` as a numpy ARRAY ordered by
+    getFloatingSpeciesIds, not a {id: value} map. SBMLSubcell must read the chosen state
+    species by its POSITION — indexing an array with the string id raises IndexError (the
+    CI break with libroadrunner 2.11 / viva-tellurium 0.1.2, green only on the older map-
+    returning 0.1.0)."""
+    p = _proc()
+    p.update({"ligand": 0.0}, 1.0)                 # one real step to populate species ids
+    ids = list(p._tp._species_ids)
+    expected = {sid: float(i + 1) for i, sid in enumerate(ids)}   # distinct per species
+    arr = np.array([expected[sid] for sid in ids], dtype=float)
+    monkeypatch.setattr(p._tp, "update", lambda inp, interval: {"species": arr})
+    out = p.update({"ligand": 0.0}, 1.0)
+    assert out["state"] == expected[p.state_species]

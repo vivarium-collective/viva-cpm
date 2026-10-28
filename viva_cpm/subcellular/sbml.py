@@ -29,4 +29,12 @@ class SBMLSubcell(Process):
     def update(self, state, interval):
         ligand = float((state or {}).get("ligand", 0.0)) * self.scale
         out = self._tp.update({"species": {self.ligand_species: ligand}}, interval)
-        return {"state": float(out["species"][self.state_species])}
+        species = out["species"]
+        # viva-tellurium >= 0.1.2 bulk mode returns `species` as a numpy array ordered by
+        # getFloatingSpeciesIds; 0.1.0 returned a {id: value} map. Read the chosen state
+        # species by key when it's a map, else by its position in the id order.
+        if isinstance(species, dict):
+            value = species[self.state_species]
+        else:
+            value = species[self._tp._species_ids.index(self.state_species)]
+        return {"state": float(value)}
