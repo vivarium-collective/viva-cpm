@@ -18,7 +18,10 @@ class SBMLSubcell(Process):
         self.ligand_species = config["ligand_species"]
         self.state_species = config["state_species"]
         self.scale = float(config["ligand_scale"])
-        self._tp = TelluriumProcess({"model": config["model"]}, core=self.core)
+        # bulk_species=False: this process reads/writes species by NAME (dict), not
+        # the bulk Array leaf that is TelluriumProcess's post-#26 default.
+        self._tp = TelluriumProcess(
+            {"model": config["model"], "bulk_species": False}, core=self.core)
 
     def inputs(self):
         return {"ligand": "float"}
