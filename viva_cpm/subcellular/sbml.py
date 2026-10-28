@@ -18,7 +18,14 @@ class SBMLSubcell(Process):
         self.ligand_species = config["ligand_species"]
         self.state_species = config["state_species"]
         self.scale = float(config["ligand_scale"])
-        self._tp = TelluriumProcess({"model": config["model"]}, core=self.core)
+        # Pin the legacy per-species map port. viva-tellurium >= 0.1.2 defaults
+        # bulk_species=True, which makes the `species` port a numpy array AND expects
+        # the species input as an array — so this process's map-shaped ligand override
+        # and string-keyed state read both break (IndexError, then a dropped override).
+        # bulk_species=False is the bit-identical back-compat map port. Older
+        # viva-tellurium (no bulk_species key) ignores the extra config harmlessly.
+        self._tp = TelluriumProcess(
+            {"model": config["model"], "bulk_species": False}, core=self.core)
 
     def inputs(self):
         return {"ligand": "float"}
