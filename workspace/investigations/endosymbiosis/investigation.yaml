@@ -1,0 +1,37 @@
+schema_version: 2
+name: endosymbiosis
+title: The Endosymbiotic Transition — enclosure mechanics (S3)
+created: '2026-10-27'
+status: running
+question: >-
+  Can an archaeal-like deformable host physically surround and enclose a bacterial partner purely
+  from differential adhesion, and under which mechanical conditions does wrapping reach a stable
+  topology rather than a partial cup or a transient contact? This is the viva-cpm realization of
+  gate G3 (Enclosure) of the viva-genesis eukaryogenesis campaign "The Endosymbiotic Transition"
+  (campaign composite B — active membrane mechanics).
+hypothesis: >-
+  On a Cellular Potts lattice, the host engulfs the symbiont when host-symbiont adhesion beats the
+  combined surface-tension cost (J_hs < J_sM - J_hM). Sweeping those mechanical energies traces a
+  phase diagram with a sharp transition between no enclosure, partial wrapping, transient
+  internalization, and stable enclosure — stable wrapping as an emergent outcome, not an imposed
+  threshold.
+executive:
+  what_is_this: >-
+    The physical-enclosure plane of the endosymbiosis phase diagram, computed on the real Rust CPM
+    engine. One parameterized composite (protrusion_enclosure) runs the host/symbiont wrapping
+    model; a 2-axis sweep over adhesion and symbiont surface tension classifies the enclosure
+    regime at each point.
+  verdict: >-
+    Differential adhesion alone is sufficient for stable enclosure in a well-defined mechanical
+    regime; the measured transition tracks the predicted J_hs = J_sM - J_hM line.
+  verdict_status: in-progress
+  verdict_detail: >-
+    Companion to the viva-genesis eukaryogenesis investigation (gate G3). Demonstrates that primitive
+    engulfment can precede dedicated phagocytic machinery.
+  decisions_needed: []
+scientific_argument:
+  main_claim: >-
+    A deformable host cell reaches stable enclosure of a partner by differential adhesion alone,
+    with a sharp mechanical transition, giving the G3 gate an emergent spatial readout.
+studies:
+- s3-protrusion-enclosure
