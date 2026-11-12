@@ -180,6 +180,11 @@ class CPMProcess(Process):
         "report_aggregate_types": {"_type": "list", "_default": []},
     }
 
+    # Class-level default so subclasses that override ``initialize`` without
+    # calling ``super().initialize`` (e.g. EpitheliumProcess) still expose a
+    # safe, empty aggregate-report set to ``outputs``/the step method.
+    aggregate_types: list = []
+
     def initialize(self, config):
         self.world = load_world(self.config["spec"])
         self.mcs = int(self.config["mcs_per_update"])
