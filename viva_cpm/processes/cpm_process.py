@@ -2,6 +2,7 @@ from process_bigraph import Process
 
 from bigraph_schema.contract import ProcessContract
 
+from viva_cpm.metrics import aggregate_components, largest_cluster_fraction
 from viva_cpm.schema import load_world
 
 
@@ -149,6 +150,11 @@ class CPMProcess(Process):
         "mcs_per_update": {"_type": "integer", "_default": 10},
         "n_fields": {"_type": "integer", "_default": 0},
         "secretory_types": {"_type": "list", "_default": []},
+        # Optional (no-op when empty): per-type grow + divide after each step.
+        "mitosis": {"_type": "list", "_default": []},
+        # Optional (no-op when empty): cell types whose merged mask is reported
+        # as aggregate-cluster metrics (n_propagules, largest_cluster_fraction).
+        "report_aggregate_types": {"_type": "list", "_default": []},
     }
 
     def initialize(self, config):
@@ -157,6 +163,9 @@ class CPMProcess(Process):
         self.n_fields = int(self.config["n_fields"])
         self.secretory = set(int(t) for t in self.config.get("secretory_types") or [])
         self.dims = self.world.dims()
+        self.mitosis = list(self.config.get("mitosis") or [])
+        self.aggregate_types = [int(t) for t in
+                                (self.config.get("report_aggregate_types") or [])]
 
     def inputs(self):
         # fates is a map keyed by string cell id so subcellular processes can
@@ -167,7 +176,7 @@ class CPMProcess(Process):
         return {"fates": "map[integer]"}
 
     def outputs(self):
-        return {
+        out = {
             "volumes": "overwrite[list]",
             "types": "overwrite[list]",
             "positions": "overwrite[list]",
@@ -178,6 +187,10 @@ class CPMProcess(Process):
             "field_at_cell": "overwrite[map[float]]",
             "neighbor_secretory": "overwrite[map[integer]]",
         }
+        if self.aggregate_types:
+            out["n_propagules"] = "overwrite[integer]"
+            out["largest_cluster_fraction"] = "overwrite[float]"
+        return out
 
     def _neighbor_secretory_counts(self, types):
         """Count, per cell, face-adjacent cells whose type is secretory."""
@@ -214,6 +227,10 @@ class CPMProcess(Process):
             if t and cid > 0:
                 self.world.set_cell_type(cid, int(t))
         self.world.step(self.mcs)
+        for m in self.mitosis:
+            self.world.grow(int(m["type"]), float(m["grow_rate"]))
+            self.world.divide_cells(float(m["divide_threshold"]),
+                                    float(m["reset_target"]))
 
         types = list(self.world.cell_types())
         n = len(types)
@@ -222,10 +239,15 @@ class CPMProcess(Process):
             for cid in range(1, n):
                 field_at[str(cid)] = self.world.field_mean_at_cell(0, cid)
         neigh = self._neighbor_secretory_counts(types)
-        return {
+        result = {
             "volumes": list(self.world.cell_volumes()),
             "types": types,
             "positions": [list(c) for c in self.world.cell_coms()],
             "field_at_cell": field_at,
             "neighbor_secretory": {str(cid): neigh[cid] for cid in range(1, n)},
         }
+        if self.aggregate_types:
+            result["n_propagules"] = aggregate_components(self.world, self.aggregate_types)
+            result["largest_cluster_fraction"] = largest_cluster_fraction(
+                self.world, self.aggregate_types)
+        return result

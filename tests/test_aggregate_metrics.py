@@ -52,3 +52,17 @@ def test_empty_mask_is_zero_not_crash():
 def test_largest_fraction_on_70_30_split():
     world = _world_with_two_blobs(type_=1, sizes=(70, 30))
     assert abs(largest_cluster_fraction(world, [1]) - 0.7) < 0.05
+
+
+def test_adjacent_same_type_cells_merge_into_one_component():
+    # Two distinct cells touching along x=8 -> one aggregate, not a per-cell sum.
+    world = _world([_cell(1, [2, 2, 0, 8, 12, 1]), _cell(1, [8, 2, 0, 14, 12, 1])])
+    assert world.n_cells() == 2
+    assert aggregate_components(world, [1]) == 1
+    assert largest_cluster_fraction(world, [1]) == 1.0
+
+
+def test_adjacent_cells_of_different_types_merge_only_when_both_selected():
+    world = _world([_cell(1, [2, 2, 0, 8, 12, 1]), _cell(2, [8, 2, 0, 14, 12, 1])])
+    assert aggregate_components(world, [1, 2]) == 1
+    assert aggregate_components(world, [1]) == 1
