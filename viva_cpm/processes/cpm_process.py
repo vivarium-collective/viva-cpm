@@ -2,6 +2,7 @@ from process_bigraph import Process
 
 from bigraph_schema.contract import ProcessContract
 
+from viva_cpm.metrics import aggregate_components, largest_cluster_fraction
 from viva_cpm.schema import load_world
 
 
@@ -40,7 +41,11 @@ class CPMProcess(Process):
             "Each update: (1) write incoming fates into the engine as cell-type switches; "
             "(2) run `mcs_per_update` Monte Carlo sweeps (each sweep also advances the "
             "reaction-diffusion fields when present); (3) read back per-cell geometry and "
-            "the per-cell environment readouts used for subcellular coupling."
+            "the per-cell environment readouts used for subcellular coupling.\n\n"
+            "Two optional config knobs, both no-ops when unset: `mitosis` (after each sweep "
+            "block, grow and then divide the listed cell types to drive growth-driven "
+            "proliferation) and `report_aggregate_types` (the cell types merged into one mask "
+            "for the propagule metrics n_propagules and largest_cluster_fraction)."
         ),
         inputs={
             "fates": (
@@ -74,6 +79,15 @@ class CPMProcess(Process):
                 "face-adjacent neighbour cells whose type is in `secretory_types` (medium and "
                 "same-cell contacts excluded)."
             ),
+            "n_propagules": (
+                "overwrite[integer] number of connected components of the aggregated "
+                "`report_aggregate_types` mask, i.e. how many detached propagules the clonal "
+                "cluster has fragmented into; emitted only when `report_aggregate_types` is set."
+            ),
+            "largest_cluster_fraction": (
+                "overwrite[float] the largest connected component's share of the masked sites "
+                "(1.0 = fully cohesive); emitted only when `report_aggregate_types` is set."
+            ),
         },
         config={
             "spec": (
@@ -93,6 +107,16 @@ class CPMProcess(Process):
             "secretory_types": (
                 "list (default []) of cell-type tags treated as secretory when tallying "
                 "neighbor_secretory face-adjacency counts."
+            ),
+            "mitosis": (
+                "optional list (default [], no-op when empty) of {type, grow_rate, "
+                "divide_threshold, reset_target}: after each step, grow every cell of `type` by "
+                "`grow_rate` target volume, then divide cells with volume >= `divide_threshold`, "
+                "resetting their target volume to `reset_target`."
+            ),
+            "report_aggregate_types": (
+                "optional list (default [], no-op when empty) of cell-type tags aggregated into "
+                "one mask; when set, n_propagules and largest_cluster_fraction are emitted."
             ),
         },
         math=[
@@ -149,7 +173,17 @@ class CPMProcess(Process):
         "mcs_per_update": {"_type": "integer", "_default": 10},
         "n_fields": {"_type": "integer", "_default": 0},
         "secretory_types": {"_type": "list", "_default": []},
+        # Optional (no-op when empty): per-type grow + divide after each step.
+        "mitosis": {"_type": "list", "_default": []},
+        # Optional (no-op when empty): cell types whose merged mask is reported
+        # as aggregate-cluster metrics (n_propagules, largest_cluster_fraction).
+        "report_aggregate_types": {"_type": "list", "_default": []},
     }
+
+    # Class-level default so subclasses that override ``initialize`` without
+    # calling ``super().initialize`` (e.g. EpitheliumProcess) still expose a
+    # safe, empty aggregate-report set to ``outputs``/the step method.
+    aggregate_types: list = []
 
     def initialize(self, config):
         self.world = load_world(self.config["spec"])
@@ -157,6 +191,9 @@ class CPMProcess(Process):
         self.n_fields = int(self.config["n_fields"])
         self.secretory = set(int(t) for t in self.config.get("secretory_types") or [])
         self.dims = self.world.dims()
+        self.mitosis = list(self.config.get("mitosis") or [])
+        self.aggregate_types = [int(t) for t in
+                                (self.config.get("report_aggregate_types") or [])]
 
     def inputs(self):
         # fates is a map keyed by string cell id so subcellular processes can
@@ -167,7 +204,7 @@ class CPMProcess(Process):
         return {"fates": "map[integer]"}
 
     def outputs(self):
-        return {
+        out = {
             "volumes": "overwrite[list]",
             "types": "overwrite[list]",
             "positions": "overwrite[list]",
@@ -178,6 +215,10 @@ class CPMProcess(Process):
             "field_at_cell": "overwrite[map[float]]",
             "neighbor_secretory": "overwrite[map[integer]]",
         }
+        if self.aggregate_types:
+            out["n_propagules"] = "overwrite[integer]"
+            out["largest_cluster_fraction"] = "overwrite[float]"
+        return out
 
     def _neighbor_secretory_counts(self, types):
         """Count, per cell, face-adjacent cells whose type is secretory."""
@@ -214,6 +255,10 @@ class CPMProcess(Process):
             if t and cid > 0:
                 self.world.set_cell_type(cid, int(t))
         self.world.step(self.mcs)
+        for m in self.mitosis:
+            self.world.grow(int(m["type"]), float(m["grow_rate"]))
+            self.world.divide_cells(float(m["divide_threshold"]),
+                                    float(m["reset_target"]))
 
         types = list(self.world.cell_types())
         n = len(types)
@@ -222,10 +267,15 @@ class CPMProcess(Process):
             for cid in range(1, n):
                 field_at[str(cid)] = self.world.field_mean_at_cell(0, cid)
         neigh = self._neighbor_secretory_counts(types)
-        return {
+        result = {
             "volumes": list(self.world.cell_volumes()),
             "types": types,
             "positions": [list(c) for c in self.world.cell_coms()],
             "field_at_cell": field_at,
             "neighbor_secretory": {str(cid): neigh[cid] for cid in range(1, n)},
         }
+        if self.aggregate_types:
+            result["n_propagules"] = aggregate_components(self.world, self.aggregate_types)
+            result["largest_cluster_fraction"] = largest_cluster_fraction(
+                self.world, self.aggregate_types)
+        return result
