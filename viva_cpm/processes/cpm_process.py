@@ -41,7 +41,11 @@ class CPMProcess(Process):
             "Each update: (1) write incoming fates into the engine as cell-type switches; "
             "(2) run `mcs_per_update` Monte Carlo sweeps (each sweep also advances the "
             "reaction-diffusion fields when present); (3) read back per-cell geometry and "
-            "the per-cell environment readouts used for subcellular coupling."
+            "the per-cell environment readouts used for subcellular coupling.\n\n"
+            "Two optional config knobs, both no-ops when unset: `mitosis` (after each sweep "
+            "block, grow and then divide the listed cell types to drive growth-driven "
+            "proliferation) and `report_aggregate_types` (the cell types merged into one mask "
+            "for the propagule metrics n_propagules and largest_cluster_fraction)."
         ),
         inputs={
             "fates": (
@@ -75,6 +79,15 @@ class CPMProcess(Process):
                 "face-adjacent neighbour cells whose type is in `secretory_types` (medium and "
                 "same-cell contacts excluded)."
             ),
+            "n_propagules": (
+                "overwrite[integer] number of connected components of the aggregated "
+                "`report_aggregate_types` mask, i.e. how many detached propagules the clonal "
+                "cluster has fragmented into; emitted only when `report_aggregate_types` is set."
+            ),
+            "largest_cluster_fraction": (
+                "overwrite[float] the largest connected component's share of the masked sites "
+                "(1.0 = fully cohesive); emitted only when `report_aggregate_types` is set."
+            ),
         },
         config={
             "spec": (
@@ -94,6 +107,16 @@ class CPMProcess(Process):
             "secretory_types": (
                 "list (default []) of cell-type tags treated as secretory when tallying "
                 "neighbor_secretory face-adjacency counts."
+            ),
+            "mitosis": (
+                "optional list (default [], no-op when empty) of {type, grow_rate, "
+                "divide_threshold, reset_target}: after each step, grow every cell of `type` by "
+                "`grow_rate` target volume, then divide cells with volume >= `divide_threshold`, "
+                "resetting their target volume to `reset_target`."
+            ),
+            "report_aggregate_types": (
+                "optional list (default [], no-op when empty) of cell-type tags aggregated into "
+                "one mask; when set, n_propagules and largest_cluster_fraction are emitted."
             ),
         },
         math=[
