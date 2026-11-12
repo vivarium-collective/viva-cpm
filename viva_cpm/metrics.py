@@ -69,6 +69,49 @@ def connected_components(world, cell_id):
     return comps
 
 
+def _aggregate_component_sizes(world, types):
+    """Site counts of each connected component of the merged mask of all pixels
+    whose cell's type is in `types` (medium excluded), same adjacency as
+    `connected_components`."""
+    nx, ny, nz = world.dims()
+    labels = world.snapshot()
+    ctypes = world.cell_types()
+    want = {int(t) for t in types}
+    sites = {i for i, v in enumerate(labels)
+             if v != 0 and int(ctypes[v]) in want}
+    seen, sizes = set(), []
+    for s in sites:
+        if s in seen:
+            continue
+        size = 0
+        stack = [s]
+        seen.add(s)
+        while stack:
+            c = stack.pop()
+            size += 1
+            cz, rem = divmod(c, nx * ny)
+            cy, cx = divmod(rem, nx)
+            for n in _neighbors_moore(cx, cy, cz, nx, ny, nz):
+                if n in sites and n not in seen:
+                    seen.add(n)
+                    stack.append(n)
+        sizes.append(size)
+    return sizes
+
+
+def aggregate_components(world, types):
+    """Number of connected components of the merged mask of ALL cells whose type
+    is in `types` (treated as one adhered mass). 0 for an empty mask."""
+    return len(_aggregate_component_sizes(world, types))
+
+
+def largest_cluster_fraction(world, types):
+    """Largest aggregate component's site count / total masked site count;
+    0.0 for an empty mask."""
+    sizes = _aggregate_component_sizes(world, types)
+    return max(sizes) / sum(sizes) if sizes else 0.0
+
+
 def interior_medium_pockets(world):
     """Count medium (cell 0) connected components that do NOT touch the lattice
     border — interior gap pockets. Assumes a bounded (noflux) domain."""
