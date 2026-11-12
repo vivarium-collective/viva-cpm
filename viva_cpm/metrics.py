@@ -285,3 +285,21 @@ def open_lumen_depth(world):
         else:
             break
     return depth
+
+
+def fate_counts(world):
+    """Non-medium cell count keyed by integer cell type. Slot 0 (medium) and
+    any 0-type gap slots are skipped."""
+    counts = {}
+    for t in world.cell_types()[1:]:
+        t = int(t)
+        if t == 0:
+            continue
+        counts[t] = counts.get(t, 0) + 1
+    return counts
+
+
+def viable_biomass(world, min_volume=1.0):
+    """Total volume of non-medium cells with volume >= `min_volume` (cells
+    squeezed below the floor are treated as dead). Returns a float."""
+    return float(sum(v for v in world.cell_volumes()[1:] if v >= min_volume))
