@@ -2,6 +2,7 @@ from process_bigraph import Process
 
 from bigraph_schema.contract import ProcessContract
 
+from viva_cpm import metrics
 from viva_cpm.metrics import aggregate_components, largest_cluster_fraction
 from viva_cpm.schema import load_world
 
@@ -88,6 +89,14 @@ class CPMProcess(Process):
                 "overwrite[float] the largest connected component's share of the masked sites "
                 "(1.0 = fully cohesive); emitted only when `report_aggregate_types` is set."
             ),
+            "fate_counts": (
+                "overwrite[map[integer]] keyed by string cell-type tag -> number of non-medium "
+                "cells of that type; emitted only when `report_fate_growth` is true."
+            ),
+            "viable_biomass": (
+                "overwrite[float] total volume (lattice sites) of non-medium cells with volume "
+                ">= 1; emitted only when `report_fate_growth` is true."
+            ),
         },
         config={
             "spec": (
@@ -112,7 +121,13 @@ class CPMProcess(Process):
                 "optional list (default [], no-op when empty) of {type, grow_rate, "
                 "divide_threshold, reset_target}: after each step, grow every cell of `type` by "
                 "`grow_rate` target volume, then divide cells with volume >= `divide_threshold`, "
-                "resetting their target volume to `reset_target`."
+                "resetting their target volume to `reset_target`. An entry may carry "
+                "`o2_gate` = {field, threshold}: then each cell of `type` grows by `grow_rate` "
+                "only if its mean local field value >= threshold, and division is skipped "
+                "unless both `divide_threshold` and `reset_target` are given."
+            ),
+            "report_fate_growth": (
+                "boolean (default false): when true, fate_counts and viable_biomass are emitted."
             ),
             "report_aggregate_types": (
                 "optional list (default [], no-op when empty) of cell-type tags aggregated into "
@@ -178,12 +193,16 @@ class CPMProcess(Process):
         # Optional (no-op when empty): cell types whose merged mask is reported
         # as aggregate-cluster metrics (n_propagules, largest_cluster_fraction).
         "report_aggregate_types": {"_type": "list", "_default": []},
+        # Optional: emit per-type cell counts + viable biomass.
+        "report_fate_growth": {"_type": "boolean", "_default": False},
     }
 
     # Class-level default so subclasses that override ``initialize`` without
     # calling ``super().initialize`` (e.g. EpitheliumProcess) still expose a
     # safe, empty aggregate-report set to ``outputs``/the step method.
     aggregate_types: list = []
+    report_fate_growth: bool = False
+    _tvol: dict = {}
 
     def initialize(self, config):
         self.world = load_world(self.config["spec"])
@@ -194,6 +213,11 @@ class CPMProcess(Process):
         self.mitosis = list(self.config.get("mitosis") or [])
         self.aggregate_types = [int(t) for t in
                                 (self.config.get("report_aggregate_types") or [])]
+        self.report_fate_growth = bool(self.config.get("report_fate_growth"))
+        # No per-cell target-volume getter in the engine: track in Python
+        # (spec cells[i] -> cell id i+1; medium is 0).
+        self._tvol = {i + 1: float(c["target_volume"])
+                      for i, c in enumerate(self.config["spec"].get("cells") or [])}
 
     def inputs(self):
         # fates is a map keyed by string cell id so subcellular processes can
@@ -218,6 +242,9 @@ class CPMProcess(Process):
         if self.aggregate_types:
             out["n_propagules"] = "overwrite[integer]"
             out["largest_cluster_fraction"] = "overwrite[float]"
+        if self.report_fate_growth:
+            out["fate_counts"] = "overwrite[map[integer]]"
+            out["viable_biomass"] = "overwrite[float]"
         return out
 
     def _neighbor_secretory_counts(self, types):
@@ -256,9 +283,22 @@ class CPMProcess(Process):
                 self.world.set_cell_type(cid, int(t))
         self.world.step(self.mcs)
         for m in self.mitosis:
-            self.world.grow(int(m["type"]), float(m["grow_rate"]))
-            self.world.divide_cells(float(m["divide_threshold"]),
-                                    float(m["reset_target"]))
+            gate = m.get("o2_gate")
+            if gate:
+                rate = float(m["grow_rate"])
+                ctypes = self.world.cell_types()
+                for cid in range(1, len(ctypes)):
+                    if int(ctypes[cid]) != int(m["type"]):
+                        continue
+                    if (self.world.field_mean_at_cell(int(gate["field"]), cid)
+                            >= float(gate["threshold"])):
+                        self._tvol[cid] = self._tvol.get(cid, 0.0) + rate
+                        self.world.set_target_volume(cid, self._tvol[cid])
+            else:
+                self.world.grow(int(m["type"]), float(m["grow_rate"]))
+            if "divide_threshold" in m and "reset_target" in m and not gate:
+                self.world.divide_cells(float(m["divide_threshold"]),
+                                        float(m["reset_target"]))
 
         types = list(self.world.cell_types())
         n = len(types)
@@ -278,4 +318,8 @@ class CPMProcess(Process):
             result["n_propagules"] = aggregate_components(self.world, self.aggregate_types)
             result["largest_cluster_fraction"] = largest_cluster_fraction(
                 self.world, self.aggregate_types)
+        if self.report_fate_growth:
+            result["fate_counts"] = {str(t): c for t, c in
+                                     metrics.fate_counts(self.world).items()}
+            result["viable_biomass"] = metrics.viable_biomass(self.world)
         return result
