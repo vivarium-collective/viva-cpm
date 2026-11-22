@@ -6,7 +6,7 @@
 
 **Architecture:** A new `viva_cpm_studies/influenza/` package holds the canonical parameters (transcribed from the paper's CompuCell3D source), the digitized figure targets, and the epithelial-sheet builder that emits a `load_world` spec for the existing Rust `cpm_core.World`. No engine (Rust) changes in these two increments — the sheet uses primitives that already exist (`add_cell`, `set_contact`, volume constraint, `step_parallel`).
 
-**Tech Stack:** Python 3.12, `cpm.cpm_core` (Rust/PyO3 CPM engine), `process_bigraph`, PyYAML, pytest, numpy. viva-superpowers dashboard skills (`/viva-investigation`, `/viva-study`, `/viva-cite-bands`) for the investigation shell.
+**Tech Stack:** Python 3.12, `cpm.cpm_core` (Rust/PyO3 CPM engine), `process_bigraph`, PyYAML, pytest, numpy. viva-superpowers dashboard skills (`/viva:investigate`, `/viva:study`, `/viva-cite-bands`) for the investigation shell.
 
 **Spec:** `docs/superpowers/specs/2026-09-18-influenza-sego2022-reproduction-design.md`
 
@@ -323,11 +323,11 @@ git commit -m "feat(influenza): digitized Fig 3B/5/7 reproduction targets + load
 - Consumes: the reference `sego2022influenza`, `params.yaml`, and the targets.
 - Produces: the dashboard investigation the later increments' studies attach to.
 
-- [ ] **Step 1: Ensure the dashboard server is up** (`/viva-workbench status`; `/viva-workbench start` if not) — precondition for the study/investigation skills.
+- [ ] **Step 1: Ensure the dashboard server is up** (`/viva:workbench status`; `/viva:workbench start` if not) — precondition for the study/investigation skills.
 
-- [ ] **Step 2: Create the investigation** with `/viva-investigation new influenza-sego2022`, setting: title "Influenza infection & immune response (Sego 2022 reproduction)"; question = native reproduction of the CC3D cellularized influenza model to quantitative figure match; hypothesis + lead per the spec §1. Set the overview to reference the increment ladder (spec §5).
+- [ ] **Step 2: Create the investigation** with `/viva:investigate new influenza-sego2022`, setting: title "Influenza infection & immune response (Sego 2022 reproduction)"; question = native reproduction of the CC3D cellularized influenza model to quantitative figure match; hypothesis + lead per the spec §1. Set the overview to reference the increment ladder (spec §5).
 
-- [ ] **Step 3: Create the `parameter-provenance` study** with `/viva-study` in the Design phase: it documents the cited `params.yaml`, the CC3D-source note, and the digitized targets as the reproduction's parameter authority — no simulation. Link the `sego2022influenza` reference.
+- [ ] **Step 3: Create the `parameter-provenance` study** with `/viva:study` in the Design phase: it documents the cited `params.yaml`, the CC3D-source note, and the digitized targets as the reproduction's parameter authority — no simulation. Link the `sego2022influenza` reference.
 
 - [ ] **Step 4: Attach reference provenance** with `/viva-cite-bands`, linking `sego2022influenza` to the target acceptance bands.
 
@@ -624,9 +624,9 @@ Note: match the exact composite wrapping in `gg1993.composite_document` (read it
 Run: `PYTHONPATH=~/code/viva-cpm--influenza-sego2022 pytest tests/test_influenza_composite.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Create the `epithelial-sheet-baseline` study** with `/viva-study` (Build/Simulate phase): baseline composite = `viva_cpm_studies.composites.influenza.epithelial_sheet_baseline`; readouts = mean cell volume, cell count, MCS/s (from Task 1.3); acceptance = cells hold ~25 sites & confluent, throughput >= recorded floor. Link to the investigation.
+- [ ] **Step 5: Create the `epithelial-sheet-baseline` study** with `/viva:study` (Build/Simulate phase): baseline composite = `viva_cpm_studies.composites.influenza.epithelial_sheet_baseline`; readouts = mean cell volume, cell count, MCS/s (from Task 1.3); acceptance = cells hold ~25 sites & confluent, throughput >= recorded floor. Link to the investigation.
 
-- [ ] **Step 6: Add a visualization** with `/viva-viz`: a snapshot of the sheet (cell types colored) plus the cell-volume distribution histogram, so the increment ships a figure (spec §5).
+- [ ] **Step 6: Add a visualization** with `/viva:viz`: a snapshot of the sheet (cell types colored) plus the cell-volume distribution histogram, so the increment ships a figure (spec §5).
 
 - [ ] **Step 7: Commit.**
 ```bash

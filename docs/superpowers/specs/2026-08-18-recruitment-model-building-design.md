@@ -111,7 +111,7 @@ identifier/units/status/description):
 - All: `recruitment_index`, `mean_approach`, `responder_mean_distance`.
 - Receptor arm additionally: `receptor_occupancy` (θ) and `activation_fraction`
   (fraction of responders that crossed the activation threshold).
-- Validate against the composite's real emitted paths (`/viva-study
+- Validate against the composite's real emitted paths (`/viva:study
   check-observables` grammar) so the readouts are canonical, not prose.
 
 ### A3. Simulations tab — detail the runs
