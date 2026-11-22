@@ -177,7 +177,7 @@ these rather than adding a parallel notion:
   `Bridge(Node)` *is* the Composite bridge, typed).
 - **The incumbent "adapter" your vocabulary names:** `viva-superpowers/templates/model/viva_<model>/adapters.py`
   ("Step adapters bridging mismatched ports between wrapped processes") + the pass-through-vs-adapter rule
-  in `viva-superpowers/skills/viva-expert/reference.md:1005` — effectively the informal spec of the
+  in `viva-superpowers/skills/model/reference.md:1005` — effectively the informal spec of the
   translator concept.
 - **Strongest existing instance (typed-by-convention, validates, registry-dispatched):**
   `viva_cpm_studies/evaluators.py:45,85` `_recruitment_index` + `register_evaluators` — a backend-neutral
