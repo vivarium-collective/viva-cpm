@@ -16,17 +16,52 @@
 </head>
 <body>
 <main class="study-page">
+
+
 <header class="study-header">
-  <div style="display:flex; align-items:center; gap:14px; justify-content:space-between;">
+  <div style="display:flex; align-items:flex-start; gap:14px; justify-content:space-between;">
+  <div class="study-head-main" style="min-width:0; flex:1 1 auto">
   <div style="display:flex; align-items:center; gap:12px; min-width:0; flex-wrap:wrap">
   <h1 class="study-title" style="margin:0">
-    <span class="study-name" id="study-name" data-slug="repro-fig3b" data-study-kind="computational" title="repro-fig3b">Reproduction — Fig 3B (time series vs ODE)</span>
+    <span class="study-name" id="study-name" data-slug="repro-fig3b" data-study-kind="computational" title="repro-fig3b" data-edit-kind="study" data-edit-field="title" data-edit-value="Reproduction — Fig 3B (time series vs ODE)" data-edit-label="Title">Reproduction — Fig 3B (time series vs ODE)</span>
     
   </h1>
+  </div>
+  <p id="study-question-headline" class="study-question-headline" title="With every mechanism subsystem from Increments 0-8 wired into ONE
+per-MCS loop (`run.run_full_model`, Task 9.1), does running that model
+as a seeded ensemble over the Sego-2022 Fig-3B scenario (5% initial
+infection, 0.3 mm / 1225-cell patch) and comparing the ensemble mean to
+the digitized Fig-3B acceptance bands (`targets/fig3b.json`,
+`bands.evaluate_study`) show the model landing in-band -- and, the
+honest question this task exists to surface, does a REDUCED-scale
+ensemble (small population, few replicas, short duration -- the only
+scale a fast CI test can afford) tell us anything meaningful about
+fidelity, or does it mostly measure population-scale and run-duration
+mismatch rather than mechanism correctness?
+" data-edit-kind="study" data-edit-field="question" data-edit-value="Does `run.repro_fig3b` (Task 9.2) correctly assemble a seeded ensemble of
+`run.run_full_model` (Task 9.1) over the Sego-2022 Fig-3B scenario, map
+its output onto `targets/fig3b.json`&#39;s exact observable keys, and evaluate
+the ensemble mean against the digitized Fig-3B acceptance bands
+(`bands.evaluate_study`) -- and, honestly, does a REDUCED-scale ensemble
+(the only scale a fast CI test can run) land in-band, or does it mostly
+expose the reduced population/duration&#39;s mismatch with the paper-scale
+bands rather than any mechanism defect?
+" data-edit-multiline data-edit-label="Question"><span class="q-glyph">Q</span> <span class="study-question-headline-text">With every mechanism subsystem from Increments 0-8 wired into ONE
+per-MCS loop (`run.run_full_model`, Task 9.1), does running that model
+as a seeded ensemble over the Sego-2022 Fig-3B scenario (5% initial
+infection, 0.3 mm / 1225-cell patch) and comparing the ensemble mean to
+the digitized Fig-3B acceptance bands (`targets/fig3b.json`,
+`bands.evaluate_study`) show the model landing in-band -- and, the
+honest question this task exists to surface, does a REDUCED-scale
+ensemble (small population, few replicas, short duration -- the only
+scale a fast CI test can afford) tell us anything meaningful about
+fidelity, or does it mostly measure population-scale and run-duration
+mismatch rather than mechanism correctness?
+</span></p>
+  </div>
+  <span class="study-header-actions" style="display:inline-flex; gap:10px; flex-shrink:0; align-items:center;">
     
     <span id="study-axis-markers" data-slug="repro-fig3b" style="display:inline-flex; gap:8px; align-items:center; flex-wrap:wrap"></span>
-  </div>
-  <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0; align-items:center;">
     
     
     
@@ -49,19 +84,6 @@
 
 
 
-
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> With every mechanism subsystem from Increments 0-8 wired into ONE
-per-MCS loop (`run.run_full_model`, Task 9.1), does running that model
-as a seeded ensemble over the Sego-2022 Fig-3B scenario (5% initial
-infection, 0.3 mm / 1225-cell patch) and comparing the ensemble mean to
-the digitized Fig-3B acceptance bands (`targets/fig3b.json`,
-`bands.evaluate_study`) show the model landing in-band -- and, the
-honest question this task exists to surface, does a REDUCED-scale
-ensemble (small population, few replicas, short duration -- the only
-scale a fast CI test can afford) tell us anything meaningful about
-fidelity, or does it mostly measure population-scale and run-duration
-mismatch rather than mechanism correctness?
-</p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
@@ -91,10 +113,18 @@ mismatch rather than mechanism correctness?
   </button>
   
   <span class="study-dl study-export-wrap" style="margin-left:auto; align-self:center; position:relative; display:inline-flex">
-    <button type="button" id="study-export-btn" class="btn-mini" aria-haspopup="true" aria-expanded="false" title="Download this study's figures or a runnable notebook">↓ Export ▾</button>
-    <div id="study-export-menu" role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.14);z-index:70;min-width:200px;padding:4px">
-      <button type="button" id="study-dl-figures" role="menuitem" class="study-jump-item" onclick="window._vivStudyFiguresFromCard(event, 'repro-fig3b')">Download figures</button>
-      <button type="button" id="study-dl-notebook" role="menuitem" class="study-jump-item" onclick="window._vivStudyNotebookFromCard(event, 'repro-fig3b', 'influenza-sego2022')">Download notebook</button>
+    <button type="button" id="study-export-btn" class="btn-mini" aria-haspopup="true" aria-expanded="false" title="Shortcuts — open in the browser or download (report, notebook, figures)">Shortcuts ▾</button>
+    
+    <div id="study-export-menu" role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.14);z-index:70;min-width:190px;padding:4px">
+      <div class="study-export-sec">Report</div>
+      <button type="button" id="study-report-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyReportOpen(event, 'repro-fig3b')">Open in browser</button>
+      <button type="button" id="study-report-dl" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyReportDownload(event, 'repro-fig3b')">Download HTML</button>
+      <div class="study-export-sec">Notebook</div>
+      <button type="button" id="study-nb-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyNotebookOpen(event, 'repro-fig3b')">Open in browser</button>
+      <button type="button" id="study-dl-notebook" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyNotebookFromCard(event, 'repro-fig3b', 'influenza-sego2022')">Download .ipynb</button>
+      <div class="study-export-sec">Figures</div>
+      <button type="button" id="study-fig-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyFiguresOpen(event, 'repro-fig3b')">Open in browser</button>
+      <button type="button" id="study-dl-figures" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyFiguresFromCard(event, 'repro-fig3b')">Download (zip)</button>
     </div>
   </span>
 </nav>
@@ -107,8 +137,18 @@ mismatch rather than mechanism correctness?
 .study-kind-tag.study-kind-biological{background:#ecfdf5;color:#065f46}
 .study-kind-tag.study-kind-computational{background:#eff6ff;color:#1e40af}
 .study-kind-tag.study-kind-theoretical{background:#faf5ff;color:#6b21a8}
-.study-question-headline{margin:6px 0 0 0;font-size:1.05em;line-height:1.5;color:#1e293b;font-family:Georgia,"Times New Roman",serif}
+.study-question-headline{margin:2px 0 0 0;font-size:0.85em;line-height:1.35;color:#475569;font-family:Georgia,"Times New Roman",serif;padding-right:40px}
+/* Park the inline-edit ✎ in a reserved right gutter so it never lands over the
+   question text (the pencil is an absolutely-positioned child of the editable). */
+.study-question-headline>.ie-pencil{right:6px;top:1px}
+h1.study-title .study-name.ie-editable{padding-right:36px}
+h1.study-title .study-name>.ie-pencil{right:4px;top:6px}
 .study-question-headline .q-glyph{display:inline-block;font-size:0.78em;font-weight:700;font-family:ui-monospace,monospace;color:#64748b;background:#f1f5f9;padding:1px 7px;border-radius:4px;margin-right:6px;vertical-align:middle}
+/* Study Export menu — styled to match the investigation-level ↓ Export menu
+   exactly: grey uppercase section labels + full-width, left-aligned, stacked
+   text-link items (not inline pills). Mirrors walkthrough.js `_sec` + `_mi`. */
+.study-export-sec{padding:6px 8px 2px;font-size:0.72em;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8}
+.study-export-item{display:block;width:100%;text-align:left;border:none;background:transparent}
 .status-detail-panel{margin:0;padding:2px 0;background:transparent;border:none;border-radius:0;font-size:0.92em}
 .status-detail-row{display:flex;align-items:center;gap:8px;padding:3px 0}
 .status-detail-axis{min-width:140px;color:#475569;font-size:0.9em}
@@ -246,6 +286,9 @@ mismatch rather than mechanism correctness?
 /* findings */
 .findings-section{padding:14px 16px;background:#fafbff;border:1px solid #c7d2fe;border-radius:8px}
 .finding-card{padding:12px 14px;margin:10px 0;border:1px solid #e2e8f0;border-left:5px solid #6366f1;border-radius:6px;background:#fff}
+/* Brief highlight when an item is reached via a ?ev= evidence deep-link. */
+.ev-flash{animation:ev-flash-kf 1.9s ease-out;scroll-margin-top:12px}
+@keyframes ev-flash-kf{0%{box-shadow:0 0 0 3px #fbbf24}70%{box-shadow:0 0 0 3px rgba(251,191,36,0.45)}100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}}
 .finding-card.finding-status-confirms{border-left-color:#10b981}
 .finding-card.finding-status-partial{border-left-color:#f59e0b}
 .finding-card.finding-status-contradicts{border-left-color:#dc2626}
@@ -554,7 +597,14 @@ mismatch rather than mechanism correctness?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">`repro_fig3b` correctly assembles a seeded ensemble of the full model
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="claim" data-edit-value="`repro_fig3b` correctly assembles a seeded ensemble of the full model
+over the Fig-3B scenario and evaluates it against the digitized
+acceptance bands, producing a well-formed result. Fig-3B is not
+reproduced at the reduced scale a fast test affords: none of the twelve
+observables land in-band at every checkpoint, a scale-and-duration
+mismatch rather than evidence of a mechanism defect. A paper-scale
+ensemble is required before any reproduction verdict.
+" data-edit-multiline data-edit-label="Claim">`repro_fig3b` correctly assembles a seeded ensemble of the full model
 over the Fig-3B scenario and evaluates it against the digitized
 acceptance bands, producing a well-formed result. Fig-3B is not
 reproduced at the reduced scale a fast test affords: none of the twelve
@@ -602,7 +652,15 @@ model constant was tuned toward a better-looking number.
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Background</h2>
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item">Does `run.repro_fig3b` (Task 9.2) correctly assemble a seeded ensemble of
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item" data-edit-kind="study" data-edit-field="question" data-edit-value="Does `run.repro_fig3b` (Task 9.2) correctly assemble a seeded ensemble of
+`run.run_full_model` (Task 9.1) over the Sego-2022 Fig-3B scenario, map
+its output onto `targets/fig3b.json`&#39;s exact observable keys, and evaluate
+the ensemble mean against the digitized Fig-3B acceptance bands
+(`bands.evaluate_study`) -- and, honestly, does a REDUCED-scale ensemble
+(the only scale a fast CI test can run) land in-band, or does it mostly
+expose the reduced population/duration&#39;s mismatch with the paper-scale
+bands rather than any mechanism defect?
+" data-edit-multiline data-edit-label="Question">Does `run.repro_fig3b` (Task 9.2) correctly assemble a seeded ensemble of
 `run.run_full_model` (Task 9.1) over the Sego-2022 Fig-3B scenario, map
 its output onto `targets/fig3b.json`&#39;s exact observable keys, and evaluate
 the ensemble mean against the digitized Fig-3B acceptance bands
@@ -611,7 +669,18 @@ the ensemble mean against the digitized Fig-3B acceptance bands
 expose the reduced population/duration&#39;s mismatch with the paper-scale
 bands rather than any mechanism defect?
 </span></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item">`run.repro_fig3b` correctly wires the ensemble-and-band-evaluation
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item" data-edit-kind="study" data-edit-field="hypothesis" data-edit-value="`run.repro_fig3b` correctly wires the ensemble-and-band-evaluation
+machinery: it runs `replicas` seeded `run_full_model` calls, maps every
+mapped observable&#39;s series onto the fig3b target&#39;s keys, ensemble-means
+them, and produces a well-formed `band_eval` dict. At REDUCED scale
+(small `cells_per_side`, few `replicas`, short `steps` -- all needed to
+keep the added pytest test fast), the ensemble is NOT expected to land
+in-band against bands digitized from a 1225-cell, 50-replica, ~3.5-day
+paper-scale ensemble; any near-miss or in-band result at reduced scale
+should be reported as what it is (a coincidence of a widened `soft` band
+and/or an early-timepoint value that happens to still be small), not
+oversold as reproduction evidence.
+" data-edit-multiline data-edit-label="Hypothesis">`run.repro_fig3b` correctly wires the ensemble-and-band-evaluation
 machinery: it runs `replicas` seeded `run_full_model` calls, maps every
 mapped observable&#39;s series onto the fig3b target&#39;s keys, ensemble-means
 them, and produces a well-formed `band_eval` dict. At REDUCED scale
@@ -629,7 +698,22 @@ oversold as reproduction evidence.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Model &amp; approach</h2>
-      <p class="ctr-text">Implement `run.repro_fig3b(*, replicas=3, cells_per_side=35, steps=240,
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="objective" data-edit-value="Implement `run.repro_fig3b(*, replicas=3, cells_per_side=35, steps=240,
+seed0=0) -&gt; dict` (Task 9.2): loop `replicas` seeds through
+`run.run_full_model(cells_per_side=cells_per_side, steps=steps,
+seed=seed0+i, init_infection_frac=0.05)`; map each run&#39;s
+`counts`/`fields`/`ode` sections onto `targets/fig3b.json`&#39;s exact
+observable keys (`_FIG3B_OBSERVABLE_MAP`); ensemble-mean via
+`bands.aggregate_replicas`; evaluate via `bands.evaluate_study(ensemble,
+&#34;fig3b&#34;)`. Add `tests/test_influenza_full_model.py::
+test_repro_fig3b_runs_and_evaluates_bands` (reduced: `replicas=2,
+cells_per_side=15, steps=20`) asserting the ensemble/band_eval dict is
+well-formed and the uninfected series is non-vacuous (declines under
+infection) -- NOT that the bands pass, since reduced scale is not
+expected to. Run that same reduced config directly (not the pytest
+assertions alone) to report the actual per-observable band_eval numbers
+in this study honestly.
+" data-edit-multiline data-edit-label="Objective">Implement `run.repro_fig3b(*, replicas=3, cells_per_side=35, steps=240,
 seed0=0) -&gt; dict` (Task 9.2): loop `replicas` seeds through
 `run.run_full_model(cells_per_side=cells_per_side, steps=steps,
 seed=seed0+i, init_infection_frac=0.05)`; map each run&#39;s
@@ -675,7 +759,8 @@ in this study honestly.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">The soft-flagged observables (type1_ifn, antibodies, nk_cells, cd8_t_cells, il10) land in-band at MORE checkpoints (5-7 of 8) than the hard-flagged population counts (uninfected_cells, infected_cells, dead_cells: 0-2 of 8) -- not because those mechanisms are individually more correct, but because (a) `bands.SOFT_WIDEN_FACTOR=1.5` widens their bands, and (b) their target trajectories start near-zero and stay small through the target&#39;s early checkpoints, so the reduced run&#39;s near-t=0 flat-extrapolated value happens to fall inside those wider, still-small early bands more often. This is a run-duration/scale coincidence, not evidence the immune-signaling subsystem is better calibrated than the epithelial-population subsystem at this scale -- the honest read is that population counts (uninfected/infected/dead) expose the scale-and-duration mismatch most starkly because their target trajectories move the farthest (1164 -&gt; ~2 uninfected cells) over the checkpoint window, while the ODE-driven systemic signals (apcs, antibodies) move on a slower, ODE-integrated timescale that a ~0.1-day snapshot cannot resolve either way.</p>
+      
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="result" data-edit-value="" data-edit-multiline data-edit-label="Result">The soft-flagged observables (type1_ifn, antibodies, nk_cells, cd8_t_cells, il10) land in-band at MORE checkpoints (5-7 of 8) than the hard-flagged population counts (uninfected_cells, infected_cells, dead_cells: 0-2 of 8) -- not because those mechanisms are individually more correct, but because (a) `bands.SOFT_WIDEN_FACTOR=1.5` widens their bands, and (b) their target trajectories start near-zero and stay small through the target&#39;s early checkpoints, so the reduced run&#39;s near-t=0 flat-extrapolated value happens to fall inside those wider, still-small early bands more often. This is a run-duration/scale coincidence, not evidence the immune-signaling subsystem is better calibrated than the epithelial-population subsystem at this scale -- the honest read is that population counts (uninfected/infected/dead) expose the scale-and-duration mismatch most starkly because their target trajectories move the farthest (1164 -&gt; ~2 uninfected cells) over the checkpoint window, while the ODE-driven systemic signals (apcs, antibodies) move on a slower, ODE-integrated timescale that a ~0.1-day snapshot cannot resolve either way.</p>
       
       
       <div class="ov-metrics">
@@ -770,11 +855,18 @@ in this study honestly.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-01">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">`run.repro_fig3b` is wired correctly: it runs a seeded ensemble of
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-01].statement" data-edit-value="`run.repro_fig3b` is wired correctly: it runs a seeded ensemble of
+`run_full_model` over the Fig-3B scenario, maps every observable onto
+`targets/fig3b.json`&#39;s exact keys via `_FIG3B_OBSERVABLE_MAP`,
+ensemble-means them with `bands.aggregate_replicas`, and produces a
+well-formed `band_eval` via `bands.evaluate_study` -- the ensemble
+machinery itself is verified correct and reusable for the Mac-mini
+Phase-B paper-scale run.
+" data-edit-multiline data-edit-label="Finding F-01">`run.repro_fig3b` is wired correctly: it runs a seeded ensemble of
 `run_full_model` over the Fig-3B scenario, maps every observable onto
 `targets/fig3b.json`&#39;s exact keys via `_FIG3B_OBSERVABLE_MAP`,
 ensemble-means them with `bands.aggregate_replicas`, and produces a
@@ -804,8 +896,11 @@ Phase-B paper-scale run.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -829,11 +924,24 @@ Phase-B paper-scale run.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-partial">
+      <div class="finding-card finding-kind-computational finding-status-partial" id="finding-F-02">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">This is the study&#39;s central honest finding, reported as a GAP (status:
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-02].statement" data-edit-value="This is the study&#39;s central honest finding, reported as a GAP (status:
+partial), not hidden behind the driver&#39;s structural correctness
+(F-01): at reduced scale (225 epithelial cells vs. the target&#39;s 1225;
+~0.09 simulated days vs. the target&#39;s 0.0-3.5-day checkpoint window),
+the ensemble does not land in-band for any observable across every
+checkpoint. The population-count observables (uninfected/infected/
+dead) show the largest misses because their target trajectories move
+the farthest over the checkpoint window (1164 -&gt; ~2 uninfected cells)
+-- a scale-and-duration artifact of this fast-test config, not
+evidence any Increment 0-8 mechanism is individually wrong (each was
+independently validated in its own increment&#39;s study). NOT tuned
+away: no constant was adjusted and `targets/fig3b.json` was not
+edited to narrow this gap.
+" data-edit-multiline data-edit-label="Finding F-02">This is the study&#39;s central honest finding, reported as a GAP (status:
 partial), not hidden behind the driver&#39;s structural correctness
 (F-01): at reduced scale (225 epithelial cells vs. the target&#39;s 1225;
 ~0.09 simulated days vs. the target&#39;s 0.0-3.5-day checkpoint window),
@@ -867,8 +975,11 @@ edited to narrow this gap.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×52.0 vs expected</span>
+              
               
               
             </div>
@@ -970,12 +1081,23 @@ edited to narrow this gap.
 
 
 <section class="study-tab-panel" data-kind="compose" id="panel-compose" hidden>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-    <h2 class="overview-label" style="margin:0">Model composition</h2>
-    
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'repro-fig3b', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+  
+  <div class="model-subtabs" role="tablist" aria-label="Model sections">
+    <button type="button" class="model-subtab active" data-modelsub="composition" role="tab" aria-selected="true" onclick="_setModelSubtab('composition')">Composition</button>
+    <button type="button" class="model-subtab" data-modelsub="loom" role="tab" aria-selected="false" onclick="_setModelSubtab('loom')">Loom</button>
+    <button type="button" class="model-subtab" data-modelsub="variants" role="tab" aria-selected="false" onclick="_setModelSubtab('variants')">Variants</button>
+    <button type="button" class="model-subtab" data-modelsub="interventions" role="tab" aria-selected="false" onclick="_setModelSubtab('interventions')">Interventions</button>
+    <button type="button" class="model-subtab" data-modelsub="readouts" role="tab" aria-selected="false" onclick="_setModelSubtab('readouts')">Readouts</button>
   </div>
 
+  
+  <div class="model-subpanel" data-modelsubpanel="loom" hidden>
+    <div id="model-loom-mount" class="model-loom-mount">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading the interactive model diagram…</span></div>
+    </div>
+  </div>
+
+  <div class="model-subpanel active" data-modelsubpanel="composition">
   
   
   <div id="model-composite-cards" class="model-composite-cards" data-study="repro-fig3b"
@@ -1091,10 +1213,77 @@ itself is unchanged by this task.
   
   
   
-
-
+  </div>
 
   
+  <div class="model-subpanel" data-modelsubpanel="variants" hidden>
+  <div class="overview-section" id="study-variants-section">
+    <p class="msub-intro">A <strong>variant</strong> is a copy of a baseline model with a few parameters changed, run and compared against the baseline. Everything else stays fixed.</p>
+    
+    <div class="msub-empty">No variants yet. Add one below to perturb the baseline and compare against it.</div>
+    
+    
+    <form class="study-variant-add-form msub-addcard" onsubmit="return _submitStudyVariantAdd(this)">
+      <div class="msub-addcard-title">Add a variant</div>
+      <div class="msub-field-grid">
+        <label class="msub-field">
+          <span class="msub-lbl">Name</span>
+          <input name="name" required pattern="[a-zA-Z0-9_-]+" placeholder="hi-dnaa" class="msub-input mono">
+          <span class="msub-hint">letters, numbers, - and _</span>
+        </label>
+        <label class="msub-field">
+          <span class="msub-lbl">Based on</span>
+          <select name="base_composite" class="msub-input">
+            <option value="repro-fig3b">repro-fig3b</option>
+          </select>
+          <span class="msub-hint">the baseline this variant perturbs</span>
+        </label>
+        <label class="msub-field msub-field-wide">
+          <span class="msub-lbl">Parameter overrides</span>
+          <input name="overrides" placeholder='{"k_synth": 2.0}' class="msub-input mono">
+          <span class="msub-hint">JSON object of parameter → value; leave blank for none</span>
+        </label>
+      </div>
+      <div class="msub-addcard-foot">
+        <button type="submit" class="action-btn primary">+ Add variant</button>
+        <span class="study-variant-add-status msub-status"></span>
+      </div>
+    </form>
+    
+  </div>
+  </div>
+
+  
+  <div class="model-subpanel" data-modelsubpanel="interventions" hidden>
+  <div class="overview-section" id="study-interventions-section">
+    <p class="msub-intro">An <strong>intervention</strong> is a named, described perturbation applied in this study (e.g. a knockout) — the conceptual change you are testing, documented alongside the model.</p>
+    
+    <div class="msub-empty">No interventions yet. Add one below.</div>
+    
+    <form class="study-intervention-add-form msub-addcard" onsubmit="return _submitStudyInterventionAdd(this)">
+      <div class="msub-addcard-title">Add an intervention</div>
+      <div class="msub-field-grid">
+        <label class="msub-field">
+          <span class="msub-lbl">Name</span>
+          <input name="name" required pattern="[a-zA-Z0-9_-]+" placeholder="knockout-dnaA" class="msub-input mono">
+          <span class="msub-hint">letters, numbers, - and _</span>
+        </label>
+        <label class="msub-field msub-field-wide">
+          <span class="msub-lbl">Description</span>
+          <input name="description" placeholder="what the intervention does" class="msub-input">
+          <span class="msub-hint">a short, human-readable summary</span>
+        </label>
+      </div>
+      <div class="msub-addcard-foot">
+        <button type="submit" class="action-btn primary">+ Add intervention</button>
+        <span class="study-intervention-add-status msub-status"></span>
+      </div>
+    </form>
+  </div>
+  </div>
+
+  
+  <div class="model-subpanel" data-modelsubpanel="readouts" hidden>
   <div class="overview-section" id="model-readouts-section">
     <h3>Readouts</h3>
 
@@ -1123,6 +1312,7 @@ itself is unchanged by this task.
     
   </div>
   </div>
+  </div>
 
 </section>
 
@@ -1142,7 +1332,6 @@ itself is unchanged by this task.
   <button type="button" id="study-run-current-spec" class="action-btn" title="Run this study's CURRENT baseline spec (POST /api/study-run-baseline) as a brand-new run">▶ Run current spec</button>
   <button type="button" id="study-reproduce" class="btn-mini" title="Replay this study's most recent run's RECORDED manifest verbatim (POST /api/study-reproduce) — ignores any study.yaml edits made since">↻ Reproduce</button>
   
-  <button type="button" id="study-run-composite" class="btn-mini" title="Dispatch a specific process-bigraph composite_id to the remote compute backend (pbg-native multi_node/mbp, or the Nextflow campaign path) — advanced, independent of this study's own pinned baseline">⚙ Dispatch composite</button>
 </div>
 
 <div class="overview-section" id="simulations-section">
@@ -1157,6 +1346,12 @@ itself is unchanged by this task.
 <div class="overview-section" id="results-section">
   
   <div id="results-summary" data-study="repro-fig3b" style="margin:0 0 16px"></div>
+
+  
+  <div id="gate-results-section" data-study="repro-fig3b" style="margin:0 0 22px" hidden>
+    <h4>Gate results <span class="muted" style="font-size:0.8em;font-weight:normal">— each acceptance test's value, graded from run data</span></h4>
+    <div id="gate-results"></div>
+  </div>
 
   <h4>Latest run preview <span class="muted" style="font-size:0.8em;font-weight:normal">— downsampled sparkline + first/last/min/max per store</span></h4>
   <div id="results-preview" data-study="repro-fig3b">
@@ -1504,7 +1699,30 @@ pass_if: {"op": "eq", "value": true}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p><code>run.repro_fig3b</code> (Task 9.2) IS IMPLEMENTED AND WIRED CORRECTLY: it runs a
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5" data-edit-kind="study" data-edit-field="conclusion" data-edit-value="`run.repro_fig3b` (Task 9.2) IS IMPLEMENTED AND WIRED CORRECTLY: it runs a
+seeded ensemble of `run_full_model` over the Fig-3B scenario, maps every
+observable onto `targets/fig3b.json`&#39;s exact keys, ensemble-means via
+`bands.aggregate_replicas`, and evaluates via `bands.evaluate_study`,
+verified by `tests/test_influenza_full_model.py::
+test_repro_fig3b_runs_and_evaluates_bands`. FIG-3B IS NOT REPRODUCED AT
+THE REDUCED SCALE THIS TASK&#39;S FAST TEST USES, AND THIS STUDY DOES NOT
+CLAIM IT IS: at `replicas=2, cells_per_side=15, steps=20, seed0=0`
+(225 epithelial cells vs. the target&#39;s 1225; ~0.09 simulated days vs. the
+target&#39;s 0.0-3.5-day checkpoint window), `band_eval[&#39;passed&#39;]` is False
+and 0 of 12 observables land in-band at every digitized checkpoint (see
+`report.key_metrics` for the full per-observable breakdown). This is
+expected at this scale -- a smaller population and a far shorter run
+duration than the digitized bands assume -- not evidence any wired
+mechanism is incorrect; every Increment 0-8 subsystem this driver
+assembles was independently validated in its own increment&#39;s study. THE
+PAPER-SCALE 50-REPLICA, 35x35-CELL (1225-cell), ~2-SIMULATED-DAY ENSEMBLE
+(documented in `repro_fig3b`&#39;s own docstring as the Mac-mini Phase-B
+follow-up) IS REQUIRED BEFORE ANY `reproduced` VERDICT FOR FIG 3B CAN BE
+SET. This study&#39;s own verdict stays `documented`, and
+`conclusion_verdicts.biological_validation` stays PENDING. No band was
+widened, no constant was tuned, and `targets/fig3b.json` was not edited
+to make any number in this report look better than it is.
+" data-edit-multiline data-edit-label="Conclusion"><p><code>run.repro_fig3b</code> (Task 9.2) IS IMPLEMENTED AND WIRED CORRECTLY: it runs a
 seeded ensemble of <code>run_full_model</code> over the Fig-3B scenario, maps every
 observable onto <code>targets/fig3b.json</code>'s exact keys, ensemble-means via
 <code>bands.aggregate_replicas</code>, and evaluates via <code>bands.evaluate_study</code>,
@@ -1583,6 +1801,63 @@ to make any number in this report look better than it is.</p>
     
     
 
+  </div>
+
+  
+  <div class="overview-section" id="study-findings-authoring">
+    <h2 class="overview-label">Record a finding</h2>
+    
+    <ul class="synthesis-list" style="margin:0 0 12px">
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-01" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>`run.repro_fig3b` is wired correctly: it runs a seeded ensemble of
+`run_full_model` over the Fig-3B scenario, maps every observable onto
+`targets/fig3b.json`&#39;s exact keys via `_FIG3B_OBSERVABLE_MAP`,
+ensemble-means them with `bands.aggregate_replicas`, and produces a
+well-formed `band_eval` via `bands.evaluate_study` -- the ensemble
+machinery itself is verified correct and reusable for the Mac-mini
+Phase-B paper-scale run.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-02" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>This is the study&#39;s central honest finding, reported as a GAP (status:
+partial), not hidden behind the driver&#39;s structural correctness
+(F-01): at reduced scale (225 epithelial cells vs. the target&#39;s 1225;
+~0.09 simulated days vs. the target&#39;s 0.0-3.5-day checkpoint window),
+the ensemble does not land in-band for any observable across every
+checkpoint. The population-count observables (uninfected/infected/
+dead) show the largest misses because their target trajectories move
+the farthest over the checkpoint window (1164 -&gt; ~2 uninfected cells)
+-- a scale-and-duration artifact of this fast-test config, not
+evidence any Increment 0-8 mechanism is individually wrong (each was
+independently validated in its own increment&#39;s study). NOT tuned
+away: no constant was adjusted and `targets/fig3b.json` was not
+edited to narrow this gap.
+ <span class="muted small">(partial)</span></span>
+      </li>
+      
+    </ul>
+    
+    <form class="study-finding-add-form" onsubmit="return _submitStudyFindingAdd(this)" style="display:flex;flex-direction:column;gap:8px;max-width:680px">
+      <textarea name="statement" required rows="2" placeholder="What did this study show? (one sentence)"
+                style="font-size:0.9em;padding:6px 8px;resize:vertical"></textarea>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <label style="font-size:0.78em;color:#475569">Status<br>
+          <select name="status" style="font-size:0.82em;padding:3px 6px">
+            <option value="novel">novel</option>
+            <option value="confirms">confirms literature</option>
+            <option value="partial">partial</option>
+            <option value="contradicts">contradicts</option>
+          </select></label>
+        <label style="font-size:0.78em;color:#475569;flex:1;min-width:200px">Why / mechanism (optional)<br>
+          <input name="explanation" style="width:100%;font-size:0.82em;padding:3px 6px"></label>
+        <button type="submit" class="action-btn" style="font-size:0.82em">+ Add finding</button>
+      </div>
+    </form>
+    <div class="study-finding-add-status muted" style="font-size:0.8em;margin-top:4px"></div>
   </div>
 
   
@@ -1684,11 +1959,13 @@ to make any number in this report look better than it is.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/workbench", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "932a89cd7a1b95c826c049db95d1b24e68c359a3", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/932a89cd7a1b95c826c049db95d1b24e68c359a3", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-10-28 02:11 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/workbench", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main/workspace", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "18a8e4df320b49c321e5f84d79fa50c9c2fc8064", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/18a8e4df320b49c321e5f84d79fa50c9c2fc8064", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-11-22 02:46 UTC"} };</script>
 <script src="/viva-cpm/workbench/assets/data-source.js"></script>
+<script src="/viva-cpm/workbench/assets/backend-features.js"></script>
 <script src="/viva-cpm/workbench/assets/toast.js"></script>
 <script>
 window._studyName = "repro-fig3b";
+window.__STUDY_INVESTIGATION__ = "influenza-sego2022";  // owning investigation (feedback save routing)
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.
@@ -1816,7 +2093,14 @@ window._seedFollowupProposal = _seedFollowupProposal;
 <script src="/viva-cpm/workbench/assets/checklist-select.js"></script>
 <script src="/viva-cpm/workbench/assets/progress-track.js"></script>
 <script src="/viva-cpm/workbench/assets/comparison-view.js"></script>
+<!-- The backend launch plugin's script (remote-pinned dispatch + the
+     "Dispatch composite" panel), quarantined out of study-detail.js. Loaded
+     BEFORE it: study-detail.js calls window.SmsLaunch.mount() while it loads,
+     and runs local-only when the file is absent. -->
+<script src="/viva-cpm/workbench/assets/sms-launch.js"></script>
 <script src="/viva-cpm/workbench/assets/study-detail.js"></script>
+<script src="/viva-cpm/workbench/assets/study-feedback.js"></script>
+<script src="/viva-cpm/workbench/assets/inline-edit.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which
 // defines its own navigate-away _seedFollowupStudy). The embedded
@@ -1826,7 +2110,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
 </script>
 <script>
 (function () {
-  // Task 8: the Configure & Run mount and the remote-run (smsvpctest) panel
+  // Task 8: the Configure & Run mount and the remote-run panel
   // were both removed from the Simulate tab — launching now lives entirely
   // in the header buttons (Reproduce / Run current spec). This block used
   // to also mount ConfigureRun into the (now-deleted) mount div and, in an

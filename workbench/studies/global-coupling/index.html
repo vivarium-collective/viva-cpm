@@ -16,17 +16,51 @@
 </head>
 <body>
 <main class="study-page">
+
+
 <header class="study-header">
-  <div style="display:flex; align-items:center; gap:14px; justify-content:space-between;">
+  <div style="display:flex; align-items:flex-start; gap:14px; justify-content:space-between;">
+  <div class="study-head-main" style="min-width:0; flex:1 1 auto">
   <div style="display:flex; align-items:center; gap:12px; min-width:0; flex-wrap:wrap">
   <h1 class="study-title" style="margin:0">
-    <span class="study-name" id="study-name" data-slug="global-coupling" data-study-kind="computational" title="global-coupling">Global Price-2015 ODE coupling</span>
+    <span class="study-name" id="study-name" data-slug="global-coupling" data-study-kind="computational" title="global-coupling" data-edit-kind="study" data-edit-field="title" data-edit-value="Global Price-2015 ODE coupling" data-edit-label="Title">Global Price-2015 ODE coupling</span>
     
   </h1>
+  </div>
+  <p id="study-question-headline" class="study-question-headline" title="Coupling the Price (2015)-derived global immune ODE (10 systemic
+species) bidirectionally to the spatial CPM patch — spatial aggregates
+feeding the ODE each MCS, the freshly-integrated ODE state (TNF, APC)
+feeding back into spatial secretion regulation and recruitment — do the
+three mechanisms carried as documented stubs since Increments 5-7
+(static sig_1, absent recruitment, LOCAL-only cytotoxic killing) now
+resolve into DYNAMIC, ODE-driven mechanisms that are individually
+correct and source-faithful, and — the honest question this study
+exists to surface — do the resulting coupling MAGNITUDES already
+reconcile at this reduced-scale patch, or is the wiring correct while
+the field-vs-ODE unit scales still need Increment-9 calibration?
+" data-edit-kind="study" data-edit-field="question" data-edit-value="Does coupling the Price (2015)-derived global immune ODE (10 systemic
+species) bidirectionally to the spatial CPM patch — dynamic sig_1
+feedback, ODE-driven recruitment, and a well-mixed nearby-population
+killing term — resolve the three stubs carried since Increments 5-7 into
+mechanisms that are individually correct and source-faithful, and do the
+resulting coupling magnitudes already reconcile at this reduced-scale
+patch, or is that an open Increment-9 calibration item?
+" data-edit-multiline data-edit-label="Question"><span class="q-glyph">Q</span> <span class="study-question-headline-text">Coupling the Price (2015)-derived global immune ODE (10 systemic
+species) bidirectionally to the spatial CPM patch — spatial aggregates
+feeding the ODE each MCS, the freshly-integrated ODE state (TNF, APC)
+feeding back into spatial secretion regulation and recruitment — do the
+three mechanisms carried as documented stubs since Increments 5-7
+(static sig_1, absent recruitment, LOCAL-only cytotoxic killing) now
+resolve into DYNAMIC, ODE-driven mechanisms that are individually
+correct and source-faithful, and — the honest question this study
+exists to surface — do the resulting coupling MAGNITUDES already
+reconcile at this reduced-scale patch, or is the wiring correct while
+the field-vs-ODE unit scales still need Increment-9 calibration?
+</span></p>
+  </div>
+  <span class="study-header-actions" style="display:inline-flex; gap:10px; flex-shrink:0; align-items:center;">
     
     <span id="study-axis-markers" data-slug="global-coupling" style="display:inline-flex; gap:8px; align-items:center; flex-wrap:wrap"></span>
-  </div>
-  <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0; align-items:center;">
     
     
     
@@ -49,19 +83,6 @@
 
 
 
-
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Coupling the Price (2015)-derived global immune ODE (10 systemic
-species) bidirectionally to the spatial CPM patch — spatial aggregates
-feeding the ODE each MCS, the freshly-integrated ODE state (TNF, APC)
-feeding back into spatial secretion regulation and recruitment — do the
-three mechanisms carried as documented stubs since Increments 5-7
-(static sig_1, absent recruitment, LOCAL-only cytotoxic killing) now
-resolve into DYNAMIC, ODE-driven mechanisms that are individually
-correct and source-faithful, and — the honest question this study
-exists to surface — do the resulting coupling MAGNITUDES already
-reconcile at this reduced-scale patch, or is the wiring correct while
-the field-vs-ODE unit scales still need Increment-9 calibration?
-</p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
@@ -91,10 +112,18 @@ the field-vs-ODE unit scales still need Increment-9 calibration?
   </button>
   
   <span class="study-dl study-export-wrap" style="margin-left:auto; align-self:center; position:relative; display:inline-flex">
-    <button type="button" id="study-export-btn" class="btn-mini" aria-haspopup="true" aria-expanded="false" title="Download this study's figures or a runnable notebook">↓ Export ▾</button>
-    <div id="study-export-menu" role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.14);z-index:70;min-width:200px;padding:4px">
-      <button type="button" id="study-dl-figures" role="menuitem" class="study-jump-item" onclick="window._vivStudyFiguresFromCard(event, 'global-coupling')">Download figures</button>
-      <button type="button" id="study-dl-notebook" role="menuitem" class="study-jump-item" onclick="window._vivStudyNotebookFromCard(event, 'global-coupling', 'influenza-sego2022')">Download notebook</button>
+    <button type="button" id="study-export-btn" class="btn-mini" aria-haspopup="true" aria-expanded="false" title="Shortcuts — open in the browser or download (report, notebook, figures)">Shortcuts ▾</button>
+    
+    <div id="study-export-menu" role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.14);z-index:70;min-width:190px;padding:4px">
+      <div class="study-export-sec">Report</div>
+      <button type="button" id="study-report-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyReportOpen(event, 'global-coupling')">Open in browser</button>
+      <button type="button" id="study-report-dl" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyReportDownload(event, 'global-coupling')">Download HTML</button>
+      <div class="study-export-sec">Notebook</div>
+      <button type="button" id="study-nb-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyNotebookOpen(event, 'global-coupling')">Open in browser</button>
+      <button type="button" id="study-dl-notebook" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyNotebookFromCard(event, 'global-coupling', 'influenza-sego2022')">Download .ipynb</button>
+      <div class="study-export-sec">Figures</div>
+      <button type="button" id="study-fig-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyFiguresOpen(event, 'global-coupling')">Open in browser</button>
+      <button type="button" id="study-dl-figures" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyFiguresFromCard(event, 'global-coupling')">Download (zip)</button>
     </div>
   </span>
 </nav>
@@ -107,8 +136,18 @@ the field-vs-ODE unit scales still need Increment-9 calibration?
 .study-kind-tag.study-kind-biological{background:#ecfdf5;color:#065f46}
 .study-kind-tag.study-kind-computational{background:#eff6ff;color:#1e40af}
 .study-kind-tag.study-kind-theoretical{background:#faf5ff;color:#6b21a8}
-.study-question-headline{margin:6px 0 0 0;font-size:1.05em;line-height:1.5;color:#1e293b;font-family:Georgia,"Times New Roman",serif}
+.study-question-headline{margin:2px 0 0 0;font-size:0.85em;line-height:1.35;color:#475569;font-family:Georgia,"Times New Roman",serif;padding-right:40px}
+/* Park the inline-edit ✎ in a reserved right gutter so it never lands over the
+   question text (the pencil is an absolutely-positioned child of the editable). */
+.study-question-headline>.ie-pencil{right:6px;top:1px}
+h1.study-title .study-name.ie-editable{padding-right:36px}
+h1.study-title .study-name>.ie-pencil{right:4px;top:6px}
 .study-question-headline .q-glyph{display:inline-block;font-size:0.78em;font-weight:700;font-family:ui-monospace,monospace;color:#64748b;background:#f1f5f9;padding:1px 7px;border-radius:4px;margin-right:6px;vertical-align:middle}
+/* Study Export menu — styled to match the investigation-level ↓ Export menu
+   exactly: grey uppercase section labels + full-width, left-aligned, stacked
+   text-link items (not inline pills). Mirrors walkthrough.js `_sec` + `_mi`. */
+.study-export-sec{padding:6px 8px 2px;font-size:0.72em;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8}
+.study-export-item{display:block;width:100%;text-align:left;border:none;background:transparent}
 .status-detail-panel{margin:0;padding:2px 0;background:transparent;border:none;border-radius:0;font-size:0.92em}
 .status-detail-row{display:flex;align-items:center;gap:8px;padding:3px 0}
 .status-detail-axis{min-width:140px;color:#475569;font-size:0.9em}
@@ -246,6 +285,9 @@ the field-vs-ODE unit scales still need Increment-9 calibration?
 /* findings */
 .findings-section{padding:14px 16px;background:#fafbff;border:1px solid #c7d2fe;border-radius:8px}
 .finding-card{padding:12px 14px;margin:10px 0;border:1px solid #e2e8f0;border-left:5px solid #6366f1;border-radius:6px;background:#fff}
+/* Brief highlight when an item is reached via a ?ev= evidence deep-link. */
+.ev-flash{animation:ev-flash-kf 1.9s ease-out;scroll-margin-top:12px}
+@keyframes ev-flash-kf{0%{box-shadow:0 0 0 3px #fbbf24}70%{box-shadow:0 0 0 3px rgba(251,191,36,0.45)}100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}}
 .finding-card.finding-status-confirms{border-left-color:#10b981}
 .finding-card.finding-status-partial{border-left-color:#f59e0b}
 .finding-card.finding-status-contradicts{border-left-color:#dc2626}
@@ -554,7 +596,15 @@ the field-vs-ODE unit scales still need Increment-9 calibration?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">The hybrid global immune ODE integrates stably each step and couples
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="claim" data-edit-value="The hybrid global immune ODE integrates stably each step and couples
+bidirectionally with the spatial model, resolving three previously-
+stubbed mechanisms — dynamic IL-10/chemokine signaling, ODE-driven
+recruitment, and a nearby-population killing term — each individually
+verified correct. At this reduced-scale patch, none of these mechanisms&#39;
+magnitudes yet reconcile with the values replaced or reach an observable
+effect: a field-versus-ODE unit-scale calibration gap, reported honestly
+and deferred rather than tuned away.
+" data-edit-multiline data-edit-label="Claim">The hybrid global immune ODE integrates stably each step and couples
 bidirectionally with the spatial model, resolving three previously-
 stubbed mechanisms — dynamic IL-10/chemokine signaling, ODE-driven
 recruitment, and a nearby-population killing term — each individually
@@ -614,7 +664,14 @@ items, not resolved here.
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Background</h2>
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item">Does coupling the Price (2015)-derived global immune ODE (10 systemic
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item" data-edit-kind="study" data-edit-field="question" data-edit-value="Does coupling the Price (2015)-derived global immune ODE (10 systemic
+species) bidirectionally to the spatial CPM patch — dynamic sig_1
+feedback, ODE-driven recruitment, and a well-mixed nearby-population
+killing term — resolve the three stubs carried since Increments 5-7 into
+mechanisms that are individually correct and source-faithful, and do the
+resulting coupling magnitudes already reconcile at this reduced-scale
+patch, or is that an open Increment-9 calibration item?
+" data-edit-multiline data-edit-label="Question">Does coupling the Price (2015)-derived global immune ODE (10 systemic
 species) bidirectionally to the spatial CPM patch — dynamic sig_1
 feedback, ODE-driven recruitment, and a well-mixed nearby-population
 killing term — resolve the three stubs carried since Increments 5-7 into
@@ -622,7 +679,19 @@ mechanisms that are individually correct and source-faithful, and do the
 resulting coupling magnitudes already reconcile at this reduced-scale
 patch, or is that an open Increment-9 calibration item?
 </span></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item">Integrating the 10 systemic ODE species once per MCS, fed by the spatial
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item" data-edit-kind="study" data-edit-field="hypothesis" data-edit-value="Integrating the 10 systemic ODE species once per MCS, fed by the spatial
+model&#39;s cell counts/field integrals and feeding back a dynamic sig_1 plus
+ODE-driven recruitment plus a nearby-population killing term, will
+produce mechanisms that are each individually verifiable as correct
+(dynamic sig_1 tracks TNF/dead count; recruitment shows the source&#39;s
+documented CD8-no-baseline asymmetry; nearby-killing clears infected
+cells given a sufficient nearby population) — but at this driver&#39;s small
+reduced-scale default (tiny eta), the resulting coupling magnitudes may
+not yet be large enough to produce an observable effect within a
+feasible step budget, which should be reported honestly as a
+calibration gap deferred to Increment 9, not concealed by tuning
+constants to force a better-looking number.
+" data-edit-multiline data-edit-label="Hypothesis">Integrating the 10 systemic ODE species once per MCS, fed by the spatial
 model&#39;s cell counts/field integrals and feeding back a dynamic sig_1 plus
 ODE-driven recruitment plus a nearby-population killing term, will
 produce mechanisms that are each individually verifiable as correct
@@ -641,7 +710,22 @@ constants to force a better-looking number.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Model &amp; approach</h2>
-      <p class="ctr-text">Wire `price_ode.GlobalODE` (Task 8.1, the hybrid 10-species integrator,
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="objective" data-edit-value="Wire `price_ode.GlobalODE` (Task 8.1, the hybrid 10-species integrator,
+discrepancy #9) into `run.run_global_coupling`&#39;s per-MCS loop: spatial-&gt;
+ODE aggregate push (Task 8.2), ODE-&gt;spatial dynamic sig_1 feedback (Task
+8.3, discrepancy #11), ODE-driven recruitment (Task 8.4, discrepancy
+#12), and NK/CD8 LOCAL+NEARBY cytotoxic killing (Task 8.5). Measure sig_1&#39;s
+dynamic range vs the retired static stub, recruitment inflow/outflow
+rates and population trajectories (default vs boosted eta), and whether
+the nearby-killing term fires via natural recruitment buildup vs a
+documented test-seam override
+(`tests/test_influenza_price_ode.py`, `tests/test_influenza_recruitment.py`,
+`tests/test_influenza_killing.py`, task-8.1 through task-8.5-report.md).
+A minimal in-package figure (`viva_cpm_studies/influenza/viz.py::
+global_coupling_figure`, Task 8.6) renders the systemic ODE species
+(T/X/A/P) and the spatial aggregates (I/M/K/E) plus dynamic sig_1 over
+MCS.
+" data-edit-multiline data-edit-label="Objective">Wire `price_ode.GlobalODE` (Task 8.1, the hybrid 10-species integrator,
 discrepancy #9) into `run.run_global_coupling`&#39;s per-MCS loop: spatial-&gt;
 ODE aggregate push (Task 8.2), ODE-&gt;spatial dynamic sig_1 feedback (Task
 8.3, discrepancy #11), ODE-driven recruitment (Task 8.4, discrepancy
@@ -687,7 +771,8 @@ MCS.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">Every one of this task&#39;s three &#34;resolved&#34; mechanisms hits the SAME root cause the investigation has flagged repeatedly since Increment 5: this engine&#39;s small default-scale patch produces field concentrations and population counts many orders of magnitude below what the source&#39;s literal ODE constants (calibrated at `tot_ec_ODE=250000`, the paper&#39;s full 1mm^2 organ scale) were designed to consume. `eta` (= `num_epithelial / 250000`) is tiny (~1.4e-4) at this driver&#39;s default `side=30`, so every `eta`-scaled coupling term — the cellularized Hill-dissociation constants driving recruitment, the nearby-population surrogates driving the new killing term, and (via `a_11`/`a_12`) the dynamic sig_1 itself — collapses toward zero long before it can produce an observable integer effect within a feasible step budget. This is NOT a new failure mode this task introduced; it is the field-magnitude/ engine-unit-scale gap already recorded in `cytotoxic-killing`&#39;s `main_insight` and `macrophage-response`&#39;s localization numbers, now propagating into the ODE-coupling layer this task adds on top. Increment 9&#39;s capstone calibration needs to treat sig_1, recruitment, and nearby-killing as one COMBINED eta-scale calibration target, not three separate ad hoc corrections.</p>
+      
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="result" data-edit-value="" data-edit-multiline data-edit-label="Result">Every one of this task&#39;s three &#34;resolved&#34; mechanisms hits the SAME root cause the investigation has flagged repeatedly since Increment 5: this engine&#39;s small default-scale patch produces field concentrations and population counts many orders of magnitude below what the source&#39;s literal ODE constants (calibrated at `tot_ec_ODE=250000`, the paper&#39;s full 1mm^2 organ scale) were designed to consume. `eta` (= `num_epithelial / 250000`) is tiny (~1.4e-4) at this driver&#39;s default `side=30`, so every `eta`-scaled coupling term — the cellularized Hill-dissociation constants driving recruitment, the nearby-population surrogates driving the new killing term, and (via `a_11`/`a_12`) the dynamic sig_1 itself — collapses toward zero long before it can produce an observable integer effect within a feasible step budget. This is NOT a new failure mode this task introduced; it is the field-magnitude/ engine-unit-scale gap already recorded in `cytotoxic-killing`&#39;s `main_insight` and `macrophage-response`&#39;s localization numbers, now propagating into the ODE-coupling layer this task adds on top. Increment 9&#39;s capstone calibration needs to treat sig_1, recruitment, and nearby-killing as one COMBINED eta-scale calibration target, not three separate ad hoc corrections.</p>
       
       
       <div class="ov-metrics">
@@ -762,11 +847,16 @@ MCS.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-01">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The macrophage chemokine/IL-10 secretion-scale driver is genuinely
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-01].statement" data-edit-value="The macrophage chemokine/IL-10 secretion-scale driver is genuinely
+dynamic now, computed each MCS from the ODE&#39;s own freshly-integrated
+TNF plus the spatial dead-epithelial count, through the unchanged
+Increment-6 Michaelis functional form (discrepancy #11) -- this
+resolves the static Increment-6 stub as a MECHANISM.
+" data-edit-multiline data-edit-label="Finding F-01">The macrophage chemokine/IL-10 secretion-scale driver is genuinely
 dynamic now, computed each MCS from the ODE&#39;s own freshly-integrated
 TNF plus the spatial dead-epithelial count, through the unchanged
 Increment-6 Michaelis functional form (discrepancy #11) -- this
@@ -794,8 +884,11 @@ resolves the static Increment-6 stub as a MECHANISM.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -819,11 +912,17 @@ resolves the static Increment-6 stub as a MECHANISM.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-partial">
+      <div class="finding-card finding-kind-computational finding-status-partial" id="finding-F-02">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">Reported as a GAP, not hidden (status: partial): at this reduced-
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-02].statement" data-edit-value="Reported as a GAP, not hidden (status: partial): at this reduced-
+scale default (tiny eta), the dynamic sig_1&#39;s MAGNITUDE is far below
+what the retired stub supplied, collapsing macrophage secretion
+regulation to near-zero. This is a field-vs-ODE unit-scale
+calibration gap, not a functional-form or wiring defect -- deferred
+to Increment 9, not tuned away.
+" data-edit-multiline data-edit-label="Finding F-02">Reported as a GAP, not hidden (status: partial): at this reduced-
 scale default (tiny eta), the dynamic sig_1&#39;s MAGNITUDE is far below
 what the retired stub supplied, collapsing macrophage secretion
 regulation to near-zero. This is a field-vs-ODE unit-scale
@@ -850,8 +949,11 @@ to Increment 9, not tuned away.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -875,11 +977,15 @@ to Increment 9, not tuned away.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-03">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">Recruitment is genuinely ODE-driven and preserves the source&#39;s
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-03].statement" data-edit-value="Recruitment is genuinely ODE-driven and preserves the source&#39;s
+documented asymmetry (discrepancy #12): CD8+&#39;s Hill-driven inflow has
+no homeostatic baseline term, unlike macrophage/NK -- implemented
+literally, not symmetrized for convenience.
+" data-edit-multiline data-edit-label="Finding F-03">Recruitment is genuinely ODE-driven and preserves the source&#39;s
 documented asymmetry (discrepancy #12): CD8+&#39;s Hill-driven inflow has
 no homeostatic baseline term, unlike macrophage/NK -- implemented
 literally, not symmetrized for convenience.
@@ -906,8 +1012,11 @@ literally, not symmetrized for convenience.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -931,11 +1040,16 @@ literally, not symmetrized for convenience.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-partial">
+      <div class="finding-card finding-kind-computational finding-status-partial" id="finding-F-04">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">This is the study&#39;s second honest gap: neither the default nor the
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-04].statement" data-edit-value="This is the study&#39;s second honest gap: neither the default nor the
+boosted-eta regime yields chemokine/APC-SIGNAL-driven INTEGER
+population growth within a short run -- a genuine field-vs-ODE-scale
+calibration item, same category as Increment 7&#39;s chemotaxis-lambda
+finding. No recruitment constant was tuned to force growth.
+" data-edit-multiline data-edit-label="Finding F-04">This is the study&#39;s second honest gap: neither the default nor the
 boosted-eta regime yields chemokine/APC-SIGNAL-driven INTEGER
 population growth within a short run -- a genuine field-vs-ODE-scale
 calibration item, same category as Increment 7&#39;s chemotaxis-lambda
@@ -961,8 +1075,11 @@ finding. No recruitment constant was tuned to force growth.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -986,11 +1103,16 @@ finding. No recruitment constant was tuned to force growth.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-05">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The well-mixed nearby-population killing term (`killing.
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-05].statement" data-edit-value="The well-mixed nearby-population killing term (`killing.
+nearby_kill_rate`) is implemented and verified CORRECT: given a
+sufficiently large nearby NK/CD8 surrogate population, the term
+fires and clears infected cells, combining correctly with the
+unchanged Increment-7 LOCAL contact term into one total-rate draw.
+" data-edit-multiline data-edit-label="Finding F-05">The well-mixed nearby-population killing term (`killing.
 nearby_kill_rate`) is implemented and verified CORRECT: given a
 sufficiently large nearby NK/CD8 surrogate population, the term
 fires and clears infected cells, combining correctly with the
@@ -1018,8 +1140,11 @@ unchanged Increment-7 LOCAL contact term into one total-rate draw.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -1043,11 +1168,18 @@ unchanged Increment-7 LOCAL contact term into one total-rate draw.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-partial">
+      <div class="finding-card finding-kind-computational finding-status-partial" id="finding-F-06">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">The study&#39;s third honest gap: at this engine&#39;s default reduced-scale
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-06].statement" data-edit-value="The study&#39;s third honest gap: at this engine&#39;s default reduced-scale
+patch, the NEARBY killing term&#39;s own natural-recruitment-driven
+buildup is orders of magnitude too weak to matter within a feasible
+step budget -- the SAME root cause as F-02/F-04 (tiny eta collapsing
+eta-scaled coupling terms), not a separate defect. The
+initial_K_nb/initial_E_nb test seam (F-05) exists specifically to
+exercise the wiring without waiting on this slow natural buildup.
+" data-edit-multiline data-edit-label="Finding F-06">The study&#39;s third honest gap: at this engine&#39;s default reduced-scale
 patch, the NEARBY killing term&#39;s own natural-recruitment-driven
 buildup is orders of magnitude too weak to matter within a feasible
 step budget -- the SAME root cause as F-02/F-04 (tiny eta collapsing
@@ -1075,8 +1207,11 @@ exercise the wiring without waiting on this slow natural buildup.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -1178,12 +1313,23 @@ exercise the wiring without waiting on this slow natural buildup.
 
 
 <section class="study-tab-panel" data-kind="compose" id="panel-compose" hidden>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-    <h2 class="overview-label" style="margin:0">Model composition</h2>
-    
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'global-coupling', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+  
+  <div class="model-subtabs" role="tablist" aria-label="Model sections">
+    <button type="button" class="model-subtab active" data-modelsub="composition" role="tab" aria-selected="true" onclick="_setModelSubtab('composition')">Composition</button>
+    <button type="button" class="model-subtab" data-modelsub="loom" role="tab" aria-selected="false" onclick="_setModelSubtab('loom')">Loom</button>
+    <button type="button" class="model-subtab" data-modelsub="variants" role="tab" aria-selected="false" onclick="_setModelSubtab('variants')">Variants</button>
+    <button type="button" class="model-subtab" data-modelsub="interventions" role="tab" aria-selected="false" onclick="_setModelSubtab('interventions')">Interventions</button>
+    <button type="button" class="model-subtab" data-modelsub="readouts" role="tab" aria-selected="false" onclick="_setModelSubtab('readouts')">Readouts</button>
   </div>
 
+  
+  <div class="model-subpanel" data-modelsubpanel="loom" hidden>
+    <div id="model-loom-mount" class="model-loom-mount">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading the interactive model diagram…</span></div>
+    </div>
+  </div>
+
+  <div class="model-subpanel active" data-modelsubpanel="composition">
   
   
   <div id="model-composite-cards" class="model-composite-cards" data-study="global-coupling"
@@ -1311,10 +1457,77 @@ composite does (see that study&#39;s own model_change.notes precedent).
   
   
   
-
-
+  </div>
 
   
+  <div class="model-subpanel" data-modelsubpanel="variants" hidden>
+  <div class="overview-section" id="study-variants-section">
+    <p class="msub-intro">A <strong>variant</strong> is a copy of a baseline model with a few parameters changed, run and compared against the baseline. Everything else stays fixed.</p>
+    
+    <div class="msub-empty">No variants yet. Add one below to perturb the baseline and compare against it.</div>
+    
+    
+    <form class="study-variant-add-form msub-addcard" onsubmit="return _submitStudyVariantAdd(this)">
+      <div class="msub-addcard-title">Add a variant</div>
+      <div class="msub-field-grid">
+        <label class="msub-field">
+          <span class="msub-lbl">Name</span>
+          <input name="name" required pattern="[a-zA-Z0-9_-]+" placeholder="hi-dnaa" class="msub-input mono">
+          <span class="msub-hint">letters, numbers, - and _</span>
+        </label>
+        <label class="msub-field">
+          <span class="msub-lbl">Based on</span>
+          <select name="base_composite" class="msub-input">
+            <option value="global-coupling">global-coupling</option>
+          </select>
+          <span class="msub-hint">the baseline this variant perturbs</span>
+        </label>
+        <label class="msub-field msub-field-wide">
+          <span class="msub-lbl">Parameter overrides</span>
+          <input name="overrides" placeholder='{"k_synth": 2.0}' class="msub-input mono">
+          <span class="msub-hint">JSON object of parameter → value; leave blank for none</span>
+        </label>
+      </div>
+      <div class="msub-addcard-foot">
+        <button type="submit" class="action-btn primary">+ Add variant</button>
+        <span class="study-variant-add-status msub-status"></span>
+      </div>
+    </form>
+    
+  </div>
+  </div>
+
+  
+  <div class="model-subpanel" data-modelsubpanel="interventions" hidden>
+  <div class="overview-section" id="study-interventions-section">
+    <p class="msub-intro">An <strong>intervention</strong> is a named, described perturbation applied in this study (e.g. a knockout) — the conceptual change you are testing, documented alongside the model.</p>
+    
+    <div class="msub-empty">No interventions yet. Add one below.</div>
+    
+    <form class="study-intervention-add-form msub-addcard" onsubmit="return _submitStudyInterventionAdd(this)">
+      <div class="msub-addcard-title">Add an intervention</div>
+      <div class="msub-field-grid">
+        <label class="msub-field">
+          <span class="msub-lbl">Name</span>
+          <input name="name" required pattern="[a-zA-Z0-9_-]+" placeholder="knockout-dnaA" class="msub-input mono">
+          <span class="msub-hint">letters, numbers, - and _</span>
+        </label>
+        <label class="msub-field msub-field-wide">
+          <span class="msub-lbl">Description</span>
+          <input name="description" placeholder="what the intervention does" class="msub-input">
+          <span class="msub-hint">a short, human-readable summary</span>
+        </label>
+      </div>
+      <div class="msub-addcard-foot">
+        <button type="submit" class="action-btn primary">+ Add intervention</button>
+        <span class="study-intervention-add-status msub-status"></span>
+      </div>
+    </form>
+  </div>
+  </div>
+
+  
+  <div class="model-subpanel" data-modelsubpanel="readouts" hidden>
   <div class="overview-section" id="model-readouts-section">
     <h3>Readouts</h3>
 
@@ -1343,6 +1556,7 @@ composite does (see that study&#39;s own model_change.notes precedent).
     
   </div>
   </div>
+  </div>
 
 </section>
 
@@ -1362,7 +1576,6 @@ composite does (see that study&#39;s own model_change.notes precedent).
   <button type="button" id="study-run-current-spec" class="action-btn" title="Run this study's CURRENT baseline spec (POST /api/study-run-baseline) as a brand-new run">▶ Run current spec</button>
   <button type="button" id="study-reproduce" class="btn-mini" title="Replay this study's most recent run's RECORDED manifest verbatim (POST /api/study-reproduce) — ignores any study.yaml edits made since">↻ Reproduce</button>
   
-  <button type="button" id="study-run-composite" class="btn-mini" title="Dispatch a specific process-bigraph composite_id to the remote compute backend (pbg-native multi_node/mbp, or the Nextflow campaign path) — advanced, independent of this study's own pinned baseline">⚙ Dispatch composite</button>
 </div>
 
 <div class="overview-section" id="simulations-section">
@@ -1377,6 +1590,12 @@ composite does (see that study&#39;s own model_change.notes precedent).
 <div class="overview-section" id="results-section">
   
   <div id="results-summary" data-study="global-coupling" style="margin:0 0 16px"></div>
+
+  
+  <div id="gate-results-section" data-study="global-coupling" style="margin:0 0 22px" hidden>
+    <h4>Gate results <span class="muted" style="font-size:0.8em;font-weight:normal">— each acceptance test's value, graded from run data</span></h4>
+    <div id="gate-results"></div>
+  </div>
 
   <h4>Latest run preview <span class="muted" style="font-size:0.8em;font-weight:normal">— downsampled sparkline + first/last/min/max per store</span></h4>
   <div id="results-preview" data-study="global-coupling">
@@ -1922,7 +2141,31 @@ pass_if: {"op": "eq", "value": true}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>MECHANISM RESOLVED, MAGNITUDE CALIBRATION PENDING (Increment 9). The
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5" data-edit-kind="study" data-edit-field="conclusion" data-edit-value="MECHANISM RESOLVED, MAGNITUDE CALIBRATION PENDING (Increment 9). The
+hybrid Price-2015 global ODE (10 systemic species, discrepancy #9)
+integrates stably once per MCS, coupled bidirectionally to the spatial
+CPM patch. All three stubs carried since Increments 5-7 are now dynamic,
+source-faithful mechanisms, each individually verified correct: dynamic
+sig_1 (discrepancy #11&#39;s Michaelis form, unchanged, now driven by the
+ODE&#39;s own TNF + spatial dead count), ODE-driven recruitment (discrepancy
+#12&#39;s CD8-no-baseline asymmetry preserved literally), and NK/CD8 killing
+extended with a verified-correct NEARBY term alongside the unchanged
+Increment-7 LOCAL term. This study&#39;s central, deliberately UN-hidden
+finding: at this driver&#39;s small reduced-scale default (eta ~1.4e-4),
+NONE of these three mechanisms&#39; MAGNITUDES yet reconcile with the values
+they replaced (sig_1) or need to produce an observable effect within a
+feasible run (recruitment, nearby-killing) -- a field-vs-ODE unit-scale
+calibration gap, the same root-cause category as Increment 7&#39;s
+chemotaxis-engine-scale correction, deliberately reported as open rather
+than tuned away. Other open items, all recorded not resolved:
+discrepancy #9 (hybrid, not full well-mixed ODE), #10 (spatial-string
+scalings), #7 (resist-direct killing, carried from Increment 7),
+LSODA-approximates-CVODE, the reserve-pool recruitment geometry
+approximation (engine add_cell-after-finalize limitation), and
+2D-approximation geometry. No Figs 3B/5/7 reproduction claim is made --
+that verdict stays PENDING until Increment 9 (the capstone), which needs
+this study&#39;s calibration gaps resolved first.
+" data-edit-multiline data-edit-label="Conclusion"><p>MECHANISM RESOLVED, MAGNITUDE CALIBRATION PENDING (Increment 9). The
 hybrid Price-2015 global ODE (10 systemic species, discrepancy #9)
 integrates stably once per MCS, coupled bidirectionally to the spatial
 CPM patch. All three stubs carried since Increments 5-7 are now dynamic,
@@ -2003,6 +2246,95 @@ this study's calibration gaps resolved first.</p>
     
     
 
+  </div>
+
+  
+  <div class="overview-section" id="study-findings-authoring">
+    <h2 class="overview-label">Record a finding</h2>
+    
+    <ul class="synthesis-list" style="margin:0 0 12px">
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-01" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>The macrophage chemokine/IL-10 secretion-scale driver is genuinely
+dynamic now, computed each MCS from the ODE&#39;s own freshly-integrated
+TNF plus the spatial dead-epithelial count, through the unchanged
+Increment-6 Michaelis functional form (discrepancy #11) -- this
+resolves the static Increment-6 stub as a MECHANISM.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-02" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>Reported as a GAP, not hidden (status: partial): at this reduced-
+scale default (tiny eta), the dynamic sig_1&#39;s MAGNITUDE is far below
+what the retired stub supplied, collapsing macrophage secretion
+regulation to near-zero. This is a field-vs-ODE unit-scale
+calibration gap, not a functional-form or wiring defect -- deferred
+to Increment 9, not tuned away.
+ <span class="muted small">(partial)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-03" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>Recruitment is genuinely ODE-driven and preserves the source&#39;s
+documented asymmetry (discrepancy #12): CD8+&#39;s Hill-driven inflow has
+no homeostatic baseline term, unlike macrophage/NK -- implemented
+literally, not symmetrized for convenience.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-04" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>This is the study&#39;s second honest gap: neither the default nor the
+boosted-eta regime yields chemokine/APC-SIGNAL-driven INTEGER
+population growth within a short run -- a genuine field-vs-ODE-scale
+calibration item, same category as Increment 7&#39;s chemotaxis-lambda
+finding. No recruitment constant was tuned to force growth.
+ <span class="muted small">(partial)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-05" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>The well-mixed nearby-population killing term (`killing.
+nearby_kill_rate`) is implemented and verified CORRECT: given a
+sufficiently large nearby NK/CD8 surrogate population, the term
+fires and clears infected cells, combining correctly with the
+unchanged Increment-7 LOCAL contact term into one total-rate draw.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-06" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>The study&#39;s third honest gap: at this engine&#39;s default reduced-scale
+patch, the NEARBY killing term&#39;s own natural-recruitment-driven
+buildup is orders of magnitude too weak to matter within a feasible
+step budget -- the SAME root cause as F-02/F-04 (tiny eta collapsing
+eta-scaled coupling terms), not a separate defect. The
+initial_K_nb/initial_E_nb test seam (F-05) exists specifically to
+exercise the wiring without waiting on this slow natural buildup.
+ <span class="muted small">(partial)</span></span>
+      </li>
+      
+    </ul>
+    
+    <form class="study-finding-add-form" onsubmit="return _submitStudyFindingAdd(this)" style="display:flex;flex-direction:column;gap:8px;max-width:680px">
+      <textarea name="statement" required rows="2" placeholder="What did this study show? (one sentence)"
+                style="font-size:0.9em;padding:6px 8px;resize:vertical"></textarea>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <label style="font-size:0.78em;color:#475569">Status<br>
+          <select name="status" style="font-size:0.82em;padding:3px 6px">
+            <option value="novel">novel</option>
+            <option value="confirms">confirms literature</option>
+            <option value="partial">partial</option>
+            <option value="contradicts">contradicts</option>
+          </select></label>
+        <label style="font-size:0.78em;color:#475569;flex:1;min-width:200px">Why / mechanism (optional)<br>
+          <input name="explanation" style="width:100%;font-size:0.82em;padding:3px 6px"></label>
+        <button type="submit" class="action-btn" style="font-size:0.82em">+ Add finding</button>
+      </div>
+    </form>
+    <div class="study-finding-add-status muted" style="font-size:0.8em;margin-top:4px"></div>
   </div>
 
   
@@ -2104,11 +2436,13 @@ this study's calibration gaps resolved first.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/workbench", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "932a89cd7a1b95c826c049db95d1b24e68c359a3", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/932a89cd7a1b95c826c049db95d1b24e68c359a3", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-10-28 02:11 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/workbench", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main/workspace", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "18a8e4df320b49c321e5f84d79fa50c9c2fc8064", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/18a8e4df320b49c321e5f84d79fa50c9c2fc8064", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-11-22 02:46 UTC"} };</script>
 <script src="/viva-cpm/workbench/assets/data-source.js"></script>
+<script src="/viva-cpm/workbench/assets/backend-features.js"></script>
 <script src="/viva-cpm/workbench/assets/toast.js"></script>
 <script>
 window._studyName = "global-coupling";
+window.__STUDY_INVESTIGATION__ = "influenza-sego2022";  // owning investigation (feedback save routing)
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.
@@ -2236,7 +2570,14 @@ window._seedFollowupProposal = _seedFollowupProposal;
 <script src="/viva-cpm/workbench/assets/checklist-select.js"></script>
 <script src="/viva-cpm/workbench/assets/progress-track.js"></script>
 <script src="/viva-cpm/workbench/assets/comparison-view.js"></script>
+<!-- The backend launch plugin's script (remote-pinned dispatch + the
+     "Dispatch composite" panel), quarantined out of study-detail.js. Loaded
+     BEFORE it: study-detail.js calls window.SmsLaunch.mount() while it loads,
+     and runs local-only when the file is absent. -->
+<script src="/viva-cpm/workbench/assets/sms-launch.js"></script>
 <script src="/viva-cpm/workbench/assets/study-detail.js"></script>
+<script src="/viva-cpm/workbench/assets/study-feedback.js"></script>
+<script src="/viva-cpm/workbench/assets/inline-edit.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which
 // defines its own navigate-away _seedFollowupStudy). The embedded
@@ -2246,7 +2587,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
 </script>
 <script>
 (function () {
-  // Task 8: the Configure & Run mount and the remote-run (smsvpctest) panel
+  // Task 8: the Configure & Run mount and the remote-run panel
   // were both removed from the Simulate tab — launching now lives entirely
   // in the header buttons (Reproduce / Run current spec). This block used
   // to also mount ConfigureRun into the (now-deleted) mount div and, in an

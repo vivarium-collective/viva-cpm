@@ -16,17 +16,43 @@
 </head>
 <body>
 <main class="study-page">
+
+
 <header class="study-header">
-  <div style="display:flex; align-items:center; gap:14px; justify-content:space-between;">
+  <div style="display:flex; align-items:flex-start; gap:14px; justify-content:space-between;">
+  <div class="study-head-main" style="min-width:0; flex:1 1 auto">
   <div style="display:flex; align-items:center; gap:12px; min-width:0; flex-wrap:wrap">
   <h1 class="study-title" style="margin:0">
-    <span class="study-name" id="study-name" data-slug="epithelial-fate" data-study-kind="computational" title="epithelial-fate">Epithelial death &amp; Allee recovery</span>
+    <span class="study-name" id="study-name" data-slug="epithelial-fate" data-study-kind="computational" title="epithelial-fate" data-edit-kind="study" data-edit-field="title" data-edit-value="Epithelial death &amp; Allee recovery" data-edit-label="Title">Epithelial death &amp; Allee recovery</span>
     
   </h1>
+  </div>
+  <p id="study-question-headline" class="study-question-headline" title="Layered on the validated Increment-2/3 virus field + infection + IFN-
+resistance path: does wiring ALL epithelial fates together -- infection
+(H-&gt;I), infected death (I-&gt;D), and the cellularized Allee effect (H-&gt;D
+death / D-&gt;H recovery, both gated by local contact geometry and
+per-cell resistance) -- produce a coherent cell-fate lifecycle where a
+dead lesion grows via H-&gt;I-&gt;D and dead cells surrounded by healthy
+tissue recover, while dead cells surrounded by dying tissue do not?
+" data-edit-kind="study" data-edit-field="question" data-edit-value="Does wiring infection (H-&gt;I), infected death (I-&gt;D), and the cellularized
+Allee effect (H-&gt;D death / D-&gt;H recovery, both gated by local contact
+geometry) together produce a coherent epithelial-fate lifecycle -- a
+growing dead lesion, population conservation, and correct bidirectional
+Allee response (recovery for well-surrounded D cells, no recovery for
+poorly-surrounded ones) -- on top of the Increment 2/3 virus/infection/IFN
+path?
+" data-edit-multiline data-edit-label="Question"><span class="q-glyph">Q</span> <span class="study-question-headline-text">Layered on the validated Increment-2/3 virus field + infection + IFN-
+resistance path: does wiring ALL epithelial fates together -- infection
+(H-&gt;I), infected death (I-&gt;D), and the cellularized Allee effect (H-&gt;D
+death / D-&gt;H recovery, both gated by local contact geometry and
+per-cell resistance) -- produce a coherent cell-fate lifecycle where a
+dead lesion grows via H-&gt;I-&gt;D and dead cells surrounded by healthy
+tissue recover, while dead cells surrounded by dying tissue do not?
+</span></p>
+  </div>
+  <span class="study-header-actions" style="display:inline-flex; gap:10px; flex-shrink:0; align-items:center;">
     
     <span id="study-axis-markers" data-slug="epithelial-fate" style="display:inline-flex; gap:8px; align-items:center; flex-wrap:wrap"></span>
-  </div>
-  <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0; align-items:center;">
     
     
     
@@ -49,15 +75,6 @@
 
 
 
-
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> Layered on the validated Increment-2/3 virus field + infection + IFN-
-resistance path: does wiring ALL epithelial fates together -- infection
-(H-&gt;I), infected death (I-&gt;D), and the cellularized Allee effect (H-&gt;D
-death / D-&gt;H recovery, both gated by local contact geometry and
-per-cell resistance) -- produce a coherent cell-fate lifecycle where a
-dead lesion grows via H-&gt;I-&gt;D and dead cells surrounded by healthy
-tissue recover, while dead cells surrounded by dying tissue do not?
-</p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
@@ -87,10 +104,18 @@ tissue recover, while dead cells surrounded by dying tissue do not?
   </button>
   
   <span class="study-dl study-export-wrap" style="margin-left:auto; align-self:center; position:relative; display:inline-flex">
-    <button type="button" id="study-export-btn" class="btn-mini" aria-haspopup="true" aria-expanded="false" title="Download this study's figures or a runnable notebook">↓ Export ▾</button>
-    <div id="study-export-menu" role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.14);z-index:70;min-width:200px;padding:4px">
-      <button type="button" id="study-dl-figures" role="menuitem" class="study-jump-item" onclick="window._vivStudyFiguresFromCard(event, 'epithelial-fate')">Download figures</button>
-      <button type="button" id="study-dl-notebook" role="menuitem" class="study-jump-item" onclick="window._vivStudyNotebookFromCard(event, 'epithelial-fate', 'influenza-sego2022')">Download notebook</button>
+    <button type="button" id="study-export-btn" class="btn-mini" aria-haspopup="true" aria-expanded="false" title="Shortcuts — open in the browser or download (report, notebook, figures)">Shortcuts ▾</button>
+    
+    <div id="study-export-menu" role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.14);z-index:70;min-width:190px;padding:4px">
+      <div class="study-export-sec">Report</div>
+      <button type="button" id="study-report-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyReportOpen(event, 'epithelial-fate')">Open in browser</button>
+      <button type="button" id="study-report-dl" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyReportDownload(event, 'epithelial-fate')">Download HTML</button>
+      <div class="study-export-sec">Notebook</div>
+      <button type="button" id="study-nb-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyNotebookOpen(event, 'epithelial-fate')">Open in browser</button>
+      <button type="button" id="study-dl-notebook" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyNotebookFromCard(event, 'epithelial-fate', 'influenza-sego2022')">Download .ipynb</button>
+      <div class="study-export-sec">Figures</div>
+      <button type="button" id="study-fig-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyFiguresOpen(event, 'epithelial-fate')">Open in browser</button>
+      <button type="button" id="study-dl-figures" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyFiguresFromCard(event, 'epithelial-fate')">Download (zip)</button>
     </div>
   </span>
 </nav>
@@ -103,8 +128,18 @@ tissue recover, while dead cells surrounded by dying tissue do not?
 .study-kind-tag.study-kind-biological{background:#ecfdf5;color:#065f46}
 .study-kind-tag.study-kind-computational{background:#eff6ff;color:#1e40af}
 .study-kind-tag.study-kind-theoretical{background:#faf5ff;color:#6b21a8}
-.study-question-headline{margin:6px 0 0 0;font-size:1.05em;line-height:1.5;color:#1e293b;font-family:Georgia,"Times New Roman",serif}
+.study-question-headline{margin:2px 0 0 0;font-size:0.85em;line-height:1.35;color:#475569;font-family:Georgia,"Times New Roman",serif;padding-right:40px}
+/* Park the inline-edit ✎ in a reserved right gutter so it never lands over the
+   question text (the pencil is an absolutely-positioned child of the editable). */
+.study-question-headline>.ie-pencil{right:6px;top:1px}
+h1.study-title .study-name.ie-editable{padding-right:36px}
+h1.study-title .study-name>.ie-pencil{right:4px;top:6px}
 .study-question-headline .q-glyph{display:inline-block;font-size:0.78em;font-weight:700;font-family:ui-monospace,monospace;color:#64748b;background:#f1f5f9;padding:1px 7px;border-radius:4px;margin-right:6px;vertical-align:middle}
+/* Study Export menu — styled to match the investigation-level ↓ Export menu
+   exactly: grey uppercase section labels + full-width, left-aligned, stacked
+   text-link items (not inline pills). Mirrors walkthrough.js `_sec` + `_mi`. */
+.study-export-sec{padding:6px 8px 2px;font-size:0.72em;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8}
+.study-export-item{display:block;width:100%;text-align:left;border:none;background:transparent}
 .status-detail-panel{margin:0;padding:2px 0;background:transparent;border:none;border-radius:0;font-size:0.92em}
 .status-detail-row{display:flex;align-items:center;gap:8px;padding:3px 0}
 .status-detail-axis{min-width:140px;color:#475569;font-size:0.9em}
@@ -242,6 +277,9 @@ tissue recover, while dead cells surrounded by dying tissue do not?
 /* findings */
 .findings-section{padding:14px 16px;background:#fafbff;border:1px solid #c7d2fe;border-radius:8px}
 .finding-card{padding:12px 14px;margin:10px 0;border:1px solid #e2e8f0;border-left:5px solid #6366f1;border-radius:6px;background:#fff}
+/* Brief highlight when an item is reached via a ?ev= evidence deep-link. */
+.ev-flash{animation:ev-flash-kf 1.9s ease-out;scroll-margin-top:12px}
+@keyframes ev-flash-kf{0%{box-shadow:0 0 0 3px #fbbf24}70%{box-shadow:0 0 0 3px rgba(251,191,36,0.45)}100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}}
 .finding-card.finding-status-confirms{border-left-color:#10b981}
 .finding-card.finding-status-partial{border-left-color:#f59e0b}
 .finding-card.finding-status-contradicts{border-left-color:#dc2626}
@@ -550,7 +588,14 @@ tissue recover, while dead cells surrounded by dying tissue do not?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">Wiring infection, infected death, and the cellularized Allee effect
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="claim" data-edit-value="Wiring infection, infected death, and the cellularized Allee effect
+together produces a coherent, population-conserving epithelial-fate
+lifecycle: a dead lesion grows, and dead cells surrounded by healthy
+tissue recover while those surrounded by dying tissue never do. This
+validates the mechanism only, not a reproduction of Sego et al. 2022&#39;s
+figure targets. Direct Allee death is honestly reported as rare at this
+scale, verified genuine rather than a wiring bug.
+" data-edit-multiline data-edit-label="Claim">Wiring infection, infected death, and the cellularized Allee effect
 together produces a coherent, population-conserving epithelial-fate
 lifecycle: a dead lesion grows, and dead cells surrounded by healthy
 tissue recover while those surrounded by dying tissue never do. This
@@ -593,7 +638,14 @@ amplification feedback yet -- all later increments.
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Background</h2>
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item">Does wiring infection (H-&gt;I), infected death (I-&gt;D), and the cellularized
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item" data-edit-kind="study" data-edit-field="question" data-edit-value="Does wiring infection (H-&gt;I), infected death (I-&gt;D), and the cellularized
+Allee effect (H-&gt;D death / D-&gt;H recovery, both gated by local contact
+geometry) together produce a coherent epithelial-fate lifecycle -- a
+growing dead lesion, population conservation, and correct bidirectional
+Allee response (recovery for well-surrounded D cells, no recovery for
+poorly-surrounded ones) -- on top of the Increment 2/3 virus/infection/IFN
+path?
+" data-edit-multiline data-edit-label="Question">Does wiring infection (H-&gt;I), infected death (I-&gt;D), and the cellularized
 Allee effect (H-&gt;D death / D-&gt;H recovery, both gated by local contact
 geometry) together produce a coherent epithelial-fate lifecycle -- a
 growing dead lesion, population conservation, and correct bidirectional
@@ -601,7 +653,17 @@ Allee response (recovery for well-surrounded D cells, no recovery for
 poorly-surrounded ones) -- on top of the Increment 2/3 virus/infection/IFN
 path?
 </span></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item">Layered on the Increment-2/3 virus field + infection + IFN-resistance
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item" data-edit-kind="study" data-edit-field="hypothesis" data-edit-value="Layered on the Increment-2/3 virus field + infection + IFN-resistance
+path: infected cells die at rate `mu_i*(1-resist)` (I-&gt;D), and every H/D
+epithelial cell&#39;s local contact-surface composition (restricted to H/I/D
+neighbors) drives a stochastic Allee death (H-&gt;D, for H cells deeply
+embedded in dead tissue) or recovery (D-&gt;H, for D cells mostly surrounded
+by healthy tissue) rate. This should produce a growing, population-
+conserving dead lesion over time, with D cells embedded in healthy tissue
+recovering and D cells embedded in dying tissue never recovering -- while
+direct Allee death may be rare at reduced (0.3mm) scale given the
+source&#39;s b_h/theta asymmetry.
+" data-edit-multiline data-edit-label="Hypothesis">Layered on the Increment-2/3 virus field + infection + IFN-resistance
 path: infected cells die at rate `mu_i*(1-resist)` (I-&gt;D), and every H/D
 epithelial cell&#39;s local contact-surface composition (restricted to H/I/D
 neighbors) drives a stochastic Allee death (H-&gt;D, for H cells deeply
@@ -618,7 +680,20 @@ source&#39;s b_h/theta asymmetry.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Model &amp; approach</h2>
-      <p class="ctr-text">Wire infected death (Task 4.2, `transitions.infected_death_step`) and the
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="objective" data-edit-value="Wire infected death (Task 4.2, `transitions.infected_death_step`) and the
+cellularized Allee effect (Task 4.3, `viva_cpm_studies/influenza/allee.py`)
+into a new driver, `run.run_epithelial_fate` (Task 4.3), alongside the
+unmodified Increment-2/3 infection + IFN-resistance path, and measure the
+resulting n_H/n_I/n_D series plus the diagnostic n_allee_death/
+n_allee_recovery counters (Task 4.3&#39;s integration tests
+`tests/test_influenza_allee.py::test_lesion_forms_dead_region_grows_over_time`,
+`::test_dead_cell_surrounded_by_uninfected_recovers`,
+`::test_dead_cell_surrounded_by_dying_does_not_recover`, and the fuller
+200/500-step series in task-4.3-report.md). A minimal in-package figure
+(`viva_cpm_studies/influenza/viz.py::epithelial_fate_figure`, Task 4.4)
+renders the cell-type composition over time plus cumulative Allee event
+counts.
+" data-edit-multiline data-edit-label="Objective">Wire infected death (Task 4.2, `transitions.infected_death_step`) and the
 cellularized Allee effect (Task 4.3, `viva_cpm_studies/influenza/allee.py`)
 into a new driver, `run.run_epithelial_fate` (Task 4.3), alongside the
 unmodified Increment-2/3 infection + IFN-resistance path, and measure the
@@ -662,7 +737,8 @@ counts.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">The epithelial-fate lifecycle composes correctly: infection seeds I cells, infected death converts them to D, and D cells embedded in healthy tissue recover to H while D cells embedded in dying tissue do not -- both directions of the Allee branch are independently confirmed, not just the death side. But the TWO Allee branches are structurally asymmetric in how readily they fire at this reduced (0.3mm, ~900-cell) scale: recovery&#39;s deficit term is capped by `(1-theta) ~ 94.7%` and fires readily (3-12 organic events per run), while death&#39;s deficit term is capped by `srf_thresh ~ 5.3%` and additionally scales with contact to an ALREADY-substantial dead pocket, so it only engages for an H cell deeply embedded in dead tissue -- geometrically rare on a small patch within hundreds of updates. That asymmetry is source-literal (both branches share `b_h`, but have very different effective ceilings from `theta` vs `1-theta`), not a bug introduced here.</p>
+      
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="result" data-edit-value="" data-edit-multiline data-edit-label="Result">The epithelial-fate lifecycle composes correctly: infection seeds I cells, infected death converts them to D, and D cells embedded in healthy tissue recover to H while D cells embedded in dying tissue do not -- both directions of the Allee branch are independently confirmed, not just the death side. But the TWO Allee branches are structurally asymmetric in how readily they fire at this reduced (0.3mm, ~900-cell) scale: recovery&#39;s deficit term is capped by `(1-theta) ~ 94.7%` and fires readily (3-12 organic events per run), while death&#39;s deficit term is capped by `srf_thresh ~ 5.3%` and additionally scales with contact to an ALREADY-substantial dead pocket, so it only engages for an H cell deeply embedded in dead tissue -- geometrically rare on a small patch within hundreds of updates. That asymmetry is source-literal (both branches share `b_h`, but have very different effective ceilings from `theta` vs `1-theta`), not a bug introduced here.</p>
       
       
       <div class="ov-metrics">
@@ -712,11 +788,17 @@ counts.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-01">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The full fate lifecycle (infection H-&gt;I, infected death I-&gt;D, Allee
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-01].statement" data-edit-value="The full fate lifecycle (infection H-&gt;I, infected death I-&gt;D, Allee
+death/recovery H&lt;-&gt;D, all wired together each update) composes into a
+coherent, mass-conserving mechanism: the dead lesion grows steadily
+over both a 200- and 500-update horizon, driven overwhelmingly by the
+infection-&gt;death path (H-&gt;I-&gt;D), with population exactly conserved
+throughout. This is the study&#39;s central confirming result.
+" data-edit-multiline data-edit-label="Finding F-01">The full fate lifecycle (infection H-&gt;I, infected death I-&gt;D, Allee
 death/recovery H&lt;-&gt;D, all wired together each update) composes into a
 coherent, mass-conserving mechanism: the dead lesion grows steadily
 over both a 200- and 500-update horizon, driven overwhelmingly by the
@@ -745,8 +827,11 @@ throughout. This is the study&#39;s central confirming result.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -770,11 +855,16 @@ throughout. This is the study&#39;s central confirming result.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-02">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">Allee recovery (D-&gt;H) responds correctly to local contact geometry:
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-02].statement" data-edit-value="Allee recovery (D-&gt;H) responds correctly to local contact geometry:
+a dead cell embedded in healthy tissue recovers, both in a
+deterministic isolated test and organically within the full driver.
+This confirms the recovery branch is not just formally correct but
+actually engages under realistic run conditions.
+" data-edit-multiline data-edit-label="Finding F-02">Allee recovery (D-&gt;H) responds correctly to local contact geometry:
 a dead cell embedded in healthy tissue recovers, both in a
 deterministic isolated test and organically within the full driver.
 This confirms the recovery branch is not just formally correct but
@@ -802,8 +892,11 @@ actually engages under realistic run conditions.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -827,11 +920,17 @@ actually engages under realistic run conditions.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-03">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The negative control confirms recovery is genuinely GATED by local
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-03].statement" data-edit-value="The negative control confirms recovery is genuinely GATED by local
+geometry, not an artifact of &#34;eventually everything recovers given
+enough draws&#34; -- a dead cell with no healthy neighbors has a
+provably, not just empirically, zero recovery rate. Together with
+F-02, this establishes the Allee recovery branch is bidirectionally
+correct.
+" data-edit-multiline data-edit-label="Finding F-03">The negative control confirms recovery is genuinely GATED by local
 geometry, not an artifact of &#34;eventually everything recovers given
 enough draws&#34; -- a dead cell with no healthy neighbors has a
 provably, not just empirically, zero recovery rate. Together with
@@ -860,8 +959,11 @@ correct.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×0.0 vs expected</span>
+              
               
               
             </div>
@@ -885,11 +987,20 @@ correct.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-partial">
+      <div class="finding-card finding-kind-computational finding-status-partial" id="finding-F-04">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">Direct Allee death is honestly reported as essentially absent at this
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-04].statement" data-edit-value="Direct Allee death is honestly reported as essentially absent at this
+reduced (0.3mm, ~900-cell) scale within practically-runnable step
+counts. This is NOT hidden as a clean pass -- it is flagged (status:
+partial) because it only PARTIALLY confirms the expected behavior
+(the rate formula is verified genuinely positive-but-tiny at
+qualifying encounters, ruling out a wiring bug, but the driver never
+actually observes a death event). Structural causes (b_h/theta
+asymmetry, per-update-vs-per-MCS batching) are recorded as an open
+Increment-9 calibration question, not tuned away here.
+" data-edit-multiline data-edit-label="Finding F-04">Direct Allee death is honestly reported as essentially absent at this
 reduced (0.3mm, ~900-cell) scale within practically-runnable step
 counts. This is NOT hidden as a clean pass -- it is flagged (status:
 partial) because it only PARTIALLY confirms the expected behavior
@@ -919,8 +1030,11 @@ Increment-9 calibration question, not tuned away here.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -1022,12 +1136,23 @@ Increment-9 calibration question, not tuned away here.
 
 
 <section class="study-tab-panel" data-kind="compose" id="panel-compose" hidden>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-    <h2 class="overview-label" style="margin:0">Model composition</h2>
-    
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'epithelial-fate', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+  
+  <div class="model-subtabs" role="tablist" aria-label="Model sections">
+    <button type="button" class="model-subtab active" data-modelsub="composition" role="tab" aria-selected="true" onclick="_setModelSubtab('composition')">Composition</button>
+    <button type="button" class="model-subtab" data-modelsub="loom" role="tab" aria-selected="false" onclick="_setModelSubtab('loom')">Loom</button>
+    <button type="button" class="model-subtab" data-modelsub="variants" role="tab" aria-selected="false" onclick="_setModelSubtab('variants')">Variants</button>
+    <button type="button" class="model-subtab" data-modelsub="interventions" role="tab" aria-selected="false" onclick="_setModelSubtab('interventions')">Interventions</button>
+    <button type="button" class="model-subtab" data-modelsub="readouts" role="tab" aria-selected="false" onclick="_setModelSubtab('readouts')">Readouts</button>
   </div>
 
+  
+  <div class="model-subpanel" data-modelsubpanel="loom" hidden>
+    <div id="model-loom-mount" class="model-loom-mount">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading the interactive model diagram…</span></div>
+    </div>
+  </div>
+
+  <div class="model-subpanel active" data-modelsubpanel="composition">
   
   
   <div id="model-composite-cards" class="model-composite-cards" data-study="epithelial-fate"
@@ -1144,10 +1269,77 @@ a live demo, is deferred to a later task/increment.
   
   
   
-
-
+  </div>
 
   
+  <div class="model-subpanel" data-modelsubpanel="variants" hidden>
+  <div class="overview-section" id="study-variants-section">
+    <p class="msub-intro">A <strong>variant</strong> is a copy of a baseline model with a few parameters changed, run and compared against the baseline. Everything else stays fixed.</p>
+    
+    <div class="msub-empty">No variants yet. Add one below to perturb the baseline and compare against it.</div>
+    
+    
+    <form class="study-variant-add-form msub-addcard" onsubmit="return _submitStudyVariantAdd(this)">
+      <div class="msub-addcard-title">Add a variant</div>
+      <div class="msub-field-grid">
+        <label class="msub-field">
+          <span class="msub-lbl">Name</span>
+          <input name="name" required pattern="[a-zA-Z0-9_-]+" placeholder="hi-dnaa" class="msub-input mono">
+          <span class="msub-hint">letters, numbers, - and _</span>
+        </label>
+        <label class="msub-field">
+          <span class="msub-lbl">Based on</span>
+          <select name="base_composite" class="msub-input">
+            <option value="epithelial-fate">epithelial-fate</option>
+          </select>
+          <span class="msub-hint">the baseline this variant perturbs</span>
+        </label>
+        <label class="msub-field msub-field-wide">
+          <span class="msub-lbl">Parameter overrides</span>
+          <input name="overrides" placeholder='{"k_synth": 2.0}' class="msub-input mono">
+          <span class="msub-hint">JSON object of parameter → value; leave blank for none</span>
+        </label>
+      </div>
+      <div class="msub-addcard-foot">
+        <button type="submit" class="action-btn primary">+ Add variant</button>
+        <span class="study-variant-add-status msub-status"></span>
+      </div>
+    </form>
+    
+  </div>
+  </div>
+
+  
+  <div class="model-subpanel" data-modelsubpanel="interventions" hidden>
+  <div class="overview-section" id="study-interventions-section">
+    <p class="msub-intro">An <strong>intervention</strong> is a named, described perturbation applied in this study (e.g. a knockout) — the conceptual change you are testing, documented alongside the model.</p>
+    
+    <div class="msub-empty">No interventions yet. Add one below.</div>
+    
+    <form class="study-intervention-add-form msub-addcard" onsubmit="return _submitStudyInterventionAdd(this)">
+      <div class="msub-addcard-title">Add an intervention</div>
+      <div class="msub-field-grid">
+        <label class="msub-field">
+          <span class="msub-lbl">Name</span>
+          <input name="name" required pattern="[a-zA-Z0-9_-]+" placeholder="knockout-dnaA" class="msub-input mono">
+          <span class="msub-hint">letters, numbers, - and _</span>
+        </label>
+        <label class="msub-field msub-field-wide">
+          <span class="msub-lbl">Description</span>
+          <input name="description" placeholder="what the intervention does" class="msub-input">
+          <span class="msub-hint">a short, human-readable summary</span>
+        </label>
+      </div>
+      <div class="msub-addcard-foot">
+        <button type="submit" class="action-btn primary">+ Add intervention</button>
+        <span class="study-intervention-add-status msub-status"></span>
+      </div>
+    </form>
+  </div>
+  </div>
+
+  
+  <div class="model-subpanel" data-modelsubpanel="readouts" hidden>
   <div class="overview-section" id="model-readouts-section">
     <h3>Readouts</h3>
 
@@ -1176,6 +1368,7 @@ a live demo, is deferred to a later task/increment.
     
   </div>
   </div>
+  </div>
 
 </section>
 
@@ -1195,7 +1388,6 @@ a live demo, is deferred to a later task/increment.
   <button type="button" id="study-run-current-spec" class="action-btn" title="Run this study's CURRENT baseline spec (POST /api/study-run-baseline) as a brand-new run">▶ Run current spec</button>
   <button type="button" id="study-reproduce" class="btn-mini" title="Replay this study's most recent run's RECORDED manifest verbatim (POST /api/study-reproduce) — ignores any study.yaml edits made since">↻ Reproduce</button>
   
-  <button type="button" id="study-run-composite" class="btn-mini" title="Dispatch a specific process-bigraph composite_id to the remote compute backend (pbg-native multi_node/mbp, or the Nextflow campaign path) — advanced, independent of this study's own pinned baseline">⚙ Dispatch composite</button>
 </div>
 
 <div class="overview-section" id="simulations-section">
@@ -1210,6 +1402,12 @@ a live demo, is deferred to a later task/increment.
 <div class="overview-section" id="results-section">
   
   <div id="results-summary" data-study="epithelial-fate" style="margin:0 0 16px"></div>
+
+  
+  <div id="gate-results-section" data-study="epithelial-fate" style="margin:0 0 22px" hidden>
+    <h4>Gate results <span class="muted" style="font-size:0.8em;font-weight:normal">— each acceptance test's value, graded from run data</span></h4>
+    <div id="gate-results"></div>
+  </div>
 
   <h4>Latest run preview <span class="muted" style="font-size:0.8em;font-weight:normal">— downsampled sparkline + first/last/min/max per store</span></h4>
   <div id="results-preview" data-study="epithelial-fate">
@@ -1687,7 +1885,25 @@ pass_if: {"op": "eq", "value": 0.0}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p>MECHANISM VALIDATED, NOT REPRODUCED. The full epithelial-fate lifecycle
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5" data-edit-kind="study" data-edit-field="conclusion" data-edit-value="MECHANISM VALIDATED, NOT REPRODUCED. The full epithelial-fate lifecycle
+(infection H-&gt;I, infected death I-&gt;D, cellularized Allee death H-&gt;D /
+recovery D-&gt;H) composes into a coherent, population-conserving mechanism:
+a dead lesion grows via H-&gt;I-&gt;D (0-&gt;14 at 200 updates, 0-&gt;77 at 500
+updates, same seed=17/0.3mm/900-cell sheet as Increments 2/3), and the
+Allee recovery branch is confirmed bidirectionally correct -- a
+well-surrounded dead cell recovers (deterministically and organically, 3-
+12 events/run), a poorly-surrounded one provably never does. Direct Allee
+death is honestly reported as essentially absent at this scale (0 events
+observed), verified genuine via rate instrumentation rather than a wiring
+bug, and flagged -- not tuned away -- as an open Increment-9 calibration
+question. This increment has infected death using the source&#39;s
+SIMPLIFIED flat mu_i*(1-resist) rate (no ROS/Hill saturation term, per
+the CC3D source&#39;s own docstring), no NK/CD8+ contact-killing (Increment
+7), no chemokine/IL-10 fields, no other immune cells, and no APC-driven
+global IFN amplification, and makes NO claim about matching any of Sego
+et al. 2022&#39;s Figs 3B/5/7 quantitative acceptance bands -- that
+reproduction verdict is PENDING until Increment 9 (the capstone).
+" data-edit-multiline data-edit-label="Conclusion"><p>MECHANISM VALIDATED, NOT REPRODUCED. The full epithelial-fate lifecycle
 (infection H-&gt;I, infected death I-&gt;D, cellularized Allee death H-&gt;D /
 recovery D-&gt;H) composes into a coherent, population-conserving mechanism:
 a dead lesion grows via H-&gt;I-&gt;D (0-&gt;14 at 200 updates, 0-&gt;77 at 500
@@ -1762,6 +1978,79 @@ reproduction verdict is PENDING until Increment 9 (the capstone).</p>
     
     
 
+  </div>
+
+  
+  <div class="overview-section" id="study-findings-authoring">
+    <h2 class="overview-label">Record a finding</h2>
+    
+    <ul class="synthesis-list" style="margin:0 0 12px">
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-01" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>The full fate lifecycle (infection H-&gt;I, infected death I-&gt;D, Allee
+death/recovery H&lt;-&gt;D, all wired together each update) composes into a
+coherent, mass-conserving mechanism: the dead lesion grows steadily
+over both a 200- and 500-update horizon, driven overwhelmingly by the
+infection-&gt;death path (H-&gt;I-&gt;D), with population exactly conserved
+throughout. This is the study&#39;s central confirming result.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-02" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>Allee recovery (D-&gt;H) responds correctly to local contact geometry:
+a dead cell embedded in healthy tissue recovers, both in a
+deterministic isolated test and organically within the full driver.
+This confirms the recovery branch is not just formally correct but
+actually engages under realistic run conditions.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-03" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>The negative control confirms recovery is genuinely GATED by local
+geometry, not an artifact of &#34;eventually everything recovers given
+enough draws&#34; -- a dead cell with no healthy neighbors has a
+provably, not just empirically, zero recovery rate. Together with
+F-02, this establishes the Allee recovery branch is bidirectionally
+correct.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-04" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>Direct Allee death is honestly reported as essentially absent at this
+reduced (0.3mm, ~900-cell) scale within practically-runnable step
+counts. This is NOT hidden as a clean pass -- it is flagged (status:
+partial) because it only PARTIALLY confirms the expected behavior
+(the rate formula is verified genuinely positive-but-tiny at
+qualifying encounters, ruling out a wiring bug, but the driver never
+actually observes a death event). Structural causes (b_h/theta
+asymmetry, per-update-vs-per-MCS batching) are recorded as an open
+Increment-9 calibration question, not tuned away here.
+ <span class="muted small">(partial)</span></span>
+      </li>
+      
+    </ul>
+    
+    <form class="study-finding-add-form" onsubmit="return _submitStudyFindingAdd(this)" style="display:flex;flex-direction:column;gap:8px;max-width:680px">
+      <textarea name="statement" required rows="2" placeholder="What did this study show? (one sentence)"
+                style="font-size:0.9em;padding:6px 8px;resize:vertical"></textarea>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <label style="font-size:0.78em;color:#475569">Status<br>
+          <select name="status" style="font-size:0.82em;padding:3px 6px">
+            <option value="novel">novel</option>
+            <option value="confirms">confirms literature</option>
+            <option value="partial">partial</option>
+            <option value="contradicts">contradicts</option>
+          </select></label>
+        <label style="font-size:0.78em;color:#475569;flex:1;min-width:200px">Why / mechanism (optional)<br>
+          <input name="explanation" style="width:100%;font-size:0.82em;padding:3px 6px"></label>
+        <button type="submit" class="action-btn" style="font-size:0.82em">+ Add finding</button>
+      </div>
+    </form>
+    <div class="study-finding-add-status muted" style="font-size:0.8em;margin-top:4px"></div>
   </div>
 
   
@@ -1846,11 +2135,13 @@ reproduction verdict is PENDING until Increment 9 (the capstone).</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/workbench", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "932a89cd7a1b95c826c049db95d1b24e68c359a3", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/932a89cd7a1b95c826c049db95d1b24e68c359a3", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-10-28 02:11 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/workbench", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main/workspace", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "18a8e4df320b49c321e5f84d79fa50c9c2fc8064", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/18a8e4df320b49c321e5f84d79fa50c9c2fc8064", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-11-22 02:46 UTC"} };</script>
 <script src="/viva-cpm/workbench/assets/data-source.js"></script>
+<script src="/viva-cpm/workbench/assets/backend-features.js"></script>
 <script src="/viva-cpm/workbench/assets/toast.js"></script>
 <script>
 window._studyName = "epithelial-fate";
+window.__STUDY_INVESTIGATION__ = "influenza-sego2022";  // owning investigation (feedback save routing)
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.
@@ -1978,7 +2269,14 @@ window._seedFollowupProposal = _seedFollowupProposal;
 <script src="/viva-cpm/workbench/assets/checklist-select.js"></script>
 <script src="/viva-cpm/workbench/assets/progress-track.js"></script>
 <script src="/viva-cpm/workbench/assets/comparison-view.js"></script>
+<!-- The backend launch plugin's script (remote-pinned dispatch + the
+     "Dispatch composite" panel), quarantined out of study-detail.js. Loaded
+     BEFORE it: study-detail.js calls window.SmsLaunch.mount() while it loads,
+     and runs local-only when the file is absent. -->
+<script src="/viva-cpm/workbench/assets/sms-launch.js"></script>
 <script src="/viva-cpm/workbench/assets/study-detail.js"></script>
+<script src="/viva-cpm/workbench/assets/study-feedback.js"></script>
+<script src="/viva-cpm/workbench/assets/inline-edit.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which
 // defines its own navigate-away _seedFollowupStudy). The embedded
@@ -1988,7 +2286,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
 </script>
 <script>
 (function () {
-  // Task 8: the Configure & Run mount and the remote-run (smsvpctest) panel
+  // Task 8: the Configure & Run mount and the remote-run panel
   // were both removed from the Simulate tab — launching now lives entirely
   // in the header buttons (Reproduce / Run current spec). This block used
   // to also mount ConfigureRun into the (now-deleted) mount div and, in an

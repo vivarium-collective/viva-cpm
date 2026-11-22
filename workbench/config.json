@@ -1,7 +1,6 @@
 {
   "mode": "snapshot",
-  "smsApiBase": "",
   "repo": "https://github.com/vivarium-collective/viva-cpm",
-  "commit": "932a89cd7a1b95c826c049db95d1b24e68c359a3",
+  "commit": "18a8e4df320b49c321e5f84d79fa50c9c2fc8064",
   "generated_from_ref": "main"
 }

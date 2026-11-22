@@ -16,17 +16,54 @@
 </head>
 <body>
 <main class="study-page">
+
+
 <header class="study-header">
-  <div style="display:flex; align-items:center; gap:14px; justify-content:space-between;">
+  <div style="display:flex; align-items:flex-start; gap:14px; justify-content:space-between;">
+  <div class="study-head-main" style="min-width:0; flex:1 1 auto">
   <div style="display:flex; align-items:center; gap:12px; min-width:0; flex-wrap:wrap">
   <h1 class="study-title" style="margin:0">
-    <span class="study-name" id="study-name" data-slug="repro-fig5-viral-load" data-study-kind="computational" title="repro-fig5-viral-load">Reproduction — Fig 5 (viral-load sweep)</span>
+    <span class="study-name" id="study-name" data-slug="repro-fig5-viral-load" data-study-kind="computational" title="repro-fig5-viral-load" data-edit-kind="study" data-edit-field="title" data-edit-value="Reproduction — Fig 5 (viral-load sweep)" data-edit-label="Title">Reproduction — Fig 5 (viral-load sweep)</span>
     
   </h1>
+  </div>
+  <p id="study-question-headline" class="study-question-headline" title="With every mechanism subsystem from Increments 0-8 wired into ONE
+per-MCS loop (`run.run_full_model`, Task 9.1), does sweeping that model
+over Sego-2022 Fig-5&#39;s five initial-viral-load scenarios (1x, 10x, 100x,
+1000x, 10000x the ODE-calibrated dose, uniform virus-field IC, zero
+pre-infected cells) reproduce the paper&#39;s central Fig-5 finding -- a
+MONOTONE, threshold-like dose-response in which the spatial model stays
+non-lethal for multipliers up to 1000x and trends toward lethal
+(near-total uninfected-cell loss) only near 10000x -- and, honestly,
+does a REDUCED-scale sweep (few loads/replicas, a short population and
+run duration, the only scale a fast CI test can afford) show the
+monotone DIRECTION even though it cannot match the digitized bands&#39;
+absolute magnitudes at paper scale?
+" data-edit-kind="study" data-edit-field="question" data-edit-value="Does `run.repro_fig5` (Task 9.3) correctly sweep `run.run_full_model`
+(Task 9.1) over Sego-2022 Fig-5&#39;s initial-viral-load scenarios, evaluate
+EACH load against ONLY that load&#39;s own fig5.json band subset (never the
+unfiltered, multi-scenario list), and reproduce the paper&#39;s central
+monotone, threshold-like dose-response direction -- and, honestly, does a
+REDUCED-scale sweep (the only scale a fast CI test can run) show that
+direction even though it cannot match the digitized bands&#39; absolute
+magnitudes at paper scale?
+" data-edit-multiline data-edit-label="Question"><span class="q-glyph">Q</span> <span class="study-question-headline-text">With every mechanism subsystem from Increments 0-8 wired into ONE
+per-MCS loop (`run.run_full_model`, Task 9.1), does sweeping that model
+over Sego-2022 Fig-5&#39;s five initial-viral-load scenarios (1x, 10x, 100x,
+1000x, 10000x the ODE-calibrated dose, uniform virus-field IC, zero
+pre-infected cells) reproduce the paper&#39;s central Fig-5 finding -- a
+MONOTONE, threshold-like dose-response in which the spatial model stays
+non-lethal for multipliers up to 1000x and trends toward lethal
+(near-total uninfected-cell loss) only near 10000x -- and, honestly,
+does a REDUCED-scale sweep (few loads/replicas, a short population and
+run duration, the only scale a fast CI test can afford) show the
+monotone DIRECTION even though it cannot match the digitized bands&#39;
+absolute magnitudes at paper scale?
+</span></p>
+  </div>
+  <span class="study-header-actions" style="display:inline-flex; gap:10px; flex-shrink:0; align-items:center;">
     
     <span id="study-axis-markers" data-slug="repro-fig5-viral-load" style="display:inline-flex; gap:8px; align-items:center; flex-wrap:wrap"></span>
-  </div>
-  <span class="study-header-actions" style="display:inline-flex; gap:6px; flex-shrink:0; align-items:center;">
     
     
     
@@ -49,20 +86,6 @@
 
 
 
-
-<p id="study-question-headline" class="study-question-headline"><span class="q-glyph">Q</span> With every mechanism subsystem from Increments 0-8 wired into ONE
-per-MCS loop (`run.run_full_model`, Task 9.1), does sweeping that model
-over Sego-2022 Fig-5&#39;s five initial-viral-load scenarios (1x, 10x, 100x,
-1000x, 10000x the ODE-calibrated dose, uniform virus-field IC, zero
-pre-infected cells) reproduce the paper&#39;s central Fig-5 finding -- a
-MONOTONE, threshold-like dose-response in which the spatial model stays
-non-lethal for multipliers up to 1000x and trends toward lethal
-(near-total uninfected-cell loss) only near 10000x -- and, honestly,
-does a REDUCED-scale sweep (few loads/replicas, a short population and
-run duration, the only scale a fast CI test can afford) show the
-monotone DIRECTION even though it cannot match the digitized bands&#39;
-absolute magnitudes at paper scale?
-</p>
 
 <nav class="study-tabs" aria-label="Study sections">
   
@@ -92,10 +115,18 @@ absolute magnitudes at paper scale?
   </button>
   
   <span class="study-dl study-export-wrap" style="margin-left:auto; align-self:center; position:relative; display:inline-flex">
-    <button type="button" id="study-export-btn" class="btn-mini" aria-haspopup="true" aria-expanded="false" title="Download this study's figures or a runnable notebook">↓ Export ▾</button>
-    <div id="study-export-menu" role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.14);z-index:70;min-width:200px;padding:4px">
-      <button type="button" id="study-dl-figures" role="menuitem" class="study-jump-item" onclick="window._vivStudyFiguresFromCard(event, 'repro-fig5-viral-load')">Download figures</button>
-      <button type="button" id="study-dl-notebook" role="menuitem" class="study-jump-item" onclick="window._vivStudyNotebookFromCard(event, 'repro-fig5-viral-load', 'influenza-sego2022')">Download notebook</button>
+    <button type="button" id="study-export-btn" class="btn-mini" aria-haspopup="true" aria-expanded="false" title="Shortcuts — open in the browser or download (report, notebook, figures)">Shortcuts ▾</button>
+    
+    <div id="study-export-menu" role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.14);z-index:70;min-width:190px;padding:4px">
+      <div class="study-export-sec">Report</div>
+      <button type="button" id="study-report-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyReportOpen(event, 'repro-fig5-viral-load')">Open in browser</button>
+      <button type="button" id="study-report-dl" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyReportDownload(event, 'repro-fig5-viral-load')">Download HTML</button>
+      <div class="study-export-sec">Notebook</div>
+      <button type="button" id="study-nb-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyNotebookOpen(event, 'repro-fig5-viral-load')">Open in browser</button>
+      <button type="button" id="study-dl-notebook" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyNotebookFromCard(event, 'repro-fig5-viral-load', 'influenza-sego2022')">Download .ipynb</button>
+      <div class="study-export-sec">Figures</div>
+      <button type="button" id="study-fig-open" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyFiguresOpen(event, 'repro-fig5-viral-load')">Open in browser</button>
+      <button type="button" id="study-dl-figures" role="menuitem" class="btn-mini study-export-item" onclick="window._vivStudyFiguresFromCard(event, 'repro-fig5-viral-load')">Download (zip)</button>
     </div>
   </span>
 </nav>
@@ -108,8 +139,18 @@ absolute magnitudes at paper scale?
 .study-kind-tag.study-kind-biological{background:#ecfdf5;color:#065f46}
 .study-kind-tag.study-kind-computational{background:#eff6ff;color:#1e40af}
 .study-kind-tag.study-kind-theoretical{background:#faf5ff;color:#6b21a8}
-.study-question-headline{margin:6px 0 0 0;font-size:1.05em;line-height:1.5;color:#1e293b;font-family:Georgia,"Times New Roman",serif}
+.study-question-headline{margin:2px 0 0 0;font-size:0.85em;line-height:1.35;color:#475569;font-family:Georgia,"Times New Roman",serif;padding-right:40px}
+/* Park the inline-edit ✎ in a reserved right gutter so it never lands over the
+   question text (the pencil is an absolutely-positioned child of the editable). */
+.study-question-headline>.ie-pencil{right:6px;top:1px}
+h1.study-title .study-name.ie-editable{padding-right:36px}
+h1.study-title .study-name>.ie-pencil{right:4px;top:6px}
 .study-question-headline .q-glyph{display:inline-block;font-size:0.78em;font-weight:700;font-family:ui-monospace,monospace;color:#64748b;background:#f1f5f9;padding:1px 7px;border-radius:4px;margin-right:6px;vertical-align:middle}
+/* Study Export menu — styled to match the investigation-level ↓ Export menu
+   exactly: grey uppercase section labels + full-width, left-aligned, stacked
+   text-link items (not inline pills). Mirrors walkthrough.js `_sec` + `_mi`. */
+.study-export-sec{padding:6px 8px 2px;font-size:0.72em;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8}
+.study-export-item{display:block;width:100%;text-align:left;border:none;background:transparent}
 .status-detail-panel{margin:0;padding:2px 0;background:transparent;border:none;border-radius:0;font-size:0.92em}
 .status-detail-row{display:flex;align-items:center;gap:8px;padding:3px 0}
 .status-detail-axis{min-width:140px;color:#475569;font-size:0.9em}
@@ -247,6 +288,9 @@ absolute magnitudes at paper scale?
 /* findings */
 .findings-section{padding:14px 16px;background:#fafbff;border:1px solid #c7d2fe;border-radius:8px}
 .finding-card{padding:12px 14px;margin:10px 0;border:1px solid #e2e8f0;border-left:5px solid #6366f1;border-radius:6px;background:#fff}
+/* Brief highlight when an item is reached via a ?ev= evidence deep-link. */
+.ev-flash{animation:ev-flash-kf 1.9s ease-out;scroll-margin-top:12px}
+@keyframes ev-flash-kf{0%{box-shadow:0 0 0 3px #fbbf24}70%{box-shadow:0 0 0 3px rgba(251,191,36,0.45)}100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}}
 .finding-card.finding-status-confirms{border-left-color:#10b981}
 .finding-card.finding-status-partial{border-left-color:#f59e0b}
 .finding-card.finding-status-contradicts{border-left-color:#dc2626}
@@ -555,7 +599,14 @@ absolute magnitudes at paper scale?
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Claim</h2>
-      <p class="ctr-text">`repro_fig5` is wired correctly: it sweeps a seeded ensemble of the full
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="claim" data-edit-value="`repro_fig5` is wired correctly: it sweeps a seeded ensemble of the full
+model across Fig-5&#39;s viral-load scenarios and evaluates each load
+against only its own acceptance-band subset. This study does not claim
+Fig-5 is reproduced — at reduced population and run duration, per-load
+band containment fails, though the monotone dose-response direction
+(higher initial viral load, fewer surviving uninfected cells) holds. A
+paper-scale ensemble is required before any reproduction verdict.
+" data-edit-multiline data-edit-label="Claim">`repro_fig5` is wired correctly: it sweeps a seeded ensemble of the full
 model across Fig-5&#39;s viral-load scenarios and evaluates each load
 against only its own acceptance-band subset. This study does not claim
 Fig-5 is reproduced — at reduced population and run duration, per-load
@@ -629,7 +680,15 @@ not a units or IC effect. This does not change the study&#39;s verdict
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Background</h2>
       <div class="ctr-meta">
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item">Does `run.repro_fig5` (Task 9.3) correctly sweep `run.run_full_model`
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Question</span> <span class="ctr-meta-item" data-edit-kind="study" data-edit-field="question" data-edit-value="Does `run.repro_fig5` (Task 9.3) correctly sweep `run.run_full_model`
+(Task 9.1) over Sego-2022 Fig-5&#39;s initial-viral-load scenarios, evaluate
+EACH load against ONLY that load&#39;s own fig5.json band subset (never the
+unfiltered, multi-scenario list), and reproduce the paper&#39;s central
+monotone, threshold-like dose-response direction -- and, honestly, does a
+REDUCED-scale sweep (the only scale a fast CI test can run) show that
+direction even though it cannot match the digitized bands&#39; absolute
+magnitudes at paper scale?
+" data-edit-multiline data-edit-label="Question">Does `run.repro_fig5` (Task 9.3) correctly sweep `run.run_full_model`
 (Task 9.1) over Sego-2022 Fig-5&#39;s initial-viral-load scenarios, evaluate
 EACH load against ONLY that load&#39;s own fig5.json band subset (never the
 unfiltered, multi-scenario list), and reproduce the paper&#39;s central
@@ -638,7 +697,23 @@ REDUCED-scale sweep (the only scale a fast CI test can run) show that
 direction even though it cannot match the digitized bands&#39; absolute
 magnitudes at paper scale?
 </span></div>
-        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item">`run.repro_fig5` correctly wires the per-load ensemble-and-scenario-
+        <div class="ctr-meta-row"><span class="ctr-meta-k">Hypothesis</span> <span class="ctr-meta-item" data-edit-kind="study" data-edit-field="hypothesis" data-edit-value="`run.repro_fig5` correctly wires the per-load ensemble-and-scenario-
+filtered-band-evaluation machinery: for each tested load it runs
+`replicas` seeded `run_full_model` calls with a uniform virus-field IC,
+maps every observable onto fig5&#39;s keys, ensemble-means them, filters
+fig5.json&#39;s observable lists down to that load&#39;s own scenario subset
+(the guard), and produces a well-formed per-load `band_eval`. At REDUCED
+scale (few loads/replicas, a small population, a short duration -- all
+needed to keep the added pytest test fast), the ensemble is NOT expected
+to land in-band against bands digitized from a 10000-cell, 50-replica,
+15-day paper-scale ensemble, but the MONOTONE dose-response direction
+(higher initial viral load -&gt; not-more surviving uninfected fraction)
+should still hold, since it is a qualitative mechanism check independent
+of population/time scale; any near-miss or in-band result at reduced
+scale should be reported as what it is (a coincidence of a wide,
+paper-reported-high-spread band and/or a near-instant collapse that
+happens to land inside it), not oversold as reproduction evidence.
+" data-edit-multiline data-edit-label="Hypothesis">`run.repro_fig5` correctly wires the per-load ensemble-and-scenario-
 filtered-band-evaluation machinery: for each tested load it runs
 `replicas` seeded `run_full_model` calls with a uniform virus-field IC,
 maps every observable onto fig5&#39;s keys, ensemble-means them, filters
@@ -661,7 +736,27 @@ happens to land inside it), not oversold as reproduction evidence.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Model &amp; approach</h2>
-      <p class="ctr-text">Implement `run.repro_fig5(*, loads=(1,10,100,1000,10000), replicas=3,
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="objective" data-edit-value="Implement `run.repro_fig5(*, loads=(1,10,100,1000,10000), replicas=3,
+cells_per_side=35, steps=240, seed0=0) -&gt; dict` (Task 9.3): for each
+`load`, loop `replicas` seeds through `run.run_full_model(
+cells_per_side=cells_per_side, steps=steps, seed=seed0+load_idx*replicas+r,
+init_viral_load=load, init_infection_frac=None)`; map each run&#39;s
+`counts`/`fields`/`ode` sections onto `targets/fig5.json`&#39;s exact 4
+observable keys (`_FIG5_OBSERVABLE_MAP`); ensemble-mean via
+`bands.aggregate_replicas`; filter that load&#39;s own band subset from
+fig5.json&#39;s multi-scenario observable lists (`_fig5_target_subset`,
+raising `ValueError` rather than silently mixing scenarios if a load has
+no matching entries); evaluate via `_evaluate_fig5_subset`. Add
+`tests/test_influenza_full_model.py::test_repro_fig5_viral_load_sweep`
+(reduced: `loads=(1,10000), replicas=1, cells_per_side=12, steps=15`)
+asserting the by_load dict has exactly the tested loads as keys, the
+monotone dose-response holds (`uninfected_final_frac(10000) &lt;=
+uninfected_final_frac(1) + 1e-9`), and `band_eval` is present -- NOT
+that the bands pass, since reduced scale is not expected to. Run that
+same reduced config directly (not the pytest assertions alone) to report
+the actual per-load, per-observable band_eval numbers in this study
+honestly.
+" data-edit-multiline data-edit-label="Objective">Implement `run.repro_fig5(*, loads=(1,10,100,1000,10000), replicas=3,
 cells_per_side=35, steps=240, seed0=0) -&gt; dict` (Task 9.3): for each
 `load`, loop `replicas` seeds through `run.run_full_model(
 cells_per_side=cells_per_side, steps=steps, seed=seed0+load_idx*replicas+r,
@@ -712,7 +807,8 @@ honestly.
 
     <div class="ctr-block">
       <h2 class="overview-label ctr-h">Result</h2>
-      <p class="ctr-text">load=10000&#39;s uninfected_cells/antibodies land FULLY in-band (6/6 each, worst_miss 0) while load=1&#39;s do not (4/6 and 5/6) -- but this is a scale/duration coincidence, not evidence load=10000 is individually better-calibrated: at load=10000 the model&#39;s uninfected count collapses to 0 within the first record (near-total, near-instant infection at this reduced 144-cell scale and uniform-IC seeding), and fig5.json&#39;s own load=10000 bands are the WIDEST and most permissive of any load&#39;s (e.g. t_days=3: lo=50,hi=3000; t_days=15: lo=1,hi=300) precisely because the paper itself reports the highest replica-to-replica spread at the lethal-threshold dose (Sec. 3.3) -- a flat-extrapolated near-zero value happens to sit inside that wide band at every checkpoint. load=1&#39;s bands are comparatively tighter; after the `init_viral_load` IC fix (this update) its reduced-run final infected-cell count (5/144, ~3.5% infected by t~0.068 days) now falls WITHIN the target&#39;s load=1 trajectory range (infected_cells stays in the 1-8 range even at t_days=15) at the final checkpoint, though earlier checkpoints in the band comparison still miss (infected_cells n_in=3/6, worst_miss 1.6667). The honest read: the DIRECTION of the dose-response (more initial virus -&gt; more, faster infection -&gt; fewer surviving uninfected cells) is correctly reproduced by the wired mechanism; the MAGNITUDE/timing match to fig5&#39;s digitized bands is not, driven by population-scale (144 vs 10000 cells) and run-duration (~0.068 vs up to 15 simulated days) mismatch at this reduced config, not by an incorrect mechanism.
+      
+      <p class="ctr-text" data-edit-kind="study" data-edit-field="result" data-edit-value="" data-edit-multiline data-edit-label="Result">load=10000&#39;s uninfected_cells/antibodies land FULLY in-band (6/6 each, worst_miss 0) while load=1&#39;s do not (4/6 and 5/6) -- but this is a scale/duration coincidence, not evidence load=10000 is individually better-calibrated: at load=10000 the model&#39;s uninfected count collapses to 0 within the first record (near-total, near-instant infection at this reduced 144-cell scale and uniform-IC seeding), and fig5.json&#39;s own load=10000 bands are the WIDEST and most permissive of any load&#39;s (e.g. t_days=3: lo=50,hi=3000; t_days=15: lo=1,hi=300) precisely because the paper itself reports the highest replica-to-replica spread at the lethal-threshold dose (Sec. 3.3) -- a flat-extrapolated near-zero value happens to sit inside that wide band at every checkpoint. load=1&#39;s bands are comparatively tighter; after the `init_viral_load` IC fix (this update) its reduced-run final infected-cell count (5/144, ~3.5% infected by t~0.068 days) now falls WITHIN the target&#39;s load=1 trajectory range (infected_cells stays in the 1-8 range even at t_days=15) at the final checkpoint, though earlier checkpoints in the band comparison still miss (infected_cells n_in=3/6, worst_miss 1.6667). The honest read: the DIRECTION of the dose-response (more initial virus -&gt; more, faster infection -&gt; fewer surviving uninfected cells) is correctly reproduced by the wired mechanism; the MAGNITUDE/timing match to fig5&#39;s digitized bands is not, driven by population-scale (144 vs 10000 cells) and run-duration (~0.068 vs up to 15 simulated days) mismatch at this reduced config, not by an incorrect mechanism.
 UNITS FIX (Task-9.3-review MUST-FIX, this update, supersedes the prior &#34;extracellular-virus units mismatch&#34; reading below): the ~1200x extracellular_virus miss this study previously reported at BOTH loads was a STRUCTURAL BUG, not a real calibration/PFU-scale gap -- `repro_fig5` was mapping `run_full_model`&#39;s RAW per-lattice-site SUM of `field_conc` straight to `extracellular_virus`, while `targets/ fig5.json` digitizes that observable as a PER-SITE CONCENTRATION (its t=0 value for a given `viral_load_multiplier` IS that multiplier itself). Reporting the field&#39;s SPATIAL-MEAN concentration instead (`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run&#39;s own `params.dims`) resolves the sites-factor: at the time of this units fix, extracellular_virus&#39;s worst_miss dropped from ~1200 to 0.208 (load=1, 4/6 in-band, not fully) and to 0.0 (load=10000, FULLY IN-BAND, 6/6), and A SMALL, HONEST RESIDUAL remained, not tuned away: at t=0 the spatial-mean model value was ~0.375x the target (e.g. load=1 -&gt; mean 0.375 vs target 1.0; load=10000 -&gt; mean 3750 vs target 10000) -- attributed to the ratio of the seeded PATCH&#39;s site count to the FULL simulation domain&#39;s site count (the domain reserves margin/separation sites around the patch for the immune-cell clusters and recruit reserve pool, per `run_full_model`&#39;s `margin_sites`/`separation_sites`; the virus is seeded only under the patch, so averaging over the larger full-domain lattice dilutes the concentration by the patch/domain area ratio).
 UPDATE (this study.yaml refresh, following the separate `init_viral_load` IC fix that corrected a ~25x initial-condition over-seeding bug): that ~0.375x residual is NO LONGER PRESENT. The ensemble&#39;s t=0 spatial-mean concentration now matches the per-load target almost exactly (load=1: ensemble first=1.0 vs target=1.0; load=10000: ensemble first=10000.0 vs target=10000). extracellular_virus&#39;s containment is now 5/6 (worst_miss 0.0) at load=1 and remains 6/6 (worst_miss 0.0, fully in-band) at load=10000. No constant was tuned and no band was widened; the improvement follows directly from the IC fix, not from any change to `bands.py` or `targets/fig5.json` (both unchanged).</p>
       
@@ -814,11 +910,23 @@ UPDATE (this study.yaml refresh, following the separate `init_viral_load` IC fix
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-01">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">`run.repro_fig5` is wired correctly: it sweeps a seeded ensemble of
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-01].statement" data-edit-value="`run.repro_fig5` is wired correctly: it sweeps a seeded ensemble of
+`run_full_model` per initial viral load with a uniform virus-field
+IC, maps every observable onto `targets/fig5.json`&#39;s exact keys via
+`_FIG5_OBSERVABLE_MAP`, ensemble-means per load with
+`bands.aggregate_replicas`, filters each load&#39;s own scenario-tagged
+band subset via `_fig5_target_subset` (verified to raise `ValueError`
+rather than silently mixing scenarios when a load has no tagged
+entries -- the Task-9.0-review scenario-grouping guard), and produces
+a well-formed per-load and aggregate `band_eval` via
+`_evaluate_fig5_subset` -- the sweep-and-guard machinery itself is
+verified correct and reusable for the Mac-mini Phase-B paper-scale,
+all-5-load run.
+" data-edit-multiline data-edit-label="Finding F-01">`run.repro_fig5` is wired correctly: it sweeps a seeded ensemble of
 `run_full_model` per initial viral load with a uniform virus-field
 IC, maps every observable onto `targets/fig5.json`&#39;s exact keys via
 `_FIG5_OBSERVABLE_MAP`, ensemble-means per load with
@@ -853,8 +961,11 @@ all-5-load run.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -878,11 +989,19 @@ all-5-load run.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-02">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">The MONOTONE dose-response direction -- the qualitative mechanism
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-02].statement" data-edit-value="The MONOTONE dose-response direction -- the qualitative mechanism
+this task&#39;s reduced-scale test is built to check, per the task
+brief&#39;s fidelity criterion -- holds cleanly: seeding a higher initial
+viral load never leaves MORE surviving uninfected cells than a lower
+load, at this reduced 144-cell, 1-replica, ~0.068-day scale. This is
+consistent with (though far smaller-scale than, and not a magnitude
+match for) the paper&#39;s own Sec. 3.3 qualitative narrative that higher
+viral-load multipliers drive progressively worse outcomes.
+" data-edit-multiline data-edit-label="Finding F-02">The MONOTONE dose-response direction -- the qualitative mechanism
 this task&#39;s reduced-scale test is built to check, per the task
 brief&#39;s fidelity criterion -- holds cleanly: seeding a higher initial
 viral load never leaves MORE surviving uninfected cells than a lower
@@ -913,8 +1032,11 @@ viral-load multipliers drive progressively worse outcomes.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -938,11 +1060,37 @@ viral-load multipliers drive progressively worse outcomes.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-partial">
+      <div class="finding-card finding-kind-computational finding-status-partial" id="finding-F-03">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">◐</span>
-            <span class="finding-claim finding-statement">SUPERSEDED IN PART by F-04 (Task-9.3-review units fix, then further
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-03].statement" data-edit-value="SUPERSEDED IN PART by F-04 (Task-9.3-review units fix, then further
+updated by the subsequent init_viral_load IC fix, this update): this
+finding originally reported extracellular_virus missing hardest and
+identically at both loads (worst_miss ~1200) as a &#34;units mismatch&#34;
+attributed to the engine&#39;s virus-field concentration scale. That
+diagnosis was WRONG -- it was a structural raw-sum-vs-mean units BUG
+in `repro_fig5`&#39;s observable mapping (fixed, see F-04), not a genuine
+PFU-equivalent calibration gap. With the bug fixed and, subsequently,
+with the `init_viral_load` ~25x over-seeding IC bug also fixed,
+extracellular_virus is now among the BEST-matching observables (5/6
+at load=1, FULLY in-band at load=10000), and the dominant remaining
+miss driver at load=1 is uninfected_cells (worst_miss 5.5707) and
+infected_cells (worst_miss 1.6667) -- the same population-scale (144
+vs. 10000 cells) and run-duration (~0.068 vs. up to 15 simulated days)
+mismatch `repro_fig3b`&#39;s study documents for its own population
+counts, not a units or PFU-scale issue. This is the study&#39;s honest
+reported GAP (status: partial), not hidden behind the driver&#39;s
+structural correctness (F-01/F-02): at reduced scale, per-load
+`band_eval[&#34;passed&#34;]` is still False for every tested load. load=10000&#39;s
+uninfected_cells/antibodies/extracellular_virus land fully in-band, but
+as `report.main_insight` documents this partly reflects the paper&#39;s
+own widest, highest-spread bands at that load (Sec. 3.3) plus this
+reduced run&#39;s near-instant total-infection collapse, not
+individually-superior calibration at that load. NOT tuned away: no
+constant was adjusted and `targets/fig5.json` was not edited to
+narrow this gap.
+" data-edit-multiline data-edit-label="Finding F-03">SUPERSEDED IN PART by F-04 (Task-9.3-review units fix, then further
 updated by the subsequent init_viral_load IC fix, this update): this
 finding originally reported extracellular_virus missing hardest and
 identically at both loads (worst_miss ~1200) as a &#34;units mismatch&#34;
@@ -989,8 +1137,11 @@ narrow this gap.
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×5.5707 vs expected</span>
+              
               
               
             </div>
@@ -1014,11 +1165,55 @@ narrow this gap.
       
       
       
-      <div class="finding-card finding-kind-computational finding-status-confirms">
+      <div class="finding-card finding-kind-computational finding-status-confirms" id="finding-F-04">
         <details class="finding-details">
           <summary class="finding-row">
             <span class="finding-status-glyph">✓</span>
-            <span class="finding-claim finding-statement">UNITS FIX (Task-9.3-review MUST-FIX): `repro_fig5` (and
+            <span class="finding-claim finding-statement" data-edit-kind="study" data-edit-field="findings[F-04].statement" data-edit-value="UNITS FIX (Task-9.3-review MUST-FIX): `repro_fig5` (and
+`repro_fig3b`/`repro_fig7`) previously mapped `run_full_model`&#39;s
+&#34;fields&#34; section -- a RAW SUM of `world.field_conc(...)` over every
+lattice site, needed as-is by the §4 ODE coupling&#39;s V/F/C/L inputs --
+straight through to the field-typed target observables
+(extracellular_virus, type1_ifn, chemokines, il10), while
+`targets/{fig3b,fig5,fig7}.json` digitizes those as PER-SITE
+CONCENTRATIONS (fig5.json&#39;s t=0 extracellular_virus target for
+viral_load_multiplier=load IS load itself). The raw sum over-reports
+by ~n_lattice_sites (structurally worse at paper scale, more lattice
+sites), which is exactly what F-03 originally (mis)diagnosed as a
+PFU-equivalent calibration gap. `_map_full_model_observables`
+(`viva_cpm_studies/influenza/run.py`) now converts only the 4
+field-typed observables to the SPATIAL-MEAN concentration
+(`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run&#39;s
+own `params.dims`) at the repro-observable-mapping layer -- NOT in
+`run_full_model`&#39;s own recording, which Increments 0-8 and the ODE
+coupling still rely on as a raw sum. This resolves the structural
+sites-factor: extracellular_virus&#39;s worst_miss drops by ~4 orders of
+magnitude at both tested loads, and load=10000&#39;s extracellular_virus
+is now fully in-band (was 0/6). AT THE TIME OF THIS UNITS FIX an
+HONEST RESIDUAL remained, not tuned away: the spatial-mean model
+value at t=0 was consistently ~0.375x the target at both loads --
+attributed to the ratio of the seeded patch&#39;s lattice-site count to
+the full simulation domain&#39;s lattice-site count (`run_full_model`
+reserves margin/separation sites around the patch for the
+immune-cell clusters and recruit reserve pool; the virus is seeded
+only under the patch, so averaging over the larger full-domain
+lattice dilutes it by the patch/domain area ratio), flagged as a
+distinct, real domain-geometry effect.
+
+UPDATE (this study.yaml refresh, following the separate
+`init_viral_load` IC fix that corrected a ~25x initial-condition
+over-seeding bug): that ~0.375x residual is NO LONGER PRESENT. The
+ensemble&#39;s t=0 spatial-mean concentration now matches the per-load
+target almost exactly (load=1: ensemble first=1.0 vs target=1.0;
+load=10000: ensemble first=10000.0 vs target=10000). load=1&#39;s
+extracellular_virus is now 5/6 in-band (worst_miss 0.0), up from 4/6
+(worst_miss 0.208) at the time of the units fix; load=10000 remains
+6/6, worst_miss 0.0. No constant was tuned and no band was widened;
+the improvement follows directly from the IC fix. Verified by the new
+fast regression test
+`test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum`
+(`tests/test_influenza_full_model.py`).
+" data-edit-multiline data-edit-label="Finding F-04">UNITS FIX (Task-9.3-review MUST-FIX): `repro_fig5` (and
 `repro_fig3b`/`repro_fig7`) previously mapped `run_full_model`&#39;s
 &#34;fields&#34; section -- a RAW SUM of `world.field_conc(...)` over every
 lattice site, needed as-is by the §4 ODE coupling&#39;s V/F/C/L inputs --
@@ -1085,8 +1280,11 @@ fast regression test
             </div>
             
             
+            
+            
             <div class="finding-traceability" style="font-size:0.84em;color:#475569;padding:4px 10px;margin:4px 0">
               <span class="finding-divergence" style="font-weight:600">×None vs expected</span>
+              
               
               
             </div>
@@ -1188,12 +1386,23 @@ fast regression test
 
 
 <section class="study-tab-panel" data-kind="compose" id="panel-compose" hidden>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-    <h2 class="overview-label" style="margin:0">Model composition</h2>
-    
-    <button type="button" class="btn-mini" onclick="window._vivStudyNotebookFromCard(event, 'repro-fig5-viral-load', 'influenza-sego2022')" title="Download a runnable Jupyter notebook for THIS study — its composite + editable parameters + figures">↓ notebook</button>
+  
+  <div class="model-subtabs" role="tablist" aria-label="Model sections">
+    <button type="button" class="model-subtab active" data-modelsub="composition" role="tab" aria-selected="true" onclick="_setModelSubtab('composition')">Composition</button>
+    <button type="button" class="model-subtab" data-modelsub="loom" role="tab" aria-selected="false" onclick="_setModelSubtab('loom')">Loom</button>
+    <button type="button" class="model-subtab" data-modelsub="variants" role="tab" aria-selected="false" onclick="_setModelSubtab('variants')">Variants</button>
+    <button type="button" class="model-subtab" data-modelsub="interventions" role="tab" aria-selected="false" onclick="_setModelSubtab('interventions')">Interventions</button>
+    <button type="button" class="model-subtab" data-modelsub="readouts" role="tab" aria-selected="false" onclick="_setModelSubtab('readouts')">Readouts</button>
   </div>
 
+  
+  <div class="model-subpanel" data-modelsubpanel="loom" hidden>
+    <div id="model-loom-mount" class="model-loom-mount">
+      <div class="viv-loading"><span class="viv-loading-spin" aria-hidden="true"></span><span>Loading the interactive model diagram…</span></div>
+    </div>
+  </div>
+
+  <div class="model-subpanel active" data-modelsubpanel="composition">
   
   
   <div id="model-composite-cards" class="model-composite-cards" data-study="repro-fig5-viral-load"
@@ -1309,10 +1518,77 @@ itself is unchanged by this task.
   
   
   
-
-
+  </div>
 
   
+  <div class="model-subpanel" data-modelsubpanel="variants" hidden>
+  <div class="overview-section" id="study-variants-section">
+    <p class="msub-intro">A <strong>variant</strong> is a copy of a baseline model with a few parameters changed, run and compared against the baseline. Everything else stays fixed.</p>
+    
+    <div class="msub-empty">No variants yet. Add one below to perturb the baseline and compare against it.</div>
+    
+    
+    <form class="study-variant-add-form msub-addcard" onsubmit="return _submitStudyVariantAdd(this)">
+      <div class="msub-addcard-title">Add a variant</div>
+      <div class="msub-field-grid">
+        <label class="msub-field">
+          <span class="msub-lbl">Name</span>
+          <input name="name" required pattern="[a-zA-Z0-9_-]+" placeholder="hi-dnaa" class="msub-input mono">
+          <span class="msub-hint">letters, numbers, - and _</span>
+        </label>
+        <label class="msub-field">
+          <span class="msub-lbl">Based on</span>
+          <select name="base_composite" class="msub-input">
+            <option value="repro-fig5-viral-load">repro-fig5-viral-load</option>
+          </select>
+          <span class="msub-hint">the baseline this variant perturbs</span>
+        </label>
+        <label class="msub-field msub-field-wide">
+          <span class="msub-lbl">Parameter overrides</span>
+          <input name="overrides" placeholder='{"k_synth": 2.0}' class="msub-input mono">
+          <span class="msub-hint">JSON object of parameter → value; leave blank for none</span>
+        </label>
+      </div>
+      <div class="msub-addcard-foot">
+        <button type="submit" class="action-btn primary">+ Add variant</button>
+        <span class="study-variant-add-status msub-status"></span>
+      </div>
+    </form>
+    
+  </div>
+  </div>
+
+  
+  <div class="model-subpanel" data-modelsubpanel="interventions" hidden>
+  <div class="overview-section" id="study-interventions-section">
+    <p class="msub-intro">An <strong>intervention</strong> is a named, described perturbation applied in this study (e.g. a knockout) — the conceptual change you are testing, documented alongside the model.</p>
+    
+    <div class="msub-empty">No interventions yet. Add one below.</div>
+    
+    <form class="study-intervention-add-form msub-addcard" onsubmit="return _submitStudyInterventionAdd(this)">
+      <div class="msub-addcard-title">Add an intervention</div>
+      <div class="msub-field-grid">
+        <label class="msub-field">
+          <span class="msub-lbl">Name</span>
+          <input name="name" required pattern="[a-zA-Z0-9_-]+" placeholder="knockout-dnaA" class="msub-input mono">
+          <span class="msub-hint">letters, numbers, - and _</span>
+        </label>
+        <label class="msub-field msub-field-wide">
+          <span class="msub-lbl">Description</span>
+          <input name="description" placeholder="what the intervention does" class="msub-input">
+          <span class="msub-hint">a short, human-readable summary</span>
+        </label>
+      </div>
+      <div class="msub-addcard-foot">
+        <button type="submit" class="action-btn primary">+ Add intervention</button>
+        <span class="study-intervention-add-status msub-status"></span>
+      </div>
+    </form>
+  </div>
+  </div>
+
+  
+  <div class="model-subpanel" data-modelsubpanel="readouts" hidden>
   <div class="overview-section" id="model-readouts-section">
     <h3>Readouts</h3>
 
@@ -1341,6 +1617,7 @@ itself is unchanged by this task.
     
   </div>
   </div>
+  </div>
 
 </section>
 
@@ -1360,7 +1637,6 @@ itself is unchanged by this task.
   <button type="button" id="study-run-current-spec" class="action-btn" title="Run this study's CURRENT baseline spec (POST /api/study-run-baseline) as a brand-new run">▶ Run current spec</button>
   <button type="button" id="study-reproduce" class="btn-mini" title="Replay this study's most recent run's RECORDED manifest verbatim (POST /api/study-reproduce) — ignores any study.yaml edits made since">↻ Reproduce</button>
   
-  <button type="button" id="study-run-composite" class="btn-mini" title="Dispatch a specific process-bigraph composite_id to the remote compute backend (pbg-native multi_node/mbp, or the Nextflow campaign path) — advanced, independent of this study's own pinned baseline">⚙ Dispatch composite</button>
 </div>
 
 <div class="overview-section" id="simulations-section">
@@ -1375,6 +1651,12 @@ itself is unchanged by this task.
 <div class="overview-section" id="results-section">
   
   <div id="results-summary" data-study="repro-fig5-viral-load" style="margin:0 0 16px"></div>
+
+  
+  <div id="gate-results-section" data-study="repro-fig5-viral-load" style="margin:0 0 22px" hidden>
+    <h4>Gate results <span class="muted" style="font-size:0.8em;font-weight:normal">— each acceptance test's value, graded from run data</span></h4>
+    <div id="gate-results"></div>
+  </div>
 
   <h4>Latest run preview <span class="muted" style="font-size:0.8em;font-weight:normal">— downsampled sparkline + first/last/min/max per store</span></h4>
   <div id="results-preview" data-study="repro-fig5-viral-load">
@@ -1723,7 +2005,69 @@ pass_if: {"op": "eq", "value": true}</pre>
     
     <div class="decide-section" style="margin-top:18px">
       <h3 class="overview-label">Conclusion</h3>
-      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5"><p><code>run.repro_fig5</code> (Task 9.3) IS IMPLEMENTED AND WIRED CORRECTLY, INCLUDING
+      <div class="conclusion-md" style="background:#f8fafc;padding:12px;border-left:3px solid #94a3b8;border-radius:3px;font-size:0.9em;line-height:1.5" data-edit-kind="study" data-edit-field="conclusion" data-edit-value="`run.repro_fig5` (Task 9.3) IS IMPLEMENTED AND WIRED CORRECTLY, INCLUDING
+THE SCENARIO-GROUPING GUARD (`_fig5_target_subset`, verified both to
+filter correctly and to raise loudly on an untagged load): it sweeps a
+seeded ensemble of `run_full_model` per initial viral load, maps every
+observable onto `targets/fig5.json`&#39;s exact keys, ensemble-means per load,
+and evaluates EACH load against ONLY that load&#39;s own scenario-tagged band
+subset, verified by `tests/test_influenza_full_model.py::
+test_repro_fig5_viral_load_sweep`. FIG-5 IS NOT REPRODUCED AT THE REDUCED
+SCALE THIS TASK&#39;S FAST TEST USES, AND THIS STUDY DOES NOT CLAIM IT IS: at
+`loads=(1,10000), replicas=1, cells_per_side=12, steps=15, seed0=0` (144
+epithelial cells vs. the target&#39;s 10000; only 2 of the paper&#39;s 5 viral
+loads swept; ~0.068 simulated days vs. the target&#39;s 0.0-15-day checkpoint
+window), per-load `band_eval[&#34;passed&#34;]` is False for both tested loads
+(see `report.key_metrics` for the full per-observable breakdown). The
+MONOTONE dose-response direction this reduced test&#39;s own assertion checks
+holds cleanly (`uninfected_final_frac`: 0.958333 at load=1 -&gt; 0.0 at
+load=10000) -- the qualitative mechanism fidelity criterion the task
+brief specifies for this reduced scale, distinct from and not a substitute
+for per-load band containment at paper scale. THE PAPER-SCALE 50-REPLICA,
+ALL-5-LOAD, 35x35-CELL (10000-cell), ~15-SIMULATED-DAY ENSEMBLE
+(documented in `repro_fig5`&#39;s own docstring, including the corrected
+`steps≈3086` for the full 15-day window, as the Mac-mini Phase-B
+follow-up) IS REQUIRED BEFORE ANY `reproduced` VERDICT FOR FIG 5 CAN BE
+SET. This study&#39;s own verdict stays `documented`, and
+`conclusion_verdicts.biological_validation` stays PENDING. No band was
+widened, no constant was tuned, and `targets/fig5.json` was not edited to
+make any number in this report look better than it is.
+
+UNITS FIX UPDATE (Task-9.3-review MUST-FIX, historical, see F-04):
+extracellular_virus is no longer the dominant miss -- the structural
+raw-sum-vs-mean units bug this study previously (mis)read as a
+PFU-equivalent scale mismatch is fixed, and extracellular_virus lands
+fully in-band at load=10000 and (at that time) 4/6 at load=1 (worst_miss
+0.208-0.0, down from ~1200 at both loads). FIXING THE UNITS DID NOT MAKE
+FIG-5 REPRODUCED -- both loads&#39; `band_eval[&#34;passed&#34;]` was still False,
+driven by population-count observables (infected_cells/uninfected_cells)
+at load=1, the same population-scale/run-duration mismatch already
+documented above; this study&#39;s verdict and
+`conclusion_verdicts.biological_validation` were UNCHANGED (documented/
+PENDING).
+
+INIT_VIRAL_LOAD IC FIX UPDATE (this update): a separate bug in
+`init_viral_load`&#39;s initial condition (over-seeding the virus field ~25x)
+has been fixed and this study&#39;s numbers re-captured against the current
+code. Both per-load `band_eval[&#39;passed&#39;]` remain False, but load=1&#39;s
+containment materially improved: `uninfected_final_frac` is now 0.958333
+(138/144 cells, up from 0.6111 / 88/144), `lethal_threshold` stays 10000,
+and `monotone_dose_response` stays true (0.0 &lt;= 0.958333). Per-observable
+at load=1: uninfected_cells 4/6 (worst_miss 5.5707), infected_cells 3/6
+(worst_miss 1.6667, up from 0/6 worst_miss 35.7), extracellular_virus 5/6
+(worst_miss 0.0, up from 4/6 worst_miss 0.208), antibodies 5/6 (worst_miss
+0.0968). load=10000 is essentially unchanged: uninfected_cells 6/6,
+infected_cells 5/6 (worst_miss 0.037), extracellular_virus 6/6 (worst_miss
+0.0), antibodies 6/6 -- `band_eval[&#39;passed&#39;]` stays False there too
+(infected_cells still misses). The ~0.375x extracellular_virus
+domain-geometry residual F-04 flagged after the units fix is no longer
+present post-IC-fix (the ensemble&#39;s t=0 spatial-mean now matches the
+per-load target almost exactly at both loads; see F-04). This study&#39;s
+verdict stays `documented` and `conclusion_verdicts.biological_validation`
+stays PENDING; the paper-scale Mac-mini Phase-B ensemble is still required
+before any `reproduced` verdict. No band was widened, no constant was
+tuned, and `targets/fig5.json` was not edited.
+" data-edit-multiline data-edit-label="Conclusion"><p><code>run.repro_fig5</code> (Task 9.3) IS IMPLEMENTED AND WIRED CORRECTLY, INCLUDING
 THE SCENARIO-GROUPING GUARD (<code>_fig5_target_subset</code>, verified both to
 filter correctly and to raise loudly on an untagged load): it sweeps a
 seeded ensemble of <code>run_full_model</code> per initial viral load, maps every
@@ -1842,6 +2186,143 @@ tuned, and <code>targets/fig5.json</code> was not edited.</p>
   </div>
 
   
+  <div class="overview-section" id="study-findings-authoring">
+    <h2 class="overview-label">Record a finding</h2>
+    
+    <ul class="synthesis-list" style="margin:0 0 12px">
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-01" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>`run.repro_fig5` is wired correctly: it sweeps a seeded ensemble of
+`run_full_model` per initial viral load with a uniform virus-field
+IC, maps every observable onto `targets/fig5.json`&#39;s exact keys via
+`_FIG5_OBSERVABLE_MAP`, ensemble-means per load with
+`bands.aggregate_replicas`, filters each load&#39;s own scenario-tagged
+band subset via `_fig5_target_subset` (verified to raise `ValueError`
+rather than silently mixing scenarios when a load has no tagged
+entries -- the Task-9.0-review scenario-grouping guard), and produces
+a well-formed per-load and aggregate `band_eval` via
+`_evaluate_fig5_subset` -- the sweep-and-guard machinery itself is
+verified correct and reusable for the Mac-mini Phase-B paper-scale,
+all-5-load run.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-02" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>The MONOTONE dose-response direction -- the qualitative mechanism
+this task&#39;s reduced-scale test is built to check, per the task
+brief&#39;s fidelity criterion -- holds cleanly: seeding a higher initial
+viral load never leaves MORE surviving uninfected cells than a lower
+load, at this reduced 144-cell, 1-replica, ~0.068-day scale. This is
+consistent with (though far smaller-scale than, and not a magnitude
+match for) the paper&#39;s own Sec. 3.3 qualitative narrative that higher
+viral-load multipliers drive progressively worse outcomes.
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-03" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>SUPERSEDED IN PART by F-04 (Task-9.3-review units fix, then further
+updated by the subsequent init_viral_load IC fix, this update): this
+finding originally reported extracellular_virus missing hardest and
+identically at both loads (worst_miss ~1200) as a &#34;units mismatch&#34;
+attributed to the engine&#39;s virus-field concentration scale. That
+diagnosis was WRONG -- it was a structural raw-sum-vs-mean units BUG
+in `repro_fig5`&#39;s observable mapping (fixed, see F-04), not a genuine
+PFU-equivalent calibration gap. With the bug fixed and, subsequently,
+with the `init_viral_load` ~25x over-seeding IC bug also fixed,
+extracellular_virus is now among the BEST-matching observables (5/6
+at load=1, FULLY in-band at load=10000), and the dominant remaining
+miss driver at load=1 is uninfected_cells (worst_miss 5.5707) and
+infected_cells (worst_miss 1.6667) -- the same population-scale (144
+vs. 10000 cells) and run-duration (~0.068 vs. up to 15 simulated days)
+mismatch `repro_fig3b`&#39;s study documents for its own population
+counts, not a units or PFU-scale issue. This is the study&#39;s honest
+reported GAP (status: partial), not hidden behind the driver&#39;s
+structural correctness (F-01/F-02): at reduced scale, per-load
+`band_eval[&#34;passed&#34;]` is still False for every tested load. load=10000&#39;s
+uninfected_cells/antibodies/extracellular_virus land fully in-band, but
+as `report.main_insight` documents this partly reflects the paper&#39;s
+own widest, highest-spread bands at that load (Sec. 3.3) plus this
+reduced run&#39;s near-instant total-infection collapse, not
+individually-superior calibration at that load. NOT tuned away: no
+constant was adjusted and `targets/fig5.json` was not edited to
+narrow this gap.
+ <span class="muted small">(partial)</span></span>
+      </li>
+      
+      <li style="display:flex;align-items:flex-start;gap:8px">
+        <button type="button" class="action-btn study-finding-del" data-id="F-04" title="Delete finding" style="font-size:0.72em;line-height:1;padding:2px 6px">✕</button>
+        <span>UNITS FIX (Task-9.3-review MUST-FIX): `repro_fig5` (and
+`repro_fig3b`/`repro_fig7`) previously mapped `run_full_model`&#39;s
+&#34;fields&#34; section -- a RAW SUM of `world.field_conc(...)` over every
+lattice site, needed as-is by the §4 ODE coupling&#39;s V/F/C/L inputs --
+straight through to the field-typed target observables
+(extracellular_virus, type1_ifn, chemokines, il10), while
+`targets/{fig3b,fig5,fig7}.json` digitizes those as PER-SITE
+CONCENTRATIONS (fig5.json&#39;s t=0 extracellular_virus target for
+viral_load_multiplier=load IS load itself). The raw sum over-reports
+by ~n_lattice_sites (structurally worse at paper scale, more lattice
+sites), which is exactly what F-03 originally (mis)diagnosed as a
+PFU-equivalent calibration gap. `_map_full_model_observables`
+(`viva_cpm_studies/influenza/run.py`) now converts only the 4
+field-typed observables to the SPATIAL-MEAN concentration
+(`sum(field_conc)/n_lattice_sites`, `n_lattice_sites` from this run&#39;s
+own `params.dims`) at the repro-observable-mapping layer -- NOT in
+`run_full_model`&#39;s own recording, which Increments 0-8 and the ODE
+coupling still rely on as a raw sum. This resolves the structural
+sites-factor: extracellular_virus&#39;s worst_miss drops by ~4 orders of
+magnitude at both tested loads, and load=10000&#39;s extracellular_virus
+is now fully in-band (was 0/6). AT THE TIME OF THIS UNITS FIX an
+HONEST RESIDUAL remained, not tuned away: the spatial-mean model
+value at t=0 was consistently ~0.375x the target at both loads --
+attributed to the ratio of the seeded patch&#39;s lattice-site count to
+the full simulation domain&#39;s lattice-site count (`run_full_model`
+reserves margin/separation sites around the patch for the
+immune-cell clusters and recruit reserve pool; the virus is seeded
+only under the patch, so averaging over the larger full-domain
+lattice dilutes it by the patch/domain area ratio), flagged as a
+distinct, real domain-geometry effect.
+
+UPDATE (this study.yaml refresh, following the separate
+`init_viral_load` IC fix that corrected a ~25x initial-condition
+over-seeding bug): that ~0.375x residual is NO LONGER PRESENT. The
+ensemble&#39;s t=0 spatial-mean concentration now matches the per-load
+target almost exactly (load=1: ensemble first=1.0 vs target=1.0;
+load=10000: ensemble first=10000.0 vs target=10000). load=1&#39;s
+extracellular_virus is now 5/6 in-band (worst_miss 0.0), up from 4/6
+(worst_miss 0.208) at the time of the units fix; load=10000 remains
+6/6, worst_miss 0.0. No constant was tuned and no band was widened;
+the improvement follows directly from the IC fix. Verified by the new
+fast regression test
+`test_repro_fig5_extracellular_virus_is_concentration_not_raw_sum`
+(`tests/test_influenza_full_model.py`).
+ <span class="muted small">(confirms)</span></span>
+      </li>
+      
+    </ul>
+    
+    <form class="study-finding-add-form" onsubmit="return _submitStudyFindingAdd(this)" style="display:flex;flex-direction:column;gap:8px;max-width:680px">
+      <textarea name="statement" required rows="2" placeholder="What did this study show? (one sentence)"
+                style="font-size:0.9em;padding:6px 8px;resize:vertical"></textarea>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <label style="font-size:0.78em;color:#475569">Status<br>
+          <select name="status" style="font-size:0.82em;padding:3px 6px">
+            <option value="novel">novel</option>
+            <option value="confirms">confirms literature</option>
+            <option value="partial">partial</option>
+            <option value="contradicts">contradicts</option>
+          </select></label>
+        <label style="font-size:0.78em;color:#475569;flex:1;min-width:200px">Why / mechanism (optional)<br>
+          <input name="explanation" style="width:100%;font-size:0.82em;padding:3px 6px"></label>
+        <button type="submit" class="action-btn" style="font-size:0.82em">+ Add finding</button>
+      </div>
+    </form>
+    <div class="study-finding-add-status muted" style="font-size:0.8em;margin-top:4px"></div>
+  </div>
+
+  
   <div class="overview-section"><h2 class="overview-label">Follow-ups &amp; decisions</h2>
 
     
@@ -1940,11 +2421,13 @@ tuned, and <code>targets/fig5.json</code> was not edited.</p>
 </section>
 
 </main>
-<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/workbench", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "932a89cd7a1b95c826c049db95d1b24e68c359a3", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/932a89cd7a1b95c826c049db95d1b24e68c359a3", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-10-28 02:11 UTC"} };</script>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/viva-cpm", basePath: "/viva-cpm/workbench", inputsDownloadBase: "https://github.com/vivarium-collective/viva-cpm/raw/main/workspace", provenance: {"repo_slug": "vivarium-collective/viva-cpm", "repo_url": "https://github.com/vivarium-collective/viva-cpm", "commit": "18a8e4df320b49c321e5f84d79fa50c9c2fc8064", "commit_url": "https://github.com/vivarium-collective/viva-cpm/commit/18a8e4df320b49c321e5f84d79fa50c9c2fc8064", "branch": "main", "lockfile": "uv.lock@7a7eb1859116", "generated_at": "2026-11-22 02:46 UTC"} };</script>
 <script src="/viva-cpm/workbench/assets/data-source.js"></script>
+<script src="/viva-cpm/workbench/assets/backend-features.js"></script>
 <script src="/viva-cpm/workbench/assets/toast.js"></script>
 <script>
 window._studyName = "repro-fig5-viral-load";
+window.__STUDY_INVESTIGATION__ = "influenza-sego2022";  // owning investigation (feedback save routing)
 window._study = null;  // populated by _bootstrapStudy() in study-detail.js
 
 // Save handler for the Conditions → Model settings editable rows.
@@ -2072,7 +2555,14 @@ window._seedFollowupProposal = _seedFollowupProposal;
 <script src="/viva-cpm/workbench/assets/checklist-select.js"></script>
 <script src="/viva-cpm/workbench/assets/progress-track.js"></script>
 <script src="/viva-cpm/workbench/assets/comparison-view.js"></script>
+<!-- The backend launch plugin's script (remote-pinned dispatch + the
+     "Dispatch composite" panel), quarantined out of study-detail.js. Loaded
+     BEFORE it: study-detail.js calls window.SmsLaunch.mount() while it loads,
+     and runs local-only when the file is absent. -->
+<script src="/viva-cpm/workbench/assets/sms-launch.js"></script>
 <script src="/viva-cpm/workbench/assets/study-detail.js"></script>
+<script src="/viva-cpm/workbench/assets/study-feedback.js"></script>
+<script src="/viva-cpm/workbench/assets/inline-edit.js"></script>
 <script>
 // Re-assert the refresh-aware seed handlers AFTER study-detail.js (which
 // defines its own navigate-away _seedFollowupStudy). The embedded
@@ -2082,7 +2572,7 @@ window._seedFollowupProposal = _seedFollowupProposal;
 </script>
 <script>
 (function () {
-  // Task 8: the Configure & Run mount and the remote-run (smsvpctest) panel
+  // Task 8: the Configure & Run mount and the remote-run panel
   // were both removed from the Simulate tab — launching now lives entirely
   // in the header buttons (Reproduce / Run current spec). This block used
   // to also mount ConfigureRun into the (now-deleted) mount div and, in an
